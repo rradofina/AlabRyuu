@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Dino Stomp</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#14532d;color:#ecfccb;overflow:hidden;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;z-index:9;font-weight:800;background:rgba(0,0,0,.28);padding:8px 12px;border-radius:16px}
+    canvas{display:block;width:100%;height:100%}
+    .cover{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(#14532d,#84cc16);z-index:8;gap:10px;text-align:center;padding:20px}
+    .cover.off{display:none}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:28px;padding:14px 32px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    h1{font-size:clamp(34px,9vw,52px);color:#fff;text-shadow:0 4px 0 #365314}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <div id="hud">Hops 0 · Flowers 0</div>
+  <canvas id="c"></canvas>
+  <div class="cover" id="start">
+    <div style="font-size:72px">🦕</div>
+    <h1>Dino Stomp</h1>
+    <p>Tap to hop logs and rocks. Grab 6 flowers!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div style="font-size:72px">🌼</div>
+    <h1>Dino did it!</h1>
+    <p>Soft hops. Pretty flowers.</p>
+    <button class="play" id="again">Play again</button>
+  </div>
+  <script>
+    function beep(f,d,t){try{var ctx=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=ctx.createOscillator(),g=ctx.createGain();o.type=t||"sine";o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(ctx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d);o.stop(ctx.currentTime+d);}catch(e){}}
+    var cv=document.getElementById("c"),x=cv.getContext("2d");
+    var W,H,play=false,won=false,hops=0,flowers=0,spd=6,t=0;
+    var dino={y:0,vy:0,on:true},obs=[],flo=[],ground;
+    function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;ground=H*0.72;}
+    resize();addEventListener("resize",resize);
+    function reset(){dino.y=ground-70;dino.vy=0;dino.on=true;obs=[];flo=[];hops=0;flowers=0;spd=6;t=0;hud();won=false;}
+    function hud(){document.getElementById("hud").textContent="Hops "+hops+" · Flowers "+flowers+"/6";}
+    function jump(){if(!play||won)return;if(dino.on){dino.vy=-14;dino.on=false;beep(500,.07,"square");}}
+    addEventListener("pointerdown",function(e){if(e.target.closest("a,button"))return;jump();});
+    function spawn(){
+      var kind=Math.random()<.55?"log":"rock";
+      obs.push({x:W+20,w:kind==="log"?70:44,h:kind==="log"?28:40,kind:kind,cleared:false});
+      if(Math.random()<.55)flo.push({x:W+140,y:ground-110-Math.random()*50,got:false});
+    }
+    function loop(){
+      t++;
+      if(play&&!won){
+        if(t%Math.max(48,90-Math.floor(spd*3))===0)spawn();
+        spd=Math.min(11,6+t/400);
+        dino.vy+=0.62;dino.y+=dino.vy;
+        if(dino.y>=ground-70){dino.y=ground-70;dino.vy=0;dino.on=true;}
+        obs.forEach(function(o){
+          o.x-=spd;
+          var dx=90,dy=dino.y,dw=56,dh=70;
+          if(dx<o.x+o.w-8 && dx+dw>o.x+8 && dy+dh>ground-o.h+6 && dino.on){
+            beep(140,.15);dino.y=ground-70;dino.vy=0;dino.on=true;obs=[];flo=flo.filter(function(f){return f.x>200;});
+          } else if(!o.cleared && o.x+o.w<80){o.cleared=true;hops++;beep(700,.06);hud();}
+        });
+        obs=obs.filter(function(o){return o.x>-80;});
+        flo.forEach(function(f){
+          f.x-=spd;
+          if(!f.got && Math.hypot(118-f.x,dino.y+20-f.y)<40){f.got=true;flowers++;beep(880,.1);hud();if(flowers>=6){won=true;play=false;document.getElementById("win").classList.remove("off");beep(990,.25);}}
+        });
+        flo=flo.filter(function(f){return f.x>-40&&!f.got;});
+      }
+      draw();requestAnimationFrame(loop);
+    }
+    function draw(){
+      var g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#7dd3fc");g.addColorStop(.55,"#86efac");g.addColorStop(1,"#166534");
+      x.fillStyle=g;x.fillRect(0,0,W,H);
+      x.fillStyle="#15803d";x.fillRect(0,ground,W,H-ground);
+      x.fillStyle="#4ade80";for(var i=0;i<12;i++)x.fillRect(((i*90-t*spd)%(W+90)),ground-8,16,8);
+      obs.forEach(function(o){
+        x.font=o.kind==="log"?"40px serif":"36px serif";
+        x.fillText(o.kind==="log"?"🪵":"🪨",o.x,ground-4);
+      });
+      flo.forEach(function(f){x.font="28px serif";x.fillText("🌼",f.x,f.y);});
+      x.font="64px serif";x.fillText("🦕",70,dino.y+62);
+    }
+    document.getElementById("go").onclick=function(){document.getElementById("start").classList.add("off");reset();play=true;beep(520,.1);};
+    document.getElementById("again").onclick=function(){document.getElementById("win").classList.add("off");document.getElementById("start").classList.remove("off");};
+    reset();draw();loop();
+  </script>
+</body>
+</html>

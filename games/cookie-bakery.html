@@ -50,7 +50,7 @@
   <script>
     function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Kid",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var A=av(),need=0,look=["🥣","🐀","🍪","🍪✨"],hint=["First, tap the flour!","Now mix it up!","Pop it in the oven!","Pretty sprinkles!"];
+    var A=av(),need=0,look=["🥣","🌀","🍪","🍪✨"],hint=["First, tap the flour!","Now mix it up!","Pop it in the oven!","Pretty sprinkles!"];
     document.getElementById("who").textContent=A.hair+" Baker "+A.name;
     document.querySelectorAll(".steps button").forEach(function(b){
       b.onclick=function(){
