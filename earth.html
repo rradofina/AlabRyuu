@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Little Earth</title>
+  <style>
+    :root {
+      --sky: #070b1a;
+      --card: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      background: var(--sky);
+      color: #fff;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home {
+      position: fixed; top: 14px; left: 14px; z-index: 5;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(255,255,255,.16); padding: 8px 14px; border-radius: 999px;
+    }
+    #stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+        radial-gradient(2px 2px at 80% 20%, #fff, transparent),
+        radial-gradient(1px 1px at 50% 80%, #fff, transparent),
+        radial-gradient(2px 2px at 10% 70%, #cde, transparent),
+        radial-gradient(1px 1px at 70% 50%, #fff, transparent),
+        radial-gradient(2px 2px at 40% 10%, #fff, transparent);
+      opacity: .55;
+      animation: twinkle 4s ease-in-out infinite;
+    }
+    @keyframes twinkle { 50% { opacity: .25; } }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: min(520px, 100vw);
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px 28px;
+      text-align: center;
+      gap: 14px;
+    }
+    .screen.on { display: flex; }
+
+    h1 {
+      font-size: clamp(42px, 10vw, 64px);
+      letter-spacing: -1px;
+      text-shadow: 0 6px 0 #3b1d8f;
+    }
+    .sub { font-size: 22px; opacity: .9; }
+    .btn {
+      border: 0;
+      background: #ffd166;
+      color: #3b2100;
+      font: inherit;
+      font-weight: 800;
+      font-size: 32px;
+      padding: 16px 36px;
+      border-radius: 999px;
+      box-shadow: 0 8px 0 #e09f1f;
+      cursor: pointer;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #e09f1f; }
+    .btn.ghost {
+      background: #7bed9f;
+      box-shadow: 0 8px 0 #2ed573;
+      color: #063;
+    }
+
+    #hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 20px;
+      font-weight: 800;
+    }
+    #era-title { font-size: clamp(26px, 6vw, 34px); text-shadow: 0 3px 0 rgba(0,0,0,.35); }
+    #era-line { font-size: 20px; min-height: 2.4em; }
+
+    .stage {
+      position: relative;
+      width: min(360px, 86vw);
+      height: min(360px, 86vw);
+      margin: 6px 0 8px;
+    }
+    #earth {
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #ffb347, #c0392b 55%, #4a1508);
+      box-shadow:
+        0 0 0 10px rgba(255,255,255,.08),
+        0 20px 40px rgba(0,0,0,.45),
+        inset -18px -10px 30px rgba(0,0,0,.35);
+      transition: background .6s, box-shadow .6s, transform .3s;
+      overflow: hidden;
+    }
+    #earth::after {
+      content: "";
+      position: absolute;
+      inset: 8%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 40%);
+      pointer-events: none;
+    }
+    #earth.pop { animation: pop .28s ease; }
+    @keyframes pop { 50% { transform: scale(1.08); } }
+
+    /* era skins */
+    .e-rock { background: radial-gradient(circle at 35% 30%, #ffb347, #c0392b 55%, #4a1508); }
+    .e-water { background: radial-gradient(circle at 30% 30%, #7fdbff, #1e90ff 45%, #0b3d91); }
+    .e-life { background: radial-gradient(circle at 30% 30%, #9be7ff, #1e90ff 40%, #145a32);
+      box-shadow: 0 0 0 10px rgba(125,237,159,.15), 0 20px 40px rgba(0,0,0,.45); }
+    .e-fish { background: radial-gradient(circle at 30% 30%, #7fdbff, #2980b9 50%, #1a5276); }
+    .e-trees {
+      background:
+        radial-gradient(circle at 28% 30%, #86e7a4 0 14%, transparent 15%),
+        radial-gradient(circle at 62% 42%, #2ecc71 0 18%, transparent 19%),
+        radial-gradient(circle at 44% 68%, #27ae60 0 16%, transparent 17%),
+        radial-gradient(circle at 70% 70%, #1abc9c 0 12%, transparent 13%),
+        radial-gradient(circle at 35% 30%, #7fdbff, #3498db 40%, #1a5276);
+    }
+    .e-dino {
+      background:
+        radial-gradient(circle at 30% 28%, #86e7a4 0 16%, transparent 17%),
+        radial-gradient(circle at 68% 50%, #27ae60 0 20%, transparent 21%),
+        radial-gradient(circle at 48% 72%, #1e8449 0 14%, transparent 15%),
+        radial-gradient(circle at 35% 30%, #ffeaa7, #f39c12 55%, #1a5276);
+    }
+    .e-boom { background: radial-gradient(circle at 40% 40%, #ffeaa7, #e67e22 40%, #2c3e50); filter: saturate(1.2); }
+    .e-animals {
+      background:
+        radial-gradient(circle at 32% 30%, #58d68d 0 16%, transparent 17%),
+        radial-gradient(circle at 66% 48%, #229954 0 18%, transparent 19%),
+        radial-gradient(circle at 46% 74%, #1e8449 0 13%, transparent 14%),
+        radial-gradient(circle at 35% 30%, #aed6f1, #5dade2 45%, #1a5276);
+    }
+    .e-people {
+      background:
+        radial-gradient(circle at 30% 28%, #58d68d 0 15%, transparent 16%),
+        radial-gradient(circle at 70% 46%, #27ae60 0 17%, transparent 18%),
+        radial-gradient(circle at 48% 72%, #1e8449 0 12%, transparent 13%),
+        radial-gradient(circle at 55% 38%, #f7dc6f 0 6%, transparent 7%),
+        radial-gradient(circle at 35% 30%, #aed6f1, #5dade2 45%, #1a5276);
+    }
+
+    #bits { position: absolute; inset: 0; }
+    .bit {
+      position: absolute;
+      font-size: 46px;
+      line-height: 1;
+      cursor: pointer;
+      filter: drop-shadow(0 4px 0 rgba(0,0,0,.25));
+      animation: floaty 2.4s ease-in-out infinite;
+      transition: transform .12s;
+    }
+    .bit:active { transform: scale(1.25); }
+    .bit.gone { animation: burst .28s forwards; pointer-events: none; }
+    @keyframes floaty {
+      0%,100% { transform: translateY(0) rotate(-6deg); }
+      50% { transform: translateY(-10px) rotate(6deg); }
+    }
+    @keyframes burst {
+      to { transform: scale(1.6); opacity: 0; }
+    }
+
+    #bar-wrap {
+      width: min(360px, 86vw);
+      height: 22px;
+      background: rgba(255,255,255,.18);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    #bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #ffd166, #7bed9f);
+      border-radius: inherit;
+      transition: width .25s;
+    }
+    #hint { font-size: 18px; opacity: .85; min-height: 1.4em; }
+
+    #win h1 { text-shadow: 0 6px 0 #0b6; }
+    .confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .confetti i {
+      position: absolute;
+      top: -20px;
+      font-size: 22px;
+      animation: fall 3.2s linear infinite;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <a class="home" href="index.html">← Home</a>
+  <div id="stars"></div>
+
+  <section id="start" class="screen on">
+    <div style="font-size:72px">🌍</div>
+    <h1>Little Earth</h1>
+    <p class="sub">Tap the sparkles.<br>Help the world grow!</p>
+    <button class="btn" id="play">Play!</button>
+  </section>
+
+  <section id="game" class="screen">
+    <div id="hud">
+      <span id="step">1 / 9</span>
+      <span id="score">⭐ 0</span>
+    </div>
+    <div id="era-title">Hot rock</div>
+    <div id="era-line">Earth is a big glowing ball.</div>
+    <div class="stage">
+      <div id="earth" class="e-rock"></div>
+      <div id="bits"></div>
+    </div>
+    <div id="bar-wrap"><div id="bar"></div></div>
+    <div id="hint">Tap the ⭐</div>
+  </section>
+
+  <section id="win" class="screen">
+    <div class="confetti" id="confetti"></div>
+    <div style="font-size:72px">🌏✨</div>
+    <h1>You made the world!</h1>
+    <p class="sub">From a hot rock to people.<br>That took a looooong time.</p>
+    <button class="btn ghost" id="again">Play again</button>
+  </section>
+
+  <script>
+    const eras = [
+      { title: "Hot rock", line: "Earth is a big glowing ball.", hint: "Tap the ⭐", skin: "e-rock", emoji: "⭐", need: 5, say: "Sparkle!" },
+      { title: "Water!", line: "Rain fills the oceans.", hint: "Tap the 💧", skin: "e-water", emoji: "💧", need: 5, say: "Splash!" },
+      { title: "Tiny life", line: "Teeny tiny bugs wake up.", hint: "Tap the ✨", skin: "e-life", emoji: "✨", need: 5, say: "Glow!" },
+      { title: "Fish!", line: "The sea is full of swimmers.", hint: "Tap the 🐟", skin: "e-fish", emoji: "🐟", need: 6, say: "Swim!" },
+      { title: "Trees!", line: "Green things climb onto land.", hint: "Tap the 🌱", skin: "e-trees", emoji: "🌱", need: 6, say: "Grow!" },
+      { title: "Dinos!", line: "Giant friends stomp around.", hint: "Tap the 🦕", skin: "e-dino", emoji: "🦕", need: 6, say: "Stomp!" },
+      { title: "Whoosh rock", line: "A space rock zooms by. Dinos wave bye!", hint: "Tap the ☄️", skin: "e-boom", emoji: "☄️", need: 5, say: "Whoosh!" },
+      { title: "Animals", line: "Furry friends take a turn.", hint: "Tap the 🦊", skin: "e-animals", emoji: "🦊", need: 6, say: "Boop!" },
+      { title: "People!", line: "Hello, humans. That's us!", hint: "Tap the 🏠", skin: "e-people", emoji: "🏠", need: 6, say: "Home!" }
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const earth = $("earth");
+    const bits = $("bits");
+    let i = 0, got = 0, stars = 0, spawnTimer;
+
+    function beep(freq, t) {
+      try {
+        const ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = "sine";
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.12, ac.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + t);
+        o.connect(g); g.connect(ac.destination);
+        o.start(); o.stop(ac.currentTime + t);
+      } catch (e) {}
+    }
+
+    function show(id) {
+      document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"));
+      $(id).classList.add("on");
+    }
+
+    function startGame() {
+      i = 0; got = 0; stars = 0;
+      $("score").textContent = "⭐ 0";
+      show("game");
+      loadEra();
+      beep(440, 0.12);
+    }
+
+    function loadEra() {
+      const e = eras[i];
+      got = 0;
+      $("step").textContent = (i + 1) + " / " + eras.length;
+      $("era-title").textContent = e.title;
+      $("era-line").textContent = e.line;
+      $("hint").textContent = e.hint;
+      $("bar").style.width = "0%";
+      earth.className = e.skin;
+      earth.classList.add("pop");
+      setTimeout(() => earth.classList.remove("pop"), 300);
+      bits.innerHTML = "";
+      clearInterval(spawnTimer);
+      spawn();
+      spawnTimer = setInterval(spawn, 700);
+    }
+
+    function spawn() {
+      const e = eras[i];
+      if (!e) return;
+      if (bits.children.length > 7) return;
+      const el = document.createElement("button");
+      el.className = "bit";
+      el.type = "button";
+      el.textContent = e.emoji;
+      el.style.left = (8 + Math.random() * 72) + "%";
+      el.style.top = (8 + Math.random() * 72) + "%";
+      el.addEventListener("pointerdown", (ev) => {
+        ev.preventDefault();
+        catchBit(el);
+      });
+      bits.appendChild(el);
+      setTimeout(() => { if (el.parentNode && !el.classList.contains("gone")) el.remove(); }, 3200);
+    }
+
+    function catchBit(el) {
+      if (el.classList.contains("gone")) return;
+      el.classList.add("gone");
+      setTimeout(() => el.remove(), 260);
+      got++;
+      stars++;
+      $("score").textContent = "⭐ " + stars;
+      $("bar").style.width = Math.min(100, (got / eras[i].need) * 100) + "%";
+      $("hint").textContent = eras[i].say;
+      earth.classList.add("pop");
+      setTimeout(() => earth.classList.remove("pop"), 280);
+      beep(520 + got * 40, 0.1);
+      if (got >= eras[i].need) nextEra();
+    }
+
+    function nextEra() {
+      clearInterval(spawnTimer);
+      bits.innerHTML = "";
+      beep(660, 0.15);
+      setTimeout(() => beep(880, 0.18), 120);
+      i++;
+      if (i >= eras.length) {
+        win();
+      } else {
+        setTimeout(loadEra, 450);
+      }
+    }
+
+    function win() {
+      show("win");
+      const box = $("confetti");
+      box.innerHTML = "";
+      const bitsEmoji = ["⭐", "🌍", "🐟", "🌱", "🦕", "🦊", "🏠", "✨"];
+      for (let n = 0; n < 24; n++) {
+        const iel = document.createElement("i");
+        iel.textContent = bitsEmoji[n % bitsEmoji.length];
+        iel.style.left = (Math.random() * 100) + "%";
+        iel.style.animationDelay = (Math.random() * 2) + "s";
+        iel.style.animationDuration = (2.4 + Math.random() * 1.6) + "s";
+        box.appendChild(iel);
+      }
+      beep(523, 0.15); setTimeout(() => beep(659, 0.15), 140); setTimeout(() => beep(784, 0.25), 280);
+    }
+
+    $("play").onclick = startGame;
+    $("again").onclick = startGame;
+  </script>
+</body>
+</html>
