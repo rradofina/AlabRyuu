@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Maze Garden</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#14532d;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#bbf7d0,#15803d);padding:56px 12px 20px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(26px,7vw,40px);color:#fff}
+    .msg{font-weight:800;color:#fff;margin:8px}
+    .board{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:min(336px,92vw);margin:10px auto}
+    .cell{aspect-ratio:1;border-radius:10px;background:#86efac;display:grid;place-items:center;font-size:22px}
+    .cell.wall{background:#166534}
+    .pads{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:70px 70px 70px;gap:8px;width:226px;margin:16px auto}
+    .pads button{background:#fefce8;border-radius:18px;font-size:28px;font-weight:800;box-shadow:0 5px 0 #365314}
+    .pads button:active{transform:translateY(3px)}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,20,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Maze Garden</h1>
+  <p class="msg" id="msg">Help the bunny find the carrot!</p>
+  <div class="board" id="board"></div>
+  <div class="pads">
+    <span></span><button id="u">▲</button><span></span>
+    <button id="l">◀</button><button id="wait">🐰</button><button id="r">▶</button>
+    <span></span><button id="d">▼</button><span></span>
+  </div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🥕</div>
+    <h2 id="wint">Yum!</h2>
+    <button class="play" id="again">Play again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var mazes=[
+      ["100001","111011","001001","011101","010001","011111"],
+      ["111100","100111","110001","011101","000101","111111"]
+    ];
+    var starts=[{x:0,y:0},{x:0,y:0}],goals=[{x:5,y:0},{x:5,y:5}];
+    var m=0,px,py,board=document.getElementById("board");
+    function load(){
+      px=starts[m].x;py=starts[m].y;draw();
+      document.getElementById("msg").textContent="Garden "+(m+1)+" of 2";
+    }
+    function draw(){
+      board.innerHTML="";
+      for(var y=0;y<6;y++)for(var x=0;x<6;x++){
+        var d=document.createElement("div");d.className="cell";
+        if(mazes[m][y][x]==="0")d.classList.add("wall");
+        if(x===goals[m].x&&y===goals[m].y)d.textContent="🥕";
+        if(x===px&&y===py)d.textContent="🐰";
+        board.appendChild(d);
+      }
+    }
+    function go(dx,dy){
+      var nx=px+dx,ny=py+dy;
+      if(nx<0||ny<0||nx>5||ny>5||mazes[m][ny][nx]==="0"){beep(160,.08);return;}
+      px=nx;py=ny;beep(520,.06);draw();
+      if(px===goals[m].x&&py===goals[m].y){
+        beep(880,.15);
+        if(m===0){m=1;document.getElementById("msg").textContent="Yum! Next garden!";setTimeout(load,500);}
+        else{document.getElementById("wint").textContent="Two carrots!";document.getElementById("win").classList.add("on");}
+      }
+    }
+    document.getElementById("u").onclick=function(){go(0,-1);};
+    document.getElementById("d").onclick=function(){go(0,1);};
+    document.getElementById("l").onclick=function(){go(-1,0);};
+    document.getElementById("r").onclick=function(){go(1,0);};
+    var sx=0,sy=0;
+    addEventListener("touchstart",function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+    addEventListener("touchend",function(e){
+      var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+      if(Math.hypot(dx,dy)<28)return;
+      if(Math.abs(dx)>Math.abs(dy))go(dx>0?1:-1,0);else go(0,dy>0?1:-1);
+    });
+    document.getElementById("again").onclick=function(){location.reload();};
+    load();
+  </script>
+</body>
+</html>

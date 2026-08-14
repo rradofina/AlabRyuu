@@ -36,7 +36,7 @@
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
     var scene=document.getElementById("scene");
-    var deco=[{e:"🌳",x:8,y:18,s:48},{e:"🌳",x:70,y:10,s:56},{e:"🎻",x:20,y:58,s:28},{e:"🎻",x:40,y:62,s:26},{e:"🥡",x:58,y:68,s:32},{e:"🍎",x:62,y:64,s:20},{e:"☁️",x:30,y:6,s:30},{e:"☁️",x:78,y:8,s:26},{e:"🌸",x:12,y:72,s:22},{e:"🌼",x:80,y:74,s:22},{e:"🍄",x:28,y:78,s:22},{e:"🍃",x:48,y:22,s:24}];
+    var deco=[{e:"🌳",x:8,y:18,s:48},{e:"🌳",x:70,y:10,s:56},{e:"🌻",x:20,y:58,s:28},{e:"🌻",x:40,y:62,s:26},{e:"🥽",x:58,y:68,s:32},{e:"🍎",x:62,y:64,s:20},{e:"☁️",x:30,y:6,s:30},{e:"☁️",x:78,y:8,s:26},{e:"🌸",x:12,y:72,s:22},{e:"🌼",x:80,y:74,s:22},{e:"🍄",x:28,y:78,s:22},{e:"🍃",x:48,y:22,s:24}];
     deco.forEach(function(d){var el=document.createElement("div");el.className="bit";el.textContent=d.e;el.style.left=d.x+"%";el.style.top=d.y+"%";el.style.fontSize=d.s+"px";scene.appendChild(el);});
     var hides=[{e:"🦉",x:72,y:16,n:"owl"},{e:"🐸",x:16,y:80,n:"frog"},{e:"🦔",x:44,y:70,n:"hedgehog"},{e:"🦋",x:38,y:48,n:"butterfly"},{e:"🐿️",x:60,y:58,n:"squirrel"}];
     var found=0,foundList=[0,0,0,0,0];
