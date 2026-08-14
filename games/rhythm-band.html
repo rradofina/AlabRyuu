@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Rhythm Band</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#fff;touch-action:manipulation}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#6d28d9,#f472b6);padding:58px 14px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(28px,8vw,42px)}
+    .msg{font-weight:800;min-height:2.2em;margin:10px}
+    .pads{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:340px;margin:18px auto}
+    .pad{height:120px;border-radius:28px;font-size:52px;box-shadow:0 8px 0 rgba(0,0,0,.25)}
+    .pad:active,.pad.lit{transform:translateY(4px);filter:brightness(1.2)}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,50,.86);z-index:8;gap:12px}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Rhythm Band</h1>
+  <p class="msg" id="msg">Listen, then copy!</p>
+  <div class="pads">
+    <button class="pad" data-i="0" style="background:#ef4444">🥁</button>
+    <button class="pad" data-i="1" style="background:#facc15">🎹</button>
+    <button class="pad" data-i="2" style="background:#22c55e">🔔</button>
+    <button class="pad" data-i="3" style="background:#3b82f6">🎵</button>
+  </div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🎶</div>
+    <h2>Band star!</h2>
+    <button class="play" id="again">Play again</button>
+  </div>
+  <script>
+    function beep(f,d,t){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.type=t||"sine";o.frequency.value=f;g.gain.value=.14;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var freqs=[220,330,440,550],pads=[].slice.call(document.querySelectorAll(".pad"));
+    var round=0,pat=[],step=0,lock=true;
+    function flash(i){pads[i].classList.add("lit");beep(freqs[i],.16,"triangle");setTimeout(function(){pads[i].classList.remove("lit");},180);}
+    function playPat(cb){
+      lock=true;document.getElementById("msg").textContent="Listen…";
+      var i=0;function n(){if(i>=pat.length){lock=false;step=0;document.getElementById("msg").textContent="Your turn! Round "+(round+1)+"/5";if(cb)cb();return;}flash(pat[i]);i++;setTimeout(n,420);}
+      setTimeout(n,400);
+    }
+    function next(){
+      round++;if(round>5){document.getElementById("win").classList.add("on");beep(880,.2);return;}
+      pat=[0,1,2,3].map(function(){return Math.floor(Math.random()*4);});playPat();
+    }
+    pads.forEach(function(b){
+      b.onclick=function(){
+        if(lock)return;
+        var i=+b.dataset.i;flash(i);
+        if(i!==pat[step]){document.getElementById("msg").textContent="Almost! Hear it again.";beep(160,.12);playPat();return;}
+        step++;
+        if(step>=pat.length){document.getElementById("msg").textContent="Nice beat!";setTimeout(next,500);}
+      };
+    });
+    document.getElementById("again").onclick=function(){location.reload();};
+    setTimeout(next,400);
+  </script>
+</body>
+</html>
