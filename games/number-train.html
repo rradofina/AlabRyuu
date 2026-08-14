@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Number Train</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#fff;touch-action:manipulation}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#38bdf8,#1d4ed8);padding:58px 12px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(28px,8vw,42px);text-shadow:0 4px 0 #1e3a8a}
+    .cond{display:inline-flex;align-items:center;gap:8px;margin:8px 0;padding:6px 14px;border-radius:999px;font-weight:800;color:#222}
+    .msg{font-weight:800;margin:8px 0 12px;font-size:20px}
+    .track{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:420px;margin:0 auto}
+    .car{width:72px;height:72px;border-radius:18px;font-size:28px;font-weight:800;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+    .car:active{transform:translateY(3px)}
+    .car.gone{opacity:.25}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,20,60,.84);z-index:8;gap:12px}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Number Train</h1>
+  <div class="cond" id="cond"></div>
+  <p class="msg" id="msg">Tap car 1!</p>
+  <div class="track" id="track"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🚂</div>
+    <h2>Choo choo!</h2>
+    <p id="winline"></p>
+    <button class="play" id="again">Ride again</button>
+  </div>
+  <script>
+    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Kid",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var A=av(),need=1,cols=["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#14b8a6","#3b82f6","#6366f1","#a855f7","#ec4899"];
+    document.getElementById("cond").innerHTML=A.hair+" Conductor "+A.name+" "+A.pet;
+    document.getElementById("cond").style.background=A.shirt;
+    var nums=[1,2,3,4,5,6,7,8,9,10];
+    for(var i=nums.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=nums[i];nums[i]=nums[j];nums[j]=t;}
+    var track=document.getElementById("track");
+    nums.forEach(function(n){
+      var b=document.createElement("button");b.className="car";b.textContent="🚃 "+n;b.style.background=cols[n-1];
+      b.onclick=function(){
+        if(n!==need){beep(180,.1);document.getElementById("msg").textContent="Next is "+need+"!";b.style.transform="translateX(-6px)";setTimeout(function(){b.style.transform="";},120);return;}
+        b.classList.add("gone");b.disabled=true;beep(400+need*40,.1);need++;
+        if(need<=10)document.getElementById("msg").textContent="Tap car "+need+"!";
+        else{document.getElementById("msg").textContent="All aboard!";document.getElementById("winline").textContent=A.name+" counted every car!";document.getElementById("win").classList.add("on");beep(880,.2);}
+      };
+      track.appendChild(b);
+    });
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

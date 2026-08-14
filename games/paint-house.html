@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Paint House</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e1b4b;touch-action:manipulation}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#c4b5fd,#67e8f9);padding:58px 14px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(28px,8vw,42px)}
+    .who{display:inline-flex;gap:6px;padding:6px 12px;border-radius:999px;font-weight:800;margin:8px}
+    .target{display:flex;justify-content:center;gap:8px;margin:8px}
+    .dot{width:28px;height:28px;border-radius:50%;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+    .house{width:min(320px,92vw);margin:10px auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .room{height:110px;border-radius:22px;font-weight:800;font-size:16px;color:#222;box-shadow:0 7px 0 rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .room span{font-size:36px}
+    .room:active{transform:translateY(3px)}
+    .msg{font-weight:800;min-height:2em;margin-top:10px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(30,20,70,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Paint House</h1>
+  <div class="who" id="who"></div>
+  <p class="msg">Match the color dots. Tap a room to paint!</p>
+  <div class="target" id="target"></div>
+  <div class="house" id="house"></div>
+  <p class="msg" id="msg"></p>
+  <div class="win" id="win">
+    <div style="font-size:72px">🏠</div>
+    <h2>Pretty house!</h2>
+    <p id="winline"></p>
+    <button class="play" id="again">Paint again</button>
+  </div>
+  <script>
+    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Kid",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var A=av(),cols=["#fca5a5","#fde68a","#86efac","#93c5fd","#d8b4fe","#f9a8d4"];
+    var rooms=[{n:"Kitchen",e:"🍳"},{n:"Bedroom",e:"🛏️"},{n:"Bath",e:"🛁"},{n:"Garden",e:"🌻"}];
+    var goal=rooms.map(function(){return Math.floor(Math.random()*cols.length);});
+    var cur=rooms.map(function(){return 0;});if(goal.every(function(v,i){return v===0;}))goal[0]=2;
+    document.getElementById("who").innerHTML=A.hair+" Painter "+A.name;
+    document.getElementById("who").style.background=A.shirt;
+    var tg=document.getElementById("target");
+    goal.forEach(function(g){var d=document.createElement("div");d.className="dot";d.style.background=cols[g];tg.appendChild(d);});
+    var house=document.getElementById("house");
+    rooms.forEach(function(r,i){
+      var b=document.createElement("button");b.className="room";
+      function paint(){b.style.background=cols[cur[i]];b.innerHTML="<span>"+r.e+"</span>"+r.n;}
+      paint();
+      b.onclick=function(){cur[i]=(cur[i]+1)%cols.length;paint();beep(420+cur[i]*40,.08);check();};
+      house.appendChild(b);
+    });
+    function check(){
+      var ok=cur.every(function(v,i){return v===goal[i];});
+      if(ok){document.getElementById("winline").textContent=A.name+" painted a cozy home for "+A.pet+"!";document.getElementById("win").classList.add("on");beep(880,.2);}
+    }
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Pet Park</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#163;touch-action:manipulation}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#87ceeb 0 38%,#86efac 38% 70%,#4ade80 70%);padding:60px 16px 28px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(30px,8vw,44px);color:#14532d;text-shadow:0 3px 0 #bbf7d0}
+    .who{display:inline-flex;align-items:center;gap:8px;margin:10px 0 8px;padding:6px 14px;border-radius:999px;font-weight:800;color:#222}
+    .park{position:relative;width:min(340px,92vw);height:280px;margin:8px auto;border-radius:32px;background:linear-gradient(#7dd3fc,#86efac);box-shadow:0 10px 0 #15803d;overflow:hidden}
+    .sun{position:absolute;top:12px;right:16px;font-size:40px}
+    .pet{position:absolute;left:50%;bottom:36px;transform:translateX(-50%);font-size:96px;transition:transform .25s}
+    .pet.bounce{animation:bo .4s}
+    .pet.sleep{filter:grayscale(.2);transform:translateX(-50%) rotate(-12deg)}
+    @keyframes bo{50%{transform:translateX(-50%) scale(1.15) translateY(-18px)}}
+    .hearts{font-size:32px;margin:8px;letter-spacing:6px}
+    .acts{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+    .acts button{width:96px;height:96px;border-radius:28px;background:#fff7ed;box-shadow:0 7px 0 #fdba74;font-size:18px;font-weight:800;color:#7c2d12}
+    .acts button span{display:block;font-size:36px}
+    .acts button:active{transform:translateY(4px);box-shadow:0 3px 0 #fdba74}
+    .acts button.used{opacity:.45}
+    .msg{min-height:2.2em;font-weight:800;font-size:20px;color:#14532d;margin-top:10px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,40,20,.82);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Pet Park</h1>
+  <div class="who" id="who"></div>
+  <div class="park">
+    <div class="sun">☀️</div>
+    <div class="pet" id="pet">🐶</div>
+  </div>
+  <div class="hearts" id="hearts">🤍 🤍 🤍</div>
+  <p class="msg" id="msg">Feed, play, then nap!</p>
+  <div class="acts">
+    <button id="feed"><span>🍎</span>Feed</button>
+    <button id="playb"><span>🎾</span>Play</button>
+    <button id="nap"><span>😴</span>Nap</button>
+  </div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🎉</div>
+    <h2>Happy pet!</h2>
+    <p id="winline"></p>
+    <button class="play" id="again">Play again</button>
+  </div>
+  <script>
+    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Kid",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
+    function beep(f,d,t){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.type=t||"sine";o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var A=av(),done={feed:0,play:0,nap:0};
+    document.getElementById("who").innerHTML=A.hair+" "+A.name+"'s park";
+    document.getElementById("who").style.background=A.shirt;
+    document.getElementById("pet").textContent=A.pet||"🐶";
+    function hearts(){var n=done.feed+done.play+done.nap;document.getElementById("hearts").textContent=[0,1,2].map(function(i){return n>i?"❤️":"🤍";}).join(" ");}
+    function act(k,txt,fn){
+      if(done[k])return;
+      done[k]=1;document.getElementById(k==="play"?"playb":k).classList.add("used");
+      fn();document.getElementById("msg").textContent=txt;hearts();beep(520+nTone(),.12);
+      if(done.feed+done.play+done.nap===3){setTimeout(win,400);}
+    }
+    function nTone(){return (done.feed+done.play+done.nap)*80;}
+    document.getElementById("feed").onclick=function(){act("feed",A.name+" gave a crunchy apple!",function(){document.getElementById("pet").className="pet bounce";beep(660,.1);});};
+    document.getElementById("playb").onclick=function(){act("play",A.pet+" chased the ball. Zoom!",function(){document.getElementById("pet").className="pet bounce";beep(740,.1);});};
+    document.getElementById("nap").onclick=function(){act("nap","Shhh. Sweet dreams, little pal.",function(){document.getElementById("pet").className="pet sleep";beep(320,.2,"triangle");});};
+    function win(){document.getElementById("winline").textContent=A.name+" and "+A.pet+" are best friends!";document.getElementById("win").classList.add("on");beep(880,.2);}
+    document.getElementById("again").onclick=function(){location.reload();};
+    hearts();
+  </script>
+</body>
+</html>
