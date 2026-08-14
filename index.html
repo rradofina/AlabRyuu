@@ -13,6 +13,10 @@
       color: #fff;
       touch-action: manipulation;
     }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
     body {
       background:
         radial-gradient(circle at 20% 0%, #5b2cff 0%, transparent 40%),
@@ -20,7 +24,7 @@
         #0b0830;
       padding: 28px 18px 48px;
     }
-    header { text-align: center; margin-bottom: 28px; }
+    header { text-align: center; margin-bottom: 18px; }
     .logo { font-size: 42px; line-height: 1; }
     h1 {
       font-size: clamp(36px, 9vw, 52px);
@@ -28,6 +32,25 @@
       text-shadow: 0 5px 0 #3b1d8f;
     }
     .sub { opacity: .85; font-size: 18px; margin-top: 6px; }
+    .avatar-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 14px; padding: 8px 14px; border-radius: 999px;
+      background: rgba(255,255,255,.14); text-decoration: none; color: #fff;
+      font-weight: 800; font-size: 16px;
+    }
+    .avatar-chip .dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: grid; place-items: center; font-size: 18px;
+    }
+    .filters {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      margin: 18px auto 22px; max-width: 720px;
+    }
+    .filters button {
+      background: rgba(255,255,255,.12); color: #fff; font-weight: 800;
+      padding: 8px 16px; border-radius: 999px; font-size: 15px;
+    }
+    .filters button.on { background: #ffd166; color: #3b2100; }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -36,44 +59,43 @@
       margin: 0 auto;
     }
     .card {
-      display: flex;
-      flex-direction: column;
-      text-decoration: none;
-      color: inherit;
-      background: #16124a;
-      border-radius: 28px;
-      overflow: hidden;
+      display: flex; flex-direction: column; text-decoration: none; color: inherit;
+      background: #16124a; border-radius: 28px; overflow: hidden;
       box-shadow: 0 10px 0 rgba(0,0,0,.28);
-      transform: translateY(0);
     }
     .card:active { transform: translateY(4px); box-shadow: 0 6px 0 rgba(0,0,0,.28); }
-    .card.soon { opacity: .72; pointer-events: none; }
+    .card.hide { display: none; }
     .art {
-      height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 64px;
+      height: 120px; display: flex; align-items: center; justify-content: center; font-size: 64px;
     }
     .art.earth { background: linear-gradient(160deg, #1e3a8a, #22c55e 70%); }
+    .art.sky { background: linear-gradient(160deg, #38bdf8, #f9a8d4); }
     .art.dino { background: linear-gradient(160deg, #14532d, #84cc16); }
+    .art.zoom { background: linear-gradient(160deg, #ea580c, #fde047); }
+    .art.forest { background: linear-gradient(160deg, #166534, #86efac); }
+    .art.space { background: linear-gradient(160deg, #1e1b4b, #c084fc); }
+    .art.treasure { background: linear-gradient(160deg, #92400e, #fbbf24); }
+    .art.avatar { background: linear-gradient(160deg, #db2777, #f9a8d4); }
+    .art.pet { background: linear-gradient(160deg, #f59e0b, #fde68a); }
+    .art.house { background: linear-gradient(160deg, #7c3aed, #67e8f9); }
+    .art.cookie { background: linear-gradient(160deg, #9a3412, #fdba74); }
     .art.paint { background: linear-gradient(160deg, #7c3aed, #f472b6); }
     .art.star { background: linear-gradient(160deg, #1e293b, #fbbf24); }
     .art.fish { background: linear-gradient(160deg, #0e7490, #67e8f9); }
+    .art.zoo { background: linear-gradient(160deg, #365314, #bef264); }
+    .art.balloon { background: linear-gradient(160deg, #e11d48, #93c5fd); }
+    .art.band { background: linear-gradient(160deg, #6d28d9, #f472b6); }
+    .art.train { background: linear-gradient(160deg, #b91c1c, #fde047); }
+    .art.pond { background: linear-gradient(160deg, #0369a1, #86efac); }
+    .art.maze { background: linear-gradient(160deg, #15803d, #bbf7d0); }
+    .art.hide { background: linear-gradient(160deg, #0f766e, #fde68a); }
     .meta { padding: 12px 14px 16px; }
     .name { font-size: 20px; font-weight: 800; }
     .tag { font-size: 14px; opacity: .75; margin-top: 2px; }
     .pill {
-      display: inline-block;
-      margin-top: 10px;
-      background: #ffd166;
-      color: #3b2100;
-      font-weight: 800;
-      font-size: 14px;
-      padding: 6px 12px;
-      border-radius: 999px;
+      display: inline-block; margin-top: 10px; background: #ffd166; color: #3b2100;
+      font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 999px;
     }
-    .pill.soon { background: #334155; color: #e2e8f0; }
   </style>
 </head>
 <body>
@@ -81,53 +103,120 @@
     <div class="logo">🦖✨</div>
     <h1>AlabRyuu</h1>
     <p class="sub">Alab's games. Tap a card to play.</p>
+    <a class="avatar-chip" id="chip" href="games/avatar.html">Make your avatar</a>
   </header>
 
-  <main class="grid">
-    <a class="card" href="earth.html">
+  <div class="filters" id="filters">
+    <button class="on" data-type="all">All</button>
+    <button data-type="jump">Jump</button>
+    <button data-type="story">Story</button>
+    <button data-type="make">Make</button>
+    <button data-type="play">Play</button>
+  </div>
+
+  <main class="grid" id="grid">
+    <a class="card" data-type="play" href="earth.html">
       <div class="art earth">🌍</div>
-      <div class="meta">
-        <div class="name">Little Earth</div>
-        <div class="tag">Grow the world</div>
-        <span class="pill">Play</span>
-      </div>
+      <div class="meta"><div class="name">Little Earth</div><div class="tag">Grow the world</div><span class="pill">Play</span></div>
     </a>
-
-    <div class="card soon">
+    <a class="card" data-type="jump" href="games/sky-hop.html">
+      <div class="art sky">☁️</div>
+      <div class="meta"><div class="name">Sky Hop</div><div class="tag">Jump the clouds</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="jump" href="games/dino-stomp.html">
       <div class="art dino">🦕</div>
-      <div class="meta">
-        <div class="name">Dino Stomp</div>
-        <div class="tag">Coming soon</div>
-        <span class="pill soon">Soon</span>
-      </div>
-    </div>
-
-    <div class="card soon">
+      <div class="meta"><div class="name">Dino Stomp</div><div class="tag">Hop the logs</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="jump" href="games/zoom-race.html">
+      <div class="art zoom">🚗</div>
+      <div class="meta"><div class="name">Zoom Race</div><div class="tag">Tap to zoom</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="story" href="games/forest-story.html">
+      <div class="art forest">🦊</div>
+      <div class="meta"><div class="name">Forest Story</div><div class="tag">A walk in trees</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="story" href="games/space-story.html">
+      <div class="art space">🚀</div>
+      <div class="meta"><div class="name">Space Story</div><div class="tag">Rocket friends</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="story" href="games/treasure-path.html">
+      <div class="art treasure">⭐</div>
+      <div class="meta"><div class="name">Treasure Path</div><div class="tag">Pick a path</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/avatar.html">
+      <div class="art avatar">🧒</div>
+      <div class="meta"><div class="name">My Avatar</div><div class="tag">Make your kid</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/pet-park.html">
+      <div class="art pet">🐶</div>
+      <div class="meta"><div class="name">Pet Park</div><div class="tag">Feed and nap</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/paint-house.html">
+      <div class="art house">🏠</div>
+      <div class="meta"><div class="name">Paint House</div><div class="tag">Color the rooms</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/cookie-bakery.html">
+      <div class="art cookie">🍪</div>
+      <div class="meta"><div class="name">Cookie Bakery</div><div class="tag">Bake a cookie</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/color-mix.html">
       <div class="art paint">🎨</div>
-      <div class="meta">
-        <div class="name">Color Mix</div>
-        <div class="tag">Coming soon</div>
-        <span class="pill soon">Soon</span>
-      </div>
-    </div>
-
-    <div class="card soon">
+      <div class="meta"><div class="name">Color Mix</div><div class="tag">Mix the paints</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/star-catch.html">
       <div class="art star">⭐</div>
-      <div class="meta">
-        <div class="name">Star Catch</div>
-        <div class="tag">Coming soon</div>
-        <span class="pill soon">Soon</span>
-      </div>
-    </div>
-
-    <div class="card soon">
+      <div class="meta"><div class="name">Star Catch</div><div class="tag">Catch the stars</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/fish-friends.html">
       <div class="art fish">🐟</div>
-      <div class="meta">
-        <div class="name">Fish Friends</div>
-        <div class="tag">Coming soon</div>
-        <span class="pill soon">Soon</span>
-      </div>
-    </div>
+      <div class="meta"><div class="name">Fish Friends</div><div class="tag">Feed the fish</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/memory-zoo.html">
+      <div class="art zoo">🦁</div>
+      <div class="meta"><div class="name">Memory Zoo</div><div class="tag">Match the animals</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/balloon-pop.html">
+      <div class="art balloon">🎈</div>
+      <div class="meta"><div class="name">Balloon Pop</div><div class="tag">Pop the color</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/rhythm-band.html">
+      <div class="art band">🥁</div>
+      <div class="meta"><div class="name">Rhythm Band</div><div class="tag">Copy the beat</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/number-train.html">
+      <div class="art train">🚂</div>
+      <div class="meta"><div class="name">Number Train</div><div class="tag">Count the cars</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/letter-pond.html">
+      <div class="art pond">🔤</div>
+      <div class="meta"><div class="name">Letter Pond</div><div class="tag">Catch the letters</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/maze-garden.html">
+      <div class="art maze">🐰</div>
+      <div class="meta"><div class="name">Maze Garden</div><div class="tag">Help the bunny</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/hide-seek.html">
+      <div class="art hide">🔎</div>
+      <div class="meta"><div class="name">Hide and Seek</div><div class="tag">Find the animals</div><span class="pill">Play</span></div>
+    </a>
   </main>
+  <script>
+    try {
+      var a = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null");
+      if (a && a.name) {
+        var chip = document.getElementById("chip");
+        chip.innerHTML = '<span class="dot" style="background:' + (a.shirt || "#ffd166") + '">' + (a.hair || "🧒") + "</span>" + a.name + " " + (a.pet || "");
+      }
+    } catch (e) {}
+    document.getElementById("filters").addEventListener("click", function (ev) {
+      var b = ev.target.closest("button");
+      if (!b) return;
+      document.querySelectorAll(".filters button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      var t = b.getAttribute("data-type");
+      document.querySelectorAll(".card").forEach(function (c) {
+        c.classList.toggle("hide", t !== "all" && c.getAttribute("data-type") !== t);
+      });
+    });
+  </script>
 </body>
 </html>
