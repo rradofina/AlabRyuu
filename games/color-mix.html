@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Color Mix</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b0764;touch-action:manipulation}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#e9d5ff,#f9a8d4);padding:58px 14px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(30px,8vw,44px)}
+    .goal{width:110px;height:110px;border-radius:50%;margin:10px auto;box-shadow:0 8px 0 rgba(0,0,0,.15)}
+    .mix{width:90px;height:90px;border-radius:50%;margin:8px auto;background:#fff;box-shadow:inset 0 0 0 6px #fff}
+    .pots{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:16px 0}
+    .pot{width:76px;height:88px;border-radius:20px 20px 28px 28px;font-weight:800;color:#222;box-shadow:0 7px 0 rgba(0,0,0,.18)}
+    .pot.on{outline:4px solid #222}
+    .msg{font-weight:800;min-height:2.4em;font-size:20px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(50,10,60,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Color Mix</h1>
+  <p class="msg" id="msg">Make this color! Tap two pots.</p>
+  <div class="goal" id="goal"></div>
+  <div class="mix" id="mix"></div>
+  <div class="pots" id="pots"></div>
+  <p class="msg" id="score">0 / 5</p>
+  <div class="win" id="win">
+    <div style="font-size:72px">🎨</div>
+    <h2>Rainbow chef!</h2>
+    <button class="play" id="again">Mix again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var pots=[{id:"R",n:"Red",c:"#ef4444"},{id:"Y",n:"Yellow",c:"#facc15"},{id:"B",n:"Blue",c:"#3b82f6"},{id:"W",n:"White",c:"#f8fafc"}];
+    var recipes={RY:{n:"Orange",c:"#fb923c"},RB:{n:"Purple",c:"#a78bfa"},YB:{n:"Green",c:"#4ade80"},RW:{n:"Pink",c:"#f9a8d4"},YW:{n:"Cream",c:"#fde68a"},BW:{n:"Sky",c:"#7dd3fc"}};
+    var keys=Object.keys(recipes),pick=[],score=0,target;
+    var box=document.getElementById("pots");
+    pots.forEach(function(p){
+      var b=document.createElement("button");b.className="pot";b.style.background=p.c;b.textContent=p.n;
+      b.onclick=function(){
+        if(pick.indexOf(p.id)>=0)return;
+        if(pick.length>=2)return;
+        pick.push(p.id);b.classList.add("on");beep(480,.07);
+        if(pick.length===2){
+          var k=pick.slice().sort().join("");
+          var m=recipes[k];
+          document.getElementById("mix").style.background=m?m.c:"#ddd";
+          if(m&&k===target){score++;document.getElementById("score").textContent=score+" / 5";document.getElementById("msg").textContent="Yes! "+m.n+"!";beep(880,.12);if(score>=5){document.getElementById("win").classList.add("on");}else setTimeout(round,700);}
+          else{document.getElementById("msg").textContent="Hmm, try two other pots.";beep(200,.1);setTimeout(function(){pick=[];document.querySelectorAll(".pot").forEach(function(x){x.classList.remove("on");});document.getElementById("mix").style.background="#fff";},700);}
+        }
+      };
+      box.appendChild(b);
+    });
+    function round(){
+      pick=[];document.querySelectorAll(".pot").forEach(function(x){x.classList.remove("on");});
+      document.getElementById("mix").style.background="#fff";
+      target=keys[Math.floor(Math.random()*keys.length)];
+      document.getElementById("goal").style.background=recipes[target].c;
+      document.getElementById("msg").textContent="Make "+recipes[target].n+"!";
+    }
+    document.getElementById("again").onclick=function(){location.reload();};
+    round();
+  </script>
+</body>
+</html>

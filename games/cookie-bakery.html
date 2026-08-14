@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Cookie Bakery</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4a1c00;touch-action:manipulation}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#fde68a,#fdba74 40%,#9a3412);padding:60px 16px 28px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(30px,8vw,44px);color:#7c2d12}
+    .who{margin:8px auto;font-weight:800}
+    .bowl{width:min(240px,70vw);height:180px;margin:12px auto;border-radius:50% 50% 46% 46%;background:#fff7ed;box-shadow:inset 0 -20px 0 #fed7aa,0 10px 0 #b45309;display:grid;place-items:center;font-size:72px}
+    .bowl.wiggle{animation:wig .35s}
+    @keyframes wig{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+    .box{display:none;width:min(240px,70vw);margin:12px auto;padding:18px;border-radius:20px;background:#fef3c7;border:6px dashed #b45309;font-weight:800}
+    .box.on{display:block}
+    .steps{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:340px;margin:16px auto}
+    .steps button{padding:18px 8px;border-radius:24px;background:#fff7ed;box-shadow:0 7px 0 #d97706;font-weight:800;font-size:18px}
+    .steps button span{display:block;font-size:36px}
+    .steps button:active{transform:translateY(4px);box-shadow:0 3px 0 #d97706}
+    .steps button.done{opacity:.4}
+    .msg{min-height:2.4em;font-weight:800;font-size:20px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,20,0,.82);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Cookie Bakery</h1>
+  <p class="who" id="who"></p>
+  <div class="bowl" id="bowl">🥣</div>
+  <div class="box" id="box"></div>
+  <p class="msg" id="msg">First, tap the flour!</p>
+  <div class="steps">
+    <button data-i="0"><span>🌾</span>1. Flour</button>
+    <button data-i="1"><span>🥄</span>2. Mix</button>
+    <button data-i="2"><span>🔥</span>3. Bake</button>
+    <button data-i="3"><span>✨</span>4. Sprinkle</button>
+  </div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🍪</div>
+    <h2>Yum cookies!</h2>
+    <p id="winline"></p>
+    <button class="play" id="again">Bake again</button>
+  </div>
+  <script>
+    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Kid",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var A=av(),need=0,look=["🥣","🐀","🍪","🍪✨"],hint=["First, tap the flour!","Now mix it up!","Pop it in the oven!","Pretty sprinkles!"];
+    document.getElementById("who").textContent=A.hair+" Baker "+A.name;
+    document.querySelectorAll(".steps button").forEach(function(b){
+      b.onclick=function(){
+        var i=+b.dataset.i;
+        if(i!==need){document.getElementById("bowl").classList.remove("wiggle");void document.getElementById("bowl").offsetWidth;document.getElementById("bowl").classList.add("wiggle");document.getElementById("msg").textContent="Oops — "+hint[need];beep(180,.12);return;}
+        b.classList.add("done");document.getElementById("bowl").textContent=look[need];beep(500+need*90,.12);
+        need++;
+        if(need<4)document.getElementById("msg").textContent=hint[need];
+        else{
+          document.getElementById("bowl").style.display="none";
+          var box=document.getElementById("box");box.classList.add("on");
+          box.innerHTML="<div style='font-size:48px'>🍪</div>"+A.name+"'s Cookies<br><small>Baked with "+A.pet+"</small>";
+          document.getElementById("msg").textContent="A warm box for "+A.name+"!";
+          setTimeout(function(){document.getElementById("winline").textContent=A.name+" baked a star cookie!";document.getElementById("win").classList.add("on");beep(880,.2);},450);
+        }
+      };
+    });
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>
