@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Zoom Race</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#1e293b;color:#fff;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;padding:58px 14px 20px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(30px,8vw,44px)}
+    .msg{font-weight:800;margin:8px 0 14px}
+    .lane{position:relative;height:78px;margin:12px auto;max-width:420px;background:#334155;border-radius:20px;overflow:hidden}
+    .car{position:absolute;left:8px;top:10px;font-size:52px;line-height:1;transition:left .05s linear}
+    .flag{position:absolute;right:8px;top:18px;font-size:36px}
+    .tap{margin:22px auto 0;width:min(280px,86vw);height:120px;border-radius:32px;background:#ea580c;color:#fff;font-weight:800;font-size:28px;box-shadow:0 8px 0 #9a3412}
+    .tap:active{transform:translateY(5px);box-shadow:0 3px 0 #9a3412}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(15,23,42,.88);z-index:8;gap:12px}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Zoom Race</h1>
+  <p class="msg" id="msg">Tap FAST to beat the blue car!</p>
+  <div class="lane"><div class="car" id="you">🚗</div><div class="flag">🏁</div></div>
+  <div class="lane"><div class="car" id="bot">🚙</div><div class="flag">🏁</div></div>
+  <button class="tap" id="tap">TAP TAP ZOOM</button>
+  <div class="win" id="win">
+    <div style="font-size:72px">🏆</div>
+    <h2 id="wint">You win!</h2>
+    <button class="play" id="again">Race again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var you=0,bot=0,go=false,done=false,max=86,last=0;
+    function place(){document.getElementById("you").style.left=you+"%";document.getElementById("bot").style.left=bot+"%";}
+    document.getElementById("tap").onclick=function(){
+      if(done)return;
+      if(!go){go=true;beep(500,.08);loop();}
+      you=Math.min(max,you+2.4);beep(420+you*4,.05);place();check();
+    };
+    function loop(ts){
+      if(done)return;
+      if(!last)last=ts;
+      var dt=Math.min(0.05,(ts-last)/1000);last=ts;
+      bot=Math.min(max,bot+dt*(5.1+Math.random()*0.7));
+      place();check();
+      if(!done)requestAnimationFrame(loop);
+    }
+    function check(){
+      if(done)return;
+      if(you>=max){done=true;document.getElementById("wint").textContent="You zoomed first!";document.getElementById("win").classList.add("on");beep(880,.2);}
+      else if(bot>=max){done=true;document.getElementById("wint").textContent="So close! Tap faster next time." ;document.getElementById("win").classList.add("on");beep(300,.2);}
+    }
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>
