@@ -232,7 +232,7 @@
 
   <section id="game" class="screen">
     <div id="hud">
-      <span id="step">1 / 9</span>
+      <span id="step">1 / 12</span>
       <span id="score">⭐ 0</span>
     </div>
     <div id="era-title">Hot rock</div>
@@ -249,21 +249,24 @@
     <div class="confetti" id="confetti"></div>
     <div style="font-size:72px">🌏✨</div>
     <h1>You made the world!</h1>
-    <p class="sub">From a hot rock to people.<br>That took a looooong time.</p>
+    <p class="sub">From a hot rock to fish, frogs, dinos, and us.<br>That took a looooong time.</p>
     <button class="btn ghost" id="again">Play again</button>
   </section>
 
   <script>
     const eras = [
-      { title: "Hot rock", line: "Earth is a big glowing ball.", hint: "Tap the ⭐", skin: "e-rock", emoji: "⭐", need: 5, say: "Sparkle!" },
-      { title: "Water!", line: "Rain fills the oceans.", hint: "Tap the 💧", skin: "e-water", emoji: "💧", need: 5, say: "Splash!" },
-      { title: "Tiny life", line: "Teeny tiny bugs wake up.", hint: "Tap the ✨", skin: "e-life", emoji: "✨", need: 5, say: "Glow!" },
-      { title: "Fish!", line: "The sea is full of swimmers.", hint: "Tap the 🐟", skin: "e-fish", emoji: "🐟", need: 6, say: "Swim!" },
-      { title: "Trees!", line: "Green things climb onto land.", hint: "Tap the 🌱", skin: "e-trees", emoji: "🌱", need: 6, say: "Grow!" },
-      { title: "Dinos!", line: "Giant friends stomp around.", hint: "Tap the 🦕", skin: "e-dino", emoji: "🦕", need: 6, say: "Stomp!" },
-      { title: "Whoosh rock", line: "A space rock zooms by. Dinos wave bye!", hint: "Tap the ☄️", skin: "e-boom", emoji: "☄️", need: 5, say: "Whoosh!" },
-      { title: "Animals", line: "Furry friends take a turn.", hint: "Tap the 🦊", skin: "e-animals", emoji: "🦊", need: 6, say: "Boop!" },
-      { title: "People!", line: "Hello, humans. That's us!", hint: "Tap the 🏠", skin: "e-people", emoji: "🏠", need: 6, say: "Home!" }
+      { title: "Hot rock", line: "Earth is a big glowing ball.", hint: "Tap the ⭐", skin: "e-rock", emojis: ["⭐"], need: 4, say: "Sparkle!" },
+      { title: "Water!", line: "Rain fills the oceans.", hint: "Tap the 💧", skin: "e-water", emojis: ["💧"], need: 4, say: "Splash!" },
+      { title: "Tiny life", line: "Teeny tiny bugs wake up.", hint: "Tap the ✨", skin: "e-life", emojis: ["✨"], need: 4, say: "Glow!" },
+      { title: "Fish!", line: "The sea is full of swimmers.", hint: "Tap the fish", skin: "e-fish", emojis: ["🐟","🐠","🐡"], need: 5, say: "Swim!" },
+      { title: "Bugs!", line: "Little crawlers take the land.", hint: "Tap the bugs", skin: "e-life", emojis: ["🐛","🦋","🐞"], need: 5, say: "Buzz!" },
+      { title: "Frogs!", line: "Hop from water to land.", hint: "Tap the 🐸", skin: "e-water", emojis: ["🐸"], need: 5, say: "Hop!" },
+      { title: "Trees!", line: "Green things climb onto land.", hint: "Tap the 🌱", skin: "e-trees", emojis: ["🌱","🌳"], need: 5, say: "Grow!" },
+      { title: "Dinos!", line: "Giant friends stomp around.", hint: "Tap the dinos", skin: "e-dino", emojis: ["🦕","🦖"], need: 5, say: "Stomp!" },
+      { title: "Whoosh rock", line: "A space rock zooms by. Dinos wave bye!", hint: "Tap the ☄️", skin: "e-boom", emojis: ["☄️"], need: 4, say: "Whoosh!" },
+      { title: "Birds!", line: "Wings in the sky.", hint: "Tap the birds", skin: "e-animals", emojis: ["🐦","🐧","🦅"], need: 5, say: "Flap!" },
+      { title: "Animals!", line: "So many friends now.", hint: "Tap the animals", skin: "e-animals", emojis: ["🦊","🐻","🐰","🐘","🦒","🐱","🐶","🐷"], need: 8, say: "Boop!" },
+      { title: "People!", line: "Hello, humans. That's us!", hint: "Tap the 🏠", skin: "e-people", emojis: ["🏠"], need: 5, say: "Home!" }
     ];
 
     const $ = (id) => document.getElementById(id);
@@ -322,7 +325,7 @@
       const el = document.createElement("button");
       el.className = "bit";
       el.type = "button";
-      el.textContent = e.emoji;
+      el.textContent = (e.emojis || [e.emoji])[Math.floor(Math.random() * (e.emojis || [e.emoji]).length)];
       el.style.left = (8 + Math.random() * 72) + "%";
       el.style.top = (8 + Math.random() * 72) + "%";
       el.addEventListener("pointerdown", (ev) => {
