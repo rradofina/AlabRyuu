@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Shape Sorter</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e3a8a;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#bfdbfe,#fde68a);padding:56px 14px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(28px,8vw,42px)}
+    .msg{font-weight:800;margin:8px}
+    .piece{font-size:96px;margin:12px;min-height:110px}
+    .holes{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:10px}
+    .hole{width:88px;height:88px;border-radius:22px;background:#fff;box-shadow:0 7px 0 #93c5fd;font-size:48px}
+    .hole:active{transform:translateY(4px)}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,30,70,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Shape Sorter</h1>
+  <p class="msg" id="msg">Tap the matching hole!</p>
+  <div class="piece" id="piece">🔵</div>
+  <div class="holes" id="holes"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">⭐</div>
+    <h2>All sorted!</h2>
+    <button class="play" id="again">Sort again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var shapes=[{e:"🔵",n:"circle"},{e:"🟥",n:"square"},{e:"🔺",n:"triangle"},{e:"⭐",n:"star"}];
+    var need=shapes[0],score=0,box=document.getElementById("holes");
+    shapes.forEach(function(s){
+      var b=document.createElement("button");b.className="hole";b.textContent=s.e;
+      b.onclick=function(){
+        if(s.n!==need.n){document.getElementById("msg").textContent="Try the "+need.n+" hole.";beep(180,.1);return;}
+        score++;beep(700,.1);document.getElementById("msg").textContent="In! "+score+"/8";
+        if(score>=8){document.getElementById("win").classList.add("on");beep(940,.2);} else next();
+      };
+      box.appendChild(b);
+    });
+    function next(){need=shapes[Math.floor(Math.random()*shapes.length)];document.getElementById("piece").textContent=need.e;}
+    next();
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

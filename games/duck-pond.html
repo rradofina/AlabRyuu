@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Duck Pond</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#38bdf8;color:#0c4a6e;overflow:hidden;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
+    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
+    #pond{position:fixed;inset:0;background:linear-gradient(#7dd3fc,#0ea5e9)}
+    .duck{position:absolute;font-size:48px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,70,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <div id="hud">🐥 0 / 8</div>
+  <div id="ask">Tap mama's yellow babies!</div>
+  <div id="pond"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🦆</div>
+    <h2>Family swim!</h2>
+    <button class="play" id="again">Swim again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var kinds=[{e:"🐥",ok:true},{e:"🦆",ok:false},{e:"🐸",ok:false},{e:"🐟",ok:false}];
+    var score=0,play=true,items=[],pond=document.getElementById("pond");
+    function spawn(){
+      if(!play)return;
+      var k=Math.random()<.45?kinds[0]:kinds[1+Math.floor(Math.random()*3)];
+      var b=document.createElement("button");b.className="duck";b.textContent=k.e;
+      var y=120+Math.random()*(innerHeight-200),x=-40,sp=1.2+Math.random()*1.8;
+      b.style.left=x+"px";b.style.top=y+"px";pond.appendChild(b);
+      var it={el:b,x:x,y:y,sp:sp,ok:k.ok,dead:false};
+      b.onclick=function(){
+        if(!play||it.dead)return;
+        if(!k.ok){document.getElementById("ask").textContent="That's not a baby!";beep(180,.1);return;}
+        it.dead=true;b.remove();score++;beep(700,.08);
+        document.getElementById("hud").textContent="🐥 "+score+" / 8";
+        if(score>=8){play=false;document.getElementById("win").classList.add("on");beep(920,.2);}
+      };
+      items.push(it);
+    }
+    var acc=0;
+    function loop(){
+      acc++;if(play&&acc%40===0)spawn();
+      items.forEach(function(it){if(it.dead)return;it.x+=it.sp;it.el.style.left=it.x+"px";if(it.x>innerWidth+40){it.dead=true;it.el.remove();}});
+      items=items.filter(function(it){return !it.dead;});
+      requestAnimationFrame(loop);
+    }
+    loop();
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

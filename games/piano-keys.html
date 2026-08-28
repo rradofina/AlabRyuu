@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Piano Keys</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#fff;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#1e1b4b,#7c3aed);padding:56px 12px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(28px,8vw,42px)}
+    .msg{font-weight:800;margin:10px;min-height:2.2em}
+    .keys{display:flex;justify-content:center;gap:8px;margin:18px auto;max-width:420px}
+    .key{flex:1;height:180px;border-radius:18px 18px 28px 28px;font-weight:800;font-size:22px;color:#222;box-shadow:0 8px 0 rgba(0,0,0,.25)}
+    .key:active,.key.lit{transform:translateY(5px);filter:brightness(1.15)}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,10,40,.86);z-index:8;gap:12px}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Piano Keys</h1>
+  <p class="msg" id="msg">Listen to the bird song, then play it!</p>
+  <div class="keys" id="keys"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🎹</div>
+    <h2>Little pianist!</h2>
+    <button class="play" id="again">Play again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.type="triangle";o.frequency.value=f;g.gain.value=.14;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var notes=[{n:"C",f:262,c:"#fecaca"},{n:"D",f:294,c:"#fde68a"},{n:"E",f:330,c:"#bbf7d0"},{n:"G",f:392,c:"#93c5fd"},{n:"A",f:440,c:"#e9d5ff"}];
+    var songs=[[0,1,2],[2,1,0,1],[0,2,4,2],[0,1,2,3,4]];
+    var song=0,step=0,lock=true,keys=[];
+    notes.forEach(function(note,i){
+      var b=document.createElement("button");b.className="key";b.textContent=note.n;b.style.background=note.c;
+      b.onclick=function(){
+        flash(i);
+        if(lock)return;
+        if(i!==songs[song][step]){document.getElementById("msg").textContent="Almost! Hear it again.";playSong();return;}
+        step++;
+        if(step>=songs[song].length){song++;if(song>=songs.length){document.getElementById("win").classList.add("on");beep(880,.2);return;}document.getElementById("msg").textContent="Pretty! Next song.";setTimeout(playSong,500);}
+      };
+      document.getElementById("keys").appendChild(b);keys.push(b);
+    });
+    function flash(i){keys[i].classList.add("lit");beep(notes[i].f,.18);setTimeout(function(){keys[i].classList.remove("lit");},160);}
+    function playSong(){
+      lock=true;step=0;document.getElementById("msg").textContent="Listen… song "+(song+1);
+      var i=0,pat=songs[song];
+      function n(){if(i>=pat.length){lock=false;document.getElementById("msg").textContent="Your turn!";return;}flash(pat[i]);i++;setTimeout(n,380);}
+      setTimeout(n,350);
+    }
+    document.getElementById("again").onclick=function(){location.reload();};
+    setTimeout(playSong,400);
+  </script>
+</body>
+</html>
