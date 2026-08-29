@@ -223,6 +223,7 @@
     document.getElementById("save").onclick=function(){doSave(1);};
     document.getElementById("again").onclick=function(){
       document.getElementById("win").classList.remove("on");
+      document.getElementById("parade").classList.remove("on");
       step=0;stage();render();
     };
     document.getElementById("gohome").onclick=function(){location.href="../index.html";};

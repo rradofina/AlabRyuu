@@ -75,8 +75,9 @@
       padding:14px 22px;border-radius:999px;box-shadow:0 6px 0 #e09f1f;margin:4px;
     }
     @media (max-width:560px){
-      .bench{grid-template-columns:1fr}
-      .tools{flex-direction:row;flex-wrap:wrap;justify-content:center}
+      .bench{display:flex;flex-direction:column}
+      .sand-wrap{order:1}
+      .tools{order:2;flex-direction:row;flex-wrap:wrap;justify-content:center}
     }
   </style>
 </head>
@@ -189,7 +190,9 @@
     };
     document.getElementById("again").onclick=function(){
       cells.forEach(function(x){x.textContent="";});hist=[];won=0;bonus=0;
-      missions.forEach(function(m){m.ok=0;});extra.ok=0;
+      missions.forEach(function(m){m.ok=0;});extra.ok=0;night=0;
+      document.body.classList.remove("night");
+      document.getElementById("skyicon").textContent="☀️";
       document.getElementById("win").classList.remove("on");
       document.getElementById("msg").textContent="Build again!";
       paintCards();
