@@ -8,64 +8,199 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b2100;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fde68a,#86efac 55%,#f59e0b);padding:56px 10px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px);color:#7c2d12}
-    .msg{font-weight:800;margin:8px}
-    .stamps{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:10px}
-    .stamps button{width:56px;height:56px;border-radius:16px;background:#fff7ed;font-size:28px;box-shadow:0 5px 0 #d97706}
-    .stamps button.on{outline:4px solid #3b2100;background:#fde68a}
-    .stamps button:active{transform:translateY(3px)}
-    .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:min(360px,94vw);margin:8px auto;background:#fbbf24;padding:8px;border-radius:20px;box-shadow:0 8px 0 #b45309}
-    .cell{aspect-ratio:1;border-radius:10px;background:#fef3c7;font-size:22px}
+    body{
+      min-height:100vh;
+      background:
+        repeating-linear-gradient(90deg,#8b5a2b 0 14px,#7a4a1e 14px 18px,#9a6a38 18px 28px),
+        #6b3f16;
+      padding:56px 8px 18px;
+    }
+    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.35);padding:8px 14px;border-radius:999px}
+    .shop{
+      max-width:520px;margin:0 auto;
+      background:#c4a06a;
+      border:10px solid #5c3a1a;
+      border-radius:10px;
+      box-shadow:inset 0 0 0 4px #8b5a2b,0 14px 0 #3b2100;
+      padding:10px;
+    }
+    .sky{
+      height:56px;border-radius:8px 8px 0 0;margin:-2px -2px 8px;
+      background:linear-gradient(#7dd3fc,#fde68a);
+      display:flex;align-items:center;justify-content:space-between;padding:0 12px;
+      border:3px solid #5c3a1a;
+    }
+    body.night .sky{background:linear-gradient(#0f172a,#312e81)}
+    .sky b{font-size:22px}
+    .toggle{
+      background:#fff7ed;font-weight:800;padding:8px 12px;border-radius:999px;box-shadow:0 3px 0 #b45309;font-size:15px;
+    }
+    .who{font-weight:800;font-size:15px;margin-bottom:6px}
+    .bench{display:grid;grid-template-columns:72px 1fr;gap:8px}
+    .tools{
+      background:#5c3a1a;border-radius:10px;padding:6px;
+      display:flex;flex-direction:column;gap:6px;align-items:center;
+    }
+    .tools button{
+      width:56px;height:56px;border-radius:12px;background:#fff7ed;font-size:26px;
+      box-shadow:0 4px 0 #3b2100;
+    }
+    .tools button.on{outline:3px solid #fde68a;background:#fde68a}
+    .tools button:active{transform:translateY(2px)}
+    .sand-wrap{background:#b45309;padding:8px;border-radius:10px;box-shadow:inset 0 0 0 3px #92400e}
+    .grid{
+      display:grid;grid-template-columns:repeat(8,1fr);gap:3px;
+      background:#d97706;padding:6px;border-radius:8px;
+    }
+    .cell{aspect-ratio:1;border-radius:6px;background:#fef3c7;font-size:16px;line-height:1}
     .cell:active{transform:scale(.94)}
-    .row{display:flex;justify-content:center;gap:10px;margin-top:12px}
-    .row button{background:#fff7ed;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 5px 0 #d97706}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,30,0,.84);z-index:8;gap:12px;color:#fff}
+    .cards{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
+    .card{
+      flex:1;min-width:100px;background:#fffbeb;border-radius:12px;padding:8px 6px;
+      font-weight:800;font-size:13px;text-align:center;border:3px solid #b45309;
+    }
+    .card.done{background:#dcfce7;border-color:#15803d}
+    .card .ck{font-size:18px}
+    .row{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .row button{
+      background:#fff7ed;font-weight:800;padding:12px 14px;border-radius:999px;
+      box-shadow:0 5px 0 #7c2d12;font-size:16px;
+    }
+    .row button:active{transform:translateY(3px)}
+    .msg{font-weight:800;text-align:center;margin-top:8px;min-height:1.4em}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,30,0,.86);z-index:20;gap:10px;color:#fff;padding:20px;text-align:center}
     .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    .win button{
+      background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;
+      padding:14px 22px;border-radius:999px;box-shadow:0 6px 0 #e09f1f;margin:4px;
+    }
+    @media (max-width:560px){
+      .bench{grid-template-columns:1fr}
+      .tools{flex-direction:row;flex-wrap:wrap;justify-content:center}
+    }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Sandbox</h1>
-  <p class="msg" id="msg">Pick a stamp. Tap the sand!</p>
-  <div class="stamps" id="stamps"></div>
-  <div class="grid" id="grid"></div>
-  <div class="row">
-    <button id="clear">Clear</button>
-    <button id="show">Show me!</button>
+  <div class="shop">
+    <div class="sky">
+      <b id="skyicon">☀️</b>
+      <button class="toggle" id="day">Day / Night</button>
+    </div>
+    <div class="who" id="who">Workshop</div>
+    <div class="bench">
+      <div class="tools" id="stamps"></div>
+      <div class="sand-wrap">
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+    <p class="msg" id="msg">Pick a stamp. Tap the sand!</p>
+    <div class="row">
+      <button id="undo">Undo</button>
+      <button id="clear">Clear</button>
+      <button id="show">Show me!</button>
+    </div>
   </div>
   <div class="win" id="win">
-    <div style="font-size:72px">🏰</div>
-    <h2>What a world!</h2>
-    <button class="play" id="again">Build more</button>
+    <div style="font-size:72px">🛠️</div>
+    <h2>Workshop star!</h2>
+    <p id="winline" style="font-weight:800;font-size:20px"></p>
+    <div>
+      <button id="again">Play again</button>
+      <button id="nextm">Next mission</button>
+    </div>
   </div>
   <script>
+    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Alab",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var stamps=["🧱","🌳","🏠","⭐","🚗","🌸","🦕","🌈"],cur=0,placed=0;
+    var A=av();
+    document.getElementById("who").textContent=A.hair+" "+A.name+"'s workbench";
+    var stamps=["🧱","🌳","🏠","⭐","🚗","🌸","🦕","🌈"],cur=0,night=0,hist=[],bonus=0,won=0;
+    var missions=[
+      {id:"house",t:"Build a house",need:"🏠",ok:0},
+      {id:"garden",t:"Make a garden",need:"tree-flower",ok:0},
+      {id:"night",t:"Night town",need:"night-star",ok:0}
+    ];
+    var extra={id:"dino",t:"Park a dino",need:"🦕",ok:0};
     var box=document.getElementById("stamps");
     stamps.forEach(function(s,i){
       var b=document.createElement("button");b.textContent=s;if(!i)b.className="on";
-      b.onclick=function(){cur=i;document.querySelectorAll(".stamps button").forEach(function(x){x.classList.toggle("on",x===b);});beep(420+i*40,.06);};
+      b.onclick=function(){cur=i;document.querySelectorAll(".tools button").forEach(function(x){x.classList.toggle("on",x===b);});beep(420+i*40,.06);};
       box.appendChild(b);
     });
-    var grid=document.getElementById("grid");
-    for(var n=0;n<36;n++){
-      (function(){
+    var grid=document.getElementById("grid"),cells=[];
+    for(var n=0;n<64;n++){
+      (function(i){
         var cell=document.createElement("button");cell.className="cell";
         cell.onclick=function(){
-          if(cell.textContent===stamps[cur]){cell.textContent="";beep(200,.06);return;}
-          if(!cell.textContent)placed++;
-          cell.textContent=stamps[cur];beep(560,.07);
-          document.getElementById("msg").textContent="Nice! "+placed+" pieces.";
+          hist.push({i:i,prev:cell.textContent});
+          cell.textContent=stamps[cur];beep(560,.06);
+          check();
         };
-        grid.appendChild(cell);
-      })();
+        grid.appendChild(cell);cells.push(cell);
+      })(n);
     }
-    document.getElementById("clear").onclick=function(){document.querySelectorAll(".cell").forEach(function(x){x.textContent="";});placed=0;document.getElementById("msg").textContent="Fresh sand. Build again!";beep(240,.1);};
-    document.getElementById("show").onclick=function(){if(placed<6){document.getElementById("msg").textContent="Tap at least 6 stamps first!";beep(180,.1);return;}document.getElementById("win").classList.add("on");beep(880,.2);};
-    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");};
+    function world(){return cells.map(function(c){return c.textContent;}).join("");}
+    function paintCards(){
+      var list=bonus?missions.concat([extra]):missions;
+      document.getElementById("cards").innerHTML=list.map(function(m){
+        return '<div class="card'+(m.ok?" done":"")+'"><div class="ck">'+(m.ok?"⭐":"☐")+'</div>'+m.t+"</div>";
+      }).join("");
+    }
+    function check(){
+      var w=world();
+      var got=0;
+      if(!missions[0].ok&&w.indexOf("🏠")>-1){missions[0].ok=1;got=1;}
+      if(!missions[1].ok&&w.indexOf("🌳")>-1&&w.indexOf("🌸")>-1){missions[1].ok=1;got=1;}
+      if(!missions[2].ok&&night&&w.indexOf("⭐")>-1){missions[2].ok=1;got=1;}
+      if(bonus&&!extra.ok&&w.indexOf("🦕")>-1){extra.ok=1;got=1;}
+      if(got){document.getElementById("msg").textContent="⭐ Mission done!";beep(880,.14);}
+      paintCards();
+      var need=bonus?4:3;
+      var n=missions.filter(function(m){return m.ok;}).length+(bonus&&extra.ok?1:0);
+      if(!won&&n>=need){won=1;setTimeout(win,400);}
+    }
+    function win(){
+      document.getElementById("winline").textContent=A.name+" built a whole world!";
+      document.getElementById("win").classList.add("on");beep(880,.2);
+    }
+    document.getElementById("day").onclick=function(){
+      night=!night;
+      document.body.classList.toggle("night",night);
+      document.getElementById("skyicon").textContent=night?"🌙":"☀️";
+      beep(night?300:500,.1);
+      check();
+    };
+    document.getElementById("undo").onclick=function(){
+      var last=hist.pop();
+      if(!last){document.getElementById("msg").textContent="Nothing to undo.";beep(200,.08);return;}
+      cells[last.i].textContent=last.prev;beep(240,.08);
+      document.getElementById("msg").textContent="Undid a stamp.";
+    };
+    document.getElementById("clear").onclick=function(){
+      cells.forEach(function(x){x.textContent="";});hist=[];
+      document.getElementById("msg").textContent="Fresh sand!";beep(240,.1);
+    };
+    document.getElementById("show").onclick=function(){
+      var n=cells.filter(function(c){return c.textContent;}).length;
+      document.getElementById("msg").textContent=n?A.name+" made "+n+" stamps!":"Tap the sand first!";
+      beep(n?660:180,.1);
+    };
+    document.getElementById("again").onclick=function(){
+      cells.forEach(function(x){x.textContent="";});hist=[];won=0;bonus=0;
+      missions.forEach(function(m){m.ok=0;});extra.ok=0;
+      document.getElementById("win").classList.remove("on");
+      document.getElementById("msg").textContent="Build again!";
+      paintCards();
+    };
+    document.getElementById("nextm").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      bonus=1;won=0;extra.ok=0;
+      document.getElementById("msg").textContent="Bonus: park a dino!";
+      paintCards();
+    };
+    paintCards();
   </script>
 </body>
 </html>

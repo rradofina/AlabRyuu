@@ -6,46 +6,281 @@
   <title>Space Story</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#e0e7ff;touch-action:manipulation}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#dbeafe;touch-action:manipulation}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:radial-gradient(circle at 20% 0%,#7c3aed,transparent 40%),#0b0830;padding:58px 16px 28px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(255,255,255,.16);padding:8px 14px;border-radius:999px}
-    .card{max-width:420px;margin:0 auto;background:#1e1b4b;border-radius:32px;padding:22px 18px 24px;box-shadow:0 12px 0 #312e81}
-    .art{font-size:88px;line-height:1;margin:6px 0 10px}
-    h1{font-size:28px;margin-bottom:8px;color:#fde68a}
-    p{font-size:20px;line-height:1.4;min-height:4.2em}
-    .row{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-    .row button{background:#c4b5fd;color:#2e1065;font-weight:800;font-size:20px;padding:14px 16px;border-radius:20px;box-shadow:0 6px 0 #6d28d9}
-    .row button:active{transform:translateY(3px);box-shadow:0 3px 0 #6d28d9}
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 12% 8%,#1d4ed8 0,transparent 22%),
+        radial-gradient(circle at 88% 16%,#7c3aed 0,transparent 20%),
+        #070614;
+      padding:56px 10px 24px;
+    }
+    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(255,255,255,.12);padding:8px 14px;border-radius:999px}
+    .dash{
+      max-width:460px;margin:0 auto;
+      background:linear-gradient(180deg,#1e293b,#0b1220);
+      border:4px solid #334155;
+      border-radius:28px 28px 18px 18px;
+      box-shadow:inset 0 0 0 3px #0f172a,0 16px 0 #020617;
+      padding:12px 12px 16px;
+    }
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      background:#020617;border-radius:14px;padding:8px 10px;margin-bottom:10px;
+      border:2px solid #1e293b;
+    }
+    .led{width:12px;height:12px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}
+    .led.dim{background:#64748b;box-shadow:none}
+    .fuel-wrap{flex:1}
+    .fuel-lab{font-size:12px;font-weight:800;letter-spacing:.08em;color:#94a3b8}
+    .fuel{
+      height:16px;border-radius:999px;background:#1e293b;overflow:hidden;border:2px solid #334155;margin-top:3px;
+    }
+    .fuel i{display:block;height:100%;width:0;background:linear-gradient(90deg,#fde68a,#f59e0b);transition:width .25s}
+    .screen{
+      position:relative;
+      background:radial-gradient(circle at 50% 20%,#1e1b4b,#020617 70%);
+      border:3px solid #22d3ee;
+      border-radius:18px;
+      min-height:210px;
+      overflow:hidden;
+      box-shadow:inset 0 0 40px rgba(34,211,238,.15);
+    }
+    .screen.sky{background:linear-gradient(#0b0830,#1e1b4b 40%,#312e81)}
+    .art{font-size:72px;text-align:center;margin-top:16px;line-height:1}
+    h1{text-align:center;color:#fde68a;font-size:24px;margin:6px 0 4px}
+    .line{text-align:center;font-weight:800;font-size:20px;line-height:1.3;padding:0 12px 10px;min-height:2.6em}
+    .twinkle{
+      position:absolute;font-size:28px;animation:tw 1.2s ease-in-out infinite;
+      filter:drop-shadow(0 0 6px #fde68a);
+    }
+    @keyframes tw{50%{transform:scale(1.25);opacity:.7}}
+    .map{
+      margin-top:12px;background:#020617;border-radius:50%;
+      width:min(280px,72vw);height:min(280px,72vw);margin-left:auto;margin-right:auto;
+      position:relative;border:4px dashed #334155;
+      box-shadow:inset 0 0 30px #0ea5e9;
+    }
+    .map::before{
+      content:"";position:absolute;inset:18%;border:1px solid rgba(148,163,184,.25);border-radius:50%;
+    }
+    .planet{
+      position:absolute;width:72px;height:72px;border-radius:50%;
+      background:#1e293b;border:3px solid #38bdf8;color:#e0f2fe;
+      font-weight:800;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      box-shadow:0 0 12px rgba(56,189,248,.4);
+    }
+    .planet span{font-size:26px;line-height:1}
+    .planet:active{transform:scale(.94)}
+    .planet.lock{opacity:.4;border-color:#475569}
+    .planet.done{border-color:#fde68a;box-shadow:0 0 14px #facc15}
+    .p-moon{left:8%;top:38%}
+    .p-giggle{right:6%;top:18%}
+    .p-home{left:36%;bottom:8%}
+    .radio{
+      margin-top:12px;display:flex;gap:10px;align-items:flex-start;
+      background:#0f172a;border-radius:16px;padding:10px;border:2px solid #334155;
+    }
+    .alien{font-size:36px;width:48px;text-align:center}
+    .bubble{
+      flex:1;background:#1e293b;border-radius:14px 14px 14px 4px;padding:10px 12px;
+      font-weight:800;font-size:16px;color:#bae6fd;min-height:3.2em;
+    }
+    .row{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .row button{
+      background:#22d3ee;color:#083344;font-weight:800;font-size:18px;
+      padding:14px 12px;border-radius:14px;box-shadow:0 5px 0 #0e7490;text-align:left;
+    }
+    .row button:active{transform:translateY(3px);box-shadow:0 2px 0 #0e7490}
+    .flymsg{text-align:center;font-weight:800;color:#67e8f9;margin:8px 0;min-height:1.3em}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(2,6,23,.9);z-index:20;gap:10px;color:#fff;padding:20px;text-align:center}
+    .win.on{display:flex}
+    .win h2{font-size:32px;color:#fde68a}
+    .win button{
+      background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;
+      padding:14px 22px;border-radius:999px;box-shadow:0 6px 0 #e09f1f;margin:4px;
+    }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="card">
-    <div class="art" id="art">🚀</div>
-    <h1 id="title">Space Story</h1>
-    <p id="line"></p>
+  <div class="dash">
+    <div class="topbar">
+      <div class="led" id="led"></div>
+      <div class="fuel-wrap">
+        <div class="fuel-lab">FUEL ⭐</div>
+        <div class="fuel"><i id="fuelbar"></i></div>
+      </div>
+      <div class="fuel-lab" id="fueln">3</div>
+    </div>
+    <div class="screen" id="screen">
+      <div class="art" id="art">🚀</div>
+      <h1 id="title">Captain Bean</h1>
+      <div class="line" id="line">Tap a planet. We fly!</div>
+    </div>
+    <p class="flymsg" id="flymsg">Tap twinkles for fuel.</p>
+    <div class="map" id="map">
+      <button class="planet p-moon" data-p="moon"><span>🌙</span>Moon</button>
+      <button class="planet p-giggle" data-p="giggle"><span>🪐</span>Giggle</button>
+      <button class="planet p-home lock" data-p="home"><span>🏠</span>Home</button>
+    </div>
     <div class="row" id="row"></div>
+    <div class="radio">
+      <div class="alien">👽</div>
+      <div class="bubble" id="radio">Ready, Captain. Pick a planet!</div>
+    </div>
+  </div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🌙</div>
+    <h2>Bedtime sky</h2>
+    <p id="winline" style="font-weight:800;font-size:20px"></p>
+    <div>
+      <button id="again">Play again</button>
+      <button id="nextp">Next planet</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var pages={
-      start:{art:"🚀",t:"Captain Bean",line:"Captain Bean hopped into a cozy rocket with a jam sandwich. The stars blinked hello. “Ready for a kind trip?” asked the rocket.",next:[{l:"Visit the Moon",to:"moon"},{l:"Visit a rainbow planet",to:"rain"}]},
-      moon:{art:"🌙",t:"Moon Wave",line:"The Moon waved a dusty hand. “Want a snack, space friend? I packed glow-cheese cubes.” A crater giggled.",next:[{l:"Share the sandwich",to:"share"},{l:"Taste glow-cheese",to:"cheese"}]},
-      rain:{art:"🪐",t:"Planet Giggle",line:"Planet Giggle wore rings like hula hoops. Clouds made funny faces. “Help us find the lost giggle?” said a tiny comet.",next:[{l:"Look in a crater",to:"crater"},{l:"Ask the rings",to:"rings"}]},
-      share:{art:"🥪",t:"Picnic Crater",line:"Bean split the sandwich. The Moon said, “You made night taste like home.” Fireflies that were really tiny stars danced.",next:[{l:"Dance with stars",to:"endStars"}]},
-      cheese:{art:"🧀",t:"Glow Grins",line:"The cheese made Bean’s smile light up. A moon-mouse clapped. “Now we can read bedtime maps!”",next:[{l:"Read a sky map",to:"endStars"}]},
-      crater:{art:"😄",t:"Found It",line:"Inside the crater sat the lost giggle, taking a nap on a pillow of dust. It woke up and bounced into Bean’s pocket.",next:[{l:"Bring it home",to:"endParty"}]},
-      rings:{art:"⭕",t:"Hula Help",line:"The rings spun and sang, “Giggle went that way!” They pointed to a lemonade comet. Everyone got a sip.",next:[{l:"Ride the comet",to:"endParty"}]},
-      endStars:{art:"🌟",t:"Bedtime Sky",line:"Bean tucked the rocket in with a blanket of quiet light. The Moon hummed a slow song. Tomorrow they would fly again. The end.",next:[{l:"Read again",to:"start"}]},
-      endParty:{art:"🎊",t:"Comet Party",line:"Planet Giggle threw a soft parade. No loud booms. Just streamers, lemonade, and one very happy giggle. Bean waved all the way home. The end.",next:[{l:"Read again",to:"start"}]}
+    var fuel=3,maxF=6,visited={moon:0,giggle:0,home:0},mode="map",order=["moon","giggle","home"],startAt=0;
+    var talk={
+      map:"Ready, Captain. Pick a planet!",
+      low:"Low fuel! Tap the twinkles.",
+      moon:"Moon dust. Soft and silly.",
+      giggle:"I hear a lost giggle!",
+      home:"Home time. Sleepy stars.",
+      fuel:"Yum star. More zoom!",
+      share:"Kind sandwich. I like that.",
+      cheese:"Glow grin! So bright.",
+      crater:"Giggle was napping. Cute.",
+      rings:"Hula rings point that way!"
     };
-    function show(id){
-      var p=pages[id];document.getElementById("art").textContent=p.art;document.getElementById("title").textContent=p.t;document.getElementById("line").textContent=p.line;
-      var row=document.getElementById("row");row.innerHTML="";
-      p.next.forEach(function(n){var b=document.createElement("button");b.textContent=n.l;b.onclick=function(){beep(id.indexOf("end")===0?880:600,.1);show(n.to);};row.appendChild(b);});
+    var scenes={
+      moon:{art:"🌙",t:"Moon Wave",line:"Moon waves a dusty hand.",
+        next:[{l:"Share the sandwich 🥪",to:"share",kind:1},{l:"Taste glow-cheese 🧀",to:"cheese"}]},
+      share:{art:"🥪",t:"Picnic Crater",line:"Moon says night tastes like home.",radio:"share"},
+      cheese:{art:"🧀",t:"Glow Grins",line:"Bean's smile lights up.",radio:"cheese"},
+      giggle:{art:"🪐",t:"Planet Giggle",line:"Rings like hula hoops!",
+        next:[{l:"Look in a crater",to:"crater"},{l:"Ask the rings",to:"rings"}]},
+      crater:{art:"😄",t:"Found It",line:"The giggle took a dust nap.",radio:"crater"},
+      rings:{art:"⭕",t:"Hula Help",line:"Rings sing. That way!",radio:"rings"},
+      home:{art:"🚀",t:"Cozy Rocket",line:"Blanket of quiet light."}
+    };
+    function setFuel(){
+      document.getElementById("fuelbar").style.width=Math.round(fuel/maxF*100)+"%";
+      document.getElementById("fueln").textContent=fuel;
+      document.getElementById("led").classList.toggle("dim",fuel<2);
     }
-    show("start");
+    function radio(k){document.getElementById("radio").textContent=talk[k]||k;}
+    function spawnTwinkles(n){
+      var screen=document.getElementById("screen");
+      screen.querySelectorAll(".twinkle").forEach(function(x){x.remove();});
+      for(var i=0;i<n;i++){
+        var t=document.createElement("button");t.className="twinkle";t.textContent="✨";
+        t.style.left=(8+Math.random()*78)+"%";t.style.top=(8+Math.random()*62)+"%";
+        t.onclick=function(el){return function(){
+          if(fuel>=maxF){radio("Tanks full. Nice!");beep(300,.06);return;}
+          fuel++;setFuel();el.remove();radio("fuel");beep(880,.08);
+        };}(t);
+        screen.appendChild(t);
+      }
+    }
+    function setScene(art,t,line){
+      document.getElementById("art").textContent=art;
+      document.getElementById("title").textContent=t;
+      document.getElementById("line").textContent=line;
+    }
+    function clearRow(){document.getElementById("row").innerHTML="";}
+    function paintMap(){
+      document.querySelectorAll(".planet").forEach(function(b){
+        var p=b.dataset.p;
+        b.classList.toggle("done",!!visited[p]);
+        b.classList.toggle("lock",p==="home"&&!(visited.moon||visited.giggle));
+      });
+    }
+    function land(p){
+      mode="land";
+      var s=scenes[p];
+      document.getElementById("screen").classList.remove("sky");
+      setScene(s.art,s.t,s.line);
+      radio(p);
+      document.getElementById("flymsg").textContent="You landed!";
+      clearRow();
+      spawnTwinkles(2);
+      if(s.next){
+        s.next.forEach(function(n){
+          var b=document.createElement("button");b.textContent=n.l;
+          b.onclick=function(){
+            var nx=scenes[n.to];
+            setScene(nx.art,nx.t,nx.line);
+            radio(nx.radio||p);
+            if(n.kind)beep(880,.1);else beep(600,.08);
+            visited[p]=1;paintMap();
+            clearRow();
+            var back=document.createElement("button");
+            back.textContent="Back to map 🗺️";
+            back.onclick=function(){toMap();};
+            document.getElementById("row").appendChild(back);
+            spawnTwinkles(3);
+            maybeHome();
+          };
+          document.getElementById("row").appendChild(b);
+        });
+      }else{
+        visited.home=1;paintMap();
+        document.getElementById("screen").classList.add("sky");
+        setTimeout(win,700);
+      }
+    }
+    function maybeHome(){
+      var home=document.querySelector(".p-home");
+      if(visited.moon||visited.giggle)home.classList.remove("lock");
+    }
+    function toMap(){
+      mode="map";
+      document.getElementById("screen").classList.remove("sky");
+      setScene("🚀","Cockpit","Tap a planet. We fly!");
+      radio("map");
+      document.getElementById("flymsg").textContent="Tap twinkles for fuel.";
+      clearRow();
+      spawnTwinkles(2);
+      paintMap();
+    }
+    function flyTo(p){
+      if(p==="home"&&!(visited.moon||visited.giggle)){radio("Visit Moon or Giggle first!");beep(200,.1);return;}
+      if(fuel<1){radio("low");spawnTwinkles(4);document.getElementById("flymsg").textContent="Tap ✨ for fuel!";beep(180,.1);return;}
+      fuel--;setFuel();beep(500,.08);setTimeout(function(){beep(700,.1);},80);
+      setScene("🚀","Zoom!","Stars whoosh by.");
+      radio("Hold on. We zoom!");
+      document.getElementById("flymsg").textContent="Flying…";
+      clearRow();
+      spawnTwinkles(3);
+      setTimeout(function(){land(p);},700);
+    }
+    function win(){
+      var n=(visited.moon?1:0)+(visited.giggle?1:0)+fuel;
+      document.getElementById("winline").textContent="Fuel left "+fuel+" · planets "+((visited.moon?1:0)+(visited.giggle?1:0));
+      document.getElementById("win").classList.add("on");
+      beep(880,.22);
+    }
+    document.querySelectorAll(".planet").forEach(function(b){
+      b.onclick=function(){flyTo(b.dataset.p);};
+    });
+    document.getElementById("again").onclick=function(){
+      fuel=3;visited={moon:0,giggle:0,home:0};startAt=0;
+      document.getElementById("win").classList.remove("on");
+      setFuel();toMap();
+    };
+    document.getElementById("nextp").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      fuel=Math.max(2,fuel);visited.home=0;
+      startAt=(startAt+1)%2;
+      var first=order[startAt];
+      setFuel();toMap();
+      document.getElementById("flymsg").textContent="Try "+(first==="moon"?"Moon":"Giggle")+" first!";
+      radio("New heading. Let's go!");
+    };
+    setFuel();toMap();
   </script>
 </body>
 </html>
