@@ -388,8 +388,7 @@
           toast("Soft land");
         }
 
-        var end = plats[plats.length - 1];
-        if (kid.x > end.x + end.w - 28 && kid.on) finishWorld();
+        if (kid.on && lastLand === plats.length - 1) finishWorld();
       }
       draw();
       requestAnimationFrame(tick);

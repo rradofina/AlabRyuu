@@ -30,9 +30,7 @@
       color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
       background: rgba(0,0,0,.4); padding: 8px 14px; border-radius: 999px;
     }
-    .hud {
-      display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 0 0 8px;
-    }
+    .hud { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 0 0 8px; }
     .chip {
       background: rgba(255,209,102,.18); border: 2px solid #ffd166;
       color: #ffe8a3; font-weight: 800; font-size: 15px;
@@ -41,23 +39,12 @@
     .title-row { text-align: center; margin-bottom: 6px; }
     h1 { font-size: clamp(22px, 6vw, 34px); letter-spacing: .5px; text-shadow: 0 3px 0 #3b0764; }
     .msg { font-weight: 800; min-height: 1.6em; font-size: 18px; text-align: center; margin: 4px 0 8px; }
-
-    /* STAGE */
-    .house {
-      position: relative;
-      max-width: 420px;
-      margin: 0 auto;
-    }
+    .house { position: relative; max-width: 420px; margin: 0 auto; }
     .proscenium {
-      position: relative;
-      background: #4a0e2a;
-      border-radius: 18px 18px 0 0;
-      padding: 10px 12px 0;
-      box-shadow: 0 0 0 6px #2a0814, 0 16px 0 rgba(0,0,0,.35);
+      position: relative; background: #4a0e2a; border-radius: 18px 18px 0 0;
+      padding: 10px 12px 0; box-shadow: 0 0 0 6px #2a0814, 0 16px 0 rgba(0,0,0,.35);
     }
-    .bulbs {
-      display: flex; justify-content: space-between; padding: 0 8px 8px;
-    }
+    .bulbs { display: flex; justify-content: space-between; padding: 0 8px 8px; }
     .bulbs span {
       width: 12px; height: 12px; border-radius: 50%;
       background: #fde68a; box-shadow: 0 0 8px #fbbf24;
@@ -65,9 +52,7 @@
     }
     .bulbs span:nth-child(odd) { animation-delay: .4s; }
     @keyframes blink { 50% { opacity: .45; } }
-    .curtains {
-      position: absolute; inset: 36px 0 70px; pointer-events: none; z-index: 2;
-    }
+    .curtains { position: absolute; inset: 36px 0 70px; pointer-events: none; z-index: 2; }
     .curtains::before, .curtains::after {
       content: ""; position: absolute; top: 0; bottom: 0; width: 28px;
       background: repeating-linear-gradient(90deg, #9f1239 0 8px, #be123c 8px 14px);
@@ -76,32 +61,25 @@
     .curtains::before { left: 0; border-radius: 0 40px 20px 0; }
     .curtains::after { right: 0; border-radius: 40px 0 0 20px; }
     .valance {
-      height: 22px;
-      background: linear-gradient(#be123c, #7f1d1d);
-      border-radius: 8px 8px 0 0;
-      box-shadow: 0 6px 0 #4a044e;
+      height: 22px; background: linear-gradient(#be123c, #7f1d1d);
+      border-radius: 8px 8px 0 0; box-shadow: 0 6px 0 #4a044e;
     }
     .stage {
-      position: relative;
-      min-height: 280px;
+      position: relative; min-height: 280px;
       background:
         radial-gradient(ellipse 70% 90% at 50% 0%, rgba(253,224,71,.22), transparent 60%),
         linear-gradient(#3f2a14, #6b4423 70%, #4a3016);
-      border-radius: 0 0 8px 8px;
-      padding: 16px 36px 20px;
-      overflow: hidden;
+      border-radius: 0 0 8px 8px; padding: 16px 36px 20px; overflow: hidden;
     }
     .spot {
       position: absolute; width: 140px; height: 160px; pointer-events: none;
       background: radial-gradient(ellipse at 50% 80%, rgba(255,251,235,.55), transparent 70%);
       left: 50%; top: 10px; transform: translateX(-50%);
-      transition: left .25s ease, top .25s ease;
-      z-index: 1;
+      transition: left .25s ease, top .25s ease; z-index: 1;
     }
     .helper {
       position: relative; z-index: 3;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;
     }
     .helper .face { font-size: 42px; filter: drop-shadow(0 4px 0 rgba(0,0,0,.3)); }
     .hear {
@@ -110,15 +88,11 @@
     }
     .hear:active { transform: translateY(3px); box-shadow: 0 2px 0 #c48a12; }
     .hear:disabled { opacity: .45; }
-    .pads {
-      position: relative; z-index: 3;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-    }
+    .pads { position: relative; z-index: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .pad {
       height: 92px; border-radius: 22px; font-size: 40px;
       box-shadow: 0 8px 0 rgba(0,0,0,.35);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 2px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     }
     .pad small { font-size: 13px; font-weight: 800; letter-spacing: .3px; }
     .pad:active, .pad.lit { transform: translateY(5px); filter: brightness(1.25); box-shadow: 0 3px 0 rgba(0,0,0,.35); }
@@ -126,27 +100,18 @@
     .pad[data-i="1"] { background: #f59e0b; }
     .pad[data-i="2"] { background: #22c55e; }
     .pad[data-i="3"] { background: #38bdf8; color: #0c4a6e; }
-    .combo {
-      text-align: center; font-weight: 800; min-height: 1.4em; margin-top: 8px;
-      color: #fde68a; font-size: 18px;
-    }
-    .crowd {
-      display: flex; justify-content: center; gap: 2px; margin-top: 10px;
-      font-size: 28px; opacity: .85; letter-spacing: -4px;
-    }
+    .combo { text-align: center; font-weight: 800; min-height: 1.4em; margin-top: 8px; color: #fde68a; font-size: 18px; }
+    .crowd { display: flex; justify-content: center; gap: 2px; margin-top: 10px; font-size: 28px; opacity: .85; letter-spacing: -4px; }
     .crowd.cheer span { animation: hop .4s ease infinite; }
     .crowd span:nth-child(2n) { animation-delay: .12s; }
     @keyframes hop { 50% { transform: translateY(-6px); } }
     .win {
       position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      flex-direction: column; background: rgba(20,6,30,.88); z-index: 8; gap: 12px; text-align: center;
-      padding: 20px;
+      flex-direction: column; background: rgba(20,6,30,.88); z-index: 8; gap: 12px; text-align: center; padding: 20px;
     }
     .win.on { display: flex; }
     .win .big { font-size: 76px; }
-    .play, .next {
-      font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px;
-    }
+    .play, .next { font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px; }
     .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
     .next { background: #86efac; color: #14532d; box-shadow: 0 7px 0 #4ade80; }
     .play:active, .next:active { transform: translateY(4px); }
@@ -162,7 +127,6 @@
   </div>
   <div class="title-row"><h1>Rhythm Band</h1></div>
   <p class="msg" id="msg">Listen, then copy!</p>
-
   <div class="house">
     <div class="proscenium">
       <div class="bulbs" id="bulbs"></div>
@@ -185,7 +149,6 @@
     </div>
     <div class="crowd" id="crowd"><span>👤</span><span>👥</span><span>👤</span><span>👥</span><span>👤</span><span>👤</span></div>
   </div>
-
   <div class="win" id="win">
     <div class="big">🌟</div>
     <h2>Band star!</h2>
@@ -194,15 +157,12 @@
     <button class="play" id="again" type="button">Play again</button>
     <button class="next" id="next" type="button">Next</button>
   </div>
-
   <script>
     function beep(f, d, t) {
       try {
         var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
         var o = c.createOscillator(), g = c.createGain();
-        o.type = t || "sine";
-        o.frequency.value = f;
-        g.gain.value = 0.14;
+        o.type = t || "sine"; o.frequency.value = f; g.gain.value = 0.14;
         o.connect(g); g.connect(c.destination);
         o.start();
         g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
@@ -211,18 +171,14 @@
     }
     var bulbs = document.getElementById("bulbs");
     for (var b = 0; b < 9; b++) bulbs.appendChild(document.createElement("span"));
-
     var inst = [
-      { f: 140, t: "square" },
-      { f: 280, t: "triangle" },
-      { f: 660, t: "sine" },
-      { f: 880, t: "sine" }
+      { f: 140, t: "square" }, { f: 280, t: "triangle" },
+      { f: 660, t: "sine" }, { f: 880, t: "sine" }
     ];
     var pads = [].slice.call(document.querySelectorAll(".pad"));
     var spot = document.getElementById("spot");
     var round = 0, pat = [], step = 0, lock = true;
     var stars = 0, combo = 0, missThis = false, done = false;
-
     function moveSpot(i) {
       var p = pads[i].getBoundingClientRect();
       var s = document.querySelector(".stage").getBoundingClientRect();
@@ -235,7 +191,7 @@
       beep(inst[i].f, 0.16, inst[i].t);
       setTimeout(function () { pads[i].classList.remove("lit"); }, 200);
     }
-    function playPat(cb) {
+    function playPat() {
       lock = true;
       document.getElementById("hear").disabled = true;
       document.getElementById("msg").textContent = "Listen…";
@@ -243,17 +199,13 @@
       var i = 0;
       function n() {
         if (i >= pat.length) {
-          lock = false;
-          step = 0;
+          lock = false; step = 0;
           document.getElementById("hear").disabled = false;
           document.getElementById("msg").textContent = "Your turn!";
           document.getElementById("helperFace").textContent = "🎵";
-          if (cb) cb();
           return;
         }
-        flash(pat[i]);
-        i++;
-        setTimeout(n, 480);
+        flash(pat[i]); i++; setTimeout(n, 480);
       }
       setTimeout(n, 360);
     }
@@ -267,18 +219,14 @@
       round++;
       if (round > 5) { showWin(); return; }
       missThis = false;
-      if (round === 1) {
-        pat = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
-      } else {
-        pat.push(Math.floor(Math.random() * 4));
-      }
+      if (round === 1) pat = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
+      else pat.push(Math.floor(Math.random() * 4));
       hud();
       document.getElementById("comboMsg").textContent = "";
       playPat();
     }
     function showWin() {
-      done = true;
-      lock = true;
+      done = true; lock = true;
       document.getElementById("crowd").classList.add("cheer");
       document.getElementById("winStars").textContent = "★ " + stars;
       document.getElementById("winLine").textContent = combo >= 3 ? "Wow combo!" : "What a band!";
@@ -292,9 +240,7 @@
         var i = +btn.dataset.i;
         flash(i);
         if (i !== pat[step]) {
-          missThis = true;
-          combo = 0;
-          hud();
+          missThis = true; combo = 0; hud();
           document.getElementById("msg").textContent = "Almost! Hear it again.";
           document.getElementById("comboMsg").textContent = "Try the phrase again";
           beep(160, 0.12, "sine");
@@ -308,8 +254,7 @@
             stars += 1 + (combo >= 2 ? 1 : 0);
             document.getElementById("comboMsg").textContent = combo > 1 ? "Perfect combo " + combo + "!" : "Perfect!";
           } else {
-            combo = 0;
-            stars += 1;
+            combo = 0; stars += 1;
             document.getElementById("comboMsg").textContent = "Nice beat!";
           }
           hud();
@@ -325,10 +270,7 @@
         }
       };
     });
-    document.getElementById("hear").onclick = function () {
-      if (lock || done) return;
-      playPat();
-    };
+    document.getElementById("hear").onclick = function () { if (!lock && !done) playPat(); };
     document.getElementById("again").onclick = function () { location.reload(); };
     document.getElementById("next").onclick = function () { location.reload(); };
     hud();
