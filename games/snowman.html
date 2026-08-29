@@ -8,46 +8,176 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#0f172a;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#7dd3fc,#e2e8f0 55%,#fff);padding:56px 14px 24px;text-align:center}
+    body{min-height:100vh;padding:54px 10px 24px;text-align:center;position:relative;overflow-x:hidden;transition:background .5s}
+    body.dusk{background:linear-gradient(#7dd3fc 0 40%,#e2e8f0 40% 62%,#fff 62%)}
+    body.night{background:linear-gradient(#0f172a 0 46%,#1e293b 46% 64%,#e2e8f0 64%);color:#e0f2fe}
     .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px);color:#0c4a6e}
-    .msg{font-weight:800;margin:8px}
-    .man{min-height:210px;font-size:42px;line-height:1.05;margin:8px}
-    .parts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-    .parts button{width:78px;height:78px;border-radius:20px;background:#fff;font-size:34px;box-shadow:0 6px 0 #94a3b8}
+    .flakes{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+    .flake{position:absolute;top:-20px;color:#fff;font-size:18px;animation:fall linear infinite;opacity:.85;text-shadow:0 0 6px #fff}
+    @keyframes fall{to{transform:translateY(110vh)}}
+    h1{font-size:clamp(24px,7vw,36px);position:relative;z-index:2;color:#0c4a6e}
+    body.night h1{color:#e0f2fe}
+    .hud{display:flex;justify-content:center;gap:8px;margin:6px;position:relative;z-index:2}
+    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #94a3b8;font-size:15px;color:#0f172a}
+    .yard{position:relative;z-index:2;max-width:400px;margin:8px auto}
+    .trees{display:flex;justify-content:space-between;font-size:42px;padding:0 8px;margin-bottom:-10px}
+    .stage{min-height:250px;display:flex;align-items:flex-end;justify-content:center;gap:18px}
+    .pal{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:90px}
+    .pal .name{font-weight:800;font-size:13px;margin-top:4px}
+    .ball{border-radius:50%;background:#f8fafc;box-shadow:inset -8px -6px 0 #cbd5e1,0 4px 0 #94a3b8;margin:-8px 0}
+    .ball.big{width:86px;height:70px}
+    .ball.mid{width:64px;height:52px}
+    .ball.head{width:46px;height:42px;display:grid;place-items:center;font-size:18px}
+    .pal.tall .ball.big{width:96px;height:80px}
+    .pal.tall .ball.mid{width:72px;height:58px}
+    .pal.tall .ball.head{width:50px;height:46px}
+    .bits{font-size:22px;line-height:1;min-height:24px}
+    .sparkle .ball{box-shadow:inset -8px -6px 0 #cbd5e1,0 0 16px #fff,0 4px 0 #94a3b8}
+    .parts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px;position:relative;z-index:2}
+    .parts button{width:74px;height:74px;border-radius:18px;background:#fff;font-size:32px;box-shadow:0 6px 0 #94a3b8}
     .parts button.done{opacity:.35}
     .parts button:active{transform:translateY(3px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(15,30,50,.84);z-index:8;gap:12px;color:#fff}
+    .weather{margin:10px auto 0;background:#e0f2fe;color:#0c4a6e;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 6px 0 #38bdf8;font-size:18px;position:relative;z-index:2}
+    .msg{font-weight:800;min-height:2.2em;margin-top:8px;position:relative;z-index:2;font-size:18px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(15,30,50,.86);z-index:10;gap:10px;color:#fff;padding:20px}
     .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    .win h2{font-size:30px}
+    .stars{font-size:28px;letter-spacing:4px}
+    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
+    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
+    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
   </style>
 </head>
-<body>
+<body class="dusk">
   <a class="home" href="../index.html">← Home</a>
+  <div class="flakes" id="flakes"></div>
   <h1>Snowman Build</h1>
+  <div class="hud">
+    <div class="chip" id="lvl">Friend 1 / 3</div>
+    <div class="chip" id="stars">⭐ 0</div>
+  </div>
+  <div class="yard">
+    <div class="trees"><span>🌲</span><span>🎄</span><span>🌲</span></div>
+    <div class="stage" id="stage"></div>
+  </div>
   <p class="msg" id="msg">First, tap the big snowball!</p>
-  <div class="man" id="man">❄️</div>
   <div class="parts" id="parts"></div>
+  <button class="weather" id="snow">❄️ Extra snow</button>
   <div class="win" id="win">
     <div style="font-size:72px">⛄</div>
-    <h2>Frosty friend!</h2>
-    <button class="play" id="again">Build again</button>
+    <h2 id="wintitle">Frosty friends!</h2>
+    <p class="stars" id="winstars">⭐⭐⭐</p>
+    <p id="winline">A whole snow family.</p>
+    <div class="winbtns">
+      <button class="play" id="again">Play again</button>
+      <button class="next" id="next">Next</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var steps=[{e:"⚪",n:"big snow",look:"⚪",s:"40px"},{e:"🔘",n:"middle snow",look:"🔘<br>⚪",s:"32px"},{e:"⛄",n:"head",look:"⛄"},{e:"🥕",n:"carrot",look:"⛄🥕"},{e:"🎩",n:"hat",look:"🎩<br>⛄🥕"},{e:"🪵",n:"arms",look:"🎩<br>🪵⛄🥕🪵"}];
-    var need=0,box=document.getElementById("parts");
-    steps.forEach(function(s,i){
-      var b=document.createElement("button");b.textContent=s.e;if(s.s)b.style.fontSize=s.s;
-      b.onclick=function(){
-        if(i!==need){document.getElementById("msg").textContent="Next is the "+steps[need].n+"!";beep(180,.1);return;}
-        b.classList.add("done");document.getElementById("man").innerHTML=s.look;beep(520+i*60,.1);need++;
-        if(need>=steps.length){document.getElementById("msg").textContent="Hello snowman!";document.getElementById("win").classList.add("on");beep(960,.2);}
-        else document.getElementById("msg").textContent="Now the "+steps[need].n+"!";
-      };
-      box.appendChild(b);
-    });
-    document.getElementById("again").onclick=function(){location.reload();};
+    var FRIENDS=[
+      {id:"friend",n:"Friend",cls:"",night:false,need:["big","mid","head","hat","carrot","arms","buttons","scarf"]},
+      {id:"tall",n:"Tall pal",cls:"tall",night:false,need:["big","mid","head","hat","carrot","arms","buttons","scarf"]},
+      {id:"night",n:"Night pal",cls:"",night:true,need:["big","mid","head","hat","carrot","arms","buttons","scarf","lantern"]}
+    ];
+    var PARTS=[
+      {id:"big",e:"⚪",n:"big snow"},{id:"mid",e:"🔘",n:"middle"},{id:"head",e:"⛄",n:"head"},
+      {id:"hat",e:"🎩",n:"hat"},{id:"carrot",e:"🥕",n:"carrot"},{id:"arms",e:"🪵",n:"arms"},
+      {id:"buttons",e:"⚫",n:"buttons"},{id:"scarf",e:"🧣",n:"scarf"},{id:"lantern",e:"🏮",n:"lantern"}
+    ];
+    var fi=0,step=0,done={},built=[],stars=0,spark=0;
+    function flakes(){
+      var box=document.getElementById("flakes");box.innerHTML="";
+      for(var i=0;i<18;i++){
+        var s=document.createElement("div");s.className="flake";s.textContent="❄";
+        s.style.left=(Math.random()*100)+"%";
+        s.style.animationDuration=(7+Math.random()*8)+"s";
+        s.style.animationDelay=(-Math.random()*8)+"s";
+        s.style.fontSize=(12+Math.random()*16)+"px";
+        box.appendChild(s);
+      }
+    }
+    function renderPals(){
+      var st=document.getElementById("stage");st.innerHTML="";
+      built.concat([{id:FRIENDS[fi].id,bits:done,cls:FRIENDS[fi].cls,n:FRIENDS[fi].n,spark:spark&&FRIENDS[fi].id===FRIENDS[fi].id}]).forEach(function(p,idx){
+        if(idx===built.length&&!done.big) {
+          var empty=document.createElement("div");empty.className="pal "+p.cls;empty.innerHTML="<div class='bits'>❄️</div><div class='name'>"+p.n+"</div>";st.appendChild(empty);return;
+        }
+        var bits=p.bits||done;
+        var d=document.createElement("div");d.className="pal "+p.cls+(p.spark||(spark&&idx===built.length)?" sparkle":"");
+        var hat=bits.hat?"🎩":"";
+        var face=(bits.carrot?"🥕":"")+(bits.head?"😊":"");
+        var arms=bits.arms?"🪵":"";
+        var lantern=bits.lantern?"🏮":"";
+        var scarf=bits.scarf?"🧣":"";
+        d.innerHTML=
+          "<div class='bits'>"+hat+"</div>"+
+          (bits.head?"<div class='ball head'>"+face+"</div>":"")+
+          (bits.mid?"<div class='ball mid'>"+(bits.buttons?"⚫":"")+"</div>":"")+
+          (bits.big?"<div class='ball big'>"+scarf+"</div>":"")+
+          "<div class='bits'>"+arms+" "+lantern+"</div>"+
+          "<div class='name'>"+p.n+"</div>";
+        st.appendChild(d);
+      });
+    }
+    function tray(){
+      var F=FRIENDS[fi],box=document.getElementById("parts");box.innerHTML="";
+      var show=step<3?PARTS.slice(0,3):PARTS.filter(function(p){return F.need.indexOf(p.id)>=0&&["big","mid","head"].indexOf(p.id)<0;});
+      show.forEach(function(p){
+        var b=document.createElement("button");b.textContent=p.e;if(done[p.id])b.className="done";
+        b.onclick=function(){
+          var need=F.need[step];
+          if(p.id!==need){document.getElementById("msg").textContent="Next is the "+PARTS.filter(function(x){return x.id===need;})[0].n+"!";beep(180,.1);return;}
+          done[p.id]=1;b.classList.add("done");step++;beep(520+step*40,.1);renderPals();
+          if(step>=F.need.length)finish();
+          else{
+            document.getElementById("msg").textContent=step===3?"Now dress them up!":"Now the "+PARTS.filter(function(x){return x.id===F.need[step];})[0].n+"!";
+            if(step===3)tray();
+          }
+        };
+        box.appendChild(b);
+      });
+    }
+    function finish(){
+      var got=2+(spark?1:0);stars+=got;
+      document.getElementById("stars").textContent="⭐ "+stars;
+      built.push({id:FRIENDS[fi].id,bits:Object.assign({},done),cls:FRIENDS[fi].cls,n:FRIENDS[fi].n,spark:spark});
+      beep(960,.18);
+      setTimeout(function(){showWin(fi>=FRIENDS.length-1,got);},350);
+    }
+    function startFriend(){
+      var F=FRIENDS[fi];step=0;done={};spark=0;
+      document.body.className=F.night?"night":"dusk";
+      document.getElementById("lvl").textContent=F.n+" "+(fi+1)+" / 3";
+      document.getElementById("msg").textContent="First, tap the big snowball!";
+      tray();renderPals();
+    }
+    document.getElementById("snow").onclick=function(){
+      spark=1;renderPals();
+      document.getElementById("msg").textContent="Sparkle snow! So pretty.";
+      beep(700,.08);
+      var box=document.getElementById("flakes");
+      for(var i=0;i<8;i++){
+        var s=document.createElement("div");s.className="flake";s.textContent="✨";
+        s.style.left=(Math.random()*100)+"%";s.style.animationDuration="4s";s.style.fontSize="22px";
+        box.appendChild(s);
+      }
+    };
+    function showWin(last,got){
+      document.getElementById("wintitle").textContent=last?"Frosty friends!":"Hello snow pal!";
+      document.getElementById("winstars").textContent="⭐".repeat(got);
+      document.getElementById("winline").textContent=last?"A whole snow family.":"Build the next friend!";
+      document.getElementById("win").classList.add("on");
+    }
+    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");fi=0;stars=0;built=[];document.getElementById("stars").textContent="⭐ 0";flakes();startFriend();};
+    document.getElementById("next").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      if(fi>=FRIENDS.length-1){fi=0;stars=0;built=[];document.getElementById("stars").textContent="⭐ 0";flakes();}
+      else fi++;
+      startFriend();
+    };
+    flakes();startFriend();
   </script>
 </body>
 </html>

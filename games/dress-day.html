@@ -8,41 +8,96 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4c1d95;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#c4b5fd,#f9a8d4);padding:56px 14px 24px;text-align:center}
+    body{min-height:100vh;background:#ede9fe;padding:54px 10px 24px;text-align:center}
     .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    .sky{font-size:64px;margin:6px}
-    .msg{font-weight:800;min-height:2em}
-    .kid{font-size:28px;background:#fff;display:inline-block;padding:12px 18px;border-radius:24px;margin:8px;min-width:160px}
-    .row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px}
-    .row button{width:76px;height:76px;border-radius:20px;background:#fff;font-size:36px;box-shadow:0 6px 0 #a78bfa}
-    .row button.on{outline:4px solid #3b0764}
-    .go{margin-top:8px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.84);z-index:8;gap:12px;color:#fff}
+    h1{font-size:clamp(24px,7vw,36px)}
+    .hud{display:flex;justify-content:center;gap:8px;margin:6px}
+    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #a78bfa;font-size:15px}
+    .room{max-width:440px;margin:8px auto;display:grid;grid-template-columns:1fr 140px;gap:10px;align-items:stretch}
+    .closet{background:linear-gradient(#92400e,#78350f);border-radius:18px;padding:10px 8px;box-shadow:0 10px 0 #451a03;min-height:280px}
+    .rod{height:8px;background:#d6d3d1;border-radius:8px;margin:4px 10px 10px}
+    .doors{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .door{background:#fef3c7;border-radius:12px;min-height:220px;padding:8px 4px;box-shadow:inset 0 0 0 4px #e7e5e4}
+    .hang{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+    .hang button{width:58px;height:58px;border-radius:14px;background:#fff;font-size:28px;box-shadow:0 4px 0 #d8b4fe}
+    .hang button.on{outline:3px solid #5b21b6;background:#fde68a}
+    .forecast{background:#fff;border-radius:20px;padding:12px 8px;box-shadow:0 8px 0 #7c3aed;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .forecast .sky{font-size:56px}
+    .forecast h3{font-size:16px;margin:4px 0}
+    .forecast p{font-weight:800;font-size:14px;line-height:1.3}
+    .mannequin{margin:10px auto;width:min(220px,70vw);background:#fff;border-radius:28px;padding:12px;box-shadow:0 8px 0 #c4b5fd}
+    .kid{font-size:22px;font-weight:800;line-height:1.2}
+    .kid .head{font-size:52px}
+    .go{margin-top:10px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
+    .go:active,.hang button:active{transform:translateY(3px)}
+    .msg{font-weight:800;min-height:2.2em;margin-top:8px;font-size:18px}
+    .lbl{font-size:12px;font-weight:800;color:#fef3c7;margin:4px 0}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.86);z-index:10;gap:10px;color:#fff;padding:20px}
     .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    .win h2{font-size:30px}
+    .stars{font-size:28px;letter-spacing:4px}
+    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
+    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
+    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
+    @media(max-width:520px){.room{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <h1>Dress the Day</h1>
-  <div class="sky" id="sky">☀️</div>
-  <p class="msg" id="msg">Sunny day! Pick sun clothes.</p>
-  <div class="kid" id="kid">🧒</div>
-  <div class="row" id="hats"></div>
-  <div class="row" id="coats"></div>
-  <div class="row" id="shoes"></div>
+  <div class="hud">
+    <div class="chip" id="lvl">Day 1 / 5</div>
+    <div class="chip" id="stars">⭐ 0</div>
+  </div>
+  <div class="room">
+    <div class="closet">
+      <div class="rod"></div>
+      <div class="doors">
+        <div class="door">
+          <div class="lbl">Hats · Coats</div>
+          <div class="hang" id="hats"></div>
+          <div class="hang" id="coats" style="margin-top:8px"></div>
+        </div>
+        <div class="door">
+          <div class="lbl">Shoes · Extra</div>
+          <div class="hang" id="shoes"></div>
+          <div class="hang" id="accs" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="forecast">
+      <div class="sky" id="sky">☀️</div>
+      <h3 id="dayname">Sunny</h3>
+      <p id="hint">Cap, shirt, sneakers, sunnies</p>
+    </div>
+  </div>
+  <div class="mannequin">
+    <div class="kid" id="kid"><div class="head">🧒</div></div>
+  </div>
   <button class="go" id="go">Ready!</button>
+  <p class="msg" id="msg">Open the closet. Dress for the sky!</p>
   <div class="win" id="win">
     <div style="font-size:72px">👗</div>
-    <h2>Dressed for every day!</h2>
-    <button class="play" id="again">Dress again</button>
+    <h2 id="wintitle">Dressed for every day!</h2>
+    <p class="stars" id="winstars">⭐⭐⭐</p>
+    <p id="winline">Ready for sun, rain, and snow.</p>
+    <div class="winbtns">
+      <button class="play" id="again">Play again</button>
+      <button class="next" id="next">Next</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var days=[{e:"☀️",n:"sun",hat:"🧢",coat:"👕",shoe:"👟",txt:"Sunny day! Pick sun clothes."},{e:"🌧️",n:"rain",hat:"🌂",coat:"🧥",shoe:"👢",txt:"Rainy day! Stay dry."},{e:"❄️",n:"snow",hat:"🧣",coat:"🧥",shoe:"👢",txt:"Snow day! Stay warm."}];
-    var hats=["🧢","🎩","🌂","🧣"],coats=["👕","👗","🧥","🎽"],shoes=["👟","👠","👢","🩴"];
-    var pick={hat:"",coat:"",shoe:""},day=0,score=0;
+    var DAYS=[
+      {e:"☀️",n:"Sunny",hat:"🧢",coat:"👕",shoe:"👟",acc:"🕶️",txt:"Cap, shirt, sneakers, sunnies"},
+      {e:"🌧️",n:"Rain",hat:"👒",coat:"🧥",shoe:"👢",acc:"☂️",txt:"Hat, coat, boots, umbrella"},
+      {e:"❄️",n:"Snow",hat:"🎩",coat:"🧥",shoe:"👢",acc:"🧣",txt:"Warm hat, coat, boots, scarf"},
+      {e:"💨",n:"Wind",hat:"🧢",coat:"🎽",shoe:"👟",acc:"🪁",txt:"Cap, wind shirt, sneakers, kite"},
+      {e:"🌙",n:"Night",hat:"🎀",coat:"👘",shoe:"🩴",acc:"🕯️",txt:"Bow, robe, slippers, little light"}
+    ];
+    var HATS=["🧢","👒","🎩","🎀"],COATS=["👕","🧥","🎽","👘"],SHOES=["👟","👢","🩴"],ACCS=["🕶️","☂️","🧣","🪁","🕯️"];
+    var pick={hat:"",coat:"",shoe:"",acc:""},day=0,stars=0;
     function row(id,list,key){
       var box=document.getElementById(id);box.innerHTML="";
       list.forEach(function(e){
@@ -51,20 +106,43 @@
         box.appendChild(b);
       });
     }
-    function show(){document.getElementById("kid").textContent=(pick.hat||"")+"🧒"+(pick.coat||"")+(pick.shoe||"");}
+    function show(){
+      document.getElementById("kid").innerHTML=
+        "<div>"+(pick.hat||"·")+"</div><div class='head'>🧒</div><div>"+(pick.acc||"")+"</div><div>"+(pick.coat||"·")+"</div><div>"+(pick.shoe||"·")+"</div>";
+    }
     function setDay(){
-      var d=days[day];pick={hat:"",coat:"",shoe:""};
-      document.getElementById("sky").textContent=d.e;document.getElementById("msg").textContent=d.txt;show();
-      row("hats",hats,"hat");row("coats",coats,"coat");row("shoes",shoes,"shoe");
+      var d=DAYS[day];pick={hat:"",coat:"",shoe:"",acc:""};
+      document.getElementById("sky").textContent=d.e;
+      document.getElementById("dayname").textContent=d.n+" day";
+      document.getElementById("hint").textContent=d.txt;
+      document.getElementById("lvl").textContent="Day "+(day+1)+" / 5";
+      document.getElementById("msg").textContent="Dress the kid. Then Ready!";
+      row("hats",HATS,"hat");row("coats",COATS,"coat");row("shoes",SHOES,"shoe");row("accs",ACCS,"acc");
+      show();
     }
     document.getElementById("go").onclick=function(){
-      var d=days[day];
-      if(pick.hat!==d.hat||pick.coat!==d.coat||pick.shoe!==d.shoe){document.getElementById("msg").textContent="Almost! Try the "+d.txt;beep(180,.1);return;}
-      score++;beep(820,.12);
-      if(score>=3){document.getElementById("win").classList.add("on");beep(960,.2);return;}
-      day++;setDay();
+      var d=DAYS[day],miss=[];
+      if(pick.hat!==d.hat)miss.push("hat");
+      if(pick.coat!==d.coat)miss.push("coat");
+      if(pick.shoe!==d.shoe)miss.push("shoes");
+      if(pick.acc!==d.acc)miss.push("extra");
+      if(miss.length){document.getElementById("msg").textContent="Almost! Try a new "+miss[0]+".";beep(180,.1);return;}
+      var got=3;stars+=got;document.getElementById("stars").textContent="⭐ "+stars;beep(820,.12);
+      setTimeout(function(){showWin(day>=DAYS.length-1,got);},280);
     };
-    document.getElementById("again").onclick=function(){location.reload();};
+    function showWin(last,got){
+      document.getElementById("wintitle").textContent=last?"Dressed for every day!":"Cute outfit!";
+      document.getElementById("winstars").textContent="⭐".repeat(got);
+      document.getElementById("winline").textContent=last?"Ready for sun, rain, and snow.":"On to the next sky!";
+      document.getElementById("win").classList.add("on");
+    }
+    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");day=0;stars=0;document.getElementById("stars").textContent="⭐ 0";setDay();};
+    document.getElementById("next").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      if(day>=DAYS.length-1){day=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
+      else day++;
+      setDay();
+    };
     setDay();
   </script>
 </body>

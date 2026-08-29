@@ -6,62 +6,199 @@
   <title>Paint House</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e1b4b;touch-action:manipulation}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b2100;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#c4b5fd,#67e8f9);padding:58px 14px 24px;text-align:center}
+    body{min-height:100vh;padding:56px 10px 28px;text-align:center;transition:background .6s}
+    body.day{background:linear-gradient(#7dd3fc 0 42%,#86efac 42% 70%,#4ade80 70%)}
+    body.night{background:linear-gradient(#1e1b4b 0 48%,#312e81 48% 68%,#14532d 68%);color:#fef9c3}
     .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .who{display:inline-flex;gap:6px;padding:6px 12px;border-radius:999px;font-weight:800;margin:8px}
-    .target{display:flex;justify-content:center;gap:8px;margin:8px}
-    .dot{width:28px;height:28px;border-radius:50%;box-shadow:0 3px 0 rgba(0,0,0,.2)}
-    .house{width:min(320px,92vw);margin:10px auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .room{height:110px;border-radius:22px;font-weight:800;font-size:16px;color:#222;box-shadow:0 7px 0 rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .room span{font-size:36px}
-    .room:active{transform:translateY(3px)}
-    .msg{font-weight:800;min-height:2em;margin-top:10px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(30,20,70,.84);z-index:8;gap:12px;color:#fff}
+    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:4px 0 8px}
+    .chip{background:#fff;color:#3b2100;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 rgba(0,0,0,.15);font-size:15px}
+    body.night .chip{background:#312e81;color:#fef9c3}
+    h1{font-size:clamp(26px,7vw,38px);text-shadow:0 3px 0 rgba(255,255,255,.35)}
+    .who{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-weight:800;margin:6px;color:#222}
+    .row{display:flex;justify-content:center;align-items:flex-start;gap:10px;flex-wrap:wrap;margin:8px 0}
+    .card{width:min(200px,46vw);background:#fffbeb;border-radius:18px;padding:10px;box-shadow:0 7px 0 #d97706;text-align:left;position:relative}
+    body.night .card{background:#451a03;box-shadow:0 7px 0 #9a3412;color:#fde68a}
+    .card:before{content:"";position:absolute;top:-10px;left:18px;width:22px;height:14px;background:#92400e;border-radius:2px}
+    .card h3{font-size:14px;margin-bottom:4px}
+    .card p{font-weight:800;font-size:15px;line-height:1.35}
+    .switch{min-width:120px;padding:14px 16px;border-radius:22px;background:#fde68a;color:#3b2100;font-weight:800;font-size:18px;box-shadow:0 6px 0 #ca8a04}
+    body.night .switch{background:#1e3a8a;color:#fef08a;box-shadow:0 6px 0 #1e40af}
+    .switch:active{transform:translateY(3px)}
+    .yard{position:relative;width:min(360px,96vw);margin:8px auto 0;min-height:360px}
+    .house{position:relative;margin:0 auto}
+    .roof{margin:0 auto;width:78%;height:0;border-left:46px solid transparent;border-right:46px solid transparent;border-bottom:72px solid #b45309;position:relative;z-index:2}
+    .house.tall .roof{width:58%;border-bottom-width:88px;border-bottom-color:#9a3412}
+    .house.night .roof{width:84%;border-bottom-color:#431407;border-bottom-width:64px}
+    .chimney{position:absolute;right:18%;top:-18px;width:22px;height:36px;background:#78716c;border-radius:3px 3px 0 0}
+    .chimney:after{content:"";position:absolute;top:-8px;left:-4px;width:30px;height:10px;background:#57534e;border-radius:2px}
+    .floors{margin:-8px auto 0;background:#fed7aa;border:6px solid #9a3412;border-radius:0 0 16px 16px;overflow:hidden;position:relative;z-index:1;box-shadow:0 10px 0 rgba(0,0,0,.18)}
+    .house.cottage .floors{width:78%}
+    .house.tall .floors{width:58%}
+    .house.night .floors{width:84%;background:#44403c;border-color:#1c1917}
+    .room{min-height:78px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#222;border-bottom:4px solid rgba(0,0,0,.12);position:relative;transition:background .25s}
+    .house.tall .room{min-height:64px}
+    .room:last-child{border-bottom:0}
+    .room span{font-size:28px;line-height:1}
+    .room:active{filter:brightness(1.08)}
+    .winpane{position:absolute;top:10px;right:10px;width:22px;height:22px;background:#bae6fd;border:2px solid #0c4a6e;border-radius:3px;box-shadow:inset 0 0 0 1px #fff}
+    body.night .winpane{background:#fde047;box-shadow:0 0 14px #facc15,inset 0 0 0 1px #fef08a}
+    .garden{margin:8px auto 0;width:88%;min-height:72px;border-radius:18px;border:4px dashed #15803d;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;background:#bbf7d0;color:#14532d}
+    .house.night .garden{border-color:#365314;background:#365314;color:#ecfccb}
+    .garden span{font-size:28px}
+    .msg{font-weight:800;min-height:2.2em;margin-top:10px;font-size:18px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(30,20,70,.86);z-index:10;gap:10px;color:#fff;padding:20px}
     .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    .win h2{font-size:32px}
+    .stars{font-size:28px;letter-spacing:4px}
+    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
+    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
+    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
+    .play:active,.next:active{transform:translateY(3px)}
   </style>
 </head>
-<body>
+<body class="day">
   <a class="home" href="../index.html">← Home</a>
   <h1>Paint House</h1>
   <div class="who" id="who"></div>
-  <p class="msg">Match the color dots. Tap a room to paint!</p>
-  <div class="target" id="target"></div>
-  <div class="house" id="house"></div>
-  <p class="msg" id="msg"></p>
+  <div class="hud">
+    <div class="chip" id="lvl">House 1 / 3</div>
+    <div class="chip" id="stars">⭐ 0</div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <h3>📣 Neighbor</h3>
+      <p id="note">Kitchen pink, garden green</p>
+    </div>
+    <button class="switch" id="light">🌙 Night</button>
+  </div>
+  <div class="yard">
+    <div class="house cottage" id="house">
+      <div class="roof"><i class="chimney"></i></div>
+      <div class="floors" id="floors"></div>
+      <button class="garden" id="garden"><span>🌻</span>Garden</button>
+    </div>
+  </div>
+  <p class="msg" id="msg">Tap rooms to paint. Match the note!</p>
   <div class="win" id="win">
     <div style="font-size:72px">🏠</div>
-    <h2>Pretty house!</h2>
+    <h2 id="wintitle">Pretty house!</h2>
+    <p class="stars" id="winstars">⭐⭐⭐</p>
     <p id="winline"></p>
-    <button class="play" id="again">Paint again</button>
+    <div class="winbtns">
+      <button class="play" id="again">Play again</button>
+      <button class="next" id="next">Next</button>
+    </div>
   </div>
   <script>
-    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Kid",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var A=av(),cols=["#fca5a5","#fde68a","#86efac","#93c5fd","#d8b4fe","#f9a8d4"];
-    var rooms=[{n:"Kitchen",e:"🍳"},{n:"Bedroom",e:"🛏️"},{n:"Bath",e:"🛁"},{n:"Garden",e:"🌻"}];
-    var goal=rooms.map(function(){return Math.floor(Math.random()*cols.length);});
-    var cur=rooms.map(function(){return 0;});if(goal.every(function(v,i){return v===0;}))goal[0]=2;
+    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Alab",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var A=av();
+    var COLS=[
+      {n:"cream",c:"#fef3c7"},{n:"pink",c:"#f9a8d4"},{n:"yellow",c:"#fde047"},
+      {n:"green",c:"#86efac"},{n:"blue",c:"#93c5fd"},{n:"purple",c:"#d8b4fe"},{n:"peach",c:"#fdba74"}
+    ];
+    var HOUSES=[
+      {id:"cottage",title:"Cozy cottage",rooms:[
+        {id:"loft",n:"Loft",e:"🛏️",want:"yellow"},
+        {id:"kitchen",n:"Kitchen",e:"🍳",want:"pink"}
+      ],garden:"green",note:"Kitchen pink, garden green. Loft yellow."},
+      {id:"tall",title:"Tall house",rooms:[
+        {id:"attic",n:"Attic",e:"📦",want:"blue"},
+        {id:"bed",n:"Bed",e:"🛏️",want:"purple"},
+        {id:"bath",n:"Bath",e:"🛁",want:"cream"},
+        {id:"kitchen",n:"Kitchen",e:"🍳",want:"peach"}
+      ],garden:"green",note:"Attic blue, bed purple, bath cream. Kitchen peach, garden green."},
+      {id:"night",title:"Night house",rooms:[
+        {id:"loft",n:"Loft",e:"🌙",want:"purple"},
+        {id:"den",n:"Den",e:"📚",want:"blue"},
+        {id:"kitchen",n:"Kitchen",e:"🍪",want:"pink"}
+      ],garden:"green",note:"Kitchen pink, garden green. Loft purple, den blue.",night:true}
+    ];
+    var hi=0,stars=0,usedNight=0,painted={},night=false;
     document.getElementById("who").innerHTML=A.hair+" Painter "+A.name;
     document.getElementById("who").style.background=A.shirt;
-    var tg=document.getElementById("target");
-    goal.forEach(function(g){var d=document.createElement("div");d.className="dot";d.style.background=cols[g];tg.appendChild(d);});
-    var house=document.getElementById("house");
-    rooms.forEach(function(r,i){
-      var b=document.createElement("button");b.className="room";
-      function paint(){b.style.background=cols[cur[i]];b.innerHTML="<span>"+r.e+"</span>"+r.n;}
-      paint();
-      b.onclick=function(){cur[i]=(cur[i]+1)%cols.length;paint();beep(420+cur[i]*40,.08);check();};
-      house.appendChild(b);
-    });
-    function check(){
-      var ok=cur.every(function(v,i){return v===goal[i];});
-      if(ok){document.getElementById("winline").textContent=A.name+" painted a cozy home for "+A.pet+"!";document.getElementById("win").classList.add("on");beep(880,.2);}
+    function colorIndex(name){for(var i=0;i<COLS.length;i++)if(COLS[i].n===name)return i;return 0;}
+    function paintEl(el,idx,e,n){
+      el.style.background=COLS[idx].c;
+      el.innerHTML="<i class='winpane'></i><span>"+e+"</span>"+n;
     }
-    document.getElementById("again").onclick=function(){location.reload();};
+    function build(){
+      var H=HOUSES[hi];
+      var house=document.getElementById("house");
+      house.className="house "+H.id;
+      document.getElementById("lvl").textContent="House "+(hi+1)+" / 3";
+      document.getElementById("note").textContent=H.note;
+      document.getElementById("msg").textContent="Paint "+H.title+"!";
+      painted={};usedNight=0;
+      night=!!H.night;
+      applySky();
+      var floors=document.getElementById("floors");
+      floors.innerHTML="";
+      H.rooms.forEach(function(r){
+        painted[r.id]=0;
+        var b=document.createElement("button");
+        b.className="room";
+        b.id="r-"+r.id;
+        paintEl(b,0,r.e,r.n);
+        b.onclick=function(){
+          painted[r.id]=(painted[r.id]+1)%COLS.length;
+          paintEl(b,painted[r.id],r.e,r.n);
+          beep(420+painted[r.id]*40,.07);
+          check();
+        };
+        floors.appendChild(b);
+      });
+      painted.garden=0;
+      var g=document.getElementById("garden");
+      g.style.background=COLS[0].c;
+      g.innerHTML="<span>🌻</span>Garden";
+      g.onclick=function(){
+        painted.garden=(painted.garden+1)%COLS.length;
+        g.style.background=COLS[painted.garden].c;
+        g.innerHTML="<span>🌻</span>Garden";
+        beep(380,.07);
+        check();
+      };
+    }
+    function applySky(){
+      document.body.className=night?"night":"day";
+      document.getElementById("light").textContent=night?"☀️ Day":"🌙 Night";
+    }
+    document.getElementById("light").onclick=function(){
+      night=!night;if(night)usedNight=1;applySky();beep(night?280:620,.1);
+    };
+    function check(){
+      var H=HOUSES[hi],ok=true;
+      H.rooms.forEach(function(r){if(COLS[painted[r.id]].n!==r.want)ok=false;});
+      if(COLS[painted.garden].n!==H.garden)ok=false;
+      if(!ok)return;
+      var got=2+(usedNight||H.night?1:0);
+      stars+=got;
+      document.getElementById("stars").textContent="⭐ "+stars;
+      beep(880,.18);
+      setTimeout(function(){showWin(hi>=HOUSES.length-1,got);},350);
+    }
+    function showWin(last,got){
+      document.getElementById("wintitle").textContent=last?"Pretty house!":"Cute house!";
+      document.getElementById("winstars").textContent="⭐".repeat(got);
+      document.getElementById("winline").textContent=A.name+" painted a cozy home for "+A.pet+"!";
+      document.getElementById("win").classList.add("on");
+      document.getElementById("next").textContent=last?"Next":"Next";
+    }
+    document.getElementById("again").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      hi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";build();
+    };
+    document.getElementById("next").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      if(hi>=HOUSES.length-1){hi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
+      else hi++;
+      build();
+    };
+    build();
   </script>
 </body>
 </html>

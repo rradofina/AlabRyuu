@@ -8,63 +8,165 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#7c2d12;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fed7aa,#fb7185);padding:56px 14px 24px;text-align:center}
+    body{min-height:100vh;background:#7f1d1d;padding:54px 8px 24px;text-align:center}
     .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .order{display:inline-block;background:#fff;padding:8px 16px;border-radius:999px;font-weight:800;margin:8px;box-shadow:0 5px 0 #ea580c}
-    .pie{width:min(240px,70vw);height:240px;margin:12px auto;border-radius:50%;background:#f59e0b;box-shadow:inset 0 0 0 18px #fbbf24,0 10px 0 #b45309;position:relative}
-    .top{position:absolute;font-size:36px;transform:translate(-50%,-50%)}
-    .tops{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px}
-    .tops button{width:72px;height:72px;border-radius:20px;background:#fff7ed;font-size:34px;box-shadow:0 6px 0 #c2410c}
-    .tops button:active{transform:translateY(3px)}
+    .shop{max-width:460px;margin:0 auto;background:linear-gradient(#fed7aa,#fecaca);border-radius:24px;padding:0 0 18px;box-shadow:0 12px 0 #450a0a;overflow:hidden}
+    .rail{background:#292524;padding:10px 8px 14px;position:relative}
+    .rail:after{content:"";position:absolute;left:8px;right:8px;top:8px;height:4px;background:#a8a29e;border-radius:4px}
+    .tickets{display:flex;gap:8px;justify-content:center;padding-top:10px;min-height:78px}
+    .tick{width:64px;background:#fffbeb;clip-path:polygon(0 0,100% 0,100% 88%,85% 100%,70% 88%,50% 100%,30% 88%,15% 100%,0 88%);padding:10px 4px 16px;font-weight:800;font-size:12px;box-shadow:0 6px 0 #9a3412;transform:rotate(-4deg)}
+    .tick.on{transform:rotate(0) scale(1.08);outline:3px solid #ea580c}
+    .tick span{display:block;font-size:20px}
+    .hud{display:flex;justify-content:center;gap:8px;margin:8px}
+    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #ea580c;font-size:15px}
+    h1{font-size:clamp(26px,7vw,36px);margin-top:8px}
+    .kitchen{display:grid;grid-template-columns:1.2fr .8fr;gap:10px;padding:8px 12px;align-items:center}
+    .peel{background:#b45309;border-radius:18px 80px 80px 18px;padding:12px;min-height:200px;display:flex;align-items:center;justify-content:center;position:relative}
+    .pie{width:150px;height:150px;border-radius:50%;background:#f59e0b;box-shadow:inset 0 0 0 14px #fbbf24,0 8px 0 #9a3412;position:relative;transition:transform .45s}
+    .pie.slide{transform:translateX(80px) scale(.7);opacity:.35}
+    .pie.baked{background:#d97706;box-shadow:inset 0 0 0 14px #f59e0b,0 8px 0 #7c2d12}
+    .top{position:absolute;font-size:28px;transform:translate(-50%,-50%)}
+    .oven{height:190px;background:#44403c;border-radius:16px;box-shadow:0 8px 0 #1c1917;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:10px}
+    .oven .arch{width:84%;height:62%;background:#1c1917;border-radius:80px 80px 8px 8px;display:grid;place-items:center;font-size:28px;border:5px solid #78716c}
+    .oven.hot .arch{background:#ea580c;box-shadow:0 0 20px #fbbf24;color:#fff}
+    .bake{margin-top:8px;background:#fde68a;color:#3b2100;font-weight:800;padding:10px 16px;border-radius:999px;box-shadow:0 5px 0 #ca8a04;font-size:16px}
+    .well{margin:8px 12px;background:#292524;border-radius:18px;padding:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+    .well button{width:68px;height:68px;border-radius:16px;background:#fff7ed;font-size:30px;box-shadow:0 5px 0 #9a3412}
+    .well button:active,.bake:active{transform:translateY(3px)}
     .serve{margin-top:8px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .msg{font-weight:800;min-height:1.6em;margin-top:8px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,10,20,.84);z-index:8;gap:12px;color:#fff}
+    .msg{font-weight:800;min-height:2em;margin:8px 12px;font-size:18px}
+    .extra{font-size:14px;font-weight:800;color:#9a3412}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,10,20,.86);z-index:10;gap:10px;color:#fff;padding:20px}
     .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    .win h2{font-size:32px}
+    .stars{font-size:28px;letter-spacing:4px}
+    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
+    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
+    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Pizza Party</h1>
-  <div class="order" id="order"></div>
-  <div class="pie" id="pie"></div>
-  <div class="tops" id="tops"></div>
-  <button class="serve" id="serve">Serve!</button>
-  <p class="msg" id="msg">Tap toppings. Make the order.</p>
+  <div class="shop">
+    <div class="rail"><div class="tickets" id="rail"></div></div>
+    <h1>Pizza Party</h1>
+    <div class="hud">
+      <div class="chip" id="lvl">Order 1 / 5</div>
+      <div class="chip" id="stars">⭐ 0</div>
+    </div>
+    <p class="extra" id="bonus"></p>
+    <div class="kitchen">
+      <div class="peel"><div class="pie" id="pie"></div></div>
+      <div class="oven" id="oven">
+        <div class="arch" id="arch">🔥</div>
+        <button class="bake" id="bake">Bake</button>
+      </div>
+    </div>
+    <div class="well" id="well"></div>
+    <button class="serve" id="serve">Serve!</button>
+    <p class="msg" id="msg">Read the ticket. Add toppings.</p>
+  </div>
   <div class="win" id="win">
     <div style="font-size:72px">🍕</div>
-    <h2>Party pizzas!</h2>
-    <button class="play" id="again">Bake again</button>
+    <h2 id="wintitle">Party pizzas!</h2>
+    <p class="stars" id="winstars">⭐⭐⭐</p>
+    <p id="winline">The party is fed!</p>
+    <div class="winbtns">
+      <button class="play" id="again">Play again</button>
+      <button class="next" id="next">Next</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var menu=[{e:"🍅",n:"tomato"},{e:"🧀",n:"cheese"},{e:"🍄",n:"mushroom"},{e:"🫒",n:"olive"},{e:"🍍",n:"pineapple"}];
-    var need=[],have=[],score=0,pie=document.getElementById("pie");
-    function round(){
-      have=[];pie.innerHTML="";
-      need=menu.slice().sort(function(){return Math.random()-.5;}).slice(0,2+Math.floor(Math.random()*2));
-      document.getElementById("order").textContent="Order: "+need.map(function(t){return t.e;}).join(" ");
-      document.getElementById("msg").textContent="Pizza "+(score+1)+" / 4";
+    var MENU=[{e:"🍅",n:"tomato"},{e:"🧀",n:"cheese"},{e:"🍄",n:"mushroom"},{e:"🫒",n:"olive"},{e:"🍍",n:"pineapple"}];
+    var ORDERS=[
+      {need:["🧀","🍅"],extra:null,open:3},
+      {need:["🧀","🍄"],extra:"🍍",open:3},
+      {need:["🧀","🫒","🍍"],extra:null,open:4},
+      {need:["🍅","🍄","🫒"],extra:"🍍",open:5},
+      {need:["🧀","🍅","🍄","🫒"],extra:"🍍",open:5}
+    ];
+    var oi=0,have=[],baked=false,stars=0,baking=false;
+    function drawRail(){
+      var r=document.getElementById("rail");r.innerHTML="";
+      ORDERS.forEach(function(o,i){
+        var d=document.createElement("div");d.className="tick"+(i===oi?" on":"");
+        d.innerHTML="#"+(i+1)+"<span>"+o.need.join("")+"</span>";
+        r.appendChild(d);
+      });
     }
-    menu.forEach(function(t){
-      var b=document.createElement("button");b.textContent=t.e;
-      b.onclick=function(){
-        if(have.length>=6)return;
-        have.push(t.e);
-        var el=document.createElement("div");el.className="top";el.textContent=t.e;
-        el.style.left=(30+Math.random()*40)+"%";el.style.top=(30+Math.random()*40)+"%";
-        pie.appendChild(el);beep(500,.07);
-      };
-      document.getElementById("tops").appendChild(b);
-    });
-    document.getElementById("serve").onclick=function(){
-      var ok=need.every(function(t){return have.indexOf(t.e)>=0;});
-      if(!ok||!have.length){document.getElementById("msg").textContent="Hmm, that is not the order.";beep(180,.1);return;}
-      score++;beep(820,.12);
-      if(score>=4){document.getElementById("win").classList.add("on");beep(960,.2);} else round();
+    function pieDraw(){
+      var pie=document.getElementById("pie");
+      pie.innerHTML="";
+      have.forEach(function(e,i){
+        var el=document.createElement("div");el.className="top";el.textContent=e;
+        var a=(i/Math.max(have.length,1))*6.28;
+        el.style.left=(50+Math.cos(a)*22)+"%";el.style.top=(50+Math.sin(a)*22)+"%";
+        pie.appendChild(el);
+      });
+    }
+    function well(){
+      var box=document.getElementById("well");box.innerHTML="";
+      MENU.slice(0,ORDERS[oi].open).forEach(function(t){
+        var b=document.createElement("button");b.textContent=t.e;
+        b.onclick=function(){
+          if(baked||baking)return;
+          if(have.length>=8)return;
+          have.push(t.e);pieDraw();beep(500,.07);
+        };
+        box.appendChild(b);
+      });
+    }
+    function round(){
+      have=[];baked=false;baking=false;
+      var pie=document.getElementById("pie");
+      pie.className="pie";pie.innerHTML="";
+      document.getElementById("oven").classList.remove("hot");
+      document.getElementById("arch").textContent="🔥";
+      document.getElementById("lvl").textContent="Order "+(oi+1)+" / 5";
+      document.getElementById("bonus").textContent=ORDERS[oi].extra?"Extra? "+ORDERS[oi].extra+" for a bonus star!":"";
+      document.getElementById("msg").textContent="Toppings, then bake, then serve.";
+      drawRail();well();
+    }
+    document.getElementById("bake").onclick=function(){
+      if(baking||baked)return;
+      if(!have.length){document.getElementById("msg").textContent="Add toppings first!";beep(180,.1);return;}
+      baking=true;
+      var pie=document.getElementById("pie");pie.classList.add("slide");
+      document.getElementById("oven").classList.add("hot");
+      document.getElementById("arch").textContent="🍕";
+      document.getElementById("msg").textContent="Mmm, baking…";beep(320,.12);
+      setTimeout(function(){
+        pie.classList.remove("slide");pie.classList.add("baked");baked=true;baking=false;
+        document.getElementById("oven").classList.remove("hot");
+        document.getElementById("arch").textContent="🔥";
+        document.getElementById("msg").textContent="Hot pizza! Serve it.";beep(700,.1);
+      },900);
     };
-    document.getElementById("again").onclick=function(){location.reload();};
+    document.getElementById("serve").onclick=function(){
+      if(!baked){document.getElementById("msg").textContent="Bake it in the oven first!";beep(180,.1);return;}
+      var ok=ORDERS[oi].need.every(function(t){return have.indexOf(t)>=0;});
+      if(!ok){document.getElementById("msg").textContent="Hmm, check the ticket.";beep(180,.1);return;}
+      var bonus=ORDERS[oi].extra&&have.indexOf(ORDERS[oi].extra)>=0?1:0;
+      var got=2+bonus;stars+=got;
+      document.getElementById("stars").textContent="⭐ "+stars;
+      beep(840,.14);
+      setTimeout(function(){showWin(oi>=ORDERS.length-1,got,bonus);},300);
+    };
+    function showWin(last,got,bonus){
+      document.getElementById("wintitle").textContent=last?"Party pizzas!":"Yum slice!";
+      document.getElementById("winstars").textContent="⭐".repeat(got);
+      document.getElementById("winline").textContent=bonus?"Bonus topping star!":"The table is happy.";
+      document.getElementById("win").classList.add("on");
+    }
+    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");oi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";round();};
+    document.getElementById("next").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      if(oi>=ORDERS.length-1){oi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
+      else oi++;
+      round();
+    };
     round();
   </script>
 </body>

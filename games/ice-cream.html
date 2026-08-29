@@ -8,62 +8,157 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#831843;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fbcfe8,#a5f3fc);padding:56px 14px 24px;text-align:center}
+    body{min-height:100vh;background:linear-gradient(#fbcfe8 0 28%,#a5f3fc 28% 28.6%,#fce7f3 28.6%);padding:54px 10px 24px;text-align:center}
     .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    .order{display:inline-block;background:#fff;padding:8px 16px;border-radius:999px;font-weight:800;margin:8px;box-shadow:0 5px 0 #f472b6}
-    .cone{min-height:220px;font-size:52px;line-height:1.05;margin:10px}
-    .flavs{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-    .flavs button{width:76px;height:76px;border-radius:20px;background:#fff;font-size:36px;box-shadow:0 6px 0 #fb7185}
-    .flavs button:active{transform:translateY(3px)}
-    .row{display:flex;justify-content:center;gap:10px;margin-top:12px}
-    .row button{background:#ffd166;color:#3b2100;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .msg{font-weight:800;margin-top:8px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,10,40,.84);z-index:8;gap:12px;color:#fff}
+    h1{font-size:clamp(24px,7vw,36px)}
+    .hud{display:flex;justify-content:center;gap:8px;margin:6px}
+    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #f472b6;font-size:15px}
+    .parlor{max-width:420px;margin:0 auto}
+    .guest{display:flex;align-items:flex-start;justify-content:center;gap:8px;margin:8px}
+    .face{font-size:56px}
+    .bubble{background:#fff;border-radius:22px;padding:10px 14px;font-weight:800;box-shadow:0 6px 0 #f9a8d4;position:relative;max-width:240px;text-align:left}
+    .bubble:after{content:"";position:absolute;left:-10px;top:18px;border:10px solid transparent;border-right-color:#fff}
+    .stand{margin:8px auto;width:min(200px,60vw);min-height:230px;background:linear-gradient(#e2e8f0,#cbd5e1);border-radius:16px 16px 40px 40px;box-shadow:inset 0 8px 0 #94a3b8,0 8px 0 #64748b;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:12px 8px 20px;position:relative}
+    .cone{font-size:44px;line-height:1.02;min-height:160px;display:flex;flex-direction:column;justify-content:flex-end}
+    .cone.drip .scoop.top{animation:drip 1.2s ease-in-out infinite}
+    @keyframes drip{50%{transform:translateY(8px)}}
+    .case{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;background:#fff;border:6px solid #67e8f9;border-radius:20px;padding:10px;margin:10px 0;box-shadow:0 8px 0 #22d3ee}
+    .case button{width:72px;height:72px;border-radius:18px;background:#fdf2f8;font-size:34px;box-shadow:0 5px 0 #f9a8d4}
+    .tops{display:flex;justify-content:center;gap:8px;min-height:80px;margin:6px}
+    .tops button{width:80px;height:72px;border-radius:18px;background:#fff;font-size:32px;box-shadow:0 5px 0 #f472b6;font-weight:800}
+    .case button:active,.tops button:active{transform:translateY(3px)}
+    .row{display:flex;justify-content:center;gap:10px;margin-top:8px}
+    .row button{background:#ffd166;color:#3b2100;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 6px 0 #e09f1f;font-size:18px}
+    .msg{font-weight:800;min-height:2em;margin-top:8px;font-size:18px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,10,40,.86);z-index:10;gap:10px;color:#fff;padding:20px}
     .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    .win h2{font-size:32px}
+    .stars{font-size:28px;letter-spacing:4px}
+    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
+    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
+    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Ice Cream Shop</h1>
-  <div class="order" id="order"></div>
-  <div class="cone" id="cone">🍦</div>
-  <div class="flavs" id="flavs"></div>
-  <div class="row">
-    <button id="undo">Oops</button>
-    <button id="serve">Serve</button>
+  <div class="parlor">
+    <h1>Ice Cream Shop</h1>
+    <div class="hud">
+      <div class="chip" id="lvl">Cone 1 / 5</div>
+      <div class="chip" id="stars">⭐ 0</div>
+    </div>
+    <div class="guest">
+      <div class="face" id="face">🧒</div>
+      <div class="bubble" id="bubble">Please: 🍓 🍫 + 🍒</div>
+    </div>
+    <div class="stand"><div class="cone" id="cone">🍦</div></div>
+    <div class="case" id="flavs"></div>
+    <div class="tops" id="tops"></div>
+    <div class="row">
+      <button id="undo">Oops</button>
+      <button id="serve">Serve</button>
+    </div>
+    <p class="msg" id="msg">Stack scoops. Then a topping!</p>
   </div>
-  <p class="msg" id="msg">Stack the scoops from the bottom.</p>
   <div class="win" id="win">
     <div style="font-size:72px">🍨</div>
-    <h2>Sweet shop!</h2>
-    <button class="play" id="again">Scoop again</button>
+    <h2 id="wintitle">Sweet shop!</h2>
+    <p class="stars" id="winstars">⭐⭐⭐</p>
+    <p id="winline">So many smiles.</p>
+    <div class="winbtns">
+      <button class="play" id="again">Play again</button>
+      <button class="next" id="next">Next</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var scoops=["🍓","🍫","🍦","🍇","🍋"],need=[],have=[],score=0;
-    function draw(){document.getElementById("cone").innerHTML=have.slice().reverse().join("<br>")+"<br>🍦";}
-    function round(){
-      have=[];need=[];
-      var n=2+Math.floor(Math.random()*2);
-      for(var i=0;i<n;i++)need.push(scoops[Math.floor(Math.random()*scoops.length)]);
-      document.getElementById("order").textContent="Please: "+need.join(" ");
-      document.getElementById("msg").textContent="Cone "+(score+1)+" / 4";
-      draw();
+    var FLAV=["🍓","🍫","🍦","🍇","🍋"];
+    var FACES=["🧒","👧","🦊","🐧","🐱"];
+    var ORDERS=[
+      {s:["🍓","🍫"],t:"🍒"},
+      {s:["🍦","🍋"],t:"✨"},
+      {s:["🍇","🍓","🍫"],t:"🍒"},
+      {s:["🍋","🍦","🍇"],t:"✨"},
+      {s:["🍓","🍫","🍦","🍇"],t:"both"}
+    ];
+    var oi=0,have=[],top="",stars=0,drip=false,dripT=null;
+    function draw(){
+      var extra=top==="both"?"✨🍒":(top||"");
+      document.getElementById("cone").innerHTML=(extra?"<div>"+extra+"</div>":"")+have.slice().reverse().map(function(s,i){return "<div class='scoop"+(i===0?" top":"")+"'>"+s+"</div>";}).join("")+"<div>🍦</div>";
     }
-    scoops.forEach(function(s){
+    function bubble(){
+      var o=ORDERS[oi],tp=o.t==="both"?"✨ + 🍒":o.t;
+      document.getElementById("bubble").textContent="Please: "+o.s.join(" ")+" + "+tp;
+      document.getElementById("face").textContent=FACES[oi%FACES.length];
+    }
+    function armDrip(){
+      drip=false;document.getElementById("cone").classList.remove("drip");
+      if(dripT)clearTimeout(dripT);
+      dripT=setTimeout(function(){
+        drip=true;document.getElementById("cone").classList.add("drip");
+        document.getElementById("msg").textContent="Hurry — friend is hungry!";beep(240,.08);
+      },14000);
+    }
+    function tops(show){
+      var box=document.getElementById("tops");box.innerHTML="";
+      if(!show)return;
+      [["✨","Sprinkle"],["🍒","Cherry"]].forEach(function(x){
+        var b=document.createElement("button");b.innerHTML=x[0]+"<br>"+x[1];
+        b.onclick=function(){
+          var o=ORDERS[oi];
+          if(o.t==="both"){
+            if(x[0]==="✨"&&top!=="both")top=top==="🍒"?"both":"✨";
+            else if(x[0]==="🍒"&&top!=="both")top=top==="✨"?"both":"🍒";
+          }else top=x[0];
+          draw();beep(600,.07);
+        };
+        box.appendChild(b);
+      });
+    }
+    function round(){
+      have=[];top="";
+      document.getElementById("lvl").textContent="Cone "+(oi+1)+" / 5";
+      document.getElementById("msg").textContent="Stack scoops from the bottom.";
+      bubble();draw();tops(false);armDrip();
+    }
+    FLAV.forEach(function(s){
       var b=document.createElement("button");b.textContent=s;
-      b.onclick=function(){if(have.length>=4)return;have.push(s);draw();beep(540,.07);};
+      b.onclick=function(){
+        if(have.length>=ORDERS[oi].s.length){tops(true);document.getElementById("msg").textContent="Now a topping!";return;}
+        have.push(s);draw();beep(540,.07);
+        if(have.length>=ORDERS[oi].s.length){tops(true);document.getElementById("msg").textContent="Add sprinkles or a cherry!";}
+      };
       document.getElementById("flavs").appendChild(b);
     });
-    document.getElementById("undo").onclick=function(){have.pop();draw();beep(240,.06);};
-    document.getElementById("serve").onclick=function(){
-      if(have.join()!==need.join()){document.getElementById("msg").textContent="Stack them in that order!";beep(180,.1);return;}
-      score++;beep(840,.12);
-      if(score>=4){document.getElementById("win").classList.add("on");beep(960,.2);} else round();
+    document.getElementById("undo").onclick=function(){
+      if(top){top=top==="both"?"✨":"";draw();beep(240,.06);return;}
+      have.pop();draw();tops(have.length>=ORDERS[oi].s.length);beep(240,.06);
     };
-    document.getElementById("again").onclick=function(){location.reload();};
+    document.getElementById("serve").onclick=function(){
+      var o=ORDERS[oi];
+      if(have.join()!==o.s.join()){document.getElementById("msg").textContent="Stack them in that order!";beep(180,.1);return;}
+      var tok=o.t==="both"?top==="both":top===o.t;
+      if(!tok){document.getElementById("msg").textContent="Friend still wants a topping!";beep(180,.1);return;}
+      if(dripT)clearTimeout(dripT);
+      var got=2+(drip?0:1);stars+=got;
+      document.getElementById("stars").textContent="⭐ "+stars;
+      beep(840,.12);
+      setTimeout(function(){showWin(oi>=ORDERS.length-1,got);},280);
+    };
+    function showWin(last,got){
+      document.getElementById("wintitle").textContent=last?"Sweet shop!":"Yum cone!";
+      document.getElementById("winstars").textContent="⭐".repeat(got);
+      document.getElementById("winline").textContent=drip?"Still yummy. Friend is glad!":"Quick and sweet!";
+      document.getElementById("win").classList.add("on");
+    }
+    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");oi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";round();};
+    document.getElementById("next").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      if(oi>=ORDERS.length-1){oi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
+      else oi++;
+      round();
+    };
     round();
   </script>
 </body>
