@@ -5,61 +5,334 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Rhythm Band</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#fff;touch-action:manipulation}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#6d28d9,#f472b6);padding:58px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .msg{font-weight:800;min-height:2.2em;margin:10px}
-    .pads{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:340px;margin:18px auto}
-    .pad{height:120px;border-radius:28px;font-size:52px;box-shadow:0 8px 0 rgba(0,0,0,.25)}
-    .pad:active,.pad.lit{transform:translateY(4px);filter:brightness(1.2)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,50,.86);z-index:8;gap:12px}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      color: #fff8e7;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, #4c1d95 0%, transparent 55%),
+        linear-gradient(#1a0b2e 0%, #2d0a3a 40%, #1a1020 100%);
+      padding: 56px 10px 20px;
+      overflow-x: hidden;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 9;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(0,0,0,.4); padding: 8px 14px; border-radius: 999px;
+    }
+    .hud {
+      display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 0 0 8px;
+    }
+    .chip {
+      background: rgba(255,209,102,.18); border: 2px solid #ffd166;
+      color: #ffe8a3; font-weight: 800; font-size: 15px;
+      padding: 6px 12px; border-radius: 999px;
+    }
+    .title-row { text-align: center; margin-bottom: 6px; }
+    h1 { font-size: clamp(22px, 6vw, 34px); letter-spacing: .5px; text-shadow: 0 3px 0 #3b0764; }
+    .msg { font-weight: 800; min-height: 1.6em; font-size: 18px; text-align: center; margin: 4px 0 8px; }
+
+    /* STAGE */
+    .house {
+      position: relative;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .proscenium {
+      position: relative;
+      background: #4a0e2a;
+      border-radius: 18px 18px 0 0;
+      padding: 10px 12px 0;
+      box-shadow: 0 0 0 6px #2a0814, 0 16px 0 rgba(0,0,0,.35);
+    }
+    .bulbs {
+      display: flex; justify-content: space-between; padding: 0 8px 8px;
+    }
+    .bulbs span {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #fde68a; box-shadow: 0 0 8px #fbbf24;
+      animation: blink 1.6s ease-in-out infinite;
+    }
+    .bulbs span:nth-child(odd) { animation-delay: .4s; }
+    @keyframes blink { 50% { opacity: .45; } }
+    .curtains {
+      position: absolute; inset: 36px 0 70px; pointer-events: none; z-index: 2;
+    }
+    .curtains::before, .curtains::after {
+      content: ""; position: absolute; top: 0; bottom: 0; width: 28px;
+      background: repeating-linear-gradient(90deg, #9f1239 0 8px, #be123c 8px 14px);
+      box-shadow: inset 0 0 12px #4a044e;
+    }
+    .curtains::before { left: 0; border-radius: 0 40px 20px 0; }
+    .curtains::after { right: 0; border-radius: 40px 0 0 20px; }
+    .valance {
+      height: 22px;
+      background: linear-gradient(#be123c, #7f1d1d);
+      border-radius: 8px 8px 0 0;
+      box-shadow: 0 6px 0 #4a044e;
+    }
+    .stage {
+      position: relative;
+      min-height: 280px;
+      background:
+        radial-gradient(ellipse 70% 90% at 50% 0%, rgba(253,224,71,.22), transparent 60%),
+        linear-gradient(#3f2a14, #6b4423 70%, #4a3016);
+      border-radius: 0 0 8px 8px;
+      padding: 16px 36px 20px;
+      overflow: hidden;
+    }
+    .spot {
+      position: absolute; width: 140px; height: 160px; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 80%, rgba(255,251,235,.55), transparent 70%);
+      left: 50%; top: 10px; transform: translateX(-50%);
+      transition: left .25s ease, top .25s ease;
+      z-index: 1;
+    }
+    .helper {
+      position: relative; z-index: 3;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .helper .face { font-size: 42px; filter: drop-shadow(0 4px 0 rgba(0,0,0,.3)); }
+    .hear {
+      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 16px;
+      padding: 10px 16px; border-radius: 999px; box-shadow: 0 5px 0 #c48a12;
+    }
+    .hear:active { transform: translateY(3px); box-shadow: 0 2px 0 #c48a12; }
+    .hear:disabled { opacity: .45; }
+    .pads {
+      position: relative; z-index: 3;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .pad {
+      height: 92px; border-radius: 22px; font-size: 40px;
+      box-shadow: 0 8px 0 rgba(0,0,0,.35);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px;
+    }
+    .pad small { font-size: 13px; font-weight: 800; letter-spacing: .3px; }
+    .pad:active, .pad.lit { transform: translateY(5px); filter: brightness(1.25); box-shadow: 0 3px 0 rgba(0,0,0,.35); }
+    .pad[data-i="0"] { background: #ef4444; }
+    .pad[data-i="1"] { background: #f59e0b; }
+    .pad[data-i="2"] { background: #22c55e; }
+    .pad[data-i="3"] { background: #38bdf8; color: #0c4a6e; }
+    .combo {
+      text-align: center; font-weight: 800; min-height: 1.4em; margin-top: 8px;
+      color: #fde68a; font-size: 18px;
+    }
+    .crowd {
+      display: flex; justify-content: center; gap: 2px; margin-top: 10px;
+      font-size: 28px; opacity: .85; letter-spacing: -4px;
+    }
+    .crowd.cheer span { animation: hop .4s ease infinite; }
+    .crowd span:nth-child(2n) { animation-delay: .12s; }
+    @keyframes hop { 50% { transform: translateY(-6px); } }
+    .win {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      flex-direction: column; background: rgba(20,6,30,.88); z-index: 8; gap: 12px; text-align: center;
+      padding: 20px;
+    }
+    .win.on { display: flex; }
+    .win .big { font-size: 76px; }
+    .play, .next {
+      font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px;
+    }
+    .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
+    .next { background: #86efac; color: #14532d; box-shadow: 0 7px 0 #4ade80; }
+    .play:active, .next:active { transform: translateY(4px); }
+    .stars { font-size: 28px; letter-spacing: 4px; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Rhythm Band</h1>
+  <div class="hud">
+    <div class="chip" id="roundChip">Song 1 / 5</div>
+    <div class="chip" id="starChip">★ 0</div>
+    <div class="chip" id="comboChip">Combo 0</div>
+  </div>
+  <div class="title-row"><h1>Rhythm Band</h1></div>
   <p class="msg" id="msg">Listen, then copy!</p>
-  <div class="pads">
-    <button class="pad" data-i="0" style="background:#ef4444">🥁</button>
-    <button class="pad" data-i="1" style="background:#facc15">🪘</button>
-    <button class="pad" data-i="2" style="background:#22c55e">🔔</button>
-    <button class="pad" data-i="3" style="background:#3b82f6">🎵</button>
+
+  <div class="house">
+    <div class="proscenium">
+      <div class="bulbs" id="bulbs"></div>
+      <div class="valance"></div>
+      <div class="curtains"></div>
+      <div class="stage">
+        <div class="spot" id="spot"></div>
+        <div class="helper">
+          <div class="face" id="helperFace">🦊</div>
+          <button class="hear" id="hear" type="button">Hear it</button>
+        </div>
+        <div class="pads">
+          <button class="pad" data-i="0" type="button">🥁<small>Drum</small></button>
+          <button class="pad" data-i="1" type="button">🪘<small>Bongo</small></button>
+          <button class="pad" data-i="2" type="button">🔔<small>Bell</small></button>
+          <button class="pad" data-i="3" type="button">🎐<small>Chime</small></button>
+        </div>
+        <p class="combo" id="comboMsg"></p>
+      </div>
+    </div>
+    <div class="crowd" id="crowd"><span>👤</span><span>👥</span><span>👤</span><span>👥</span><span>👤</span><span>👤</span></div>
   </div>
+
   <div class="win" id="win">
-    <div style="font-size:72px">🎶</div>
+    <div class="big">🌟</div>
     <h2>Band star!</h2>
-    <button class="play" id="again">Play again</button>
+    <p class="stars" id="winStars"></p>
+    <p id="winLine"></p>
+    <button class="play" id="again" type="button">Play again</button>
+    <button class="next" id="next" type="button">Next</button>
   </div>
+
   <script>
-    function beep(f,d,t){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.type=t||"sine";o.frequency.value=f;g.gain.value=.14;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var freqs=[220,330,440,550],pads=[].slice.call(document.querySelectorAll(".pad"));
-    var round=0,pat=[],step=0,lock=true;
-    function flash(i){pads[i].classList.add("lit");beep(freqs[i],.16,"triangle");setTimeout(function(){pads[i].classList.remove("lit");},180);}
-    function playPat(cb){
-      lock=true;document.getElementById("msg").textContent="Listen…";
-      var i=0;function n(){if(i>=pat.length){lock=false;step=0;document.getElementById("msg").textContent="Your turn! Round "+(round+1)+"/5";if(cb)cb();return;}flash(pat[i]);i++;setTimeout(n,420);}
-      setTimeout(n,400);
+    function beep(f, d, t) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = t || "sine";
+        o.frequency.value = f;
+        g.gain.value = 0.14;
+        o.connect(g); g.connect(c.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
     }
-    function next(){
-      round++;if(round>5){document.getElementById("win").classList.add("on");beep(880,.2);return;}
-      pat=[0,1,2,3].map(function(){return Math.floor(Math.random()*4);});playPat();
+    var bulbs = document.getElementById("bulbs");
+    for (var b = 0; b < 9; b++) bulbs.appendChild(document.createElement("span"));
+
+    var inst = [
+      { f: 140, t: "square" },
+      { f: 280, t: "triangle" },
+      { f: 660, t: "sine" },
+      { f: 880, t: "sine" }
+    ];
+    var pads = [].slice.call(document.querySelectorAll(".pad"));
+    var spot = document.getElementById("spot");
+    var round = 0, pat = [], step = 0, lock = true;
+    var stars = 0, combo = 0, missThis = false, done = false;
+
+    function moveSpot(i) {
+      var p = pads[i].getBoundingClientRect();
+      var s = document.querySelector(".stage").getBoundingClientRect();
+      spot.style.left = (p.left - s.left + p.width / 2) + "px";
+      spot.style.top = (p.top - s.top - 20) + "px";
     }
-    pads.forEach(function(b){
-      b.onclick=function(){
-        if(lock)return;
-        var i=+b.dataset.i;flash(i);
-        if(i!==pat[step]){document.getElementById("msg").textContent="Almost! Hear it again.";beep(160,.12);playPat();return;}
+    function flash(i) {
+      pads[i].classList.add("lit");
+      moveSpot(i);
+      beep(inst[i].f, 0.16, inst[i].t);
+      setTimeout(function () { pads[i].classList.remove("lit"); }, 200);
+    }
+    function playPat(cb) {
+      lock = true;
+      document.getElementById("hear").disabled = true;
+      document.getElementById("msg").textContent = "Listen…";
+      document.getElementById("helperFace").textContent = "🦊";
+      var i = 0;
+      function n() {
+        if (i >= pat.length) {
+          lock = false;
+          step = 0;
+          document.getElementById("hear").disabled = false;
+          document.getElementById("msg").textContent = "Your turn!";
+          document.getElementById("helperFace").textContent = "🎵";
+          if (cb) cb();
+          return;
+        }
+        flash(pat[i]);
+        i++;
+        setTimeout(n, 480);
+      }
+      setTimeout(n, 360);
+    }
+    function hud() {
+      document.getElementById("roundChip").textContent = "Song " + Math.min(round, 5) + " / 5";
+      document.getElementById("starChip").textContent = "★ " + stars;
+      document.getElementById("comboChip").textContent = "Combo " + combo;
+    }
+    function startRound() {
+      if (done) return;
+      round++;
+      if (round > 5) { showWin(); return; }
+      missThis = false;
+      if (round === 1) {
+        pat = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
+      } else {
+        pat.push(Math.floor(Math.random() * 4));
+      }
+      hud();
+      document.getElementById("comboMsg").textContent = "";
+      playPat();
+    }
+    function showWin() {
+      done = true;
+      lock = true;
+      document.getElementById("crowd").classList.add("cheer");
+      document.getElementById("winStars").textContent = "★ " + stars;
+      document.getElementById("winLine").textContent = combo >= 3 ? "Wow combo!" : "What a band!";
+      document.getElementById("next").style.display = "none";
+      document.getElementById("win").classList.add("on");
+      beep(660, 0.14); setTimeout(function () { beep(880, 0.2); }, 120);
+    }
+    pads.forEach(function (btn) {
+      btn.onclick = function () {
+        if (lock || done) return;
+        var i = +btn.dataset.i;
+        flash(i);
+        if (i !== pat[step]) {
+          missThis = true;
+          combo = 0;
+          hud();
+          document.getElementById("msg").textContent = "Almost! Hear it again.";
+          document.getElementById("comboMsg").textContent = "Try the phrase again";
+          beep(160, 0.12, "sine");
+          playPat();
+          return;
+        }
         step++;
-        if(step>=pat.length){document.getElementById("msg").textContent="Nice beat!";setTimeout(next,500);}
+        if (step >= pat.length) {
+          if (!missThis) {
+            combo++;
+            stars += 1 + (combo >= 2 ? 1 : 0);
+            document.getElementById("comboMsg").textContent = combo > 1 ? "Perfect combo " + combo + "!" : "Perfect!";
+          } else {
+            combo = 0;
+            stars += 1;
+            document.getElementById("comboMsg").textContent = "Nice beat!";
+          }
+          hud();
+          document.getElementById("crowd").classList.add("cheer");
+          setTimeout(function () { document.getElementById("crowd").classList.remove("cheer"); }, 700);
+          if (round >= 5) {
+            document.getElementById("msg").textContent = "Band star!";
+            setTimeout(showWin, 500);
+          } else {
+            document.getElementById("msg").textContent = "Nice beat!";
+            setTimeout(startRound, 700);
+          }
+        }
       };
     });
-    document.getElementById("again").onclick=function(){location.reload();};
-    setTimeout(next,400);
+    document.getElementById("hear").onclick = function () {
+      if (lock || done) return;
+      playPat();
+    };
+    document.getElementById("again").onclick = function () { location.reload(); };
+    document.getElementById("next").onclick = function () { location.reload(); };
+    hud();
+    setTimeout(startRound, 450);
   </script>
 </body>
 </html>

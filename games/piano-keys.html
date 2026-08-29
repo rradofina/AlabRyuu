@@ -5,56 +5,308 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Piano Keys</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#fff;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#1e1b4b,#7c3aed);padding:56px 12px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .msg{font-weight:800;margin:10px;min-height:2.2em}
-    .keys{display:flex;justify-content:center;gap:8px;margin:18px auto;max-width:420px}
-    .key{flex:1;height:180px;border-radius:18px 18px 28px 28px;font-weight:800;font-size:22px;color:#222;box-shadow:0 8px 0 rgba(0,0,0,.25)}
-    .key:active,.key.lit{transform:translateY(5px);filter:brightness(1.15)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,10,40,.86);z-index:8;gap:12px}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      color: #f8fafc;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 50% 0%, #4c1d95, transparent 50%),
+        linear-gradient(#1e1b4b, #312e81 55%, #1c1917 55%);
+      padding: 54px 10px 16px;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 9;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(0,0,0,.35); padding: 8px 14px; border-radius: 999px;
+    }
+    .hud {
+      display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;
+    }
+    .chip {
+      background: rgba(255,255,255,.12); font-weight: 800; padding: 6px 12px;
+      border-radius: 999px; font-size: 15px;
+    }
+    h1 { text-align: center; font-size: clamp(24px, 6vw, 34px); }
+    .msg { font-weight: 800; text-align: center; margin: 6px 0 8px; min-height: 1.5em; font-size: 17px; }
+    .stand-wrap {
+      max-width: 400px; margin: 0 auto 8px; position: relative;
+    }
+    .pole {
+      width: 14px; height: 36px; margin: 0 auto;
+      background: linear-gradient(#a16207, #78350f);
+      border-radius: 4px;
+    }
+    .desk {
+      background: linear-gradient(#b45309, #78350f);
+      border-radius: 8px 8px 4px 4px;
+      padding: 10px 12px 14px;
+      box-shadow: 0 10px 0 #451a03;
+      transform: perspective(400px) rotateX(8deg);
+    }
+    .sheet {
+      background: #fffbeb; color: #1c1917; border-radius: 8px; padding: 8px 8px 10px;
+      min-height: 148px;
+    }
+    .sheet h3 { font-size: 15px; margin-bottom: 6px; text-align: center; }
+    .songs { display: flex; flex-direction: column; gap: 4px; }
+    .song {
+      text-align: left; font-weight: 800; font-size: 15px; padding: 7px 10px;
+      border-radius: 8px; background: #fde68a; color: #422006; width: 100%;
+    }
+    .song.on { background: #fbbf24; box-shadow: inset 0 0 0 3px #78350f; }
+    .song.done { background: #bbf7d0; }
+    .bird {
+      position: absolute; right: 8px; top: 28px; font-size: 36px;
+      transition: transform .2s;
+      filter: drop-shadow(0 4px 0 rgba(0,0,0,.25));
+    }
+    .bird.sing { transform: translateY(-8px) scale(1.1); }
+    .modes {
+      display: flex; justify-content: center; gap: 8px; margin: 10px 0 8px;
+    }
+    .modes button {
+      font-weight: 800; padding: 10px 16px; border-radius: 999px; font-size: 15px;
+      background: #334155; color: #e2e8f0;
+    }
+    .modes button.on { background: #fde68a; color: #422006; }
+    .piano {
+      max-width: 420px; margin: 0 auto;
+      background: #111827; border-radius: 12px 12px 22px 22px;
+      padding: 12px 10px 16px;
+      box-shadow: 0 12px 0 #020617;
+    }
+    .brand { text-align: center; font-weight: 800; font-size: 13px; opacity: .6; margin-bottom: 8px; }
+    .keys { display: flex; gap: 6px; }
+    .key {
+      flex: 1; height: 150px; border-radius: 8px 8px 16px 16px;
+      font-weight: 800; font-size: 20px; color: #1c1917;
+      box-shadow: 0 8px 0 rgba(0,0,0,.4);
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding-bottom: 14px; gap: 4px;
+    }
+    .key:active, .key.lit { transform: translateY(6px); filter: brightness(1.12); box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+    .key.hint { outline: 4px solid #fde047; }
+    .listen {
+      display: block; margin: 10px auto 0; background: #c4b5fd; color: #2e1065;
+      font-weight: 800; padding: 10px 18px; border-radius: 999px; font-size: 16px;
+    }
+    .win {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      flex-direction: column; background: rgba(20,10,40,.88); z-index: 8; gap: 12px;
+      text-align: center; padding: 20px;
+    }
+    .win.on { display: flex; }
+    .play, .next {
+      font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px;
+    }
+    .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
+    .next { background: #c4b5fd; color: #2e1065; box-shadow: 0 7px 0 #8b5cf6; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <div class="hud">
+    <div class="chip" id="songChip">Song 1 / 5</div>
+    <div class="chip" id="starChip">★ 0</div>
+    <div class="chip" id="modeChip">Follow</div>
+  </div>
   <h1>Piano Keys</h1>
-  <p class="msg" id="msg">Listen to the bird song, then play it!</p>
-  <div class="keys" id="keys"></div>
+  <p class="msg" id="msg">Listen, then play!</p>
+
+  <div class="stand-wrap">
+    <div class="pole"></div>
+    <div class="desk">
+      <div class="sheet">
+        <h3>Song list</h3>
+        <div class="songs" id="songs"></div>
+      </div>
+    </div>
+    <div class="bird" id="bird">🐦</div>
+  </div>
+
+  <div class="modes">
+    <button class="on" id="followBtn" type="button">Follow</button>
+    <button id="jamBtn" type="button">Free play</button>
+  </div>
+
+  <div class="piano">
+    <div class="brand">ALAB PIANO</div>
+    <div class="keys" id="keys"></div>
+    <button class="listen" id="listen" type="button">Hear song</button>
+  </div>
+
   <div class="win" id="win">
     <div style="font-size:72px">🎹</div>
-    <h2>Little pianist!</h2>
-    <button class="play" id="again">Play again</button>
+    <h2 id="wint">Pretty song!</h2>
+    <p id="winline"></p>
+    <button class="play" id="again" type="button">Play again</button>
+    <button class="next" id="nextBtn" type="button">Next song</button>
   </div>
+
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.type="triangle";o.frequency.value=f;g.gain.value=.14;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var notes=[{n:"C",f:262,c:"#fecaca"},{n:"D",f:294,c:"#fde68a"},{n:"E",f:330,c:"#bbf7d0"},{n:"G",f:392,c:"#93c5fd"},{n:"A",f:440,c:"#e9d5ff"}];
-    var songs=[[0,1,2],[2,1,0,1],[0,2,4,2],[0,1,2,3,4]];
-    var song=0,step=0,lock=true,keys=[];
-    notes.forEach(function(note,i){
-      var b=document.createElement("button");b.className="key";b.textContent=note.n;b.style.background=note.c;
-      b.onclick=function(){
-        flash(i);
-        if(lock)return;
-        if(i!==songs[song][step]){document.getElementById("msg").textContent="Almost! Hear it again.";playSong();return;}
-        step++;
-        if(step>=songs[song].length){song++;if(song>=songs.length){document.getElementById("win").classList.add("on");beep(880,.2);return;}document.getElementById("msg").textContent="Pretty! Next song.";setTimeout(playSong,500);}
-      };
-      document.getElementById("keys").appendChild(b);keys.push(b);
-    });
-    function flash(i){keys[i].classList.add("lit");beep(notes[i].f,.18);setTimeout(function(){keys[i].classList.remove("lit");},160);}
-    function playSong(){
-      lock=true;step=0;document.getElementById("msg").textContent="Listen… song "+(song+1);
-      var i=0,pat=songs[song];
-      function n(){if(i>=pat.length){lock=false;document.getElementById("msg").textContent="Your turn!";return;}flash(pat[i]);i++;setTimeout(n,380);}
-      setTimeout(n,350);
+    function beep(f, d) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = "triangle"; o.frequency.value = f; g.gain.value = 0.14;
+        o.connect(g); g.connect(c.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
     }
-    document.getElementById("again").onclick=function(){location.reload();};
-    setTimeout(playSong,400);
+    var notes = [
+      { n: "C", f: 262, c: "#fecaca" },
+      { n: "D", f: 294, c: "#fde68a" },
+      { n: "E", f: 330, c: "#bbf7d0" },
+      { n: "G", f: 392, c: "#93c5fd" },
+      { n: "A", f: 440, c: "#e9d5ff" }
+    ];
+    var songData = [
+      { name: "Twinkle", pat: [0, 0, 3, 3] },
+      { name: "Little star", pat: [4, 4, 3] },
+      { name: "Wonder", pat: [2, 1, 0, 1] },
+      { name: "World", pat: [0, 3, 4, 3] },
+      { name: "High up", pat: [0, 1, 2, 3, 4] }
+    ];
+    var song = 0, step = 0, lock = true, jam = false, stars = 0, keys = [], finished = [];
+    var list = document.getElementById("songs");
+    songData.forEach(function (s, i) {
+      var b = document.createElement("button");
+      b.className = "song" + (i === 0 ? " on" : "");
+      b.textContent = (i + 1) + ". " + s.name;
+      b.onclick = function () {
+        if (lock && !jam) return;
+        song = i; step = 0;
+        paintList();
+        if (!jam) playSong();
+        else document.getElementById("msg").textContent = "Jam: " + s.name;
+      };
+      list.appendChild(b);
+    });
+    function paintList() {
+      [].slice.call(list.children).forEach(function (el, i) {
+        el.classList.toggle("on", i === song);
+        el.classList.toggle("done", finished.indexOf(i) >= 0);
+      });
+      document.getElementById("songChip").textContent = "Song " + (song + 1) + " / 5";
+      document.getElementById("starChip").textContent = "★ " + stars;
+      document.getElementById("modeChip").textContent = jam ? "Free play" : "Follow";
+    }
+    notes.forEach(function (note, i) {
+      var b = document.createElement("button");
+      b.className = "key";
+      b.style.background = note.c;
+      b.innerHTML = "<span>" + note.n + "</span>";
+      b.onclick = function () { tap(i); };
+      document.getElementById("keys").appendChild(b);
+      keys.push(b);
+    });
+    function hint() {
+      keys.forEach(function (k) { k.classList.remove("hint"); });
+      if (!jam && !lock && songData[song]) keys[songData[song].pat[step]].classList.add("hint");
+    }
+    function birdSing() {
+      var bird = document.getElementById("bird");
+      bird.classList.add("sing");
+      setTimeout(function () { bird.classList.remove("sing"); }, 220);
+    }
+    function flash(i) {
+      keys[i].classList.add("lit");
+      birdSing();
+      beep(notes[i].f, 0.18);
+      setTimeout(function () { keys[i].classList.remove("lit"); }, 160);
+    }
+    function playSong() {
+      if (jam) return;
+      lock = true; step = 0;
+      keys.forEach(function (k) { k.classList.remove("hint"); });
+      document.getElementById("msg").textContent = "Listen… " + songData[song].name;
+      paintList();
+      var i = 0, pat = songData[song].pat;
+      function n() {
+        if (i >= pat.length) {
+          lock = false;
+          document.getElementById("msg").textContent = "Your turn! Bird shows the note.";
+          hint();
+          birdSing();
+          beep(notes[pat[0]].f, 0.1);
+          return;
+        }
+        flash(pat[i]); i++; setTimeout(n, 400);
+      }
+      setTimeout(n, 320);
+    }
+    function tap(i) {
+      flash(i);
+      if (jam) {
+        document.getElementById("msg").textContent = "Jam " + notes[i].n + "!";
+        return;
+      }
+      if (lock) return;
+      if (i !== songData[song].pat[step]) {
+        document.getElementById("msg").textContent = "Almost! Hear it again.";
+        playSong();
+        return;
+      }
+      step++;
+      if (step >= songData[song].pat.length) {
+        if (finished.indexOf(song) < 0) {
+          finished.push(song);
+          stars += 2;
+        }
+        paintList();
+        songDone();
+      } else {
+        hint();
+      }
+    }
+    function songDone() {
+      lock = true;
+      keys.forEach(function (k) { k.classList.remove("hint"); });
+      var last = finished.length >= 5;
+      document.getElementById("wint").textContent = last ? "Little pianist!" : "Pretty song!";
+      document.getElementById("winline").textContent = "★ " + stars;
+      document.getElementById("nextBtn").style.display = last ? "none" : "inline-block";
+      document.getElementById("nextBtn").textContent = "Next song";
+      document.getElementById("win").classList.add("on");
+      beep(880, 0.2);
+    }
+    function setJam(on) {
+      jam = on;
+      document.getElementById("followBtn").classList.toggle("on", !on);
+      document.getElementById("jamBtn").classList.toggle("on", on);
+      document.getElementById("listen").style.display = on ? "none" : "block";
+      keys.forEach(function (k) { k.classList.remove("hint"); });
+      lock = false;
+      paintList();
+      document.getElementById("msg").textContent = on ? "Free play — tap any key!" : "Follow the bird.";
+      if (!on) playSong();
+    }
+    document.getElementById("followBtn").onclick = function () { setJam(false); };
+    document.getElementById("jamBtn").onclick = function () { setJam(true); };
+    document.getElementById("listen").onclick = function () { if (!jam) playSong(); };
+    document.getElementById("again").onclick = function () { location.reload(); };
+    document.getElementById("nextBtn").onclick = function () {
+      document.getElementById("win").classList.remove("on");
+      var n = song + 1;
+      while (n < 5 && finished.indexOf(n) >= 0) n++;
+      if (n >= 5) n = 0;
+      song = n; step = 0;
+      playSong();
+    };
+    paintList();
+    setTimeout(playSong, 400);
   </script>
 </body>
 </html>
