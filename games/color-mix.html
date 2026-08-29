@@ -6,65 +6,166 @@
   <title>Color Mix</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b0764;touch-action:manipulation}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b0764;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#e9d5ff,#f9a8d4);padding:58px 14px 24px;text-align:center}
+    body{min-height:100vh;background:
+      radial-gradient(circle at 12% 80%,#f9a8d4 0 8%,transparent 9%),
+      radial-gradient(circle at 88% 70%,#93c5fd 0 7%,transparent 8%),
+      radial-gradient(circle at 70% 18%,#fde047 0 6%,transparent 7%),
+      linear-gradient(#e9d5ff,#fce7f3);padding:54px 12px 24px;text-align:center}
     .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(30px,8vw,44px)}
-    .goal{width:110px;height:110px;border-radius:50%;margin:10px auto;box-shadow:0 8px 0 rgba(0,0,0,.15)}
-    .mix{width:90px;height:90px;border-radius:50%;margin:8px auto;background:#fff;box-shadow:inset 0 0 0 6px #fff}
-    .pots{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:16px 0}
-    .pot{width:76px;height:88px;border-radius:20px 20px 28px 28px;font-weight:800;color:#222;box-shadow:0 7px 0 rgba(0,0,0,.18)}
-    .pot.on{outline:4px solid #222}
-    .msg{font-weight:800;min-height:2.4em;font-size:20px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(50,10,60,.84);z-index:8;gap:12px;color:#fff}
+    h1{font-size:clamp(26px,7vw,38px)}
+    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px 0}
+    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #c4b5fd;font-size:15px}
+    .studio{display:flex;justify-content:center;align-items:flex-start;gap:12px;flex-wrap:wrap;margin:8px 0}
+    .easel{width:min(240px,70vw);position:relative;padding-top:8px}
+    .easel .bar{height:14px;background:#92400e;border-radius:8px;transform:rotate(-8deg);width:92%;margin:0 auto}
+    .canvas{width:88%;margin:-4px auto 0;height:200px;background:#fff;border:8px solid #fff;box-shadow:0 10px 0 #a16207,0 0 0 3px #78350f;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative}
+    .blob{width:110px;height:110px;border-radius:46% 54% 50% 50%;background:#f1f5f9;transition:background .25s;box-shadow:inset -8px -8px 0 rgba(0,0,0,.06)}
+    .legs{display:flex;justify-content:center;gap:70px;margin-top:4px}
+    .legs i{display:block;width:10px;height:46px;background:#92400e;border-radius:4px}
+    .recipe{width:min(160px,42vw);background:#fffbeb;border-radius:16px;padding:10px;box-shadow:0 8px 0 #d97706;transform:rotate(3deg);text-align:left}
+    .recipe h3{font-size:14px;margin-bottom:6px}
+    .target{width:72px;height:72px;border-radius:40% 60% 50% 50%;margin:6px auto;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+    .hints{display:flex;justify-content:center;gap:6px;margin-top:8px}
+    .hints i{width:22px;height:22px;border-radius:50%;display:block;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+    .hints i.q{background:#e7e5e4;color:#444;font-style:normal;font-size:12px;font-weight:800;display:grid;place-items:center}
+    .pots{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px 0 8px}
+    .pot{width:78px;height:92px;border-radius:18px 18px 30px 30px;font-weight:800;color:#222;box-shadow:0 7px 0 rgba(0,0,0,.18);display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px}
+    .pot.on{outline:4px solid #3b0764}
+    .pot:active{transform:translateY(3px)}
+    .sponge{margin:0 auto;display:flex;align-items:center;justify-content:center;gap:8px;background:#fde68a;color:#3b2100;font-weight:800;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #ca8a04;font-size:18px}
+    .sponge:active{transform:translateY(3px)}
+    .msg{font-weight:800;min-height:2.2em;font-size:18px;margin-top:8px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(50,10,60,.86);z-index:10;gap:10px;color:#fff;padding:20px}
     .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    .win h2{font-size:32px}
+    .stars{font-size:28px;letter-spacing:4px}
+    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
+    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
+    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <h1>Color Mix</h1>
-  <p class="msg" id="msg">Make this color! Tap two pots.</p>
-  <div class="goal" id="goal"></div>
-  <div class="mix" id="mix"></div>
+  <div class="hud">
+    <div class="chip" id="lvl">Mix 1 / 6</div>
+    <div class="chip" id="stars">⭐ 0</div>
+  </div>
+  <div class="studio">
+    <div class="recipe">
+      <h3>📋 Recipe</h3>
+      <div class="target" id="goal"></div>
+      <p id="goalname" style="font-weight:800;text-align:center">Orange</p>
+      <div class="hints" id="hints"></div>
+    </div>
+    <div class="easel">
+      <div class="bar"></div>
+      <div class="canvas"><div class="blob" id="mix"></div></div>
+      <div class="legs"><i></i><i></i></div>
+    </div>
+  </div>
   <div class="pots" id="pots"></div>
-  <p class="msg" id="score">0 / 5</p>
+  <button class="sponge" id="sponge">🧽 Undo mix</button>
+  <p class="msg" id="msg">Tap pots. Make the blob!</p>
   <div class="win" id="win">
     <div style="font-size:72px">🎨</div>
-    <h2>Rainbow chef!</h2>
-    <button class="play" id="again">Mix again</button>
+    <h2 id="wintitle">Rainbow chef!</h2>
+    <p class="stars" id="winstars">⭐⭐⭐</p>
+    <p id="winline">You mixed a whole rainbow.</p>
+    <div class="winbtns">
+      <button class="play" id="again">Play again</button>
+      <button class="next" id="next">Next</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var pots=[{id:"R",n:"Red",c:"#ef4444"},{id:"Y",n:"Yellow",c:"#facc15"},{id:"B",n:"Blue",c:"#3b82f6"},{id:"W",n:"White",c:"#f8fafc"}];
-    var recipes={RY:{n:"Orange",c:"#fb923c"},RB:{n:"Purple",c:"#a78bfa"},YB:{n:"Green",c:"#4ade80"},RW:{n:"Pink",c:"#f9a8d4"},YW:{n:"Cream",c:"#fde68a"},BW:{n:"Sky",c:"#7dd3fc"}};
-    var keys=Object.keys(recipes),pick=[],score=0,target;
+    var POTS=[{id:"R",n:"Red",c:"#ef4444"},{id:"Y",n:"Yellow",c:"#facc15"},{id:"B",n:"Blue",c:"#3b82f6"},{id:"W",n:"White",c:"#f8fafc"}];
+    function keyOf(arr){return arr.slice().sort().join("");}
+    var MIX={};
+    function addMix(ids,n,c){MIX[keyOf(ids.split(""))]= {n:n,c:c};}
+    addMix("RY","Orange","#fb923c");addMix("RB","Purple","#a78bfa");addMix("YB","Green","#4ade80");
+    addMix("RW","Pink","#f9a8d4");addMix("YW","Cream","#fde68a");addMix("BW","Sky","#7dd3fc");
+    addMix("RYW","Peach","#fdba74");addMix("RBW","Lilac","#ddd6fe");addMix("YBW","Mint","#6ee7b7");
+    var ROUNDS=[
+      {need:"RY",hide:0},{need:"YB",hide:0},{need:"RB",hide:0},
+      {need:"RW",hide:0},{need:"RYW",hide:0},{need:"YBW",hide:1}
+    ];
+    var ri=0,pick=[],stars=0,tries=0,won=false;
     var box=document.getElementById("pots");
-    pots.forEach(function(p){
-      var b=document.createElement("button");b.className="pot";b.style.background=p.c;b.textContent=p.n;
+    POTS.forEach(function(p){
+      var b=document.createElement("button");b.className="pot";b.style.background=p.c;b.textContent=p.n;b.dataset.id=p.id;
       b.onclick=function(){
+        if(won)return;
         if(pick.indexOf(p.id)>=0)return;
-        if(pick.length>=2)return;
+        var need=ROUNDS[ri].need.length;
+        if(pick.length>=need)return;
         pick.push(p.id);b.classList.add("on");beep(480,.07);
-        if(pick.length===2){
-          var k=pick.slice().sort().join("");
-          var m=recipes[k];
-          document.getElementById("mix").style.background=m?m.c:"#ddd";
-          if(m&&k===target){score++;document.getElementById("score").textContent=score+" / 5";document.getElementById("msg").textContent="Yes! "+m.n+"!";beep(880,.12);if(score>=5){document.getElementById("win").classList.add("on");}else setTimeout(round,700);}
-          else{document.getElementById("msg").textContent="Hmm, try two other pots.";beep(200,.1);setTimeout(function(){pick=[];document.querySelectorAll(".pot").forEach(function(x){x.classList.remove("on");});document.getElementById("mix").style.background="#fff";},700);}
-        }
+        showMix();
+        if(pick.length===need)judge();
       };
       box.appendChild(b);
     });
-    function round(){
-      pick=[];document.querySelectorAll(".pot").forEach(function(x){x.classList.remove("on");});
-      document.getElementById("mix").style.background="#fff";
-      target=keys[Math.floor(Math.random()*keys.length)];
-      document.getElementById("goal").style.background=recipes[target].c;
-      document.getElementById("msg").textContent="Make "+recipes[target].n+"!";
+    function showMix(){
+      var k=keyOf(pick),m=MIX[k];
+      document.getElementById("mix").style.background=m?m.c:(pick.length?avg():"#f1f5f9");
     }
-    document.getElementById("again").onclick=function(){location.reload();};
+    function avg(){
+      var map={R:"#ef4444",Y:"#facc15",B:"#3b82f6",W:"#f8fafc"};
+      return pick.length===1?map[pick[0]]:"#cbd5e1";
+    }
+    function hints(){
+      var r=ROUNDS[ri],ids=r.need.split(""),h=document.getElementById("hints");h.innerHTML="";
+      ids.forEach(function(id,i){
+        var el=document.createElement("i");
+        if(i>=ids.length-r.hide){el.className="q";el.textContent="?";}
+        else{var p=POTS.filter(function(x){return x.id===id;})[0];el.style.background=p.c;}
+        h.appendChild(el);
+      });
+    }
+    function round(){
+      won=false;pick=[];tries=0;
+      document.querySelectorAll(".pot").forEach(function(x){x.classList.remove("on");});
+      document.getElementById("mix").style.background="#f1f5f9";
+      var rec=MIX[keyOf(ROUNDS[ri].need.split(""))];
+      document.getElementById("goal").style.background=rec.c;
+      document.getElementById("goalname").textContent=rec.n;
+      document.getElementById("lvl").textContent="Mix "+(ri+1)+" / 6";
+      document.getElementById("msg").textContent="Make "+rec.n+"! Tap the pots.";
+      hints();
+    }
+    function judge(){
+      var k=keyOf(pick);
+      if(k===keyOf(ROUNDS[ri].need.split(""))){
+        var rec=MIX[k];document.getElementById("mix").style.background=rec.c;
+        var got=tries===0?3:tries===1?2:1;stars+=got;
+        document.getElementById("stars").textContent="⭐ "+stars;
+        document.getElementById("msg").textContent="Yes! "+rec.n+"!";beep(880,.12);won=true;
+        setTimeout(function(){showWin(ri>=ROUNDS.length-1,got);},550);
+      }else{
+        tries++;document.getElementById("msg").textContent="Hmm. Sponge it and try again.";beep(200,.1);
+      }
+    }
+    document.getElementById("sponge").onclick=function(){
+      pick=[];tries++;document.querySelectorAll(".pot").forEach(function(x){x.classList.remove("on");});
+      document.getElementById("mix").style.background="#f1f5f9";
+      document.getElementById("msg").textContent="Clean canvas. Tap pots!";beep(260,.08);
+    };
+    function showWin(last,got){
+      document.getElementById("wintitle").textContent=last?"Rainbow chef!":"Yummy color!";
+      document.getElementById("winstars").textContent="⭐".repeat(got);
+      document.getElementById("winline").textContent=last?"You mixed a whole rainbow.":"Keep mixing!";
+      document.getElementById("win").classList.add("on");
+    }
+    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");ri=0;stars=0;document.getElementById("stars").textContent="⭐ 0";round();};
+    document.getElementById("next").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      if(ri>=ROUNDS.length-1){ri=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
+      else ri++;
+      round();
+    };
     round();
   </script>
 </body>

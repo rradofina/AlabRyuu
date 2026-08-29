@@ -6,69 +6,206 @@
   <title>Cookie Bakery</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4a1c00;touch-action:manipulation}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4a1c00;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fde68a,#fdba74 40%,#9a3412);padding:60px 16px 28px;text-align:center}
+    body{min-height:100vh;background:#7c2d12;padding:54px 10px 24px;text-align:center}
     .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(30px,8vw,44px);color:#7c2d12}
-    .who{margin:8px auto;font-weight:800}
-    .bowl{width:min(240px,70vw);height:180px;margin:12px auto;border-radius:50% 50% 46% 46%;background:#fff7ed;box-shadow:inset 0 -20px 0 #fed7aa,0 10px 0 #b45309;display:grid;place-items:center;font-size:72px}
+    .shop{max-width:440px;margin:0 auto;background:linear-gradient(#fde68a,#fdba74);border-radius:28px;padding:12px 12px 20px;box-shadow:0 12px 0 #431407;position:relative;overflow:hidden}
+    .awning{height:28px;margin:-12px -12px 10px;background:repeating-linear-gradient(90deg,#dc2626 0 28px,#fff 28px 56px);border-radius:28px 28px 0 0}
+    h1{font-size:clamp(26px,7vw,36px);color:#7c2d12}
+    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px 0}
+    .chip{background:#fff7ed;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #d97706;font-size:15px}
+    .who{font-weight:800;margin:4px}
+    .apron{display:inline-flex;align-items:center;gap:8px;background:#fff;padding:6px 14px;border-radius:18px;box-shadow:0 4px 0 #e7e5e4;font-weight:800}
+    .apron b{background:#fecaca;padding:2px 10px;border-radius:999px}
+    .tickets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+    .ticket{background:#fffbeb;border:3px dashed #b45309;border-radius:12px;padding:6px 10px;min-width:56px;font-weight:800;box-shadow:0 4px 0 #d97706}
+    .ticket.done{opacity:.35;text-decoration:line-through}
+    .ticket .sh{font-size:28px;display:block}
+    .counter{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin:10px 0;background:#b45309;padding:12px 8px 8px;border-radius:18px 18px 8px 8px}
+    .bowl{height:120px;border-radius:50% 50% 46% 46%;background:#fff7ed;box-shadow:inset 0 -18px 0 #fed7aa,0 8px 0 #7c2d12;display:grid;place-items:center;font-size:48px}
     .bowl.wiggle{animation:wig .35s}
     @keyframes wig{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
-    .box{display:none;width:min(240px,70vw);margin:12px auto;padding:18px;border-radius:20px;background:#fef3c7;border:6px dashed #b45309;font-weight:800}
+    .oven{height:130px;background:#44403c;border-radius:16px 16px 8px 8px;position:relative;box-shadow:0 8px 0 #1c1917;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px}
+    .oven .door{width:78%;height:72%;background:#1c1917;border-radius:10px;display:grid;place-items:center;font-size:36px;border:4px solid #78716c;transition:box-shadow .25s,background .25s}
+    .oven.glow .door{background:#f59e0b;box-shadow:0 0 22px #fbbf24,inset 0 0 16px #fde68a;animation:pulse 1s ease-in-out infinite}
+    @keyframes pulse{50%{box-shadow:0 0 34px #fde047,inset 0 0 20px #fff}}
+    .oven .knob{position:absolute;top:8px;right:10px;width:14px;height:14px;border-radius:50%;background:#a8a29e}
+    .rack{min-height:120px;background:#e7e5e4;border-radius:10px;box-shadow:inset 0 0 0 4px #a8a29e;display:flex;flex-wrap:wrap;align-content:flex-start;gap:4px;padding:8px;font-size:28px}
+    .lbl{font-size:12px;font-weight:800;color:#fff7ed;margin-top:4px}
+    .sprinkles{display:flex;justify-content:center;gap:8px;margin:8px 0}
+    .sprinkles button{width:64px;height:64px;border-radius:18px;background:#fff;font-size:28px;box-shadow:0 5px 0 #d97706}
+    .shapes{display:flex;justify-content:center;gap:8px;margin:8px 0}
+    .shapes button{width:76px;height:76px;border-radius:20px;background:#fff7ed;font-size:36px;box-shadow:0 6px 0 #d97706;font-weight:800}
+    .shapes button:active,.sprinkles button:active,.bowl:active,.oven:active{transform:translateY(3px)}
+    .msg{font-weight:800;min-height:2.2em;font-size:18px}
+    .box{display:none;margin:8px auto;width:min(220px,70vw);padding:16px;border-radius:18px;background:#fef3c7;border:6px dashed #b45309;font-weight:800}
     .box.on{display:block}
-    .steps{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:340px;margin:16px auto}
-    .steps button{padding:18px 8px;border-radius:24px;background:#fff7ed;box-shadow:0 7px 0 #d97706;font-weight:800;font-size:18px}
-    .steps button span{display:block;font-size:36px}
-    .steps button:active{transform:translateY(4px);box-shadow:0 3px 0 #d97706}
-    .steps button.done{opacity:.4}
-    .msg{min-height:2.4em;font-weight:800;font-size:20px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,20,0,.82);z-index:8;gap:12px;color:#fff}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,20,0,.86);z-index:10;gap:10px;color:#fff;padding:20px}
     .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    .win h2{font-size:32px}
+    .stars{font-size:28px;letter-spacing:4px}
+    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
+    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
+    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Cookie Bakery</h1>
-  <p class="who" id="who"></p>
-  <div class="bowl" id="bowl">🥣</div>
-  <div class="box" id="box"></div>
-  <p class="msg" id="msg">First, tap the flour!</p>
-  <div class="steps">
-    <button data-i="0"><span>🌾</span>1. Flour</button>
-    <button data-i="1"><span>🥄</span>2. Mix</button>
-    <button data-i="2"><span>🔥</span>3. Bake</button>
-    <button data-i="3"><span>✨</span>4. Sprinkle</button>
+  <div class="shop">
+    <div class="awning"></div>
+    <h1>Cookie Bakery</h1>
+    <div class="who" id="who"></div>
+    <div class="apron" id="apron"><span>👔</span> <b id="apronname">Alab</b></div>
+    <div class="hud">
+      <div class="chip" id="lvl">Order 1 / 3</div>
+      <div class="chip" id="stars">⭐ 0</div>
+    </div>
+    <div class="tickets" id="tickets"></div>
+    <div class="counter">
+      <div>
+        <button class="bowl" id="bowl">🥣</button>
+        <div class="lbl">Bowl</div>
+      </div>
+      <div>
+        <button class="oven" id="oven"><i class="knob"></i><div class="door" id="door">🔥</div></button>
+        <div class="lbl">Oven</div>
+      </div>
+      <div>
+        <div class="rack" id="rack"></div>
+        <div class="lbl">Rack</div>
+      </div>
+    </div>
+    <div class="shapes" id="shapes"></div>
+    <div class="sprinkles" id="sprinkles"></div>
+    <div class="box" id="box"></div>
+    <p class="msg" id="msg">Tap the bowl to mix!</p>
   </div>
   <div class="win" id="win">
     <div style="font-size:72px">🍪</div>
-    <h2>Yum cookies!</h2>
+    <h2 id="wintitle">Yum box!</h2>
+    <p class="stars" id="winstars">⭐⭐⭐</p>
     <p id="winline"></p>
-    <button class="play" id="again">Bake again</button>
+    <div class="winbtns">
+      <button class="play" id="again">Play again</button>
+      <button class="next" id="next">Next</button>
+    </div>
   </div>
   <script>
-    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Kid",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var A=av(),need=0,look=["🥣","🌀","🍪","🍪✨"],hint=["First, tap the flour!","Now mix it up!","Pop it in the oven!","Pretty sprinkles!"];
+    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Alab",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var A=av();
+    var SHAPES={star:"⭐",heart:"💗",dino:"🦕"};
+    var ORDERS=[
+      ["star","heart","star"],
+      ["dino","heart","dino"],
+      ["star","dino","heart","star"]
+    ];
+    var SPR=["✨","🌈","🍫","🌸"];
+    var oi=0,need=0,mix=0,step="mix",glow=false,glowT=null,stars=0,firstGlow=1,raw="";
     document.getElementById("who").textContent=A.hair+" Baker "+A.name;
-    document.querySelectorAll(".steps button").forEach(function(b){
-      b.onclick=function(){
-        var i=+b.dataset.i;
-        if(i!==need){document.getElementById("bowl").classList.remove("wiggle");void document.getElementById("bowl").offsetWidth;document.getElementById("bowl").classList.add("wiggle");document.getElementById("msg").textContent="Oops — "+hint[need];beep(180,.12);return;}
-        b.classList.add("done");document.getElementById("bowl").textContent=look[need];beep(500+need*90,.12);
-        need++;
-        if(need<4)document.getElementById("msg").textContent=hint[need];
-        else{
-          document.getElementById("bowl").style.display="none";
-          var box=document.getElementById("box");box.classList.add("on");
-          box.innerHTML="<div style='font-size:48px'>🍪</div>"+A.name+"'s Cookies<br><small>Baked with "+A.pet+"</small>";
-          document.getElementById("msg").textContent="A warm box for "+A.name+"!";
-          setTimeout(function(){document.getElementById("winline").textContent=A.name+" baked a star cookie!";document.getElementById("win").classList.add("on");beep(880,.2);},450);
-        }
-      };
-    });
-    document.getElementById("again").onclick=function(){location.reload();};
+    document.getElementById("apronname").textContent=A.name;
+    function tickets(){
+      var box=document.getElementById("tickets");box.innerHTML="";
+      ORDERS[oi].forEach(function(s,i){
+        var d=document.createElement("div");d.className="ticket"+(i<need?" done":"");
+        d.innerHTML="<span class='sh'>"+SHAPES[s]+"</span>"+(i+1);
+        box.appendChild(d);
+      });
+    }
+    function shapes(on){
+      var box=document.getElementById("shapes");box.innerHTML="";
+      if(!on)return;
+      ["star","heart","dino"].forEach(function(s){
+        var b=document.createElement("button");b.textContent=SHAPES[s];
+        b.onclick=function(){
+          if(step!=="shape")return;
+          if(s!==ORDERS[oi][need]){document.getElementById("msg").textContent="This ticket wants a "+ORDERS[oi][need]+"!";beep(180,.1);return;}
+          raw=SHAPES[s];step="oven";document.getElementById("bowl").textContent=raw;
+          document.getElementById("msg").textContent="Pop it in the oven!";shapes(false);beep(560,.08);
+        };
+        box.appendChild(b);
+      });
+    }
+    function sprinkles(on){
+      var box=document.getElementById("sprinkles");box.innerHTML="";
+      if(!on)return;
+      SPR.forEach(function(s){
+        var b=document.createElement("button");b.textContent=s;
+        b.onclick=function(){
+          if(step!=="sprinkle")return;
+          document.getElementById("rack").innerHTML+=raw+s;
+          beep(720,.09);need++;tickets();
+          if(need>=ORDERS[oi].length)finishOrder();
+          else{step="mix";mix=0;raw="";document.getElementById("bowl").textContent="🥣";document.getElementById("msg").textContent="Mix the next cookie!";}
+          sprinkles(false);
+        };
+        box.appendChild(b);
+      });
+    }
+    function stopGlow(){glow=false;document.getElementById("oven").classList.remove("glow");if(glowT){clearTimeout(glowT);glowT=null;}}
+    function cycleGlow(){
+      stopGlow();
+      glowT=setTimeout(function(){
+        glow=true;document.getElementById("oven").classList.add("glow");beep(400,.05);
+        glowT=setTimeout(function(){
+          glow=false;document.getElementById("oven").classList.remove("glow");
+          if(step==="bake")cycleGlow();
+        },2800);
+      },700);
+    }
+    document.getElementById("bowl").onclick=function(){
+      if(step!=="mix"){this.classList.remove("wiggle");void this.offsetWidth;this.classList.add("wiggle");return;}
+      mix++;this.classList.remove("wiggle");void this.offsetWidth;this.classList.add("wiggle");
+      this.textContent=mix>=3?"🌀":"🥣";beep(480+mix*40,.07);
+      if(mix>=3){step="shape";document.getElementById("msg").textContent="Pick the shape on the ticket!";shapes(true);}
+      else document.getElementById("msg").textContent="Mix mix! Tap again.";
+    };
+    document.getElementById("oven").onclick=function(){
+      if(step==="oven"){
+        step="bake";document.getElementById("bowl").textContent="🥣";document.getElementById("door").textContent=raw;
+        document.getElementById("msg").textContent="Tap when the oven GLOWS!";cycleGlow();beep(300,.1);return;
+      }
+      if(step==="bake"){
+        if(!glow){document.getElementById("msg").textContent="Almost, tap again when it glows!";firstGlow=0;beep(180,.1);return;}
+        stopGlow();step="sprinkle";document.getElementById("door").textContent="🔥";
+        document.getElementById("bowl").textContent=raw;
+        document.getElementById("msg").textContent="Pretty sprinkles!";sprinkles(true);beep(820,.12);return;
+      }
+    };
+    function finishOrder(){
+      var got=2+firstGlow;stars+=got;
+      document.getElementById("stars").textContent="⭐ "+stars;
+      var box=document.getElementById("box");box.classList.add("on");
+      box.innerHTML="<div style='font-size:40px'>"+ORDERS[oi].map(function(s){return SHAPES[s];}).join("")+"</div>"+A.name+"'s yum box";
+      document.getElementById("msg").textContent="A warm box!";
+      beep(900,.2);
+      setTimeout(function(){showWin(oi>=ORDERS.length-1,got);},400);
+    }
+    function showWin(last,got){
+      document.getElementById("wintitle").textContent=last?"Yum box!":"Nice cookies!";
+      document.getElementById("winstars").textContent="⭐".repeat(Math.max(1,got));
+      document.getElementById("winline").textContent=A.name+" baked treats with "+A.pet+"!";
+      document.getElementById("win").classList.add("on");
+    }
+    function start(order){
+      oi=order;need=0;mix=0;step="mix";raw="";firstGlow=1;stopGlow();
+      document.getElementById("box").classList.remove("on");
+      document.getElementById("rack").innerHTML="";
+      document.getElementById("bowl").textContent="🥣";
+      document.getElementById("door").textContent="🔥";
+      document.getElementById("lvl").textContent="Order "+(oi+1)+" / 3";
+      document.getElementById("msg").textContent="Tap the bowl to mix!";
+      tickets();shapes(false);sprinkles(false);
+    }
+    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");stars=0;document.getElementById("stars").textContent="⭐ 0";start(0);};
+    document.getElementById("next").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      if(oi>=ORDERS.length-1){stars=0;document.getElementById("stars").textContent="⭐ 0";start(0);}
+      else start(oi+1);
+    };
+    start(0);
   </script>
 </body>
 </html>
