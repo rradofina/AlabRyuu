@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Treasure Dig</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#78350f;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#fde68a,#d97706);padding:56px 12px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(28px,8vw,42px);color:#fff}
+    .msg{font-weight:800;color:#fff;margin:8px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(340px,92vw);margin:12px auto}
+    .tile{height:78px;border-radius:16px;background:#ca8a04;font-size:36px;box-shadow:0 6px 0 #92400e}
+    .tile:active{transform:translateY(3px)}
+    .tile.dug{background:#fef3c7}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(50,20,0,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Treasure Dig</h1>
+  <p class="msg" id="msg">Tap the sand. Find 5 treasures!</p>
+  <div class="grid" id="grid"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">💎</div>
+    <h2>Pirate kid!</h2>
+    <button class="play" id="again">Dig again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var loot=["💎","👑","🪙","💍","🗝️"],found=0;
+    var spots=loot.concat(["🐚","🪨","🦴","🌵","🌊","🌵","🐚","🪨","🦴","🌊","🐚"]);
+    for(var i=spots.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=spots[i];spots[i]=spots[j];spots[j]=t;}
+    var grid=document.getElementById("grid");
+    spots.forEach(function(item){
+      var b=document.createElement("button");b.className="tile";b.textContent="🏖️";
+      b.onclick=function(){
+        if(b.classList.contains("dug"))return;
+        b.classList.add("dug");b.textContent=item;
+        if(loot.indexOf(item)>=0){found++;beep(780,.1);document.getElementById("msg").textContent="Treasure! "+found+"/5";if(found>=5){document.getElementById("win").classList.add("on");beep(960,.2);}}
+        else{beep(220,.07);document.getElementById("msg").textContent="Just "+item+". Keep digging!";}
+      };
+      grid.appendChild(b);
+    });
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

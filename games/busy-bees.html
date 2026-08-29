@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Busy Bees</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#713f12;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#fde047,#86efac);padding:56px 12px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(28px,8vw,42px);color:#854d0e}
+    .msg{font-weight:800;margin:8px;font-size:22px}
+    .flower{font-size:96px;margin:8px}
+    .bees{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:16px}
+    .bees button{width:88px;height:88px;border-radius:50%;background:#fff;font-size:42px;box-shadow:0 6px 0 #ca8a04}
+    .bees button:active{transform:translateY(3px)}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(50,30,0,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Busy Bees</h1>
+  <p class="msg" id="msg">Send the matching bee!</p>
+  <div class="flower" id="flower">🌸</div>
+  <div class="bees" id="bees"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🍯</div>
+    <h2>Honey time!</h2>
+    <button class="play" id="again">Buzz again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var flowers=[{e:"🌸",n:"pink",c:"#f9a8d4"},{e:"🌻",n:"yellow",c:"#fde047"},{e:"🌼",n:"white",c:"#f8fafc"},{e:"🌺",n:"red",c:"#f87171"}];
+    var bees=[{e:"🐝",n:"yellow",c:"#fde047"},{e:"🐝",n:"pink",c:"#f9a8d4"},{e:"🐝",n:"white",c:"#f8fafc"},{e:"🐝",n:"red",c:"#f87171"}];
+    var need,score=0,box=document.getElementById("bees");
+    bees.forEach(function(bee){
+      var b=document.createElement("button");b.textContent="🐝";b.style.background=bee.c;
+      b.onclick=function(){
+        if(bee.n!==need.n){document.getElementById("msg").textContent="This flower wants the "+need.n+" bee.";beep(180,.1);return;}
+        score++;beep(760,.1);document.getElementById("msg").textContent="Buzz! "+score+"/8";
+        if(score>=8){document.getElementById("win").classList.add("on");beep(940,.2);} else next();
+      };
+      box.appendChild(b);
+    });
+    function next(){need=flowers[Math.floor(Math.random()*flowers.length)];document.getElementById("flower").textContent=need.e;}
+    next();
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Ocean Clean</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#0ea5e9;color:#082f49;overflow:hidden;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
+    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:22px;color:#fff}
+    #sea{position:fixed;inset:0;background:linear-gradient(#7dd3fc,#0369a1)}
+    .bit{position:absolute;font-size:44px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(8,30,50,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <div id="hud">♻️ 0 / 10</div>
+  <div id="ask">Tap trash. Leave the fish!</div>
+  <div id="sea"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🌊</div>
+    <h2>Sparkly sea!</h2>
+    <button class="play" id="again">Clean again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var trash=["🧴","🥤","🛍️","🧦"],fish=["🐟","🐠","🐡","🐢"],score=0,play=true,items=[],sea=document.getElementById("sea");
+    function spawn(){
+      if(!play)return;
+      var junk=Math.random()<.55,e=junk?trash[Math.floor(Math.random()*trash.length)]:fish[Math.floor(Math.random()*fish.length)];
+      var b=document.createElement("button");b.className="bit";b.textContent=e;
+      var x=20+Math.random()*(innerWidth-60),y=innerHeight+10,sp=1.1+Math.random()*1.6;
+      b.style.left=x+"px";b.style.top=y+"px";sea.appendChild(b);
+      var it={el:b,x:x,y:y,sp:sp,junk:junk,dead:false};
+      b.onclick=function(){
+        if(!play||it.dead)return;
+        if(!junk){document.getElementById("ask").textContent="That's a friend! Only trash.";beep(180,.1);return;}
+        it.dead=true;b.remove();score++;beep(700,.08);
+        document.getElementById("hud").textContent="♻️ "+score+" / 10";
+        if(score>=10){play=false;document.getElementById("win").classList.add("on");beep(920,.2);}
+      };
+      items.push(it);
+    }
+    var acc=0;
+    function loop(){
+      acc++;if(play&&acc%30===0)spawn();
+      items.forEach(function(it){if(it.dead)return;it.y-=it.sp;it.el.style.top=it.y+"px";if(it.y<-50){it.dead=true;it.el.remove();}});
+      items=items.filter(function(it){return !it.dead;});
+      requestAnimationFrame(loop);
+    }
+    loop();
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

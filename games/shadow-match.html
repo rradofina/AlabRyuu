@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Shadow Match</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e1b4b;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#c7d2fe,#fde68a);padding:56px 14px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(26px,7vw,40px)}
+    .msg{font-weight:800;margin:8px}
+    .hero{font-size:96px;margin:8px}
+    .row{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:16px}
+    .sh{width:96px;height:110px;border-radius:22px;background:#e2e8f0;font-size:64px;filter:grayscale(1) brightness(0.15);box-shadow:0 7px 0 #94a3b8}
+    .sh:active{transform:translateY(4px)}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,20,50,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Shadow Match</h1>
+  <p class="msg" id="msg">Tap the matching shadow!</p>
+  <div class="hero" id="hero">🐘</div>
+  <div class="row" id="row"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🌙</div>
+    <h2>Shadow champ!</h2>
+    <button class="play" id="again">Match again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var pals=["🐘","🦒","🐧","🦋","🐢","🐰"],score=0,need="";
+    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+    function round(){
+      need=pals[Math.floor(Math.random()*pals.length)];
+      document.getElementById("hero").textContent=need;
+      var picks=shuffle(pals.filter(function(p){return p!==need;})).slice(0,2).concat([need]);
+      picks=shuffle(picks);
+      var row=document.getElementById("row");row.innerHTML="";
+      picks.forEach(function(p){
+        var b=document.createElement("button");b.className="sh";b.textContent=p;
+        b.onclick=function(){
+          if(p!==need){document.getElementById("msg").textContent="Not that shadow.";beep(180,.1);return;}
+          score++;beep(780,.1);document.getElementById("msg").textContent="Yes! "+score+"/6";
+          if(score>=6){document.getElementById("win").classList.add("on");beep(940,.2);} else setTimeout(round,350);
+        };
+        row.appendChild(b);
+      });
+    }
+    round();
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

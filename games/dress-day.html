@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Dress the Day</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4c1d95;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#c4b5fd,#f9a8d4);padding:56px 14px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(26px,7vw,40px)}
+    .sky{font-size:64px;margin:6px}
+    .msg{font-weight:800;min-height:2em}
+    .kid{font-size:28px;background:#fff;display:inline-block;padding:12px 18px;border-radius:24px;margin:8px;min-width:160px}
+    .row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px}
+    .row button{width:76px;height:76px;border-radius:20px;background:#fff;font-size:36px;box-shadow:0 6px 0 #a78bfa}
+    .row button.on{outline:4px solid #3b0764}
+    .go{margin-top:8px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Dress the Day</h1>
+  <div class="sky" id="sky">☀️</div>
+  <p class="msg" id="msg">Sunny day! Pick sun clothes.</p>
+  <div class="kid" id="kid">🧒</div>
+  <div class="row" id="hats"></div>
+  <div class="row" id="coats"></div>
+  <div class="row" id="shoes"></div>
+  <button class="go" id="go">Ready!</button>
+  <div class="win" id="win">
+    <div style="font-size:72px">👗</div>
+    <h2>Dressed for every day!</h2>
+    <button class="play" id="again">Dress again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var days=[{e:"☀️",n:"sun",hat:"🧢",coat:"👕",shoe:"👟",txt:"Sunny day! Pick sun clothes."},{e:"🌧️",n:"rain",hat:"🌂",coat:"🧥",shoe:"👢",txt:"Rainy day! Stay dry."},{e:"❄️",n:"snow",hat:"🧣",coat:"🧥",shoe:"👢",txt:"Snow day! Stay warm."}];
+    var hats=["🧢","🎩","🌂","🧣"],coats=["👕","👗","🧥","🎽"],shoes=["👟","👠","👢","🩴"];
+    var pick={hat:"",coat:"",shoe:""},day=0,score=0;
+    function row(id,list,key){
+      var box=document.getElementById(id);box.innerHTML="";
+      list.forEach(function(e){
+        var b=document.createElement("button");b.textContent=e;
+        b.onclick=function(){pick[key]=e;box.querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});show();beep(480,.06);};
+        box.appendChild(b);
+      });
+    }
+    function show(){document.getElementById("kid").textContent=(pick.hat||"")+"🧒"+(pick.coat||"")+(pick.shoe||"");}
+    function setDay(){
+      var d=days[day];pick={hat:"",coat:"",shoe:""};
+      document.getElementById("sky").textContent=d.e;document.getElementById("msg").textContent=d.txt;show();
+      row("hats",hats,"hat");row("coats",coats,"coat");row("shoes",shoes,"shoe");
+    }
+    document.getElementById("go").onclick=function(){
+      var d=days[day];
+      if(pick.hat!==d.hat||pick.coat!==d.coat||pick.shoe!==d.shoe){document.getElementById("msg").textContent="Almost! Try the "+d.txt;beep(180,.1);return;}
+      score++;beep(820,.12);
+      if(score>=3){document.getElementById("win").classList.add("on");beep(960,.2);return;}
+      day++;setDay();
+    };
+    document.getElementById("again").onclick=function(){location.reload();};
+    setDay();
+  </script>
+</body>
+</html>

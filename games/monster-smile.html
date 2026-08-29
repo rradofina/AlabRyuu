@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Monster Smile</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b0764;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#c4b5fd,#86efac);padding:56px 14px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(26px,7vw,40px)}
+    .msg{font-weight:800;margin:8px}
+    .face{width:min(240px,70vw);height:240px;margin:10px auto;border-radius:40%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 10px 0 rgba(0,0,0,.15)}
+    .eyes{font-size:56px}
+    .mouth{font-size:56px}
+    .row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px}
+    .row button{padding:12px 16px;border-radius:18px;background:#fff;font-weight:800;box-shadow:0 6px 0 #a78bfa}
+    .row button:active{transform:translateY(3px)}
+    .go{margin-top:8px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Monster Smile</h1>
+  <p class="msg" id="msg">Make a happy monster, then take a photo!</p>
+  <div class="face" id="face">
+    <div class="eyes" id="eyes">👀</div>
+    <div class="mouth" id="mouth">😐</div>
+  </div>
+  <div class="row">
+    <button id="eye">Eyes</button>
+    <button id="mo">Mouth</button>
+    <button id="col">Color</button>
+  </div>
+  <button class="go" id="go">Say cheese!</button>
+  <div class="win" id="win">
+    <div style="font-size:72px">📸</div>
+    <h2>Silly smile!</h2>
+    <button class="play" id="again">Make another</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var eyes=["👀","😊","🤓","😜"],mouths=["😐","🙂","😄","😁"],cols=["#86efac","#f9a8d4","#93c5fd","#fde047","#fda4af"];
+    var ei=0,mi=0,ci=0,face=document.getElementById("face");
+    function draw(){document.getElementById("eyes").textContent=eyes[ei];document.getElementById("mouth").textContent=mouths[mi];face.style.background=cols[ci];}
+    document.getElementById("eye").onclick=function(){ei=(ei+1)%eyes.length;draw();beep(480,.06);};
+    document.getElementById("mo").onclick=function(){mi=(mi+1)%mouths.length;draw();beep(540,.06);};
+    document.getElementById("col").onclick=function(){ci=(ci+1)%cols.length;draw();beep(400,.06);};
+    document.getElementById("go").onclick=function(){
+      if(mi<2){document.getElementById("msg").textContent="Tap Mouth until it smiles!";beep(180,.1);return;}
+      document.getElementById("win").classList.add("on");beep(880,.2);
+    };
+    draw();
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

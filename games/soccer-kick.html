@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Soccer Kick</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#4ade80;color:#14532d;overflow:hidden;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
+    #field{position:fixed;inset:0;background:repeating-linear-gradient(90deg,#4ade80 0 40px,#22c55e 40px 80px)}
+    #goal{position:fixed;top:12%;width:120px;height:70px;margin-left:-60px;font-size:64px;text-align:center;line-height:70px}
+    #ball{position:fixed;bottom:16%;left:50%;margin-left:-32px;font-size:64px;width:64px;text-align:center}
+    .hint{position:fixed;bottom:8%;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,10,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <div id="hud">⚽ 0 / 5</div>
+  <div id="field"></div>
+  <div id="goal">🥅</div>
+  <div id="ball">⚽</div>
+  <p class="hint" id="hint">Tap when the goal is in the middle!</p>
+  <div class="win" id="win">
+    <div style="font-size:72px">🏆</div>
+    <h2>Goal hero!</h2>
+    <button class="play" id="again">Kick again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var gx=innerWidth/2,dir=2.4,score=0,busy=false,play=true;
+    var goal=document.getElementById("goal"),ball=document.getElementById("ball");
+    function loop(){
+      if(play&&!busy){gx+=dir;if(gx<70||gx>innerWidth-70)dir*=-1;goal.style.left=gx+"px";}
+      requestAnimationFrame(loop);
+    }
+    function kick(){
+      if(!play||busy)return;
+      busy=true;
+      var mid=innerWidth/2,hit=Math.abs(gx-mid)<70;
+      ball.style.transition="transform .35s ease";
+      ball.style.transform="translateY(-"+Math.round(innerHeight*0.48)+"px)";
+      setTimeout(function(){
+        if(hit){score++;beep(880,.15);document.getElementById("hud").textContent="⚽ "+score+" / 5";document.getElementById("hint").textContent="GOAL!";if(score>=5){play=false;document.getElementById("win").classList.add("on");beep(990,.2);}}
+        else{beep(180,.1);document.getElementById("hint").textContent="Miss! Wait for the middle.";}
+        ball.style.transform="none";
+        setTimeout(function(){busy=false;},200);
+      },360);
+    }
+    addEventListener("pointerdown",function(e){if(!e.target.closest("a,button,.play"))kick();});
+    loop();
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>

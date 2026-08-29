@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Rainbow Paint</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b0764;touch-action:manipulation;user-select:none}
+    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
+    body{min-height:100vh;background:linear-gradient(#e9d5ff,#fef08a);padding:56px 14px 24px;text-align:center}
+    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(26px,7vw,40px)}
+    .msg{font-weight:800;margin:8px}
+    .bow{width:min(300px,88vw);margin:12px auto;display:flex;flex-direction:column;gap:6px}
+    .stripe{height:28px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 3px #ddd}
+    .pots{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+    .pot{width:64px;height:72px;border-radius:18px 18px 24px 24px;box-shadow:0 6px 0 rgba(0,0,0,.18);font-weight:800;font-size:12px;color:#222}
+    .pot:active{transform:translateY(3px)}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.84);z-index:8;gap:12px;color:#fff}
+    .win.on{display:flex}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <h1>Rainbow Paint</h1>
+  <p class="msg" id="msg">Paint red first!</p>
+  <div class="bow" id="bow"></div>
+  <div class="pots" id="pots"></div>
+  <div class="win" id="win">
+    <div style="font-size:72px">🌈</div>
+    <h2>Full rainbow!</h2>
+    <button class="play" id="again">Paint again</button>
+  </div>
+  <script>
+    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var cols=[{n:"red",c:"#ef4444"},{n:"orange",c:"#f97316"},{n:"yellow",c:"#facc15"},{n:"green",c:"#22c55e"},{n:"blue",c:"#3b82f6"},{n:"purple",c:"#a855f7"}];
+    var need=0,bow=document.getElementById("bow");
+    cols.forEach(function(){var s=document.createElement("div");s.className="stripe";bow.appendChild(s);});
+    var stripes=bow.querySelectorAll(".stripe");
+    cols.forEach(function(col,i){
+      var b=document.createElement("button");b.className="pot";b.style.background=col.c;b.textContent=col.n;
+      b.onclick=function(){
+        if(i!==need){document.getElementById("msg").textContent="Next is "+cols[need].n+"!";beep(180,.1);return;}
+        stripes[need].style.background=col.c;stripes[need].style.boxShadow="none";beep(500+need*70,.1);need++;
+        if(need>=cols.length){document.getElementById("msg").textContent="Wow!";document.getElementById("win").classList.add("on");beep(960,.2);}
+        else document.getElementById("msg").textContent="Now "+cols[need].n+"!";
+      };
+      document.getElementById("pots").appendChild(b);
+    });
+    document.getElementById("again").onclick=function(){location.reload();};
+  </script>
+</body>
+</html>
