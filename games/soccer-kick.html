@@ -216,6 +216,7 @@
       starWait = 1.6; setStar(false);
       keeper.classList.toggle("on", HALVES[half].keeper);
       fill.style.width = "0%";
+      document.getElementById("powerLab").textContent = "Power";
       ball.style.transition = "none";
       ball.style.transform = "none";
       hint.textContent = half === 0 ? "Hold to charge" : half === 1 ? "Watch the keeper" : "Stars on the posts!";
