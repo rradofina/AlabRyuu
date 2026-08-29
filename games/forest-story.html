@@ -174,13 +174,13 @@
       {
         start:{art:"🦊",ch:"Chapter 1",t:"Pip the Fox",lines:["Pip found a gold leaf.","It wiggled. Hello!"],next:[{l:"Follow the leaf 🍃",to:"leaf"},{l:"Follow a butterfly 🦋",to:"fly"}]},
         leaf:{art:"🐿️",ch:"Whisper path",t:"Berry Path",lines:["A squirrel drops a berry.","A gift for Pip!"],gift:"berry",next:[{l:"Wear the berry hat",to:"hat"},{l:"Give it back",to:"give",kind:1}]},
-        fly:{art:"🦋",ch:"Blue wings",t:"Sky Puddle",lines:["A puddle looks like sky.","Turtle smiles."],next:[{l:"Skip a stone 🪨",to:"stone"},{l:"Look for frogs 🐸",to:"frog"}]},
+        fly:{art:"🦋",ch:"Blue wings",t:"Sky Puddle",lines:["A puddle looks like sky.","Turtle shares a berry."],gift:"berry",next:[{l:"Skip a stone 🪨",to:"stone"},{l:"Look for frogs 🐸",to:"frog"}]},
         hat:{art:"🎩",ch:"Berry fancy",t:"Bee Dance",lines:["Bees like the fancy hat.","Honey on a stump!"],gift:"hat",next:[{l:"Sit and nibble",to:"dusk"}]},
         give:{art:"🐿️",ch:"Kind Pip",t:"Good Friend",lines:["Squirrel hugs Pip.","You may keep a hat."],gift:"hat",kindAuto:1,next:[{l:"Share a cookie",to:"dusk"}]},
         stone:{art:"🪨",ch:"Plip plop",t:"Skip Stone",lines:["Rings on the water.","A frog in a bow tie!"],gift:"stone",next:[{l:"Go to the pond",to:"dusk"}]},
         frog:{art:"🐸",ch:"Silly song",t:"Frog Choir",lines:["Frogs sing about bugs.","Pip laughs and laughs."],gift:"stone",next:[{l:"Sing with them",to:"dusk"}]},
-        dusk:{art:"🌅",ch:"Chapter 2",t:"Sun Goes Soft",lines:["The trees turn gold.","Night is coming."],next:[{l:"Walk into night",to:"night"}]},
-        night:{art:"✨",ch:"Night",t:"Firefly Woods",lines:["Tiny lights wink.","The woods glow."],night:1,next:[{l:"Share your light",to:"endPicnic",kind:1},{l:"Dance with bugs",to:"endPond"}]},
+        dusk:{art:"🌅",ch:"Chapter 2",t:"Sun Goes Soft",lines:["The trees turn gold.","A leaf hat waits."],gift:"hat",next:[{l:"Walk into night",to:"night"}]},
+        night:{art:"✨",ch:"Night",t:"Firefly Woods",lines:["Tiny lights wink.","A glow stone drops."],gift:"stone",night:1,next:[{l:"Share your light",to:"endPicnic",kind:1},{l:"Dance with bugs",to:"endPond"}]},
         endPicnic:{art:"🧺",ch:"The end",t:"Happy Picnic",lines:["Friends sit in a circle.","Berries and jokes."],end:"picnic"},
         endPond:{art:"🎉",ch:"The end",t:"Pond Party",lines:["Frogs drum lily pads.","Pip does a fox jig."],end:"pond"}
       },
@@ -190,8 +190,8 @@
         creek:{art:"🌙",ch:"Shiny water",t:"Moon Creek",lines:["Water looks like milk.","A smooth stone winks."],gift:"stone",next:[{l:"Pick up the stone",to:"otter"},{l:"Skip it gently",to:"otter"}]},
         gnome:{art:"🎩",ch:"Tiny gift",t:"Kind Gnome",lines:["Gnome tips a leaf hat.","For you, friend."],gift:"hat",next:[{l:"Thank you",to:"dusk2"}]},
         otter:{art:"🦦",ch:"Splash",t:"Otter Friend",lines:["Otter claps. Bravo!","A leaf hat floats by."],gift:"hat",next:[{l:"Wave thanks",to:"dusk2",kind:1}]},
-        dusk2:{art:"🌅",ch:"Soft gold",t:"Quiet Path",lines:["Birds go home.","Stars wake up."],next:[{l:"Follow the glow",to:"night2"}]},
-        night2:{art:"✨",ch:"Night",t:"Firefly Bridge",lines:["Bugs make a bridge.","Pip walks on light."],night:1,next:[{l:"Help a lost bug",to:"endPicnic",kind:1},{l:"Wiggle across",to:"endPond"}]},
+        dusk2:{art:"🌅",ch:"Soft gold",t:"Quiet Path",lines:["Birds go home.","A shiny stone waits."],gift:"stone",next:[{l:"Follow the glow",to:"night2"}]},
+        night2:{art:"✨",ch:"Night",t:"Firefly Bridge",lines:["Bugs make a bridge.","A night berry glows."],gift:"berry",night:1,next:[{l:"Help a lost bug",to:"endPicnic",kind:1},{l:"Wiggle across",to:"endPond"}]},
         endPicnic:{art:"🧺",ch:"The end",t:"Moon Picnic",lines:["Owl shares warm tea.","Soft and sleepy."],end:"picnic"},
         endPond:{art:"🎉",ch:"The end",t:"Glow Party",lines:["Bugs blink a song.","Pip yawns a smile."],end:"pond"}
       }
