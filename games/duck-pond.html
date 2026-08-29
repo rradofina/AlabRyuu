@@ -228,7 +228,7 @@
             return;
           }
           if (opened) {
-            if (k.ok && !taken && !b.classList.contains("found")) collect(b, k);
+            if (k.ok && !b.dataset.taken && !b.classList.contains("found")) { taken = true; collect(b, k); }
             else if (!k.ok) { document.getElementById("ask").textContent = "Not a baby!"; beep(180, 0.08); }
             return;
           }
