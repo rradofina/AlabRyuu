@@ -5,61 +5,287 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Bubble Bath</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#7dd3fc;color:#0c4a6e;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #tub{position:fixed;inset:0;background:linear-gradient(#7dd3fc 0 38%,#38bdf8 38% 70%,#0ea5e9 70%)}
-    .duck{position:fixed;bottom:18%;left:50%;transform:translateX(-50%);font-size:84px;pointer-events:none;animation:bob 1.6s ease-in-out infinite}
-    @keyframes bob{50%{transform:translateX(-50%) translateY(-10px)}}
-    .bub{position:absolute;font-size:42px;line-height:1}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,70,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      background: #e0f2fe; color: #0c4a6e;
+      touch-action: manipulation; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 12;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
+    }
+    #hud {
+      position: fixed; top: 12px; right: 12px; z-index: 12;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    }
+    #hud span {
+      font-weight: 800; background: rgba(255,255,255,.7);
+      padding: 6px 12px; border-radius: 16px; font-size: 15px;
+    }
+    #room {
+      position: fixed; inset: 0;
+      background:
+        repeating-linear-gradient(90deg, #e0f2fe 0 48px, #bae6fd 48px 50px),
+        repeating-linear-gradient(#e0f2fe 0 48px, #bae6fd 48px 50px);
+      background-color: #e0f2fe;
+    }
+    #faucet {
+      position: absolute; top: 18%; right: 10%; width: 90px; height: 90px;
+      z-index: 3; pointer-events: none;
+    }
+    #faucet .pipe {
+      width: 18px; height: 40px; background: linear-gradient(#e5e7eb, #9ca3af);
+      border-radius: 8px; margin-left: 36px;
+      box-shadow: inset -3px 0 0 #6b7280;
+    }
+    #faucet .spout {
+      width: 54px; height: 22px; background: linear-gradient(#f3f4f6, #9ca3af);
+      border-radius: 10px 18px 8px 8px; margin-left: 10px;
+      box-shadow: 2px 3px 0 #6b7280;
+    }
+    #drip {
+      position: absolute; left: 22px; top: 58px; font-size: 18px;
+      animation: drip 1.4s ease-in infinite;
+    }
+    @keyframes drip { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(40px); opacity: 0; } }
+    #tub {
+      position: absolute; left: 4%; right: 4%; bottom: 0; height: 46%;
+      background: linear-gradient(#38bdf8, #0284c7);
+      border: 12px solid #e5e7eb;
+      border-bottom: 0;
+      border-radius: 80px 80px 0 0;
+      box-shadow: inset 0 14px 0 rgba(255,255,255,.28), 0 -6px 0 #9ca3af;
+      overflow: hidden;
+    }
+    #foamline {
+      position: absolute; left: 0; right: 0; top: 0; height: 28px;
+      background:
+        radial-gradient(circle at 10% 80%, #fff 10px, transparent 11px),
+        radial-gradient(circle at 28% 40%, #fff 12px, transparent 13px),
+        radial-gradient(circle at 50% 70%, #f8fafc 11px, transparent 12px),
+        radial-gradient(circle at 72% 40%, #fff 12px, transparent 13px),
+        radial-gradient(circle at 90% 80%, #fff 10px, transparent 11px);
+      pointer-events: none;
+    }
+    #duck {
+      position: absolute; bottom: 28%; left: 12%; width: 88px; height: 88px;
+      font-size: 72px; z-index: 6;
+      animation: quack 1.8s ease-in-out infinite;
+      filter: drop-shadow(0 6px 0 rgba(0,0,0,.15));
+    }
+    @keyframes quack { 50% { transform: translateY(-8px) rotate(-6deg); } }
+    .bub {
+      position: absolute; width: 64px; height: 64px; font-size: 44px;
+      display: grid; place-items: center; z-index: 5;
+    }
+    .toy {
+      position: absolute; width: 72px; height: 72px; font-size: 48px;
+      display: grid; place-items: center; z-index: 5;
+      filter: drop-shadow(0 0 8px #fde68a);
+    }
+    #combo {
+      position: fixed; top: 120px; left: 0; right: 0; text-align: center;
+      font-weight: 800; font-size: 26px; color: #0369a1;
+      opacity: 0; pointer-events: none; z-index: 8;
+    }
+    #combo.on { opacity: 1; }
+    .hint {
+      position: fixed; bottom: 48%; left: 0; right: 0; text-align: center;
+      font-weight: 800; font-size: 16px; pointer-events: none; z-index: 4;
+    }
+    .cover {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
+      background: linear-gradient(#7dd3fc, #38bdf8 40%, #fde047); color: #0c4a6e;
+    }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(34px, 9vw, 52px); }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
+    .play {
+      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
+      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    }
+    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
+    .starrow { font-size: 36px; letter-spacing: 4px; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">🫧 0 / 12</div>
-  <div id="tub"></div>
-  <div class="duck">🦆</div>
-  <div class="win" id="win">
+  <div id="hud">
+    <span id="score">🫧 0 / 10</span>
+    <span id="bathHud">Bath 1 / 3</span>
+  </div>
+  <div id="combo"></div>
+  <p class="hint">Tap duck to pop a near bubble!</p>
+  <div id="room">
+    <div id="faucet">
+      <div class="pipe"></div>
+      <div class="spout"></div>
+      <div id="drip">💧</div>
+    </div>
+    <div id="tub">
+      <div id="foamline"></div>
+    </div>
+    <button id="duck" type="button" aria-label="Duck helper">🦆</button>
+  </div>
+  <div class="cover" id="start">
     <div style="font-size:72px">🛁</div>
-    <h2>Squeaky clean!</h2>
-    <button class="play" id="again">Splash again</button>
+    <h1>Bubble Bath</h1>
+    <p>Pop bubbles. Tap the duck for help. Toys are bonus!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="mid">
+    <div style="font-size:64px">🫧</div>
+    <h1 id="midTitle">Bath done!</h1>
+    <p id="midLine"></p>
+    <div class="starrow" id="midStars"></div>
+    <button class="play" id="next">Next bath</button>
+  </div>
+  <div class="cover off" id="win">
+    <div style="font-size:72px">🛁</div>
+    <h1>Squeaky clean!</h1>
+    <p>So shiny and soapy.</p>
+    <div class="starrow" id="winStars">⭐⭐⭐</div>
+    <button class="play" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var score=0,play=true,items=[],tub=document.getElementById("tub"),look=["🫧","⚪","💧"];
-    function spawn(){
-      if(!play)return;
-      var b=document.createElement("button");b.className="bub";b.textContent=look[Math.floor(Math.random()*look.length)];
-      var x=20+Math.random()*(innerWidth-60),y=innerHeight*0.78,sp=1.2+Math.random()*1.8,wob=Math.random()*6;
-      b.style.left=x+"px";b.style.top=y+"px";tub.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,wob:wob,t:0,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        it.dead=true;b.remove();score++;beep(640+score*20,.08);
-        document.getElementById("hud").textContent="🫧 "+score+" / 12";
-        if(score>=12){play=false;document.getElementById("win").classList.add("on");beep(900,.2);}
-      };
+    function beep(f, d) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = f; g.gain.value = 0.1;
+        o.connect(g); g.connect(c.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
+    }
+    var BATHS = [
+      { need: 10, rate: 24 },
+      { need: 14, rate: 20 },
+      { need: 16, rate: 16 }
+    ];
+    var LOOK = ["🫧", "⚪", "💧"];
+    var TOYS = ["🚤", "🥤", "🧸"];
+    var bath = 0, score = 0, need = 10, play = false, items = [], acc = 0;
+    var foam = 0, foamMax = 0, toysGot = 0, duckHelps = 0;
+    var room = document.getElementById("room");
+    var duck = document.getElementById("duck");
+
+    function hud() {
+      document.getElementById("score").textContent = "🫧 " + score + " / " + need;
+      document.getElementById("bathHud").textContent = "Bath " + (bath + 1) + " / 3";
+    }
+    function toast(t) {
+      var el = document.getElementById("combo");
+      el.textContent = t; el.classList.add("on");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(function () { el.classList.remove("on"); }, 800);
+    }
+    function popItem(it, bonus) {
+      if (!play || it.dead) return;
+      it.dead = true; it.el.remove();
+      var add = it.toy ? 2 : 1;
+      if (bonus) add += 1;
+      score += add;
+      if (it.toy) toysGot++;
+      foam++;
+      if (foam > foamMax) foamMax = foam;
+      if (foam >= 3 && foam % 3 === 0) {
+        score += 1;
+        toast("Foam combo!");
+        beep(900, 0.12);
+      } else {
+        beep(it.toy ? 820 : 640 + Math.min(score, 12) * 16, 0.08);
+      }
+      hud();
+      if (score >= need) endBath();
+    }
+    function spawn(toy) {
+      if (!play) return;
+      var b = document.createElement("button");
+      b.className = toy ? "toy" : "bub";
+      b.textContent = toy ? TOYS[Math.floor(Math.random() * TOYS.length)] : LOOK[Math.floor(Math.random() * LOOK.length)];
+      var x = 20 + Math.random() * (innerWidth - 80);
+      var y = innerHeight * 0.78;
+      var sp = 1.1 + Math.random() * 1.7;
+      b.style.left = x + "px"; b.style.top = y + "px";
+      room.appendChild(b);
+      var it = { el: b, x: x, y: y, sp: sp, t: 0, toy: !!toy, dead: false };
+      b.onclick = function () { popItem(it, false); };
       items.push(it);
     }
-    var acc=0;
-    function loop(){
-      acc++;if(play&&acc%22===0)spawn();
-      items.forEach(function(it){
-        if(it.dead)return;
-        it.t++;it.y-=it.sp;it.x+=Math.sin(it.t/12)*0.8;
-        it.el.style.top=it.y+"px";it.el.style.left=it.x+"px";
-        if(it.y<-40){it.dead=true;it.el.remove();}
+    duck.onclick = function () {
+      if (!play) return;
+      var alive = items.filter(function (it) { return !it.dead && !it.toy; });
+      if (!alive.length) { beep(220, 0.08); return; }
+      var dr = duck.getBoundingClientRect();
+      var dx = dr.left + 40, dy = dr.top + 40, best = alive[0], bestD = 9999;
+      alive.forEach(function (it) {
+        var d = Math.abs(it.x - dx) + Math.abs(it.y - dy);
+        if (d < bestD) { bestD = d; best = it; }
       });
-      items=items.filter(function(it){return !it.dead;});
+      duckHelps++;
+      toast("Duck pop!");
+      popItem(best, true);
+      beep(500, 0.1);
+    };
+    function endBath() {
+      play = false;
+      items.forEach(function (it) { if (!it.dead) it.el.remove(); });
+      items = [];
+      var stars = 1 + (foamMax >= 3 ? 1 : 0) + (toysGot > 0 || duckHelps > 0 ? 1 : 0);
+      if (stars > 3) stars = 3;
+      var row = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+      if (bath >= 2) {
+        document.getElementById("winStars").textContent = row;
+        document.getElementById("win").classList.remove("off");
+        beep(900, 0.2);
+      } else {
+        document.getElementById("midTitle").textContent = "Bath " + (bath + 1) + " sparkle!";
+        document.getElementById("midLine").textContent = "More bubbles next.";
+        document.getElementById("midStars").textContent = row;
+        document.getElementById("mid").classList.remove("off");
+        beep(800, 0.16);
+      }
+    }
+    function startBath() {
+      need = BATHS[bath].need; score = 0; foam = 0; items = []; acc = 0;
+      hud(); play = true;
+    }
+    function loop() {
+      acc++;
+      if (play && acc % BATHS[bath].rate === 0) spawn(false);
+      if (play && acc % 160 === 0) spawn(true);
+      items.forEach(function (it) {
+        if (it.dead) return;
+        it.t++; it.y -= it.sp; it.x += Math.sin(it.t / 12) * 0.7;
+        it.el.style.top = it.y + "px"; it.el.style.left = it.x + "px";
+        if (it.y < -50) { it.dead = true; it.el.remove(); foam = 0; }
+      });
+      items = items.filter(function (it) { return !it.dead; });
       requestAnimationFrame(loop);
     }
+    document.getElementById("go").onclick = function () {
+      document.getElementById("start").classList.add("off");
+      bath = 0; foamMax = 0; toysGot = 0; duckHelps = 0;
+      startBath(); beep(520, 0.1);
+    };
+    document.getElementById("next").onclick = function () {
+      document.getElementById("mid").classList.add("off");
+      bath++; startBath(); beep(600, 0.1);
+    };
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off");
+      document.getElementById("start").classList.remove("off");
+    };
     loop();
-    document.getElementById("again").onclick=function(){location.reload();};
   </script>
 </body>
 </html>

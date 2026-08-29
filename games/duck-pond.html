@@ -5,58 +5,303 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Duck Pond</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#38bdf8;color:#0c4a6e;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
-    #pond{position:fixed;inset:0;background:linear-gradient(#7dd3fc,#0ea5e9)}
-    .duck{position:absolute;font-size:48px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,70,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      background: #38bdf8; color: #0c4a6e;
+      touch-action: manipulation; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 12;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
+    }
+    #hud {
+      position: fixed; top: 12px; right: 12px; z-index: 12;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    }
+    #hud span {
+      font-weight: 800; background: rgba(255,255,255,.7);
+      padding: 6px 12px; border-radius: 16px; font-size: 15px;
+    }
+    #scene {
+      position: fixed; inset: 0;
+      background: linear-gradient(#7dd3fc 0 28%, #38bdf8 28%);
+      transition: background .5s;
+    }
+    #scene.night {
+      background: linear-gradient(#1e1b4b 0 28%, #1e3a5f 28%);
+    }
+    #moon {
+      position: absolute; top: 8%; right: 12%; font-size: 48px;
+      display: none; pointer-events: none;
+    }
+    #scene.night #moon { display: block; }
+    #bank {
+      position: absolute; left: 0; right: 0; top: 22%; height: 12%;
+      background:
+        radial-gradient(80% 100% at 20% 100%, #4ade80 50%, transparent 51%),
+        radial-gradient(70% 100% at 80% 110%, #22c55e 48%, transparent 49%);
+      pointer-events: none;
+    }
+    #pond {
+      position: absolute; left: 4%; right: 4%; top: 30%; bottom: 14%;
+      background: radial-gradient(ellipse at 50% 40%, #38bdf8, #0284c7 70%, #0369a1);
+      border-radius: 50% 48% 46% 50%;
+      box-shadow: inset 0 12px 0 rgba(255,255,255,.15), 0 8px 0 #166534;
+    }
+    #scene.night #pond {
+      background: radial-gradient(ellipse at 50% 40%, #1d4ed8, #0f172a 70%);
+    }
+    #mama {
+      position: absolute; bottom: 16%; left: 50%; transform: translateX(-50%);
+      font-size: 56px; pointer-events: none; z-index: 3;
+    }
+    #family {
+      position: absolute; bottom: 8%; left: 0; right: 0; text-align: center;
+      font-size: 28px; pointer-events: none; z-index: 3; min-height: 36px;
+    }
+    .reed {
+      position: absolute; width: 86px; height: 96px;
+      background: transparent;
+    }
+    .reed .clump {
+      font-size: 52px; line-height: 1; display: block;
+      filter: drop-shadow(0 4px 0 rgba(0,0,0,.15));
+    }
+    .reed.open .clump { opacity: .35; }
+    .reed .hide {
+      position: absolute; left: 50%; top: 28%; transform: translateX(-50%);
+      font-size: 40px; display: none;
+    }
+    .reed.open .hide { display: block; }
+    .reed.found { pointer-events: none; opacity: .55; }
+    #bread {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      z-index: 6; width: 96px; height: 72px; border-radius: 20px;
+      background: #fde68a; font-size: 36px; font-weight: 800;
+      box-shadow: 0 6px 0 #ca8a04; display: none;
+    }
+    #bread.on { display: grid; place-items: center; }
+    #bread.sel { outline: 4px solid #f97316; }
+    #ask {
+      position: fixed; top: 108px; left: 0; right: 0; text-align: center;
+      font-weight: 800; font-size: 20px; z-index: 4; pointer-events: none;
+    }
+    #scene.night #ask { color: #fde68a; }
+    .cover {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
+      background: linear-gradient(#7dd3fc, #22c55e 50%, #fde047); color: #0c4a6e;
+    }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(34px, 9vw, 52px); }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
+    .play {
+      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
+      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    }
+    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
+    .starrow { font-size: 36px; letter-spacing: 4px; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">🐥 0 / 8</div>
-  <div id="ask">Tap mama's yellow babies!</div>
-  <div id="pond"></div>
-  <div class="win" id="win">
+  <div id="hud">
+    <span id="score">🐥 0 / 4</span>
+    <span id="pondHud">Pond 1 / 3</span>
+    <span id="hearts">❤ 0</span>
+  </div>
+  <div id="ask">Tap reeds. Find yellow babies!</div>
+  <div id="scene">
+    <div id="moon">🌙</div>
+    <div id="bank"></div>
+    <div id="pond"></div>
+    <div id="mama">🦆</div>
+    <div id="family"></div>
+  </div>
+  <button id="bread" type="button">🍞 Feed</button>
+  <div class="cover" id="start">
+    <div style="font-size:72px">🐥</div>
+    <h1>Duck Pond</h1>
+    <p>Peek in the reeds. Tap babies, not mama. Feed bread for hearts!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="mid">
+    <div style="font-size:64px">🦆</div>
+    <h1 id="midTitle">Pond done!</h1>
+    <p id="midLine"></p>
+    <div class="starrow" id="midStars"></div>
+    <button class="play" id="next">Next pond</button>
+  </div>
+  <div class="cover off" id="win">
     <div style="font-size:72px">🦆</div>
-    <h2>Family swim!</h2>
-    <button class="play" id="again">Swim again</button>
+    <h1>Family swim!</h1>
+    <p>All the babies came home.</p>
+    <div class="starrow" id="winStars">⭐⭐⭐</div>
+    <button class="play" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var kinds=[{e:"🐥",ok:true},{e:"🦆",ok:false},{e:"🐸",ok:false},{e:"🐟",ok:false}];
-    var score=0,play=true,items=[],pond=document.getElementById("pond");
-    function spawn(){
-      if(!play)return;
-      var k=Math.random()<.45?kinds[0]:kinds[1+Math.floor(Math.random()*3)];
-      var b=document.createElement("button");b.className="duck";b.textContent=k.e;
-      var y=120+Math.random()*(innerHeight-200),x=-40,sp=1.2+Math.random()*1.8;
-      b.style.left=x+"px";b.style.top=y+"px";pond.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,ok:k.ok,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        if(!k.ok){document.getElementById("ask").textContent="That's not a baby!";beep(180,.1);return;}
-        it.dead=true;b.remove();score++;beep(700,.08);
-        document.getElementById("hud").textContent="🐥 "+score+" / 8";
-        if(score>=8){play=false;document.getElementById("win").classList.add("on");beep(920,.2);}
-      };
-      items.push(it);
+    function beep(f, d) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = f; g.gain.value = 0.1;
+        o.connect(g); g.connect(c.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
     }
-    var acc=0;
-    function loop(){
-      acc++;if(play&&acc%40===0)spawn();
-      items.forEach(function(it){if(it.dead)return;it.x+=it.sp;it.el.style.left=it.x+"px";if(it.x>innerWidth+40){it.dead=true;it.el.remove();}});
-      items=items.filter(function(it){return !it.dead;});
-      requestAnimationFrame(loop);
+    var PONDS = [
+      { babies: 4, decoys: 2 },
+      { babies: 5, decoys: 3 },
+      { babies: 6, decoys: 3, night: true }
+    ];
+    var DECOY = ["🦆", "🐸", "🐟"];
+    var pondI = 0, found = 0, need = 4, hearts = 0, play = false;
+    var breadOn = false, breadSel = false, lastBaby = null, totalHearts = 0;
+    var pond = document.getElementById("pond");
+    var bread = document.getElementById("bread");
+    var scene = document.getElementById("scene");
+
+    function hud() {
+      document.getElementById("score").textContent = "🐥 " + found + " / " + need;
+      document.getElementById("pondHud").textContent = "Pond " + (pondI + 1) + " / 3";
+      document.getElementById("hearts").textContent = "❤ " + hearts;
+      document.getElementById("family").textContent = "🐥".repeat(found);
     }
-    loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function spots(n) {
+      var out = [];
+      for (var i = 0; i < n; i++) {
+        out.push({
+          left: 6 + (i % 4) * 22 + Math.random() * 6,
+          top: 12 + Math.floor(i / 4) * 34 + Math.random() * 8
+        });
+      }
+      return out;
+    }
+    function shuffle(a) {
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+    function clearReeds() {
+      pond.querySelectorAll(".reed").forEach(function (el) { el.remove(); });
+    }
+    function startPond() {
+      clearReeds();
+      var p = PONDS[pondI];
+      need = p.babies; found = 0; hearts = 0; lastBaby = null;
+      breadOn = false; breadSel = false;
+      bread.classList.remove("on", "sel");
+      scene.classList.toggle("night", !!p.night);
+      document.getElementById("ask").textContent = p.night ? "Night pond! Peek the reeds." : "Tap reeds. Find yellow babies!";
+      var kinds = [];
+      for (var i = 0; i < p.babies; i++) kinds.push({ e: "🐥", ok: true });
+      for (var d = 0; d < p.decoys; d++) kinds.push({ e: DECOY[d % DECOY.length], ok: false });
+      shuffle(kinds);
+      var pos = spots(kinds.length);
+      kinds.forEach(function (k, i) {
+        var b = document.createElement("button");
+        b.className = "reed";
+        b.style.left = pos[i].left + "%";
+        b.style.top = pos[i].top + "%";
+        b.innerHTML = '<span class="clump">🌾</span><span class="hide">' + k.e + "</span>";
+        var opened = false, taken = false;
+        b.onclick = function (ev) {
+          if (!play) return;
+          if (breadSel && lastBaby && ev.currentTarget === lastBaby.el && lastBaby.ready) {
+            hearts++; totalHearts++;
+            breadSel = false; bread.classList.remove("sel");
+            lastBaby.ready = false;
+            lastBaby.el.classList.add("found");
+            document.getElementById("ask").textContent = "Yum bread! ❤";
+            beep(880, 0.1);
+            hud();
+            return;
+          }
+          if (opened) {
+            if (k.ok && !taken && !b.classList.contains("found")) collect(b, k);
+            else if (!k.ok) { document.getElementById("ask").textContent = "Not a baby!"; beep(180, 0.08); }
+            return;
+          }
+          opened = true;
+          b.classList.add("open");
+          beep(400, 0.08);
+          if (k.ok) {
+            document.getElementById("ask").textContent = "A baby! Tap it.";
+          } else {
+            document.getElementById("ask").textContent = "Peek again. That's " + (k.e === "🐸" ? "a frog" : k.e === "🐟" ? "a fish" : "mama") + ".";
+          }
+        };
+        pond.appendChild(b);
+      });
+      hud();
+      play = true;
+    }
+    function collect(el, k) {
+      if (!k.ok || el.classList.contains("found") || el.dataset.taken === "1") return;
+      el.dataset.taken = "1";
+      found++;
+      lastBaby = { el: el, ready: true };
+      breadOn = true;
+      bread.classList.add("on");
+      document.getElementById("ask").textContent = "Tap bread, then the baby!";
+      beep(700, 0.09);
+      hud();
+      setTimeout(function () {
+        if (lastBaby && lastBaby.el === el && lastBaby.ready) {
+          lastBaby.ready = false;
+          el.classList.add("found");
+        }
+      }, 4000);
+      if (found >= need) setTimeout(endPond, 2800);
+    }
+    bread.onclick = function () {
+      if (!play || !breadOn) return;
+      breadSel = !breadSel;
+      bread.classList.toggle("sel", breadSel);
+      beep(540, 0.08);
+      document.getElementById("ask").textContent = breadSel ? "Now tap the baby!" : "Tap bread, then the baby!";
+    };
+    function endPond() {
+      play = false;
+      bread.classList.remove("on", "sel");
+      var stars = 1 + (hearts >= 1 ? 1 : 0) + (hearts >= 2 ? 1 : 0);
+      if (stars > 3) stars = 3;
+      var row = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+      if (pondI >= 2) {
+        document.getElementById("winStars").textContent = row;
+        document.getElementById("win").classList.remove("off");
+        beep(920, 0.2);
+      } else {
+        document.getElementById("midTitle").textContent = "Pond " + (pondI + 1) + " family!";
+        document.getElementById("midLine").textContent = pondI === 1 ? "Last pond is night time." : "Next pond has more babies.";
+        document.getElementById("midStars").textContent = row;
+        document.getElementById("mid").classList.remove("off");
+        beep(800, 0.16);
+      }
+    }
+    document.getElementById("go").onclick = function () {
+      document.getElementById("start").classList.add("off");
+      pondI = 0; totalHearts = 0;
+      startPond(); beep(520, 0.1);
+    };
+    document.getElementById("next").onclick = function () {
+      document.getElementById("mid").classList.add("off");
+      pondI++; startPond(); beep(600, 0.1);
+    };
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off");
+      document.getElementById("start").classList.remove("off");
+    };
   </script>
 </body>
 </html>

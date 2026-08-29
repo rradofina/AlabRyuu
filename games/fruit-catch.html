@@ -5,58 +5,271 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Fruit Catch</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#86efac;color:#14532d;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
-    #sky{position:fixed;inset:0}
-    .fr{position:absolute;font-size:48px;line-height:1}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,50,20,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      background: #86efac; color: #14532d;
+      touch-action: manipulation; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 12;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
+    }
+    #hud {
+      position: fixed; top: 12px; right: 12px; z-index: 12;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    }
+    #hud span {
+      font-weight: 800; background: rgba(255,255,255,.7);
+      padding: 6px 12px; border-radius: 16px; font-size: 15px;
+    }
+    #orchard {
+      position: fixed; inset: 0;
+      background: linear-gradient(#7dd3fc 0 42%, #86efac 42% 70%, #4ade80 70%);
+    }
+    #hills {
+      position: absolute; left: 0; right: 0; top: 34%; height: 16%;
+      background:
+        radial-gradient(70% 120% at 20% 100%, #22c55e 50%, transparent 51%),
+        radial-gradient(80% 120% at 80% 110%, #16a34a 48%, transparent 49%);
+      pointer-events: none;
+    }
+    .tree {
+      position: absolute; bottom: 28%; width: 120px; height: 170px; pointer-events: none;
+    }
+    .tree .trunk {
+      position: absolute; left: 50%; bottom: 0; width: 22px; height: 70px; margin-left: -11px;
+      background: #92400e; border-radius: 6px;
+    }
+    .tree .leaf {
+      position: absolute; left: 50%; width: 110px; height: 110px; margin-left: -55px;
+      border-radius: 50%; background: #166534;
+      box-shadow: -28px 22px 0 #15803d, 30px 18px 0 #14532d;
+    }
+    .tree.a { left: 4%; }
+    .tree.b { left: 50%; margin-left: -60px; bottom: 30%; }
+    .tree.c { right: 4%; left: auto; }
+    #ask {
+      position: fixed; top: 108px; left: 0; right: 0; text-align: center;
+      font-weight: 800; font-size: 20px; z-index: 4; pointer-events: none;
+    }
+    #combo {
+      position: fixed; top: 136px; left: 0; right: 0; text-align: center;
+      font-weight: 800; font-size: 24px; color: #a16207; opacity: 0; z-index: 5;
+    }
+    #combo.on { opacity: 1; }
+    .fr {
+      position: absolute; width: 68px; height: 68px; font-size: 48px;
+      display: grid; place-items: center; line-height: 1;
+    }
+    .fr.gold { filter: drop-shadow(0 0 10px #facc15); font-size: 52px; }
+    #basketWrap {
+      position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%);
+      z-index: 5; width: min(240px, 70vw); text-align: center; font-weight: 800;
+    }
+    #basketFace { font-size: 42px; line-height: 1; }
+    #meter {
+      height: 18px; border-radius: 999px; background: #fff8;
+      border: 3px solid #14532d; overflow: hidden; margin-top: 4px;
+    }
+    #meter i {
+      display: block; height: 100%; width: 0; background: #f59e0b;
+      transition: width .2s;
+    }
+    .cover {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
+      background: linear-gradient(#86efac, #22c55e 40%, #fde047); color: #14532d;
+    }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(34px, 9vw, 52px); }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
+    .play {
+      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
+      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    }
+    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
+    .starrow { font-size: 36px; letter-spacing: 4px; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">🍎 0 / 10</div>
-  <div id="ask">Tap the fruit. Skip the rock!</div>
-  <div id="sky"></div>
-  <div class="win" id="win">
+  <div id="hud">
+    <span id="score">🍎 0 / 8</span>
+    <span id="treeHud">Tree 1 / 3</span>
+  </div>
+  <div id="orchard">
+    <div id="hills"></div>
+    <div class="tree a"><div class="leaf"></div><div class="trunk"></div></div>
+    <div class="tree b"><div class="leaf"></div><div class="trunk"></div></div>
+    <div class="tree c"><div class="leaf"></div><div class="trunk"></div></div>
+  </div>
+  <div id="ask">Tap fruit. Skip rocks!</div>
+  <div id="combo"></div>
+  <div id="basketWrap">
+    <div id="basketFace">🧺</div>
+    <div id="meter"><i id="fill"></i></div>
+  </div>
+  <div class="cover" id="start">
+    <div style="font-size:72px">🍎</div>
+    <h1>Fruit Catch</h1>
+    <p>Tap the fruit. Leave the rocks. Fill the basket!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="mid">
+    <div style="font-size:64px">🧺</div>
+    <h1 id="midTitle">Tree done!</h1>
+    <p id="midLine"></p>
+    <div class="starrow" id="midStars"></div>
+    <button class="play" id="next">Next tree</button>
+  </div>
+  <div class="cover off" id="win">
     <div style="font-size:72px">🍉</div>
-    <h2>Fruit basket full!</h2>
-    <button class="play" id="again">Catch again</button>
+    <h1>Basket full!</h1>
+    <p>Yum orchard haul.</p>
+    <div class="starrow" id="winStars">⭐⭐⭐</div>
+    <button class="play" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var fruits=["🍎","🍌","🍇","🍊","🍓"],score=0,play=true,items=[],sky=document.getElementById("sky");
-    function spawn(){
-      if(!play)return;
-      var rock=Math.random()<.28,e=rock?"🪨":fruits[Math.floor(Math.random()*fruits.length)];
-      var b=document.createElement("button");b.className="fr";b.textContent=e;
-      var x=20+Math.random()*(innerWidth-70),y=-40,sp=2+Math.random()*2.4;
-      b.style.left=x+"px";b.style.top=y+"px";sky.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,rock:rock,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        if(rock){document.getElementById("ask").textContent="Oops! Only fruit.";beep(160,.1);it.dead=true;b.remove();return;}
-        it.dead=true;b.remove();score++;beep(720,.08);
-        document.getElementById("hud").textContent="🍎 "+score+" / 10";
-        document.getElementById("ask").textContent="Yum!";
-        if(score>=10){play=false;document.getElementById("win").classList.add("on");beep(920,.2);}
+    function beep(f, d) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = f; g.gain.value = 0.1;
+        o.connect(g); g.connect(c.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
+    }
+    var TREES = [
+      { need: 8, rock: 0.14 },
+      { need: 10, rock: 0.22 },
+      { need: 12, rock: 0.28 }
+    ];
+    var FRUITS = ["🍎", "🍌", "🍇", "🍊", "🍓", "🍐"];
+    var tree = 0, score = 0, need = 8, play = false, items = [], acc = 0;
+    var goldStreak = 0, goldMax = 0, golds = 0;
+    var orchard = document.getElementById("orchard");
+
+    function treeX() {
+      var w = innerWidth;
+      return [w * 0.12, w * 0.5 - 20, w * 0.78];
+    }
+    function hud() {
+      document.getElementById("score").textContent = "🍎 " + score + " / " + need;
+      document.getElementById("treeHud").textContent = "Tree " + (tree + 1) + " / 3";
+      document.getElementById("fill").style.width = Math.min(100, (score / need) * 100) + "%";
+    }
+    function toast(t) {
+      var el = document.getElementById("combo");
+      el.textContent = t; el.classList.add("on");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(function () { el.classList.remove("on"); }, 800);
+    }
+    function spawn() {
+      if (!play) return;
+      var rock = Math.random() < TREES[tree].rock;
+      var gold = !rock && Math.random() < 0.18;
+      var e = rock ? "🪨" : gold ? "🌟" + FRUITS[Math.floor(Math.random() * FRUITS.length)] : FRUITS[Math.floor(Math.random() * FRUITS.length)];
+      var b = document.createElement("button");
+      b.className = "fr" + (gold ? " gold" : "");
+      b.textContent = e;
+      var xs = treeX();
+      var x = xs[Math.floor(Math.random() * 3)] + (Math.random() * 30 - 15);
+      var y = innerHeight * 0.28;
+      var sp = 1.8 + Math.random() * 2;
+      b.style.left = x + "px"; b.style.top = y + "px";
+      orchard.appendChild(b);
+      var it = { el: b, x: x, y: y, sp: sp, rock: rock, gold: gold, dead: false };
+      b.onclick = function () {
+        if (!play || it.dead) return;
+        if (rock) {
+          document.getElementById("ask").textContent = "Skip rocks!";
+          goldStreak = 0;
+          beep(160, 0.1);
+          it.dead = true; b.remove();
+          return;
+        }
+        it.dead = true; b.remove();
+        var add = gold ? 2 : 1;
+        score += add;
+        if (gold) {
+          golds++; goldStreak++;
+          if (goldStreak > goldMax) goldMax = goldStreak;
+          if (goldStreak >= 2) {
+            score += 1;
+            toast("Gold combo x" + goldStreak + "!");
+            beep(940, 0.12);
+          } else {
+            toast("Golden!");
+            beep(860, 0.09);
+          }
+        } else {
+          goldStreak = 0;
+          beep(720, 0.08);
+          document.getElementById("ask").textContent = "Yum!";
+        }
+        hud();
+        if (score >= need) endTree();
       };
       items.push(it);
     }
-    var acc=0;
-    function loop(){
-      acc++;if(play&&acc%26===0)spawn();
-      items.forEach(function(it){if(it.dead)return;it.y+=it.sp;it.el.style.top=it.y+"px";if(it.y>innerHeight+20){it.dead=true;it.el.remove();}});
-      items=items.filter(function(it){return !it.dead;});
+    function endTree() {
+      play = false;
+      items.forEach(function (it) { if (!it.dead) it.el.remove(); });
+      items = [];
+      var stars = 1 + (golds > 0 ? 1 : 0) + (goldMax >= 2 ? 1 : 0);
+      if (stars > 3) stars = 3;
+      var row = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+      if (tree >= 2) {
+        document.getElementById("winStars").textContent = row;
+        document.getElementById("win").classList.remove("off");
+        beep(920, 0.2);
+      } else {
+        document.getElementById("midTitle").textContent = "Tree " + (tree + 1) + " picked!";
+        document.getElementById("midLine").textContent = "Next tree has more rocks. You got this!";
+        document.getElementById("midStars").textContent = row;
+        document.getElementById("mid").classList.remove("off");
+        beep(800, 0.16);
+      }
+    }
+    function startTree() {
+      need = TREES[tree].need; score = 0; goldStreak = 0; items = []; acc = 0;
+      document.getElementById("ask").textContent = "Tap fruit. Skip rocks!";
+      hud(); play = true;
+    }
+    function loop() {
+      acc++;
+      if (play && acc % 28 === 0) spawn();
+      items.forEach(function (it) {
+        if (it.dead) return;
+        it.y += it.sp;
+        it.el.style.top = it.y + "px";
+        if (it.y > innerHeight - 40) { it.dead = true; it.el.remove(); }
+      });
+      items = items.filter(function (it) { return !it.dead; });
       requestAnimationFrame(loop);
     }
+    document.getElementById("go").onclick = function () {
+      document.getElementById("start").classList.add("off");
+      tree = 0; golds = 0; goldMax = 0;
+      startTree(); beep(520, 0.1);
+    };
+    document.getElementById("next").onclick = function () {
+      document.getElementById("mid").classList.add("off");
+      tree++; startTree(); beep(600, 0.1);
+    };
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off");
+      document.getElementById("start").classList.remove("off");
+    };
     loop();
-    document.getElementById("again").onclick=function(){location.reload();};
   </script>
 </body>
 </html>
