@@ -5,74 +5,339 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Star Catch</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#0f172a;color:#fff;overflow:hidden;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(255,255,255,.16);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:rgba(255,255,255,.14);padding:8px 12px;border-radius:16px}
-    #sky{position:fixed;inset:0}
-    .star{position:absolute;font-size:32px;pointer-events:none}
-    .star.wish{font-size:40px;filter:drop-shadow(0 0 8px #fde68a)}
-    #basket{position:fixed;bottom:18px;width:92px;height:64px;margin-left:-46px;font-size:56px;text-align:center;line-height:64px;pointer-events:none}
-    .cover{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(#1e293b,#fbbf24);z-index:8;gap:10px;text-align:center;padding:20px}
-    .cover.off{display:none}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:28px;padding:14px 32px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-    h1{font-size:clamp(34px,9vw,52px)}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      background: #07061a; color: #fff;
+      touch-action: none; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 12;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(255,255,255,.16); padding: 8px 14px; border-radius: 999px;
+    }
+    #hud {
+      position: fixed; top: 12px; right: 12px; z-index: 12;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    }
+    #hud span, #dots {
+      font-weight: 800; background: rgba(255,255,255,.14);
+      padding: 6px 12px; border-radius: 16px; font-size: 15px;
+    }
+    #dots { letter-spacing: 3px; }
+    #dots b { color: #fde68a; text-shadow: 0 0 8px #fbbf24; }
+    #combo {
+      position: fixed; top: 120px; left: 0; right: 0; text-align: center;
+      font-weight: 800; font-size: 28px; color: #fde68a;
+      text-shadow: 0 3px 0 #7c2d12; opacity: 0; pointer-events: none;
+      transition: opacity .2s; z-index: 6;
+    }
+    #combo.on { opacity: 1; }
+    #sky {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse at 70% 0%, #2a1658 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 80%, #1a1040 0%, transparent 45%),
+        linear-gradient(#0b0828, #1a1048 70%, #0f172a);
+    }
+    #twinkle {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(2px 2px at 12% 18%, #fff, transparent),
+        radial-gradient(1px 1px at 28% 42%, #cde, transparent),
+        radial-gradient(2px 2px at 44% 12%, #fff, transparent),
+        radial-gradient(1px 1px at 62% 28%, #fff, transparent),
+        radial-gradient(2px 2px at 78% 16%, #fde68a, transparent),
+        radial-gradient(1px 1px at 88% 46%, #fff, transparent),
+        radial-gradient(2px 2px at 8% 62%, #fff, transparent),
+        radial-gradient(1px 1px at 36% 72%, #cde, transparent),
+        radial-gradient(2px 2px at 70% 68%, #fff, transparent),
+        radial-gradient(1px 1px at 92% 78%, #fff, transparent);
+      animation: tw 3.4s ease-in-out infinite;
+    }
+    @keyframes tw { 50% { opacity: .35; } }
+    #hills {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 18%;
+      background:
+        radial-gradient(120% 90% at 20% 120%, #0b1328 42%, transparent 43%),
+        radial-gradient(90% 80% at 70% 130%, #111827 40%, transparent 41%),
+        linear-gradient(transparent 30%, #0a0f1e);
+      pointer-events: none;
+    }
+    #const {
+      position: absolute; left: 50%; top: 16%; transform: translateX(-50%);
+      width: min(280px, 72vw); height: 160px; pointer-events: none;
+    }
+    #const svg { width: 100%; height: 100%; overflow: visible; }
+    #const line { stroke: rgba(253,230,138,.28); stroke-width: 2; }
+    #const circle { fill: rgba(255,255,255,.2); stroke: #fde68a; stroke-width: 2; }
+    #const circle.lit { fill: #fde68a; filter: drop-shadow(0 0 8px #fbbf24); }
+    #moonBtn {
+      position: absolute; top: 22%; right: 8%; width: 72px; height: 72px;
+      font-size: 48px; border-radius: 50%; display: none;
+      filter: drop-shadow(0 0 12px #fde68a);
+      animation: bob 1.6s ease-in-out infinite;
+    }
+    #moonBtn.on { display: grid; place-items: center; }
+    @keyframes bob { 50% { transform: translateY(-8px); } }
+    #slowTag {
+      position: fixed; top: 58%; left: 50%; transform: translate(-50%,-50%);
+      font-weight: 800; font-size: 22px; background: #fde68a; color: #3b2100;
+      padding: 8px 16px; border-radius: 999px; opacity: 0; pointer-events: none; z-index: 6;
+    }
+    #slowTag.on { opacity: 1; }
+    .star {
+      position: absolute; font-size: 36px; width: 56px; height: 56px;
+      display: grid; place-items: center; pointer-events: none;
+      filter: drop-shadow(0 0 6px #fde68a);
+    }
+    .star.gold { font-size: 44px; filter: drop-shadow(0 0 12px #facc15); }
+    .star.dot { font-size: 34px; filter: drop-shadow(0 0 10px #c4b5fd); }
+    #basket {
+      position: fixed; bottom: 22px; width: 110px; height: 80px; margin-left: -55px;
+      font-size: 64px; text-align: center; line-height: 80px; pointer-events: none;
+      filter: drop-shadow(0 6px 0 rgba(0,0,0,.35));
+      z-index: 5;
+    }
+    .cover {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
+      background: linear-gradient(180deg, #1e1b4b, #312e81 50%, #fbbf24);
+    }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(34px, 9vw, 52px); text-shadow: 0 5px 0 #3b1d8f; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
+    .play {
+      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
+      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    }
+    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
+    .play.ghost { background: #93c5fd; box-shadow: 0 7px 0 #2563eb; color: #082f49; }
+    .starrow { font-size: 36px; letter-spacing: 4px; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">⭐ 0 / 10</div>
-  <div id="sky"></div>
+  <div id="hud">
+    <span id="score">⭐ 0 / 8</span>
+    <span id="night">Night 1 / 3</span>
+    <div id="dots"></div>
+  </div>
+  <div id="combo"></div>
+  <div id="slowTag">🌙 Slow stars!</div>
+  <div id="sky">
+    <div id="twinkle"></div>
+    <div id="const"><svg viewBox="0 0 280 160" id="csvg"></svg></div>
+    <button id="moonBtn" type="button" aria-label="Moon helper">🌙</button>
+    <div id="hills"></div>
+  </div>
   <div id="basket">🧺</div>
   <div class="cover" id="start">
     <div style="font-size:72px">⭐</div>
     <h1>Star Catch</h1>
-    <p>Drag the basket. Gold stars count extra!</p>
+    <p>Drag the basket. Light the sky picture. Gold stars shine extra!</p>
     <button class="play" id="go">Play</button>
   </div>
+  <div class="cover off" id="mid">
+    <div style="font-size:64px">✨</div>
+    <h1 id="midTitle">Night done!</h1>
+    <p id="midLine"></p>
+    <div class="starrow" id="midStars"></div>
+    <button class="play" id="next">Next night</button>
+  </div>
   <div class="cover off" id="win">
-    <div style="font-size:72px">✨</div>
+    <div style="font-size:72px">🌠</div>
     <h1>Wish granted!</h1>
-    <button class="play" id="again">Catch again</button>
+    <p id="winLine"></p>
+    <div class="starrow" id="winStars"></div>
+    <button class="play" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var bx=innerWidth/2,score=0,play=false,stars=[];
-    var basket=document.getElementById("basket"),sky=document.getElementById("sky");
-    function move(e){var p=e.touches?e.touches[0]:e;bx=p.clientX;basket.style.left=bx+"px";}
-    addEventListener("pointermove",move);addEventListener("touchmove",move,{passive:true});
-    addEventListener("pointerdown",function(e){if(!e.target.closest("a,button"))move(e);});
-    basket.style.left=bx+"px";
-    function spawn(){
-      if(!play)return;
-      var el=document.createElement("div");
-      var wish=Math.random()<.28;
-      el.className="star"+(wish?" wish":"");el.textContent=wish?"🌟":"⭐";
-      var x=30+Math.random()*(innerWidth-60),y=-20,sp=2+Math.random()*2.8;
-      el.style.left=x+"px";el.style.top=y+"px";sky.appendChild(el);
-      stars.push({el:el,x:x,y:y,sp:sp,wish:wish,got:false});
+    function beep(f, d) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = f; g.gain.value = 0.1;
+        o.connect(g); g.connect(c.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
     }
-    var acc=0;
-    function loop(){
-      if(play){
-        acc++;if(acc%28===0)spawn();
-        var by=innerHeight-50;
-        stars.forEach(function(s){
-          if(s.got)return;
-          s.y+=s.sp;s.el.style.top=s.y+"px";
-          if(Math.abs(s.x-bx)<48 && Math.abs(s.y-by)<40){
-            s.got=true;s.el.remove();score+=s.wish?2:1;beep(s.wish?920:700,.08);
-            document.getElementById("hud").textContent="⭐ "+score+" / 10";
-            if(score>=10){play=false;document.getElementById("win").classList.remove("off");beep(990,.2);}
-          } else if(s.y>innerHeight+20){s.got=true;s.el.remove();}
+    var SHAPES = [
+      { name: "Kite", need: 8, pts: [[140,18],[70,80],[140,142],[210,80]], lines: [[0,1],[1,2],[2,3],[3,0],[0,2]] },
+      { name: "House", need: 12, pts: [[140,16],[50,78],[230,78],[50,148],[230,148]], lines: [[0,1],[0,2],[1,2],[1,3],[3,4],[2,4]] },
+      { name: "Dipper", need: 16, pts: [[36,40],[100,28],[160,48],[230,30],[250,90],[190,120],[120,100]], lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]] }
+    ];
+    var bx = innerWidth / 2, play = false, night = 0, score = 0, need = 8;
+    var lit = 0, streak = 0, comboMax = 0, stars = [], acc = 0, moonT = 0;
+    var speedMul = 1, slowLeft = 0, totalStars = 0, golds = 0;
+    var basket = document.getElementById("basket");
+    var sky = document.getElementById("sky");
+    var moonBtn = document.getElementById("moonBtn");
+
+    function move(e) {
+      var p = e.touches ? e.touches[0] : e;
+      bx = p.clientX;
+      basket.style.left = bx + "px";
+    }
+    addEventListener("pointermove", move);
+    addEventListener("touchmove", move, { passive: true });
+    addEventListener("pointerdown", function (e) {
+      if (!e.target.closest("a,button")) move(e);
+    });
+    basket.style.left = bx + "px";
+
+    function drawConst() {
+      var s = SHAPES[night], svg = document.getElementById("csvg");
+      var h = "";
+      s.lines.forEach(function (L) {
+        var a = s.pts[L[0]], b = s.pts[L[1]];
+        h += '<line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>';
+      });
+      s.pts.forEach(function (p, i) {
+        h += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="9" data-i="' + i + '"/>';
+      });
+      svg.innerHTML = h;
+      lit = 0;
+      paintDots();
+    }
+    function paintDots() {
+      var n = SHAPES[night].pts.length, s = "";
+      for (var i = 0; i < n; i++) s += i < lit ? "<b>●</b>" : "○";
+      document.getElementById("dots").innerHTML = s;
+      var circles = document.querySelectorAll("#csvg circle");
+      circles.forEach(function (c, i) { c.classList.toggle("lit", i < lit); });
+    }
+    function hud() {
+      document.getElementById("score").textContent = "⭐ " + score + " / " + need;
+      document.getElementById("night").textContent = "Night " + (night + 1) + " / 3";
+      paintDots();
+    }
+    function toast(t) {
+      var el = document.getElementById("combo");
+      el.textContent = t; el.classList.add("on");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(function () { el.classList.remove("on"); }, 900);
+    }
+    function spawn() {
+      if (!play) return;
+      var r = Math.random(), kind = "n";
+      if (r < 0.22) kind = "gold";
+      else if (r < 0.5 && lit < SHAPES[night].pts.length) kind = "dot";
+      var el = document.createElement("div");
+      el.className = "star" + (kind === "gold" ? " gold" : kind === "dot" ? " dot" : "");
+      el.textContent = kind === "gold" ? "🌟" : kind === "dot" ? "✦" : "⭐";
+      var x = 24 + Math.random() * (innerWidth - 70);
+      var y = -30;
+      var sp = (night === 2 ? 2.4 : 1.8) + Math.random() * (night === 2 ? 2.6 : 2.2);
+      el.style.left = x + "px"; el.style.top = y + "px";
+      sky.appendChild(el);
+      stars.push({ el: el, x: x, y: y, sp: sp, kind: kind, got: false });
+    }
+    function catchStar(s) {
+      s.got = true; s.el.remove();
+      var add = s.kind === "gold" ? 2 : 1;
+      if (s.kind === "gold") golds++;
+      score += add; totalStars += add;
+      streak++;
+      if (streak > comboMax) comboMax = streak;
+      if (streak >= 3 && streak % 3 === 0) {
+        score += 1; totalStars += 1;
+        toast("Combo x" + streak + "!");
+        beep(980, 0.12);
+      } else {
+        beep(s.kind === "gold" ? 920 : s.kind === "dot" ? 780 : 680, 0.08);
+      }
+      if (s.kind === "dot" && lit < SHAPES[night].pts.length) {
+        lit++;
+        toast("Sky light!");
+      }
+      hud();
+      if (score >= need) endNight();
+    }
+    function endNight() {
+      play = false;
+      stars.forEach(function (s) { if (!s.got) s.el.remove(); });
+      stars = [];
+      moonBtn.classList.remove("on");
+      var earned = 1 + (lit >= SHAPES[night].pts.length ? 1 : 0) + (streak >= 3 || comboMax >= 3 ? 1 : 0);
+      if (earned > 3) earned = 3;
+      var row = "⭐".repeat(earned) + "☆".repeat(3 - earned);
+      if (night >= 2) {
+        document.getElementById("winLine").textContent = "You lit the night sky!";
+        document.getElementById("winStars").textContent = row;
+        document.getElementById("win").classList.remove("off");
+        beep(990, 0.22);
+      } else {
+        document.getElementById("midTitle").textContent = SHAPES[night].name + " night!";
+        document.getElementById("midLine").textContent = "Ready for night " + (night + 2) + "?";
+        document.getElementById("midStars").textContent = row;
+        document.getElementById("mid").classList.remove("off");
+        beep(860, 0.16);
+      }
+    }
+    function startNight() {
+      score = 0; streak = 0; need = SHAPES[night].need;
+      drawConst(); hud();
+      play = true; acc = 0; moonT = 0; speedMul = 1; slowLeft = 0;
+      document.getElementById("slowTag").classList.remove("on");
+    }
+    moonBtn.onclick = function () {
+      if (!play) return;
+      moonBtn.classList.remove("on");
+      speedMul = 0.38; slowLeft = 240;
+      document.getElementById("slowTag").classList.add("on");
+      beep(420, 0.14);
+    };
+    function loop() {
+      if (play) {
+        acc++;
+        var rate = night === 2 ? 16 : night === 1 ? 22 : 28;
+        if (acc % rate === 0) spawn();
+        moonT++;
+        if (moonT === 220) { moonBtn.classList.add("on"); beep(360, 0.08); }
+        if (moonT > 400) { moonBtn.classList.remove("on"); moonT = 0; }
+        if (slowLeft > 0) {
+          slowLeft--;
+          if (slowLeft === 0) {
+            speedMul = 1;
+            document.getElementById("slowTag").classList.remove("on");
+          }
+        }
+        var by = innerHeight - 56;
+        stars.forEach(function (s) {
+          if (s.got) return;
+          s.y += s.sp * speedMul;
+          s.el.style.top = s.y + "px";
+          if (Math.abs(s.x + 28 - bx) < 58 && Math.abs(s.y + 20 - by) < 48) {
+            catchStar(s);
+          } else if (s.y > innerHeight + 20) {
+            s.got = true; s.el.remove();
+            streak = 0;
+          }
         });
-        stars=stars.filter(function(s){return !s.got;});
+        stars = stars.filter(function (s) { return !s.got; });
       }
       requestAnimationFrame(loop);
     }
-    document.getElementById("go").onclick=function(){document.getElementById("start").classList.add("off");score=0;play=true;beep(520,.1);};
-    document.getElementById("again").onclick=function(){location.reload();};
+    document.getElementById("go").onclick = function () {
+      document.getElementById("start").classList.add("off");
+      night = 0; totalStars = 0; golds = 0; comboMax = 0;
+      startNight(); beep(520, 0.1);
+    };
+    document.getElementById("next").onclick = function () {
+      document.getElementById("mid").classList.add("off");
+      night++; startNight(); beep(600, 0.1);
+    };
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off");
+      document.getElementById("start").classList.remove("off");
+    };
     loop();
   </script>
 </body>

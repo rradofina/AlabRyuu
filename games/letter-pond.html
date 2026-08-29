@@ -5,70 +5,263 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Letter Pond</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#0369a1;color:#ecfeff;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.25);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:rgba(255,255,255,.16);padding:8px 12px;border-radius:16px}
-    #word{position:fixed;top:56px;left:0;right:0;text-align:center;font-size:34px;font-weight:800;letter-spacing:8px}
-    #pond{position:fixed;inset:0;background:linear-gradient(#67e8f9,#0369a1 60%,#065f46)}
-    .let{position:absolute;width:68px;height:68px;border-radius:50%;background:#fff;color:#0f172a;font-weight:800;font-size:28px;box-shadow:0 5px 0 #0f766e}
-    .let.wig{animation:wig .3s}
-    @keyframes wig{25%{transform:scale(1.1) rotate(-10deg)}75%{transform:rotate(10deg)}}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(8,40,50,.84);z-index:8;gap:12px}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      background: #0369a1; color: #ecfeff;
+      touch-action: manipulation; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 12;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
+    }
+    #hud {
+      position: fixed; top: 12px; right: 12px; z-index: 12;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    }
+    #hud span {
+      font-weight: 800; background: rgba(255,255,255,.18);
+      padding: 6px 12px; border-radius: 16px; font-size: 15px;
+    }
+    #pond {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 80%, #065f46 0 18%, transparent 19%),
+        radial-gradient(ellipse at 85% 70%, #047857 0 14%, transparent 15%),
+        linear-gradient(#67e8f9, #0284c7 55%, #065f46);
+    }
+    #reeds {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 16%;
+      pointer-events: none; font-size: 40px; letter-spacing: 18px;
+      padding: 8px 10px 0;
+    }
+    #word {
+      position: fixed; top: 108px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 8px; z-index: 5; pointer-events: none;
+    }
+    #word i {
+      width: 48px; height: 56px; border-radius: 12px;
+      background: #fff; color: #0f172a; display: grid; place-items: center;
+      font-style: normal; font-weight: 800; font-size: 28px;
+      box-shadow: 0 5px 0 #0f766e;
+    }
+    #word i.on { background: #fde68a; }
+    .pad {
+      position: absolute; width: 78px; height: 78px;
+    }
+    .pad::before {
+      content: ""; position: absolute; inset: 8px 4px 0;
+      background: #16a34a; border-radius: 50%;
+      box-shadow: 0 8px 0 #14532d, inset 0 6px 0 #4ade80;
+    }
+    .pad b {
+      position: relative; z-index: 1; font-weight: 800; font-size: 28px; color: #14532d;
+    }
+    .pad.wig { animation: wig .3s; }
+    @keyframes wig { 25% { transform: scale(1.08) rotate(-10deg); } 75% { transform: rotate(10deg); } }
+    #frog {
+      position: absolute; width: 64px; height: 64px; font-size: 48px;
+      pointer-events: none; z-index: 6; transition: left .45s ease, top .45s ease;
+      filter: drop-shadow(0 4px 0 rgba(0,0,0,.2));
+    }
+    #hint {
+      position: fixed; bottom: 16px; left: 0; right: 0; text-align: center;
+      font-weight: 800; font-size: 16px; pointer-events: none;
+    }
+    .cover {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
+      background: linear-gradient(#67e8f9, #22c55e 50%, #fde047); color: #064e3b;
+    }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(34px, 9vw, 52px); }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
+    .play {
+      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
+      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    }
+    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
+    .starrow { font-size: 36px; letter-spacing: 4px; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">Word 1 / 3</div>
+  <div id="hud">
+    <span id="wordHud">Word 1 / 5</span>
+    <span id="starHud">⭐ 0</span>
+  </div>
   <div id="word"></div>
-  <div id="pond"></div>
-  <div class="win" id="win">
+  <div id="pond">
+    <div id="reeds">🌾🌾 🌾 🌾🌾</div>
+    <div id="frog">🐸</div>
+  </div>
+  <p id="hint">Frog hops to the next letter!</p>
+  <div class="cover" id="start">
+    <div style="font-size:72px">🐸</div>
+    <h1>Letter Pond</h1>
+    <p>Tap letters in order. Frog shows the next one!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="mid">
+    <div style="font-size:64px">✨</div>
+    <h1 id="midTitle">You spelled it!</h1>
+    <p id="midLine"></p>
+    <div class="starrow" id="midStars"></div>
+    <button class="play" id="next">Next word</button>
+  </div>
+  <div class="cover off" id="win">
     <div style="font-size:72px">🔤</div>
-    <h2>Word wizard!</h2>
+    <h1>Word wizard!</h1>
+    <p>Five little words. Wow!</p>
+    <div class="starrow" id="winStars">⭐⭐⭐</div>
     <button class="play" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var words=["CAT","SUN","BUS"],wi=0,got=0,pond=document.getElementById("pond"),letters=[];
-    function showWord(){
-      var w=words[wi],s="";
-      for(var i=0;i<w.length;i++)s+=i<got?w[i]:"_";
-      document.getElementById("word").textContent=s;
-      document.getElementById("hud").textContent="Word "+(wi+1)+" / 3";
+    function beep(f, d) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = f; g.gain.value = 0.11;
+        o.connect(g); g.connect(c.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
     }
-    function spawnSet(){
-      letters.forEach(function(L){L.el.remove();});letters=[];
-      var extra="AEIOUBMPR".split("");
-      var chars=words[wi].split("").concat(extra.slice(0,5));
-      for(var i=chars.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=chars[i];chars[i]=chars[j];chars[j]=t;}
-      chars.forEach(function(ch,n){
-        var b=document.createElement("button");b.className="let";b.textContent=ch;
-        var L={el:b,x:30+Math.random()*(innerWidth-90),y:120+Math.random()*(innerHeight-220),vx:(n%2?1:-1)*(0.6+Math.random()),vy:0.5};
-        b.style.left=L.x+"px";b.style.top=L.y+"px";
-        b.onclick=function(){
-          var need=words[wi][got];
-          if(ch!==need){b.classList.remove("wig");void b.offsetWidth;b.classList.add("wig");beep(180,.1);return;}
-          got++;beep(640+got*40,.1);b.remove();L.dead=true;showWord();
-          if(got>=3){wi++;got=0;if(wi>=3){document.getElementById("win").classList.add("on");beep(900,.2);}else{showWord();spawnSet();}}
+    var WORDS = ["CAT", "SUN", "BUS", "HAT", "RED"];
+    var EXTRA = "AEIOUBMPRLN".split("");
+    var wi = 0, got = 0, play = false, letters = [], frogUses = 0, starsTotal = 0;
+    var pond = document.getElementById("pond");
+    var frog = document.getElementById("frog");
+    var hopT = 0;
+
+    function showWord() {
+      var w = WORDS[wi], box = document.getElementById("word"), h = "";
+      for (var i = 0; i < w.length; i++) {
+        h += "<i class='" + (i < got ? "on" : "") + "'>" + (i < got ? w[i] : "_") + "</i>";
+      }
+      box.innerHTML = h;
+      document.getElementById("wordHud").textContent = "Word " + (wi + 1) + " / 5";
+      document.getElementById("starHud").textContent = "⭐ " + starsTotal;
+    }
+    function extraCount() {
+      return 3 + wi;
+    }
+    function spawnSet() {
+      letters.forEach(function (L) { L.el.remove(); });
+      letters = [];
+      var w = WORDS[wi];
+      var chars = w.split("");
+      var extras = EXTRA.slice();
+      for (var e = extras.length - 1; e > 0; e--) {
+        var j = Math.floor(Math.random() * (e + 1));
+        var tmp = extras[e]; extras[e] = extras[j]; extras[j] = tmp;
+      }
+      extras.slice(0, extraCount()).forEach(function (ch) {
+        if (chars.indexOf(ch) === -1) chars.push(ch);
+      });
+      for (var i = chars.length - 1; i > 0; i--) {
+        var k = Math.floor(Math.random() * (i + 1));
+        var t = chars[i]; chars[i] = chars[k]; chars[k] = t;
+      }
+      chars.forEach(function (ch, n) {
+        var b = document.createElement("button");
+        b.className = "pad";
+        b.innerHTML = "<b>" + ch + "</b>";
+        var L = {
+          el: b, ch: ch,
+          x: 20 + Math.random() * Math.max(40, innerWidth - 100),
+          y: 180 + Math.random() * Math.max(60, innerHeight - 300),
+          vx: (n % 2 ? 1 : -1) * (0.45 + Math.random() * 0.5),
+          vy: (n % 3 ? 0.35 : -0.35),
+          dead: false
         };
-        pond.appendChild(b);letters.push(L);
+        b.style.left = L.x + "px"; b.style.top = L.y + "px";
+        b.onclick = function () {
+          if (!play || L.dead) return;
+          var need = WORDS[wi][got];
+          if (ch !== need) {
+            b.classList.remove("wig"); void b.offsetWidth; b.classList.add("wig");
+            beep(180, 0.1);
+            return;
+          }
+          got++;
+          starsTotal++;
+          L.dead = true; b.remove();
+          beep(640 + got * 40, 0.1);
+          showWord();
+          hopFrog();
+          if (got >= w.length) endWord();
+        };
+        pond.appendChild(b);
+        letters.push(L);
       });
+      hopFrog();
     }
-    function loop(){
-      letters.forEach(function(L){
-        if(L.dead)return;
-        L.x+=L.vx;L.y+=L.vy;
-        if(L.x<10||L.x>innerWidth-70)L.vx*=-1;
-        if(L.y<100||L.y>innerHeight-80)L.vy*=-1;
-        L.el.style.left=L.x+"px";L.el.style.top=L.y+"px";
+    function hopFrog() {
+      var need = WORDS[wi] && WORDS[wi][got];
+      var target = null;
+      letters.forEach(function (L) {
+        if (!L.dead && L.ch === need) target = L;
       });
+      if (!target) return;
+      frog.style.left = (target.x - 8) + "px";
+      frog.style.top = (target.y - 36) + "px";
+      frogUses++;
+    }
+    function endWord() {
+      play = false;
+      var stars = 3;
+      var row = "⭐⭐⭐";
+      if (wi >= 4) {
+        document.getElementById("winStars").textContent = row;
+        document.getElementById("win").classList.remove("off");
+        beep(900, 0.2);
+      } else {
+        document.getElementById("midTitle").textContent = WORDS[wi] + "!";
+        document.getElementById("midLine").textContent = "Word " + (wi + 1) + " of 5. Next!";
+        document.getElementById("midStars").textContent = row;
+        document.getElementById("mid").classList.remove("off");
+        beep(820, 0.16);
+      }
+    }
+    function startWord() {
+      got = 0; play = true; hopT = 0;
+      showWord(); spawnSet();
+    }
+    function loop() {
+      letters.forEach(function (L) {
+        if (L.dead) return;
+        L.x += L.vx; L.y += L.vy;
+        if (L.x < 8 || L.x > innerWidth - 86) L.vx *= -1;
+        if (L.y < 160 || L.y > innerHeight - 90) L.vy *= -1;
+        L.el.style.left = L.x + "px"; L.el.style.top = L.y + "px";
+      });
+      if (play) {
+        hopT++;
+        if (hopT % 180 === 0) hopFrog();
+      }
       requestAnimationFrame(loop);
     }
-    showWord();spawnSet();loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    document.getElementById("go").onclick = function () {
+      document.getElementById("start").classList.add("off");
+      wi = 0; starsTotal = 0; frogUses = 0;
+      startWord(); beep(520, 0.1);
+    };
+    document.getElementById("next").onclick = function () {
+      document.getElementById("mid").classList.add("off");
+      wi++; startWord(); beep(600, 0.1);
+    };
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off");
+      document.getElementById("start").classList.remove("off");
+    };
+    loop();
   </script>
 </body>
 </html>
