@@ -5,83 +5,239 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Maze Garden</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#14532d;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#bbf7d0,#15803d);padding:56px 12px 20px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px);color:#fff}
-    .msg{font-weight:800;color:#fff;margin:8px}
-    .board{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:min(336px,92vw);margin:10px auto}
-    .cell{aspect-ratio:1;border-radius:10px;background:#86efac;display:grid;place-items:center;font-size:22px}
-    .cell.wall{background:#166534}
-    .pads{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:70px 70px 70px;gap:8px;width:226px;margin:16px auto}
-    .pads button{background:#fefce8;border-radius:18px;font-size:28px;font-weight:800;box-shadow:0 5px 0 #365314}
-    .pads button:active{transform:translateY(3px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,20,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      color: #14532d; touch-action: manipulation; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, #86efac 0, transparent 28%),
+        linear-gradient(#4ade80, #166534);
+      padding: 54px 10px 18px;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 9;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
+    }
+    .hud { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .chip {
+      background: #fefce8; font-weight: 800; padding: 6px 12px; border-radius: 999px;
+      box-shadow: 0 3px 0 #365314; font-size: 15px;
+    }
+    h1 { text-align: center; color: #fff; font-size: clamp(24px, 6vw, 36px); text-shadow: 0 3px 0 #14532d; }
+    .msg { font-weight: 800; color: #fff; text-align: center; margin: 6px 0; min-height: 1.4em; }
+    .plot-wrap { position: relative; width: min(360px, 94vw); margin: 8px auto; }
+    .hedge-frame {
+      background: repeating-linear-gradient(90deg, #166534 0 10px, #14532d 10px 18px), #166534;
+      padding: 14px; border-radius: 28px;
+      box-shadow: 0 10px 0 #052e16, inset 0 0 0 6px #3f6212;
+    }
+    .bloom { position: absolute; font-size: 22px; pointer-events: none; }
+    .board { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; background: #a16207; padding: 4px; border-radius: 12px; }
+    .cell { aspect-ratio: 1; border-radius: 8px; background: #fde68a; display: grid; place-items: center; font-size: 20px; }
+    .cell.wall {
+      background: radial-gradient(circle at 30% 30%, #4ade80 0 28%, transparent 30%), #14532d;
+      border-radius: 10px;
+    }
+    .cell.wet { filter: saturate(1.2) brightness(1.05); }
+    .bunny.slip { animation: slip .28s ease; }
+    @keyframes slip { 40% { transform: translateX(6px) rotate(8deg); } }
+    .rain {
+      pointer-events: none; position: absolute; inset: 0; overflow: hidden; border-radius: 28px; display: none;
+    }
+    .rain.on { display: block; }
+    .drop {
+      position: absolute; width: 2px; height: 14px; background: rgba(224,242,254,.75);
+      animation: fall 0.7s linear infinite;
+    }
+    @keyframes fall { to { transform: translateY(360px); } }
+    .pads {
+      display: grid; grid-template-columns: 76px 76px 76px; grid-template-rows: 76px 76px 76px;
+      gap: 8px; width: 244px; margin: 14px auto 0;
+    }
+    .pads button {
+      background: radial-gradient(circle at 30% 30%, #fefce8, #d6d3d1);
+      border-radius: 50%; font-size: 28px; font-weight: 800;
+      box-shadow: 0 6px 0 #365314, inset 0 0 0 4px #a8a29e;
+    }
+    .pads button:active { transform: translateY(4px); box-shadow: 0 2px 0 #365314; }
+    .win {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      flex-direction: column; background: rgba(10,40,20,.84); z-index: 8; gap: 12px;
+      color: #fff; text-align: center; padding: 20px;
+    }
+    .win.on { display: flex; }
+    .play, .next { font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px; }
+    .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
+    .next { background: #bbf7d0; color: #14532d; box-shadow: 0 7px 0 #4ade80; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <div class="hud">
+    <div class="chip" id="gChip">Garden 1 / 4</div>
+    <div class="chip" id="sChip">Snacks 0</div>
+    <div class="chip" id="starChip">★ 0</div>
+  </div>
   <h1>Maze Garden</h1>
-  <p class="msg" id="msg">Help the bunny find the carrot!</p>
-  <div class="board" id="board"></div>
+  <p class="msg" id="msg">Help the bunny!</p>
+  <div class="plot-wrap" id="plot">
+    <div class="bloom" style="top:-8px;left:8px" id="b1">🌸</div>
+    <div class="bloom" style="top:-6px;right:10px" id="b2">🌼</div>
+    <div class="bloom" style="bottom:70px;left:-6px" id="b3">🌷</div>
+    <div class="bloom" style="bottom:80px;right:-4px" id="b4">🌻</div>
+    <div class="hedge-frame">
+      <div class="board" id="board"></div>
+    </div>
+    <div class="rain" id="rain"></div>
+  </div>
   <div class="pads">
-    <span></span><button id="u">▲</button><span></span>
-    <button id="l">◀</button><button id="wait">🐰</button><button id="r">▶</button>
-    <span></span><button id="d">▼</button><span></span>
+    <span></span><button id="u" type="button">▲</button><span></span>
+    <button id="l" type="button">◀</button><button id="wait" type="button">🐰</button><button id="r" type="button">▶</button>
+    <span></span><button id="d" type="button">▼</button><span></span>
   </div>
   <div class="win" id="win">
     <div style="font-size:72px">🥕</div>
     <h2 id="wint">Yum!</h2>
-    <button class="play" id="again">Play again</button>
+    <p id="winline"></p>
+    <button class="play" id="again" type="button">Play again</button>
+    <button class="next" id="nextBtn" type="button">Next garden</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var mazes=[
-      ["100001","111011","001001","011101","010001","011111"],
-      ["111100","100111","110001","011101","000101","111111"]
+    function beep(f, d) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = f; g.gain.value = 0.11;
+        o.connect(g); g.connect(c.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
+    }
+    var gardens = [
+      { maze: ["111011","001010","111110","100000","111110","000011"], start:{x:0,y:0}, goal:{x:5,y:5}, snacks:[{x:5,y:0,e:"🌸"},{x:4,y:4,e:"🥕"}], name: "Sunny patch" },
+      { maze: ["111011","001010","111110","000010","111110","100010"], start:{x:0,y:0}, goal:{x:0,y:5}, snacks:[{x:5,y:0,e:"🌼"},{x:0,y:2,e:"🥕"},{x:2,y:4,e:"🌷"}], name: "Bush walk" },
+      { maze: ["101111","101000","111100","000101","111111","000001"], start:{x:0,y:0}, goal:{x:5,y:5}, snacks:[{x:5,y:0,e:"🥕"},{x:3,y:2,e:"🌸"},{x:0,y:4,e:"🌼"}], name: "Rain garden", rain: true },
+      { maze: ["111101","000101","111101","100111","110000","011111"], start:{x:0,y:0}, goal:{x:5,y:5}, snacks:[{x:5,y:0,e:"🌻"},{x:3,y:2,e:"🥕"},{x:0,y:3,e:"🌸"}], name: "Bloom maze" }
     ];
-    var starts=[{x:0,y:0},{x:0,y:0}],goals=[{x:5,y:0},{x:5,y:5}];
-    var m=0,px,py,board=document.getElementById("board");
-    function load(){
-      px=starts[m].x;py=starts[m].y;draw();
-      document.getElementById("msg").textContent="Garden "+(m+1)+" of 2";
+    var m = 0, px, py, got = [], stars = 0, moving = false;
+    var board = document.getElementById("board");
+    var rain = document.getElementById("rain");
+    for (var d = 0; d < 18; d++) {
+      var drop = document.createElement("div");
+      drop.className = "drop";
+      drop.style.left = (4 + Math.random() * 92) + "%";
+      drop.style.animationDelay = (Math.random() * 0.7) + "s";
+      drop.style.height = (10 + Math.random() * 10) + "px";
+      rain.appendChild(drop);
     }
-    function draw(){
-      board.innerHTML="";
-      for(var y=0;y<6;y++)for(var x=0;x<6;x++){
-        var d=document.createElement("div");d.className="cell";
-        if(mazes[m][y][x]==="0")d.classList.add("wall");
-        if(x===goals[m].x&&y===goals[m].y)d.textContent="🥕";
-        if(x===px&&y===py)d.textContent="🐰";
-        board.appendChild(d);
+    function growDecor() {
+      var show = [true, m >= 0, m >= 1, m >= 2];
+      ["b1","b2","b3","b4"].forEach(function (id, i) {
+        document.getElementById(id).style.opacity = show[i] ? "1" : ".15";
+        document.getElementById(id).textContent = m >= 3 ? ["🌺","🌻","🌷","🌼"][i] : ["🌸","🌼","🌷","🌻"][i];
+      });
+    }
+    function key(x, y) { return x + "," + y; }
+    function hud() {
+      var g = gardens[m];
+      document.getElementById("gChip").textContent = "Garden " + (m + 1) + " / 4";
+      document.getElementById("sChip").textContent = "Snacks " + got.length + " / " + g.snacks.length;
+      document.getElementById("starChip").textContent = "★ " + stars;
+    }
+    function draw() {
+      var g = gardens[m];
+      board.innerHTML = "";
+      for (var y = 0; y < 6; y++) for (var x = 0; x < 6; x++) {
+        var cell = document.createElement("div");
+        cell.className = "cell";
+        if (g.maze[y][x] === "0") cell.classList.add("wall");
+        if (g.rain && g.maze[y][x] === "1") cell.classList.add("wet");
+        var snack = null;
+        g.snacks.forEach(function (s) {
+          if (s.x === x && s.y === y && got.indexOf(key(x, y)) < 0) snack = s;
+        });
+        if (x === g.goal.x && y === g.goal.y) cell.textContent = "🥕";
+        if (snack) cell.textContent = snack.e;
+        if (x === px && y === py) {
+          cell.textContent = "🐰";
+          cell.classList.add("bunny");
+          if (g.rain) cell.classList.add("slip");
+        }
+        board.appendChild(cell);
       }
     }
-    function go(dx,dy){
-      var nx=px+dx,ny=py+dy;
-      if(nx<0||ny<0||nx>5||ny>5||mazes[m][ny][nx]==="0"){beep(160,.08);return;}
-      px=nx;py=ny;beep(520,.06);draw();
-      if(px===goals[m].x&&py===goals[m].y){
-        beep(880,.15);
-        if(m===0){m=1;document.getElementById("msg").textContent="Yum! Next garden!";setTimeout(load,500);}
-        else{document.getElementById("wint").textContent="Two carrots!";document.getElementById("win").classList.add("on");}
+    function load() {
+      var g = gardens[m];
+      px = g.start.x; py = g.start.y; got = [];
+      rain.classList.toggle("on", !!g.rain);
+      growDecor();
+      document.getElementById("msg").textContent = g.rain ? "Rain! Slick path." : g.name + " — find snacks!";
+      hud();
+      draw();
+    }
+    function go(dx, dy) {
+      if (moving) return;
+      var g = gardens[m];
+      var nx = px + dx, ny = py + dy;
+      if (nx < 0 || ny < 0 || nx > 5 || ny > 5 || g.maze[ny][nx] === "0") { beep(160, 0.08); return; }
+      px = nx; py = ny;
+      beep(g.rain ? 420 : 520, 0.06);
+      var k = key(px, py);
+      g.snacks.forEach(function (s) {
+        if (s.x === px && s.y === py && got.indexOf(k) < 0) {
+          got.push(k); stars++;
+          beep(760, 0.1);
+          document.getElementById("msg").textContent = "Yum snack!";
+        }
+      });
+      hud();
+      draw();
+      if (px === g.goal.x && py === g.goal.y) {
+        stars++;
+        moving = true;
+        beep(880, 0.15);
+        setTimeout(gardenDone, 350);
       }
     }
-    document.getElementById("u").onclick=function(){go(0,-1);};
-    document.getElementById("d").onclick=function(){go(0,1);};
-    document.getElementById("l").onclick=function(){go(-1,0);};
-    document.getElementById("r").onclick=function(){go(1,0);};
-    var sx=0,sy=0;
-    addEventListener("touchstart",function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
-    addEventListener("touchend",function(e){
-      var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
-      if(Math.hypot(dx,dy)<28)return;
-      if(Math.abs(dx)>Math.abs(dy))go(dx>0?1:-1,0);else go(0,dy>0?1:-1);
+    function gardenDone() {
+      var last = m >= 3;
+      document.getElementById("wint").textContent = last ? "Yum!" : "Tasty!";
+      document.getElementById("winline").textContent = "Snacks ★ " + stars;
+      document.getElementById("nextBtn").style.display = last ? "none" : "inline-block";
+      document.getElementById("win").classList.add("on");
+      moving = false;
+    }
+    document.getElementById("u").onclick = function () { go(0, -1); };
+    document.getElementById("d").onclick = function () { go(0, 1); };
+    document.getElementById("l").onclick = function () { go(-1, 0); };
+    document.getElementById("r").onclick = function () { go(1, 0); };
+    var sx = 0, sy = 0;
+    var plot = document.getElementById("plot");
+    plot.addEventListener("touchstart", function (e) {
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    plot.addEventListener("touchend", function (e) {
+      var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.hypot(dx, dy) < 28) return;
+      if (Math.abs(dx) > Math.abs(dy)) go(dx > 0 ? 1 : -1, 0);
+      else go(0, dy > 0 ? 1 : -1);
     });
-    document.getElementById("again").onclick=function(){location.reload();};
+    document.getElementById("again").onclick = function () { location.reload(); };
+    document.getElementById("nextBtn").onclick = function () {
+      document.getElementById("win").classList.remove("on");
+      m++;
+      load();
+    };
     load();
   </script>
 </body>

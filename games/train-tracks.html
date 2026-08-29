@@ -5,77 +5,340 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Train Tracks</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#7f1d1d;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fecaca,#fde047);padding:56px 12px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    .msg{font-weight:800;margin:8px}
-    .board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:min(340px,92vw);margin:12px auto}
-    .cell{aspect-ratio:1;border-radius:12px;background:#fff;font-size:28px;font-weight:800;box-shadow:0 5px 0 #b45309}
-    .cell.fix{background:#fde68a}
-    .go{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(50,10,10,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      color: #431407; touch-action: manipulation; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(#fdba74, #fb923c 30%, #9a3412 30%);
+      padding: 54px 10px 20px;
+    }
+    .home {
+      position: fixed; top: 12px; left: 12px; z-index: 9;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
+      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
+    }
+    .hud { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .chip {
+      background: #fff7ed; font-weight: 800; padding: 6px 12px; border-radius: 999px;
+      box-shadow: 0 3px 0 #7c2d12; font-size: 15px;
+    }
+    h1 { text-align: center; font-size: clamp(24px, 6vw, 34px); color: #fff7ed; text-shadow: 0 3px 0 #7c2d12; }
+    .msg { font-weight: 800; text-align: center; margin: 6px 0 8px; color: #fff7ed; min-height: 1.4em; }
+    .maps { display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .maps button {
+      font-weight: 800; font-size: 13px; padding: 8px 10px; border-radius: 10px;
+      background: #fed7aa; color: #7c2d12;
+    }
+    .maps button.on { background: #fde047; box-shadow: 0 0 0 3px #fff; }
+    .maps button.done { background: #86efac; }
+    .table {
+      max-width: 400px; margin: 0 auto;
+      background:
+        repeating-linear-gradient(90deg, #b45309 0 3px, transparent 3px 28px),
+        repeating-linear-gradient(#b45309 0 3px, transparent 3px 28px),
+        #d97706;
+      border: 12px solid #78350f; border-radius: 18px; padding: 12px;
+      box-shadow: 0 14px 0 #451a03, inset 0 0 0 4px #fbbf24;
+    }
+    .legs { display: flex; justify-content: space-between; max-width: 360px; margin: 0 auto; }
+    .legs i { width: 22px; height: 18px; background: #78350f; border-radius: 0 0 8px 8px; }
+    .board { display: grid; gap: 6px; margin: 0 auto; }
+    .cell {
+      aspect-ratio: 1; border-radius: 10px; background: #fff7ed;
+      font-size: 26px; font-weight: 800; box-shadow: 0 4px 0 #9a3412; position: relative;
+    }
+    .cell:active { transform: translateY(2px); }
+    .cell.fix { background: #fde68a; }
+    .cell.station { background: #bfdbfe; }
+    .cell.cargo { background: #fdba74; }
+    .cell.sw { background: #fef08a; }
+    .cell.trainhere { outline: 4px solid #fff; background: #fde047; }
+    .badge { position: absolute; top: 2px; right: 3px; font-size: 12px; }
+    .go {
+      display: block; margin: 14px auto 0;
+      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 22px;
+      padding: 12px 28px; border-radius: 999px; box-shadow: 0 6px 0 #e09f1f;
+    }
+    .go:active { transform: translateY(4px); }
+    .go:disabled { opacity: .5; }
+    .win {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      flex-direction: column; background: rgba(50,10,10,.86); z-index: 8; gap: 12px;
+      color: #fff; text-align: center; padding: 20px;
+    }
+    .win.on { display: flex; }
+    .play, .next { font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px; }
+    .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
+    .next { background: #fdba74; color: #7c2d12; box-shadow: 0 7px 0 #ea580c; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <div class="hud">
+    <div class="chip" id="mapChip">Map 1 / 3</div>
+    <div class="chip" id="starChip">★ 0</div>
+  </div>
   <h1>Train Tracks</h1>
-  <p class="msg" id="msg">Tap pieces to turn them. Then Go!</p>
-  <div class="board" id="board"></div>
-  <button class="go" id="go">Go train!</button>
+  <p class="msg" id="msg">Turn tracks. Then Go!</p>
+  <div class="maps" id="maps"></div>
+  <div class="table">
+    <div class="board" id="board"></div>
+  </div>
+  <div class="legs"><i></i><i></i></div>
+  <button class="go" id="go" type="button">Go train!</button>
   <div class="win" id="win">
     <div style="font-size:72px">🚂</div>
-    <h2>All aboard!</h2>
-    <button class="play" id="again">Lay again</button>
+    <h2 id="wint">All aboard!</h2>
+    <p id="winline"></p>
+    <button class="play" id="again" type="button">Play again</button>
+    <button class="next" id="nextBtn" type="button">Next map</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var pieces=["═","║","╚","╔","╗","╝"];
-    var open={
-      "═":["L","R"],"║":["U","D"],
-      "╚":["U","R"],"╔":["D","R"],"╗":["D","L"],"╝":["U","L"]
-    };
-    var mid=1,cells=[],board=document.getElementById("board");
-    for(var r=0;r<3;r++){
-      for(var c=0;c<5;c++){
-        (function(r,c){
-          var b=document.createElement("button");b.className="cell";
-          var fix=(c===0&&r===mid)||(c===4&&r===mid);
-          if(c===0&&r===mid){b.textContent="🚂";b.classList.add("fix");}
-          else if(c===4&&r===mid){b.textContent="🏠";b.classList.add("fix");}
-          else{b.textContent=pieces[Math.floor(Math.random()*pieces.length)];b.onclick=function(){var i=pieces.indexOf(b.textContent);b.textContent=pieces[(i+1)%pieces.length];beep(420,.05);};}
-          board.appendChild(b);cells.push({el:b,r:r,c:c,fix:fix});
-        })(r,c);
-      }
+    function beep(f, d) {
+      try {
+        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = f; g.gain.value = 0.11;
+        o.connect(g); g.connect(c.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+        o.stop(c.currentTime + d);
+      } catch (e) {}
     }
-    function pieceAt(r,c){
-      if(c===0&&r===mid)return "═";
-      if(c===4&&r===mid)return "═";
-      var cell=cells[r*5+c];return cell.el.textContent;
-    }
-    document.getElementById("go").onclick=function(){
-      var r=mid,c=0,from="L",seen={};
-      for(var step=0;step<20;step++){
-        var key=r+","+c;if(seen[key])break;seen[key]=1;
-        if(c===4&&r===mid){document.getElementById("win").classList.add("on");beep(920,.2);return;}
-        var p=pieceAt(r,c),ways=open[p]||[];
-        var next=ways.filter(function(w){return w!==from;})[0];
-        if(!next)break;
-        if(next==="R"){c++;from="L";}
-        else if(next==="L"){c--;from="R";}
-        else if(next==="U"){r--;from="D";}
-        else if(next==="D"){r++;from="U";}
-        if(r<0||r>2||c<0||c>4)break;
-        var np=pieceAt(r,c),need=open[np]||[];
-        if(need.indexOf(from)<0)break;
-      }
-      document.getElementById("msg").textContent="The train got stuck. Turn more tracks!";beep(180,.1);
+    var pieces = ["═", "║", "╚", "╔", "╗", "╝"];
+    var open = {
+      "═": ["L", "R"], "║": ["U", "D"],
+      "╚": ["U", "R"], "╔": ["D", "R"], "╗": ["D", "L"], "╝": ["U", "L"]
     };
-    document.getElementById("again").onclick=function(){location.reload();};
+    var maps = [
+      {
+        name: "Short", rows: 3, cols: 5,
+        engine: { r: 1, c: 0 }, house: { r: 1, c: 4 },
+        cargo: { r: 0, c: 2 },
+        start: [
+          ["║", "╔", "═", "╗", "║"],
+          ["🚂", "═", "═", "╝", "🏠"],
+          ["╚", "═", "╗", "╚", "═"]
+        ]
+      },
+      {
+        name: "Station", rows: 4, cols: 5,
+        engine: { r: 1, c: 0 }, house: { r: 1, c: 4 },
+        station: { r: 1, c: 2 }, cargo: { r: 1, c: 3 },
+        start: [
+          ["╔", "═", "╗", "║", "╗"],
+          ["🚂", "═", "🚉", "📦", "🏠"],
+          ["╚", "╗", "║", "╔", "╝"],
+          ["═", "╚", "═", "╝", "║"]
+        ]
+      },
+      {
+        name: "Switch", rows: 4, cols: 5,
+        engine: { r: 1, c: 0 }, house: { r: 1, c: 4 },
+        cargo: { r: 0, c: 3 }, sw: { r: 1, c: 2 },
+        start: [
+          ["╔", "═", "╗", "📦", "╗"],
+          ["🚂", "═", "🔀", "╔", "🏠"],
+          ["╚", "═", "╗", "╚", "═"],
+          ["║", "╔", "═", "╝", "║"]
+        ]
+      }
+    ];
+    var mapI = 0, cells = [], stars = 0, cleared = [], anim = false;
+    var board = document.getElementById("board");
+    var mapBar = document.getElementById("maps");
+    maps.forEach(function (mp, i) {
+      var b = document.createElement("button");
+      b.textContent = (i + 1) + " " + mp.name;
+      b.onclick = function () { if (!anim) load(i); };
+      mapBar.appendChild(b);
+    });
+    function same(a, b) { return a && b && a.r === b.r && a.c === b.c; }
+    function at(r, c) {
+      var mp = maps[mapI];
+      if (r < 0 || c < 0 || r >= mp.rows || c >= mp.cols) return null;
+      return cells[r * mp.cols + c];
+    }
+    function glyph(cell) {
+      if (cell.kind === "engine" || cell.kind === "house" || cell.kind === "station") return "═";
+      return cell.el.dataset.p;
+    }
+    function paintMaps() {
+      [].slice.call(mapBar.children).forEach(function (el, i) {
+        el.classList.toggle("on", i === mapI);
+        el.classList.toggle("done", cleared.indexOf(i) >= 0);
+      });
+      document.getElementById("mapChip").textContent = "Map " + (mapI + 1) + " / 3";
+      document.getElementById("starChip").textContent = "★ " + stars;
+    }
+    function load(i) {
+      mapI = i;
+      var mp = maps[i];
+      cells = [];
+      board.style.gridTemplateColumns = "repeat(" + mp.cols + ", 1fr)";
+      board.style.width = "min(" + (mp.cols * 64) + "px, 92vw)";
+      board.innerHTML = "";
+      for (var r = 0; r < mp.rows; r++) {
+        for (var c = 0; c < mp.cols; c++) {
+          (function (r, c) {
+            var b = document.createElement("button");
+            b.className = "cell";
+            var kind = "track";
+            var show = mp.start[r][c];
+            if (same(mp.engine, { r: r, c: c })) kind = "engine";
+            else if (same(mp.house, { r: r, c: c })) kind = "house";
+            else if (mp.station && same(mp.station, { r: r, c: c })) kind = "station";
+            else if (mp.cargo && same(mp.cargo, { r: r, c: c })) kind = "cargo";
+            else if (mp.sw && same(mp.sw, { r: r, c: c })) kind = "sw";
+            var p = pieces.indexOf(show) >= 0 ? show : "═";
+            if (kind === "cargo" || kind === "sw") {
+              if (pieces.indexOf(show) >= 0) p = show;
+              else p = "═";
+            }
+            b.dataset.p = p;
+            if (kind === "engine") { b.textContent = "🚂"; b.classList.add("fix"); }
+            else if (kind === "house") { b.textContent = "🏠"; b.classList.add("fix"); }
+            else if (kind === "station") {
+              b.innerHTML = "═<span class='badge'>🚉</span>";
+              b.classList.add("fix", "station");
+              b.dataset.p = "═";
+            } else {
+              b.textContent = p;
+              if (kind === "cargo") {
+                b.innerHTML = p + "<span class='badge'>📦</span>";
+                b.classList.add("cargo");
+              }
+              if (kind === "sw") b.classList.add("sw");
+              b.onclick = function () {
+                if (anim) return;
+                var idx = pieces.indexOf(b.dataset.p);
+                var np = pieces[(idx + 1) % pieces.length];
+                b.dataset.p = np;
+                if (kind === "cargo") b.innerHTML = np + "<span class='badge'>📦</span>";
+                else b.textContent = np;
+                beep(420, 0.05);
+              };
+            }
+            board.appendChild(b);
+            cells.push({ el: b, r: r, c: c, kind: kind });
+          })(r, c);
+        }
+      }
+      document.getElementById("msg").textContent = mp.name + " — turn tracks, then Go!";
+      document.getElementById("go").disabled = false;
+      paintMaps();
+    }
+    function walk() {
+      var mp = maps[mapI];
+      var r = mp.engine.r, c = mp.engine.c, from = "L";
+      var path = [{ r: r, c: c }], seen = {};
+      for (var step = 0; step < 30; step++) {
+        var key = r + "," + c;
+        if (seen[key]) return null;
+        seen[key] = 1;
+        if (r === mp.house.r && c === mp.house.c) return path;
+        var cell = at(r, c);
+        if (!cell) return null;
+        var ways = open[glyph(cell)] || [];
+        var next = ways.filter(function (w) { return w !== from; })[0];
+        if (!next) return null;
+        if (next === "R") { c++; from = "L"; }
+        else if (next === "L") { c--; from = "R"; }
+        else if (next === "U") { r--; from = "D"; }
+        else if (next === "D") { r++; from = "U"; }
+        var nxt = at(r, c);
+        if (!nxt) return null;
+        var need = open[glyph(nxt)] || [];
+        if (need.indexOf(from) < 0) return null;
+        path.push({ r: r, c: c });
+      }
+      return null;
+    }
+    function restFace(cell) {
+      cell.el.classList.remove("trainhere");
+      if (cell.kind === "engine") cell.el.textContent = "🚂";
+      else if (cell.kind === "house") cell.el.textContent = "🏠";
+      else if (cell.kind === "station") cell.el.innerHTML = "═<span class='badge'>🚉</span>";
+      else if (cell.kind === "cargo") cell.el.innerHTML = cell.el.dataset.p + "<span class='badge'>📦</span>";
+      else cell.el.textContent = cell.el.dataset.p;
+    }
+    function showTrain(cell) {
+      cells.forEach(restFace);
+      cell.el.classList.add("trainhere");
+      if (cell.kind === "house") return;
+      if (cell.kind === "station") cell.el.innerHTML = "🚂<span class='badge'>🚉</span>";
+      else if (cell.kind === "cargo") cell.el.innerHTML = "🚂<span class='badge'>📦</span>";
+      else cell.el.textContent = "🚂";
+    }
+    function animate(path, gotCargo, gotStation) {
+      anim = true;
+      document.getElementById("go").disabled = true;
+      var i = 0;
+      function tick() {
+        var cur = at(path[i].r, path[i].c);
+        showTrain(cur);
+        var hold = 280;
+        if (cur.kind === "station") {
+          document.getElementById("msg").textContent = "Station stop!";
+          beep(520, 0.12); hold = 620;
+        } else if (cur.kind === "cargo") {
+          document.getElementById("msg").textContent = "Cargo on!";
+          beep(700, 0.12); hold = 500;
+        } else beep(480, 0.05);
+        i++;
+        if (i >= path.length) { setTimeout(function () { finish(gotCargo, gotStation); }, 350); return; }
+        setTimeout(tick, hold);
+      }
+      tick();
+    }
+    function finish(gotCargo, gotStation) {
+      anim = false;
+      stars += 1 + (gotCargo ? 1 : 0) + (gotStation ? 1 : 0);
+      if (cleared.indexOf(mapI) < 0) cleared.push(mapI);
+      paintMaps();
+      var last = cleared.length >= 3;
+      document.getElementById("wint").textContent = last ? "All aboard!" : "Choo!";
+      document.getElementById("winline").textContent = (gotCargo ? "📦 bonus! " : "") + "★ " + stars;
+      document.getElementById("nextBtn").style.display = last ? "none" : "inline-block";
+      document.getElementById("win").classList.add("on");
+      beep(920, 0.2);
+      document.getElementById("go").disabled = false;
+    }
+    document.getElementById("go").onclick = function () {
+      if (anim) return;
+      cells.forEach(restFace);
+      var path = walk();
+      if (!path) {
+        document.getElementById("msg").textContent = "Turn more tracks!";
+        beep(180, 0.1);
+        return;
+      }
+      var gotCargo = false, gotStation = false;
+      path.forEach(function (p) {
+        var cell = at(p.r, p.c);
+        if (cell.kind === "cargo") gotCargo = true;
+        if (cell.kind === "station") gotStation = true;
+      });
+      document.getElementById("msg").textContent = "Choo choo!";
+      animate(path, gotCargo, gotStation);
+    };
+    document.getElementById("again").onclick = function () { location.reload(); };
+    document.getElementById("nextBtn").onclick = function () {
+      document.getElementById("win").classList.remove("on");
+      var n = mapI + 1;
+      if (n > 2) n = 0;
+      while (cleared.indexOf(n) >= 0 && cleared.length < 3) n = (n + 1) % 3;
+      load(n);
+    };
+    load(0);
   </script>
 </body>
 </html>
