@@ -8,49 +8,184 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#134e4a;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#99f6e4,#0f766e);padding:56px 10px 20px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px);color:#fff}
-    .msg{font-weight:800;color:#fff;margin:8px}
-    .scene{position:relative;width:min(360px,94vw);height:420px;margin:8px auto;border-radius:28px;background:linear-gradient(#7dd3fc 0 28%,#86efac 28% 72%,#4ade80 72%);overflow:hidden;box-shadow:0 10px 0 #115e59}
-    .bit{position:absolute;font-size:28px;pointer-events:none}
-    .hid{position:absolute;font-size:26px;opacity:.55;filter:saturate(.7)}
-    .hid.found{opacity:1;filter:none;animation:spark .5s}
-    @keyframes spark{50%{transform:scale(1.5) rotate(12deg);filter:drop-shadow(0 0 8px #fff)}}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,40,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    body{min-height:100vh;padding:54px 8px 24px;text-align:center;background:linear-gradient(#7dd3fc,#86efac)}
+    body.barn{background:linear-gradient(#fde68a,#b45309 40%,#78350f)}
+    body.woods{background:linear-gradient(#0b132b,#1b3a2a)}
+    .home{position:fixed;top:12px;left:12px;z-index:20;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(24px,7vw,38px);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.25)}
+    .hud{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px auto;max-width:400px}
+    .chip{background:rgba(255,255,255,.9);padding:5px 10px;border-radius:999px;font-weight:800;font-size:14px}
+    body.woods .chip{background:rgba(10,20,16,.75);color:#d1fae5}
+    .chip.got{background:#bbf7d0}
+    .chip.got.night{background:#14532d;color:#bbf7d0}
+    .scene{
+      position:relative;width:min(360px,94vw);height:430px;margin:8px auto;border-radius:28px;overflow:hidden;
+      box-shadow:0 12px 0 rgba(0,0,0,.22);
+    }
+    .scene.garden{background:linear-gradient(#7dd3fc 0 26%,#86efac 26% 68%,#4ade80 68%)}
+    .scene.barn{background:linear-gradient(#fde68a 0 18%,#d97706 18% 22%,#fef3c7 22% 70%,#ca8a04 70%)}
+    .scene.woods{background:linear-gradient(#0f172a 0 28%,#14532d 28% 72%,#052e16 72%)}
+    .bit{position:absolute;pointer-events:none;line-height:1}
+    .hid{
+      position:absolute;font-size:28px;opacity:.62;filter:saturate(.75);
+      min-width:48px;min-height:48px;padding:4px;
+    }
+    .scene.woods .hid{opacity:.9;filter:none}
+    .hid.found{opacity:1!important;filter:none!important;animation:pop .45s}
+    .hid.hint{animation:whisper .8s ease 3;opacity:1!important;filter:none!important;z-index:5}
+    @keyframes pop{50%{transform:scale(1.55) rotate(10deg)}}
+    @keyframes whisper{50%{transform:scale(1.35);filter:drop-shadow(0 0 8px #fff)}}
+    .flash{
+      display:none;position:absolute;inset:0;pointer-events:none;z-index:4;
+      background:rgba(2,6,18,.9);
+      --x:50%;--y:50%;
+      -webkit-mask-image:radial-gradient(circle 78px at var(--x) var(--y),transparent 0 52px,#000 92px);
+      mask-image:radial-gradient(circle 78px at var(--x) var(--y),transparent 0 52px,#000 92px);
+    }
+    .scene.woods .flash{display:block}
+    .tools{display:flex;justify-content:center;gap:10px;margin:10px auto}
+    .whisper{
+      background:#e0f2fe;color:#0c4a6e;font-weight:800;font-size:18px;
+      padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #0284c7;
+    }
+    .whisper:active{transform:translateY(3px)}
+    .whisper.off{opacity:.4}
+    .msg{font-weight:800;color:#fff;margin-top:6px;min-height:1.3em}
+    .banner{
+      display:none;width:min(340px,92vw);margin:12px auto 0;padding:16px;
+      background:#ecfeff;border-radius:22px;box-shadow:0 8px 0 #0e7490;color:#134e4a;
+    }
+    body.woods .banner{background:#064e3b;color:#ecfdf5;box-shadow:0 8px 0 #022c22}
+    .banner.on{display:block}
+    .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
+    .play.next{background:#86efac;color:#14532d;box-shadow:0 6px 0 #16a34a}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <h1>Hide and Seek</h1>
-  <p class="msg" id="msg">Find 5 hidden animals!</p>
-  <p class="msg" id="list">🦉 owl · 🐸 frog · 🦔 hog · 🦋 flutter · 🐿️ nut</p>
-  <div class="scene" id="scene"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">✨</div>
-    <h2>You found them all!</h2>
-    <button class="play" id="again">Seek again</button>
+  <div class="hud" id="hud"></div>
+  <div class="scene garden" id="scene">
+    <div class="flash" id="flash"></div>
+  </div>
+  <div class="tools">
+    <button class="whisper" id="hintBtn">🤫 Hint</button>
+  </div>
+  <p class="msg" id="msg">Find the hidden pals!</p>
+  <div class="banner" id="banner">
+    <div style="font-size:42px" id="bemo">✨</div>
+    <h2 id="btitle">Found them!</h2>
+    <p id="bsub"></p>
+    <div class="acts">
+      <button class="play next" id="nextBtn">Next</button>
+      <button class="play" id="againBtn">Play again</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var scene=document.getElementById("scene");
-    var deco=[{e:"🌳",x:8,y:18,s:48},{e:"🌳",x:70,y:10,s:56},{e:"🌻",x:20,y:58,s:28},{e:"🌻",x:40,y:62,s:26},{e:"🧺",x:58,y:68,s:32},{e:"🍎",x:62,y:64,s:20},{e:"☁️",x:30,y:6,s:30},{e:"☁️",x:78,y:8,s:26},{e:"🌸",x:12,y:72,s:22},{e:"🌼",x:80,y:74,s:22},{e:"🍄",x:28,y:78,s:22},{e:"🍃",x:48,y:22,s:24}];
-    deco.forEach(function(d){var el=document.createElement("div");el.className="bit";el.textContent=d.e;el.style.left=d.x+"%";el.style.top=d.y+"%";el.style.fontSize=d.s+"px";scene.appendChild(el);});
-    var hides=[{e:"🦉",x:72,y:16,n:"owl"},{e:"🐸",x:16,y:80,n:"frog"},{e:"🦔",x:44,y:70,n:"hedgehog"},{e:"🦋",x:38,y:48,n:"butterfly"},{e:"🐿️",x:60,y:58,n:"squirrel"}];
-    var found=0,foundList=[0,0,0,0,0];
-    hides.forEach(function(h){
-      var b=document.createElement("button");b.className="hid";b.textContent=h.e;b.style.left=h.x+"%";b.style.top=h.y+"%";
-      b.onclick=function(){
-        if(b.classList.contains("found"))return;
-        b.classList.add("found");found++;foundList[hides.indexOf(h)]=1;beep(700+found*40,.1);
-        document.getElementById("msg").textContent="Found the "+h.n+"! "+found+"/5";document.getElementById("list").textContent=["🦉","🐸","🦔","🦋","🐿️"].map(function(e,i){return (foundList[i]?"✨":e)+" ";}).join(" ");
-        if(found>=5){document.getElementById("win").classList.add("on");beep(960,.2);}
+    var scenes=[
+      {
+        id:"garden",title:"Garden day",body:"",bemo:"🌸",
+        deco:[
+          {e:"🌳",x:6,y:14,s:54},{e:"🌳",x:68,y:8,s:60},{e:"☁️",x:28,y:4,s:28},{e:"☁️",x:76,y:6,s:24},
+          {e:"🌻",x:18,y:56,s:30},{e:"🌻",x:38,y:60,s:26},{e:"🧺",x:56,y:66,s:32},{e:"🍎",x:60,y:62,s:18},
+          {e:"🌸",x:10,y:72,s:22},{e:"🌼",x:78,y:74,s:22},{e:"🍄",x:26,y:78,s:22},{e:"🍃",x:46,y:20,s:24}
+        ],
+        hides:[{e:"🦉",x:72,y:16,n:"owl"},{e:"🐸",x:14,y:80,n:"frog"},{e:"🦔",x:42,y:70,n:"hog"},{e:"🦋",x:36,y:46,n:"flutter"}]
+      },
+      {
+        id:"barn",title:"Barn",body:"barn",bemo:"🌾",
+        deco:[
+          {e:"🚪",x:8,y:28,s:48},{e:"🪵",x:72,y:30,s:36},{e:"🪵",x:40,y:34,s:30},{e:"🪣",x:20,y:70,s:28},
+          {e:"🌽",x:78,y:62,s:30},{e:"🪴",x:60,y:20,s:28},{e:"🧵",x:48,y:58,s:22},{e:"🧹",x:84,y:74,s:28}
+        ],
+        hides:[{e:"🐱",x:70,y:48,n:"cat"},{e:"🐭",x:18,y:80,n:"mouse"},{e:"🐔",x:50,y:72,n:"hen"},{e:"🐄",x:10,y:48,n:"cow"},{e:"🐷",x:78,y:78,n:"pig"}]
+      },
+      {
+        id:"woods",title:"Night woods",body:"woods",bemo:"🌙",
+        deco:[
+          {e:"🌲",x:4,y:10,s:64},{e:"🌲",x:70,y:6,s:70},{e:"🌲",x:30,y:16,s:50},{e:"🌙",x:78,y:4,s:28},
+          {e:"🍄",x:16,y:72,s:22},{e:"🪨",x:60,y:68,s:26},{e:"🍂",x:44,y:80,s:20},{e:"🕸️",x:52,y:28,s:24}
+        ],
+        hides:[{e:"🦉",x:74,y:18,n:"owl"},{e:"🦊",x:20,y:58,n:"fox"},{e:"🦝",x:58,y:54,n:"raccoon"},{e:"🦌",x:8,y:36,n:"deer"},{e:"🐺",x:40,y:22,n:"wolf"}]
+      }
+    ];
+    var lv=0,found=0,stars=0,hintLeft=1,sceneEl=document.getElementById("scene"),flash=document.getElementById("flash");
+    function paintHud(){
+      var S=scenes[lv],h=document.getElementById("hud");h.innerHTML="";
+      S.hides.forEach(function(a,i){
+        var c=document.createElement("span");c.className="chip"+(a.got?" got":"")+(S.id==="woods"?" night":"");
+        c.textContent=(a.got?"✨ ":"")+a.e+" "+a.n;h.appendChild(c);
+      });
+      var st=document.createElement("span");st.className="chip";st.textContent="⭐ "+stars;h.appendChild(st);
+    }
+    function load(){
+      var S=scenes[lv];
+      document.body.className=S.body;
+      sceneEl.className="scene "+S.id;
+      S.hides.forEach(function(a){a.got=false;});
+      found=0;hintLeft=1;
+      document.getElementById("hintBtn").className="whisper";
+      document.getElementById("banner").classList.remove("on");
+      document.getElementById("nextBtn").style.display=lv<2?"":"none";
+      document.getElementById("msg").textContent=S.id==="woods"?"Shine the light!":"Find the hidden pals!";
+      sceneEl.innerHTML="";sceneEl.appendChild(flash);
+      S.deco.forEach(function(d){
+        var el=document.createElement("div");el.className="bit";el.textContent=d.e;
+        el.style.left=d.x+"%";el.style.top=d.y+"%";el.style.fontSize=d.s+"px";sceneEl.appendChild(el);
+      });
+      S.hides.forEach(function(h){
+        var b=document.createElement("button");b.className="hid";b.textContent=h.e;
+        b.style.left=h.x+"%";b.style.top=h.y+"%";
+        b.onclick=function(ev){
+          ev.stopPropagation();
+          if(h.got)return;
+          h.got=true;found++;stars++;b.classList.add("found");beep(700+found*40,.1);
+          document.getElementById("msg").textContent="The "+h.n+"!";
+          paintHud();
+          if(found>=S.hides.length){
+            if(hintLeft)stars++;
+            paintHud();
+            document.getElementById("bemo").textContent=S.bemo;
+            document.getElementById("btitle").textContent=lv<2?"Found them!":"You found them all!";
+            document.getElementById("bsub").textContent=hintLeft?"Quiet seeker! Extra star!":"Great seeking.";
+            document.getElementById("banner").classList.add("on");beep(960,.2);
+          }
+        };
+        sceneEl.appendChild(b);
+      });
+      sceneEl.onclick=function(e){
+        if(e.target===sceneEl||e.target.classList.contains("bit")||e.target.classList.contains("flash")){
+          document.getElementById("msg").textContent="Look again!";beep(180,.07);
+        }
       };
-      scene.appendChild(b);
-    });
-    document.getElementById("again").onclick=function(){location.reload();};
+      paintHud();
+    }
+    function aim(x,y){
+      var r=sceneEl.getBoundingClientRect();
+      flash.style.setProperty("--x",(x-r.left)+"px");
+      flash.style.setProperty("--y",(y-r.top)+"px");
+    }
+    sceneEl.addEventListener("pointermove",function(e){aim(e.clientX,e.clientY);});
+    sceneEl.addEventListener("pointerdown",function(e){aim(e.clientX,e.clientY);});
+    document.getElementById("hintBtn").onclick=function(){
+      if(!hintLeft)return;
+      var left=scenes[lv].hides.filter(function(h){return !h.got;});
+      if(!left.length)return;
+      hintLeft=0;this.classList.add("off");
+      var pick=left[0];
+      var btns=sceneEl.querySelectorAll(".hid");
+      for(var i=0;i<btns.length;i++){
+        if(!scenes[lv].hides[i].got&&scenes[lv].hides[i].n===pick.n){btns[i].classList.add("hint");break;}
+      }
+      document.getElementById("msg").textContent="Psst… the "+pick.n+".";
+      beep(520,.1);
+      setTimeout(function(){sceneEl.querySelectorAll(".hid").forEach(function(b){b.classList.remove("hint");});},2400);
+    };
+    document.getElementById("nextBtn").onclick=function(){if(lv<2){lv++;load();}};
+    document.getElementById("againBtn").onclick=function(){lv=0;stars=0;load();};
+    load();
   </script>
 </body>
 </html>

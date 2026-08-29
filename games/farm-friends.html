@@ -6,51 +6,180 @@
   <title>Farm Friends</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#365314;touch-action:manipulation;user-select:none}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3f2a14;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#87ceeb 0 32%,#86efac 32% 72%,#ca8a04 72%);padding:56px 12px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px);color:#14532d}
-    .msg{font-weight:800;font-size:22px;margin:10px;min-height:2em}
-    .yard{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:340px;margin:12px auto}
-    .yard button{height:96px;border-radius:24px;background:#fefce8;font-size:52px;box-shadow:0 7px 0 #65a30d}
-    .yard button:active{transform:translateY(4px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,40,10,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    body{
+      min-height:100vh;padding:54px 10px 24px;text-align:center;
+      background:linear-gradient(#87ceeb 0 30%,#86efac 30% 68%,#ca8a04 68%);
+      overflow-x:hidden;
+    }
+    body.rain{background:linear-gradient(#64748b 0 30%,#65a30d 30% 68%,#78716c 68%)}
+    body.sunset{background:linear-gradient(#fb923c 0 30%,#84cc16 30% 68%,#b45309 68%)}
+    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(26px,7vw,40px);color:#14532d;text-shadow:0 2px 0 #fff}
+    body.sunset h1,body.rain h1{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+    .weather{font-size:28px;margin-top:2px}
+    .rainlayer{display:none;position:fixed;inset:0;pointer-events:none;z-index:3;background:repeating-linear-gradient(185deg,transparent 0 18px,rgba(255,255,255,.18) 18px 19px);animation:rain .7s linear infinite}
+    body.rain .rainlayer{display:block}
+    @keyframes rain{to{background-position:12px 40px}}
+    .hud{display:flex;justify-content:center;gap:8px;margin:6px 0}
+    .chip{background:rgba(255,255,255,.9);padding:6px 12px;border-radius:999px;font-weight:800;font-size:15px}
+    .bubble{
+      display:inline-block;background:#fff;color:#14532d;font-weight:800;font-size:22px;
+      padding:10px 18px;border-radius:22px 22px 22px 6px;margin:8px auto;box-shadow:0 5px 0 #65a30d;
+      min-width:200px;
+    }
+    .farm{width:min(380px,94vw);margin:8px auto;position:relative}
+    .roof{
+      height:54px;background:linear-gradient(#b91c1c,#7f1d1d);clip-path:polygon(50% 0,100% 100%,0 100%);
+      display:flex;align-items:flex-end;justify-content:center;color:#fff;font-weight:800;font-size:14px;padding-bottom:6px;
+    }
+    .map{
+      display:grid;grid-template-columns:118px 1fr;min-height:280px;
+      background:#fef3c7;border:8px solid #7c2d12;border-top:0;border-radius:0 0 18px 18px;
+      box-shadow:0 10px 0 #5a1c0a;
+    }
+    .stalls{background:linear-gradient(#d6a15a,#b45309);padding:8px 6px;display:flex;flex-direction:column;gap:8px}
+    .stall{
+      flex:1;background:linear-gradient(#8b5a2b,#6b3e1a);border-radius:10px;border:3px solid #4a2a12;
+      display:flex;align-items:center;justify-content:center;font-size:40px;min-height:64px;
+      box-shadow:inset 0 -8px 0 #3d2410;
+    }
+    .stall:active{transform:translateY(2px)}
+    .stall.fed{background:linear-gradient(#86efac,#166534)}
+    .field{
+      position:relative;background:
+        repeating-linear-gradient(90deg,transparent 0 22px,rgba(22,101,52,.12) 22px 24px),
+        linear-gradient(#86efac,#4ade80);
+      overflow:hidden;
+    }
+    .pal{
+      position:absolute;font-size:40px;min-width:56px;min-height:56px;
+    }
+    .pal:active{transform:scale(1.08)}
+    .pal.fed{filter:drop-shadow(0 0 6px #fde047)}
+    .haywrap{min-height:76px;margin-top:8px}
+    .hay{
+      display:none;background:#fef08a;color:#713f12;font-weight:800;font-size:22px;
+      padding:14px 28px;border-radius:20px;box-shadow:0 6px 0 #ca8a04;
+    }
+    .hay.on{display:inline-block;animation:bob .6s ease infinite}
+    .hay:active{transform:translateY(3px)}
+    @keyframes bob{50%{transform:translateY(-4px)}}
+    .msg{font-weight:800;margin-top:8px;min-height:1.3em}
+    .banner{
+      display:none;width:min(340px,92vw);margin:12px auto 0;padding:16px;
+      background:#fff7ed;border:6px solid #7c2d12;border-radius:8px;box-shadow:4px 8px 0 #5a1c0a;color:#7c2d12;
+    }
+    .banner.on{display:block}
+    .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
+    .play.next{background:#86efac;color:#14532d;box-shadow:0 6px 0 #16a34a}
   </style>
 </head>
 <body>
+  <div class="rainlayer"></div>
   <a class="home" href="../index.html">← Home</a>
   <h1>Farm Friends</h1>
-  <p class="msg" id="msg">Tap the cow!</p>
-  <div class="yard" id="yard"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🚜</div>
-    <h2>Happy farm!</h2>
-    <button class="play" id="again">Visit again</button>
+  <div class="weather" id="weather">☀️ Sun</div>
+  <div class="hud">
+    <span class="chip" id="fieldChip">Field 1</span>
+    <span class="chip" id="stars">⭐ 0</span>
+  </div>
+  <div class="bubble" id="bubble">Where is the cow?</div>
+  <div class="farm">
+    <div class="roof" id="roof">Barn</div>
+    <div class="map">
+      <div class="stalls" id="stalls"></div>
+      <div class="field" id="field"></div>
+    </div>
+  </div>
+  <div class="haywrap"><button class="hay" id="hay">🌾 Feed</button></div>
+  <p class="msg" id="msg">Tap the friend.</p>
+  <div class="banner" id="banner">
+    <div style="font-size:42px">🚜</div>
+    <h2 id="btitle">Happy farm!</h2>
+    <p id="bsub"></p>
+    <div class="acts">
+      <button class="play next" id="nextBtn">Next</button>
+      <button class="play" id="againBtn">Play again</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var pals=[{e:"🐄",n:"cow"},{e:"🐷",n:"pig"},{e:"🐔",n:"chicken"},{e:"🐑",n:"sheep"},{e:"🐴",n:"horse"},{e:"🦆",n:"duck"}];
-    var need,score=0,yard=document.getElementById("yard");
-    function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-    function round(){
-      yard.innerHTML="";
-      need=pals[Math.floor(Math.random()*pals.length)];
-      document.getElementById("msg").textContent="Where is the "+need.n+"?";
-      shuffle(pals.slice()).forEach(function(p){
-        var b=document.createElement("button");b.textContent=p.e;
-        b.onclick=function(){
-          if(p.n!==need.n){document.getElementById("msg").textContent="That's the "+p.n+". Find the "+need.n+"!";beep(180,.1);return;}
-          score++;beep(760,.1);
-          if(score>=8){document.getElementById("win").classList.add("on");beep(940,.2);} else round();
-        };
-        yard.appendChild(b);
+    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+    var fields=[
+      {name:"Sunny yard",weather:"sun",icon:"☀️ Sun",pals:[{e:"🐄",n:"cow"},{e:"🐷",n:"pig"},{e:"🐔",n:"chicken"},{e:"🐑",n:"sheep"}],asks:3},
+      {name:"Rain barn",weather:"rain",icon:"🌧️ Rain",pals:[{e:"🐄",n:"cow"},{e:"🐷",n:"pig"},{e:"🐔",n:"chicken"},{e:"🐑",n:"sheep"},{e:"🐴",n:"horse"},{e:"🦆",n:"duck"}],asks:4},
+      {name:"Sunset field",weather:"sunset",icon:"🌇 Sunset",pals:[{e:"🐄",n:"cow"},{e:"🐷",n:"pig"},{e:"🐔",n:"chicken"},{e:"🐑",n:"sheep"},{e:"🐴",n:"horse"},{e:"🦆",n:"duck"},{e:"🐐",n:"goat"},{e:"🐕",n:"dog"}],asks:5}
+    ];
+    var spots=[{x:10,y:12},{x:52,y:18},{x:18,y:48},{x:58,y:54},{x:28,y:76}];
+    var lv=0,need=null,phase="find",done=0,stars=0,queue=[],chosen=null;
+    function loadField(){
+      var F=fields[lv];
+      document.body.className=F.weather;
+      document.getElementById("weather").textContent=F.icon;
+      document.getElementById("fieldChip").textContent="Field "+(lv+1);
+      document.getElementById("roof").textContent=F.name;
+      document.getElementById("banner").classList.remove("on");
+      document.getElementById("nextBtn").style.display=lv<2?"":"none";
+      document.getElementById("hay").classList.remove("on");
+      done=0;phase="find";queue=shuffle(F.pals).slice(0,F.asks);
+      drawMap();ask();
+    }
+    function drawMap(){
+      var F=fields[lv],stalls=document.getElementById("stalls"),field=document.getElementById("field");
+      stalls.innerHTML="";field.innerHTML="";
+      var pals=shuffle(F.pals),nStall=Math.min(3,pals.length);
+      pals.forEach(function(p,i){
+        var b=document.createElement("button");
+        b.textContent=p.e;b.dataset.n=p.n;
+        b.onclick=function(){tapPal(p,b);};
+        if(i<nStall){b.className="stall";stalls.appendChild(b);}
+        else{
+          b.className="pal";
+          var s=spots[(i-nStall)%spots.length];
+          b.style.left=s.x+"%";b.style.top=s.y+"%";
+          field.appendChild(b);
+        }
       });
     }
-    round();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function ask(){
+      need=queue[done];phase="find";chosen=null;
+      document.getElementById("hay").classList.remove("on");
+      document.getElementById("bubble").textContent="Where is the "+need.n+"?";
+      document.getElementById("msg").textContent="Look in the stalls and field.";
+    }
+    function tapPal(p,b){
+      if(phase!=="find")return;
+      if(p.n!==need.n){
+        document.getElementById("bubble").textContent="That's the "+p.n+"!";
+        document.getElementById("msg").textContent="Find the "+need.n+".";
+        beep(180,.1);return;
+      }
+      chosen=b;phase="feed";stars++;
+      document.getElementById("bubble").textContent="Yay! Feed the "+need.n+"!";
+      document.getElementById("msg").textContent="Tap the hay.";
+      document.getElementById("hay").classList.add("on");
+      beep(760,.1);paintStars();
+    }
+    document.getElementById("hay").onclick=function(){
+      if(phase!=="feed")return;
+      phase="wait";
+      if(chosen)chosen.classList.add("fed");
+      this.classList.remove("on");
+      document.getElementById("bubble").textContent="Nom nom!";
+      beep(880,.12);done++;
+      if(done>=queue.length){
+        document.getElementById("btitle").textContent=lv<2?"Nice field!":"Happy farm!";
+        document.getElementById("bsub").textContent="⭐ "+stars+" · All friends fed.";
+        document.getElementById("banner").classList.add("on");beep(940,.2);
+      }else setTimeout(ask,500);
+    };
+    function paintStars(){document.getElementById("stars").textContent="⭐ "+stars;}
+    document.getElementById("nextBtn").onclick=function(){if(lv<2){lv++;loadField();}};
+    document.getElementById("againBtn").onclick=function(){lv=0;stars=0;paintStars();loadField();};
+    loadField();
   </script>
 </body>
 </html>

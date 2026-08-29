@@ -8,46 +8,171 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#78350f;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fde68a,#d97706);padding:56px 12px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px);color:#fff}
-    .msg{font-weight:800;color:#fff;margin:8px}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(340px,92vw);margin:12px auto}
-    .tile{height:78px;border-radius:16px;background:#ca8a04;font-size:36px;box-shadow:0 6px 0 #92400e}
-    .tile:active{transform:translateY(3px)}
-    .tile.dug{background:#fef3c7}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(50,20,0,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    body{
+      min-height:100vh;padding:54px 8px 20px;text-align:center;
+      background:linear-gradient(#7dd3fc 0 22%,#fde68a 22% 55%,#eab308 55%);
+    }
+    body.moon{background:linear-gradient(#0f172a 0 22%,#1e3a5f 22% 40%,#ca8a04 40%);color:#fef3c7}
+    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(26px,7vw,40px);color:#fff;text-shadow:0 3px 0 #92400e}
+    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px}
+    .chip{background:rgba(255,255,255,.9);padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px;color:#78350f}
+    body.moon .chip{background:rgba(15,23,42,.7);color:#fde68a}
+    .beach{
+      width:min(380px,96vw);margin:8px auto;border-radius:24px 24px 8px 8px;overflow:hidden;
+      box-shadow:0 12px 0 #92400e;position:relative;
+    }
+    .ocean{height:52px;background:linear-gradient(#38bdf8,#0284c7);position:relative;overflow:hidden}
+    .wave{position:absolute;left:-10%;right:-10%;bottom:0;height:22px;background:#7dd3fc;border-radius:50%;animation:wave 2.4s ease-in-out infinite}
+    @keyframes wave{50%{transform:translateX(12px) scaleY(1.15)}}
+    .sand{
+      background:
+        radial-gradient(circle at 20% 30%,rgba(255,255,255,.15) 0 8%,transparent 9%),
+        linear-gradient(#fcd34d,#d97706);
+      padding:10px 8px 14px;min-height:240px;
+    }
+    body.moon .sand{background:linear-gradient(#b45309,#78350f)}
+    .row{display:flex;justify-content:center;gap:8px;margin:6px 0}
+    .row:nth-child(even){padding-left:18px}
+    .mound{
+      width:68px;height:62px;border-radius:50% 50% 18px 18px;
+      background:linear-gradient(#fbbf24,#b45309);font-size:28px;
+      box-shadow:0 5px 0 #92400e;position:relative;
+    }
+    .mound:active{transform:translateY(3px)}
+    .mound.dug{background:#fef3c7;border-radius:16px}
+    .mound.mid{background:#eab308}
+    .mound.loot{background:#fde68a;box-shadow:0 0 12px #fbbf24}
+    .mark{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:16px;pointer-events:none}
+    .map{
+      width:min(340px,92vw);margin:10px auto;padding:10px 14px;
+      background:#fef3c7;border:4px solid #b45309;border-radius:8px;
+      box-shadow:3px 5px 0 #78350f;font-weight:800;transform:rotate(-1.5deg);
+    }
+    .tools{display:flex;justify-content:center;gap:12px;margin:10px}
+    .tool{
+      min-width:120px;padding:12px 16px;border-radius:18px;font-weight:800;font-size:18px;
+      background:#fff7ed;box-shadow:0 6px 0 #b45309;
+    }
+    .tool.on{background:#fde68a;box-shadow:0 6px 0 #ca8a04;outline:3px solid #fff}
+    .msg{font-weight:800;color:#fff;margin-top:6px;min-height:1.3em;text-shadow:0 1px 0 #78350f}
+    .banner{
+      display:none;width:min(340px,92vw);margin:12px auto 0;padding:16px;
+      background:#fff7ed;border-radius:8px;box-shadow:4px 6px 0 #78350f;color:#78350f;
+      border:5px double #b45309;
+    }
+    .banner.on{display:block}
+    .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
+    .play.next{background:#86efac;color:#14532d;box-shadow:0 6px 0 #16a34a}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <h1>Treasure Dig</h1>
-  <p class="msg" id="msg">Tap the sand. Find 5 treasures!</p>
-  <div class="grid" id="grid"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">💎</div>
-    <h2>Pirate kid!</h2>
-    <button class="play" id="again">Dig again</button>
+  <div class="hud">
+    <span class="chip" id="bchip">Shell cove</span>
+    <span class="chip" id="loot">Loot 0 / 2</span>
+    <span class="chip" id="stars">⭐ 0</span>
+  </div>
+  <div class="map" id="map">Map: near the 🐚</div>
+  <div class="beach" id="beach">
+    <div class="ocean"><div class="wave"></div></div>
+    <div class="sand" id="sand"></div>
+  </div>
+  <div class="tools">
+    <button class="tool on" id="shovel">🪣 Shovel</button>
+    <button class="tool" id="brush">🧹 Brush</button>
+  </div>
+  <p class="msg" id="msg">Pick a tool. Dig the sand!</p>
+  <div class="banner" id="banner">
+    <div style="font-size:42px">🏴‍☠️</div>
+    <h2 id="btitle">Pirate kid!</h2>
+    <p id="bsub"></p>
+    <div class="acts">
+      <button class="play next" id="nextBtn">Next</button>
+      <button class="play" id="againBtn">Play again</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var loot=["💎","👑","🪙","💍","🗝️"],found=0;
-    var spots=loot.concat(["🐚","🪨","🦴","🌵","🌊","🌵","🐚","🪨","🦴","🌊","🐚"]);
-    for(var i=spots.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=spots[i];spots[i]=spots[j];spots[j]=t;}
-    var grid=document.getElementById("grid");
-    spots.forEach(function(item){
-      var b=document.createElement("button");b.className="tile";b.textContent="🏖️";
-      b.onclick=function(){
-        if(b.classList.contains("dug"))return;
-        b.classList.add("dug");b.textContent=item;
-        if(loot.indexOf(item)>=0){found++;beep(780,.1);document.getElementById("msg").textContent="Treasure! "+found+"/5";if(found>=5){document.getElementById("win").classList.add("on");beep(960,.2);}}
-        else{beep(220,.07);document.getElementById("msg").textContent="Just "+item+". Keep digging!";}
-      };
-      grid.appendChild(b);
-    });
-    document.getElementById("again").onclick=function(){location.reload();};
+    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+    var lootPool=["💎","👑","🪙","💍","🗝️"];
+    var junk=["🐚","🪨","🦴","🌊"];
+    var beaches=[
+      {name:"Shell cove",moon:false,cols:3,rows:3,treasures:2,layers:1,clue:"🐚",clueWord:"near the shell"},
+      {name:"Palm dunes",moon:false,cols:4,rows:3,treasures:3,layers:2,clue:"🌴",clueWord:"by the palm"},
+      {name:"Moon beach",moon:true,cols:4,rows:4,treasures:4,layers:3,clue:"⭐",clueWord:"under the star"}
+    ];
+    var lv=0,tool="shovel",found=0,need=0,stars=0;
+    document.getElementById("shovel").onclick=function(){tool="shovel";this.classList.add("on");document.getElementById("brush").classList.remove("on");beep(300,.05);};
+    document.getElementById("brush").onclick=function(){tool="brush";this.classList.add("on");document.getElementById("shovel").classList.remove("on");beep(500,.05);};
+    function load(){
+      var B=beaches[lv];
+      document.body.className=B.moon?"moon":"";
+      document.getElementById("bchip").textContent=B.name;
+      document.getElementById("map").textContent="Map: "+B.clueWord+" "+B.clue;
+      document.getElementById("banner").classList.remove("on");
+      document.getElementById("nextBtn").style.display=lv<2?"":"none";
+      document.getElementById("msg").textContent="Pick a tool. Dig the sand!";
+      found=0;need=B.treasures;
+      var n=B.cols*B.rows;
+      var items=shuffle(lootPool).slice(0,B.treasures);
+      while(items.length<n)items.push(junk[items.length%junk.length]);
+      items=shuffle(items);
+      var sand=document.getElementById("sand");sand.innerHTML="";
+      var treasureIdx=[];
+      items.forEach(function(it,i){if(lootPool.indexOf(it)>=0)treasureIdx.push(i);});
+      var clueOn=treasureIdx[0];
+      var i=0;
+      for(var r=0;r<B.rows;r++){
+        var row=document.createElement("div");row.className="row";
+        for(var c=0;c<B.cols;c++){
+          (function(item,idx){
+            var layers=(idx===clueOn||(B.layers>1&&idx%3===0))?Math.max(2,B.layers):1;
+            var left=layers,clue=idx===clueOn?B.clue:"";
+            var b=document.createElement("button");b.className="mound";
+            function face(txt){b.innerHTML=txt+(clue?'<span class="mark">'+clue+"</span>":"");}
+            face("🏖️");
+            b.onclick=function(){
+              if(b.classList.contains("dug"))return;
+              left--;
+              if(left>0){
+                b.classList.add("mid");face("🕳️");
+                document.getElementById("msg").textContent=tool==="brush"?"Soft… keep going!":"Deeper!";
+                beep(320,.07);return;
+              }
+              b.classList.add("dug");face(item);
+              if(lootPool.indexOf(item)>=0){
+                b.classList.add("loot");found++;
+                var bonus=tool==="brush"?1:0;stars+=1+bonus;
+                document.getElementById("msg").textContent=bonus?"Gentle brush! Bonus star!":"Treasure!";
+                beep(780,.1);paint();
+                if(found>=need){
+                  document.getElementById("btitle").textContent=lv<2?"Chest found!":"Pirate kid!";
+                  document.getElementById("bsub").textContent="⭐ "+stars+" · Nice digging.";
+                  document.getElementById("banner").classList.add("on");beep(960,.2);
+                }
+              }else{
+                beep(220,.07);
+                document.getElementById("msg").textContent="Just "+item+". Keep digging!";
+              }
+            };
+            row.appendChild(b);
+          })(items[i],i);
+          i++;
+        }
+        sand.appendChild(row);
+      }
+      paint();
+    }
+    function paint(){
+      document.getElementById("loot").textContent="Loot "+found+" / "+need;
+      document.getElementById("stars").textContent="⭐ "+stars;
+    }
+    document.getElementById("nextBtn").onclick=function(){if(lv<2){lv++;load();}};
+    document.getElementById("againBtn").onclick=function(){lv=0;stars=0;load();};
+    load();
   </script>
 </body>
 </html>

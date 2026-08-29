@@ -6,48 +6,188 @@
   <title>Shape Sorter</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e3a8a;touch-action:manipulation;user-select:none}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4a2a12;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#bfdbfe,#fde68a);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .msg{font-weight:800;margin:8px}
-    .piece{font-size:96px;margin:12px;min-height:110px}
-    .holes{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:10px}
-    .hole{width:88px;height:88px;border-radius:22px;background:#fff;box-shadow:0 7px 0 #93c5fd;font-size:48px}
-    .hole:active{transform:translateY(4px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,30,70,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    body{
+      min-height:100vh;padding:54px 10px 24px;text-align:center;
+      background:linear-gradient(#fde68a 0 30%,#fdba74 30% 100%);
+    }
+    body.night{
+      background:linear-gradient(#1e1b4b 0 32%,#312e81 32%);
+      color:#fef3c7;
+    }
+    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(26px,7vw,40px)}
+    body.night h1{color:#fde68a}
+    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px}
+    .chip{background:rgba(255,255,255,.88);padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px;color:#4a2a12}
+    body.night .chip{background:rgba(15,15,40,.7);color:#fde68a}
+    .table{width:min(380px,94vw);margin:10px auto}
+    .boxwrap{perspective:700px;min-height:220px}
+    .box{
+      margin:0 auto;width:min(320px,88vw);min-height:200px;padding:22px 16px;
+      background:
+        repeating-linear-gradient(90deg,rgba(90,50,20,.12) 0 2px,transparent 2px 18px),
+        linear-gradient(#c08040,#8b5a2b);
+      border:10px solid #6b3e1a;border-radius:18px;
+      box-shadow:inset 0 0 0 4px #a16207,0 12px 0 #4a2a12;
+      display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px;
+      transition:transform .7s ease;
+    }
+    .box.spin{transform:rotate(90deg)}
+    .box.spin2{transform:rotate(180deg)}
+    .box.spin3{transform:rotate(270deg)}
+    body.night .box{background:linear-gradient(#3b2a14,#1c140c);border-color:#1c1008}
+    .hole{
+      width:72px;height:72px;background:#1c1008;display:grid;place-items:center;
+      box-shadow:inset 0 6px 0 rgba(0,0,0,.45);
+    }
+    .hole.circle{border-radius:50%}
+    .hole.square{border-radius:8px}
+    .hole.triangle{clip-path:polygon(50% 6%,6% 94%,94% 94%);background:#1c1008}
+    .hole.star{clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);background:#1c1008}
+    .hole.heart{border-radius:50% 50% 8px 8px;transform:rotate(45deg);width:60px;height:60px}
+    .hole.heart .glyph{transform:rotate(-45deg)}
+    .hole .glyph{font-size:28px;opacity:.35;pointer-events:none}
+    body.night .hole{box-shadow:inset 0 6px 0 rgba(0,0,0,.45),0 0 14px #fde68a}
+    body.night .hole .glyph{opacity:.9;filter:drop-shadow(0 0 6px #fde68a)}
+    .hole.over{outline:3px dashed #fde68a}
+    .hole.in{opacity:.35}
+    .lidless{font-weight:800;margin:8px;font-size:16px}
+    .piece{
+      width:88px;height:88px;margin:8px auto;font-size:64px;line-height:88px;
+      touch-action:none;cursor:grab;
+      filter:drop-shadow(0 6px 0 rgba(0,0,0,.15));
+    }
+    .piece.drag{position:fixed;z-index:20;pointer-events:none;margin:0}
+    .msg{font-weight:800;min-height:1.3em;margin-top:6px}
+    .banner{
+      display:none;width:min(340px,92vw);margin:12px auto 0;padding:16px;
+      background:#fff7ed;border:8px solid #8b5a2b;border-radius:12px;box-shadow:0 8px 0 #4a2a12;color:#4a2a12;
+    }
+    body.night .banner{background:#1e1b4b;color:#fde68a;border-color:#fde68a}
+    .banner.on{display:block}
+    .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
+    .play.next{background:#86efac;color:#14532d;box-shadow:0 6px 0 #16a34a}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <h1>Shape Sorter</h1>
-  <p class="msg" id="msg">Tap the matching hole!</p>
-  <div class="piece" id="piece">🔵</div>
-  <div class="holes" id="holes"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">⭐</div>
-    <h2>All sorted!</h2>
-    <button class="play" id="again">Sort again</button>
+  <div class="hud">
+    <span class="chip" id="bchip">Box 1</span>
+    <span class="chip" id="left">Left 3</span>
+    <span class="chip" id="stars">⭐ 0</span>
+  </div>
+  <p class="lidless" id="tip">Drag or tap the piece onto a hole.</p>
+  <div class="table">
+    <div class="boxwrap">
+      <div class="box" id="box"></div>
+    </div>
+    <div class="piece" id="piece" draggable="false">🔵</div>
+  </div>
+  <p class="msg" id="msg">Match the holes!</p>
+  <div class="banner" id="banner">
+    <div style="font-size:42px">🧸</div>
+    <h2 id="btitle">All sorted!</h2>
+    <p id="bsub"></p>
+    <div class="acts">
+      <button class="play next" id="nextBtn">Next</button>
+      <button class="play" id="againBtn">Play again</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var shapes=[{e:"🔵",n:"circle"},{e:"🟥",n:"square"},{e:"🔺",n:"triangle"},{e:"⭐",n:"star"}];
-    var need=shapes[0],score=0,box=document.getElementById("holes");
-    shapes.forEach(function(s){
-      var b=document.createElement("button");b.className="hole";b.textContent=s.e;
-      b.onclick=function(){
-        if(s.n!==need.n){document.getElementById("msg").textContent="Try the "+need.n+" hole.";beep(180,.1);return;}
-        score++;beep(700,.1);document.getElementById("msg").textContent="In! "+score+"/8";
-        if(score>=8){document.getElementById("win").classList.add("on");beep(940,.2);} else next();
-      };
-      box.appendChild(b);
+    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+    var all=[{e:"🔵",n:"circle",cls:"circle"},{e:"🟥",n:"square",cls:"square"},{e:"🔺",n:"triangle",cls:"triangle"},{e:"⭐",n:"star",cls:"star"},{e:"💗",n:"heart",cls:"heart"}];
+    var boxes=[
+      {name:"Little box",night:false,spin:false,shapes:3,need:4},
+      {name:"Spin box",night:false,spin:true,shapes:4,need:5},
+      {name:"Glow box",night:true,spin:true,shapes:5,need:6}
+    ];
+    var lv=0,need=null,done=0,stars=0,queue=[],spin=0,lock=false;
+    var piece=document.getElementById("piece"),box=document.getElementById("box");
+    function load(){
+      var B=boxes[lv];
+      document.body.className=B.night?"night":"";
+      document.getElementById("bchip").textContent=B.name;
+      document.getElementById("banner").classList.remove("on");
+      document.getElementById("nextBtn").style.display=lv<2?"":"none";
+      document.getElementById("tip").textContent=B.spin?"The box can turn!":"Drag or tap the piece onto a hole.";
+      done=0;spin=0;lock=false;
+      box.className="box";
+      var set=all.slice(0,B.shapes);
+      queue=[];
+      for(var i=0;i<B.need;i++)queue.push(set[i%set.length]);
+      queue=shuffle(queue);
+      box.innerHTML="";
+      set.forEach(function(s){
+        var h=document.createElement("button");
+        h.className="hole "+s.cls;h.dataset.n=s.n;
+        h.innerHTML='<span class="glyph">'+s.e+"</span>";
+        h.onclick=function(){tryHole(s.n,h);};
+        box.appendChild(h);
+      });
+      nextPiece();paint();
+    }
+    function nextPiece(){
+      need=queue[done];
+      piece.textContent=need.e;piece.style.visibility="visible";
+      document.getElementById("msg").textContent="Find the "+need.n+".";
+    }
+    function tryHole(n,h){
+      if(lock||!need)return;
+      if(n!==need.n){
+        document.getElementById("msg").textContent="Try the "+need.n+" hole.";
+        beep(180,.1);return;
+      }
+      lock=true;h.classList.add("in");stars++;done++;beep(700,.1);
+      document.getElementById("msg").textContent="In!";
+      piece.style.visibility="hidden";paint();
+      var B=boxes[lv];
+      if(done>=B.need){
+        document.getElementById("btitle").textContent=lv<2?"Box packed!":"All sorted!";
+        document.getElementById("bsub").textContent="⭐ "+stars;
+        document.getElementById("banner").classList.add("on");beep(940,.2);lock=false;return;
+      }
+      if(B.spin){
+        spin=(spin+1)%4;
+        box.className="box"+(spin?" spin"+(spin===1?"":spin):"");
+      }
+      setTimeout(function(){lock=false;nextPiece();},B.spin?700:350);
+    }
+    function paint(){
+      document.getElementById("left").textContent="Left "+(boxes[lv].need-done);
+      document.getElementById("stars").textContent="⭐ "+stars;
+    }
+    var dragging=false,ox=0,oy=0;
+    piece.addEventListener("pointerdown",function(e){
+      dragging=true;piece.classList.add("drag");
+      piece.style.left=(e.clientX-44)+"px";piece.style.top=(e.clientY-44)+"px";
+      try{piece.setPointerCapture(e.pointerId);}catch(err){}
     });
-    function next(){need=shapes[Math.floor(Math.random()*shapes.length)];document.getElementById("piece").textContent=need.e;}
-    next();
-    document.getElementById("again").onclick=function(){location.reload();};
+    piece.addEventListener("pointermove",function(e){
+      if(!dragging)return;
+      piece.style.left=(e.clientX-44)+"px";piece.style.top=(e.clientY-44)+"px";
+      var el=document.elementFromPoint(e.clientX,e.clientY);
+      document.querySelectorAll(".hole").forEach(function(h){h.classList.remove("over");});
+      var hole=el&&(el.classList.contains("hole")?el:el.closest&&el.closest(".hole"));
+      if(hole)hole.classList.add("over");
+    });
+    function endDrag(e){
+      if(!dragging)return;dragging=false;piece.classList.remove("drag");
+      piece.style.left="";piece.style.top="";
+      var el=document.elementFromPoint(e.clientX,e.clientY);
+      document.querySelectorAll(".hole").forEach(function(h){h.classList.remove("over");});
+      var hole=el&&(el.classList.contains("hole")?el:el.closest&&el.closest(".hole"));
+      if(hole)tryHole(hole.dataset.n,hole);
+    }
+    piece.addEventListener("pointerup",endDrag);
+    piece.addEventListener("pointercancel",endDrag);
+    document.getElementById("nextBtn").onclick=function(){if(lv<2){lv++;load();}};
+    document.getElementById("againBtn").onclick=function(){lv=0;stars=0;load();};
+    load();
   </script>
 </body>
 </html>

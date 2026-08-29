@@ -6,54 +6,168 @@
   <title>Shadow Match</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e1b4b;touch-action:manipulation;user-select:none}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#e2e8f0;touch-action:manipulation;user-select:none}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#c7d2fe,#fde68a);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    .msg{font-weight:800;margin:8px}
-    .hero{font-size:96px;margin:8px}
-    .row{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:16px}
-    .sh{width:96px;height:110px;border-radius:22px;background:#e2e8f0;font-size:64px;filter:grayscale(1) brightness(0.15);box-shadow:0 7px 0 #94a3b8}
-    .sh:active{transform:translateY(4px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,20,50,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    body{
+      min-height:100vh;padding:54px 10px 24px;text-align:center;
+      background:
+        radial-gradient(circle at 78% 8%,#fde68a 0 1.4%,transparent 8%),
+        linear-gradient(#0b1026 0 38%,#1e1b4b 38% 70%,#312e81 70%);
+    }
+    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
+    h1{font-size:clamp(24px,7vw,38px);color:#fde68a}
+    .hud{display:flex;justify-content:center;gap:8px;margin:6px;flex-wrap:wrap}
+    .chip{background:rgba(255,255,255,.12);padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px}
+    .room{
+      width:min(380px,94vw);margin:8px auto;padding:16px 12px 20px;border-radius:24px;
+      background:linear-gradient(#1e293b,#0f172a);box-shadow:inset 0 0 40px rgba(0,0,0,.45),0 10px 0 #020617;
+      position:relative;
+    }
+    .lamp{
+      width:54px;height:54px;margin:0 auto 8px;border-radius:50%;
+      background:radial-gradient(circle at 40% 35%,#fff7c2,#f59e0b 55%,#b45309);
+      box-shadow:0 0 28px #fbbf24;font-size:28px;display:grid;place-items:center;
+    }
+    .phases{display:flex;justify-content:center;gap:4px;margin-bottom:8px}
+    .moon{width:18px;height:18px;border-radius:50%;background:#1e293b;border:2px solid #64748b}
+    .moon.on{background:#fde68a;border-color:#fbbf24;box-shadow:0 0 8px #fde68a}
+    .hero{
+      font-size:84px;margin:4px auto 8px;width:110px;height:110px;border-radius:20px;
+      background:radial-gradient(circle at 50% 30%,#fef3c7,#f59e0b 70%);
+      display:grid;place-items:center;box-shadow:0 0 24px rgba(251,191,36,.45);
+    }
+    .wall{
+      min-height:150px;background:linear-gradient(#334155,#1e293b);border-radius:16px;
+      display:flex;justify-content:center;align-items:flex-end;gap:12px;padding:16px 8px 12px;flex-wrap:wrap;
+    }
+    .sh{
+      width:88px;height:100px;border-radius:16px 16px 8px 8px;
+      background:rgba(2,6,23,.55);font-size:56px;
+      filter:grayscale(1) brightness(0.08);
+      box-shadow:0 8px 0 #020617;
+      transition:transform .25s;
+    }
+    .sh:active{transform:translateY(3px)}
+    .sh.pick{outline:3px solid #fde68a}
+    .sh.wiggle{animation:wig .35s}
+    @keyframes wig{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+    .hint{font-weight:800;margin-top:10px;min-height:1.4em;color:#fde68a;font-size:18px}
+    .confirm{
+      display:none;margin-top:10px;background:#fde68a;color:#3b2100;font-weight:800;font-size:20px;
+      padding:12px 22px;border-radius:999px;box-shadow:0 6px 0 #b45309;
+    }
+    .confirm.on{display:inline-block}
+    .banner{
+      display:none;width:min(340px,92vw);margin:14px auto 0;padding:18px;
+      background:#0f172a;border:3px solid #fde68a;border-radius:50%;width:280px;height:280px;
+      box-shadow:0 0 30px rgba(253,230,138,.35);color:#fde68a;
+      flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    }
+    .banner.on{display:flex}
+    .acts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:20px;padding:10px 16px;border-radius:999px;box-shadow:0 5px 0 #e09f1f}
+    .play.next{background:#c4b5fd;color:#2e1065;box-shadow:0 5px 0 #7c3aed}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <h1>Shadow Match</h1>
-  <p class="msg" id="msg">Tap the matching shadow!</p>
-  <div class="hero" id="hero">🐘</div>
-  <div class="row" id="row"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🌙</div>
-    <h2>Shadow champ!</h2>
-    <button class="play" id="again">Match again</button>
+  <div class="hud">
+    <span class="chip" id="nightChip">Night 1</span>
+    <span class="chip" id="roundChip">Round 1 / 8</span>
+    <span class="chip" id="stars">⭐ 0</span>
+  </div>
+  <div class="room">
+    <div class="lamp">🌙</div>
+    <div class="phases" id="phases"></div>
+    <div class="hero" id="hero">🐘</div>
+    <div class="wall" id="wall"></div>
+    <p class="hint" id="msg">Tap the matching shadow!</p>
+    <button class="confirm" id="okBtn">That's it!</button>
+  </div>
+  <div class="banner" id="banner">
+    <div style="font-size:48px">🌙</div>
+    <h2 id="btitle">Shadow champ!</h2>
+    <p id="bsub"></p>
+    <div class="acts">
+      <button class="play next" id="nextBtn">Next</button>
+      <button class="play" id="againBtn">Play again</button>
+    </div>
   </div>
   <script>
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var pals=["🐘","🦒","🐧","🦋","🐢","🐰"],score=0,need="";
     function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-    function round(){
-      need=pals[Math.floor(Math.random()*pals.length)];
-      document.getElementById("hero").textContent=need;
-      var picks=shuffle(pals.filter(function(p){return p!==need;})).slice(0,2).concat([need]);
-      picks=shuffle(picks);
-      var row=document.getElementById("row");row.innerHTML="";
-      picks.forEach(function(p){
-        var b=document.createElement("button");b.className="sh";b.textContent=p;
-        b.onclick=function(){
-          if(p!==need){document.getElementById("msg").textContent="Not that shadow.";beep(180,.1);return;}
-          score++;beep(780,.1);document.getElementById("msg").textContent="Yes! "+score+"/6";
-          if(score>=6){document.getElementById("win").classList.add("on");beep(940,.2);} else setTimeout(round,350);
-        };
-        row.appendChild(b);
-      });
+    var pals=["🐘","🦒","🐧","🦋","🐢","🐰","🦊","🦉"];
+    var nights=[{from:0,to:2,name:"Night 1",rotate:false,n:3},{from:3,to:5,name:"Night 2",rotate:true,n:3},{from:6,to:7,name:"Night 3",rotate:true,n:4}];
+    var round=0,stars=0,need="",needRot=0,picked=null,nightI=0;
+    function nightOf(r){return r<3?0:r<6?1:2;}
+    function paintPhases(){
+      var p=document.getElementById("phases");p.innerHTML="";
+      for(var i=0;i<8;i++){var m=document.createElement("div");m.className="moon"+(i<=round?" on":"");p.appendChild(m);}
     }
-    round();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function setup(){
+      var N=nights[nightOf(round)];
+      nightI=nightOf(round);
+      document.getElementById("nightChip").textContent=N.name;
+      document.getElementById("roundChip").textContent="Round "+(round+1)+" / 8";
+      document.getElementById("stars").textContent="⭐ "+stars;
+      document.getElementById("banner").classList.remove("on");
+      document.getElementById("okBtn").classList.remove("on");
+      document.getElementById("nextBtn").style.display=round<7?"":"none";
+      picked=null;need=pals[round%pals.length];
+      document.getElementById("hero").textContent=need;
+      needRot=N.rotate?(90*(1+round%3)):0;
+      var others=shuffle(pals.filter(function(p){return p!==need;})).slice(0,N.n-1);
+      var picks=shuffle(others.concat([need]));
+      var wall=document.getElementById("wall");wall.innerHTML="";
+      picks.forEach(function(p){
+        var rot=p===need?needRot:(90*(1+Math.floor(Math.random()*3)));
+        if(!N.rotate)rot=0;
+        var b=document.createElement("button");b.className="sh";b.textContent=p;
+        b.style.transform="rotate("+rot+"deg)";
+        b.dataset.e=p;b.dataset.rot=rot;
+        b.onclick=function(){tap(b,p,N);};
+        wall.appendChild(b);
+      });
+      document.getElementById("msg").textContent=N.rotate?"Tap a shadow to turn it.":"Tap the matching shadow!";
+      paintPhases();
+    }
+    function tap(b,p,N){
+      if(!N.rotate){
+        if(p!==need){b.classList.remove("wiggle");void b.offsetWidth;b.classList.add("wiggle");document.getElementById("msg").textContent="Not that shadow.";beep(180,.1);return;}
+        winRound();return;
+      }
+      wallClear();b.classList.add("pick");picked=b;
+      var rot=(+b.dataset.rot+90)%360;b.dataset.rot=rot;b.style.transform="rotate("+rot+"deg)";
+      document.getElementById("okBtn").classList.add("on");
+      document.getElementById("msg").textContent="Turn… then That's it!";
+      beep(440,.06);
+    }
+    function wallClear(){document.querySelectorAll(".sh").forEach(function(s){s.classList.remove("pick");});}
+    document.getElementById("okBtn").onclick=function(){
+      if(!picked)return;
+      var e=picked.dataset.e,rot=+picked.dataset.rot;
+      if(e!==need){picked.classList.remove("wiggle");void picked.offsetWidth;picked.classList.add("wiggle");document.getElementById("msg").textContent="Not that pal.";beep(180,.1);return;}
+      if((rot%360)!==0){document.getElementById("msg").textContent="Turn it so it stands up!";beep(200,.08);return;}
+      winRound();
+    };
+    function winRound(){
+      stars++;beep(780,.1);
+      document.getElementById("msg").textContent="Yes!";
+      document.getElementById("okBtn").classList.remove("on");
+      paintPhases();
+      document.getElementById("stars").textContent="⭐ "+stars;
+      var lastInNight=round===2||round===5||round===7;
+      if(lastInNight){
+        document.getElementById("btitle").textContent=round===7?"Shadow champ!":nights[nightOf(round)].name+" done!";
+        document.getElementById("bsub").textContent="Moon grows · ⭐ "+stars;
+        document.getElementById("nextBtn").style.display=round<7?"":"none";
+        document.getElementById("banner").classList.add("on");beep(940,.2);
+      }else{round++;setTimeout(setup,400);}
+    }
+    document.getElementById("nextBtn").onclick=function(){if(round<7){round++;setup();}};
+    document.getElementById("againBtn").onclick=function(){round=0;stars=0;setup();};
+    setup();
   </script>
 </body>
 </html>
