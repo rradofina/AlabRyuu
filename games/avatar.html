@@ -6,81 +6,227 @@
   <title>My Avatar</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#2a1144;color:#fff;touch-action:manipulation}
+    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4a044e;touch-action:manipulation}
     button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{background:radial-gradient(circle at 20% 0%,#db2777,transparent 42%),radial-gradient(circle at 90% 30%,#7c3aed,transparent 40%),#2a1144;padding:64px 16px 40px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.25);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(32px,8vw,46px);text-shadow:0 4px 0 #6b1d4a;margin-bottom:8px}
-    .sub{opacity:.85;margin-bottom:16px}
-    .preview{width:min(260px,80vw);margin:0 auto 18px;padding:22px 16px;border-radius:32px;background:#fff;color:#222;box-shadow:0 10px 0 #c4b5fd}
-    .face{font-size:92px;line-height:1}
-    .who{font-size:26px;font-weight:800;margin-top:6px}
-    .shirt{height:28px;border-radius:999px;margin:10px auto 0;width:70%}
-    label{display:block;font-weight:800;margin:14px 0 8px;font-size:18px}
-    input[type=text]{width:min(280px,86vw);font:inherit;font-size:22px;font-weight:800;text-align:center;padding:12px;border-radius:18px;border:0;background:#fff;color:#222}
-    .row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-    .pick{width:64px;height:64px;border-radius:20px;font-size:34px;background:rgba(255,255,255,.16)}
-    .pick.on{outline:4px solid #ffd166;background:#fff}
-    .swatch{width:52px;height:52px;border-radius:16px}
-    .swatch.on{outline:4px solid #fff}
-    .save{margin-top:22px;background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:16px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-    .save:active{transform:translateY(4px);box-shadow:0 3px 0 #e09f1f}
-    .ok{margin-top:12px;min-height:1.4em;font-weight:800}
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 12% 8%,#f9a8d4,transparent 32%),
+        radial-gradient(circle at 90% 20%,#c084fc,transparent 28%),
+        linear-gradient(#fce7f3,#e9d5ff);
+      padding:56px 12px 28px;
+    }
+    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(88,28,135,.45);padding:8px 14px;border-radius:999px}
+    h1{text-align:center;font-size:clamp(28px,7vw,40px);color:#9d174d;text-shadow:0 3px 0 #fbcfe8;margin-bottom:8px}
+    .room{max-width:440px;margin:0 auto}
+    .tabs{display:flex;gap:6px;margin-bottom:10px}
+    .tabs button{
+      flex:1;background:#fbcfe8;color:#831843;font-weight:800;font-size:13px;
+      padding:10px 4px;border-radius:14px;box-shadow:0 4px 0 #db2777;
+    }
+    .tabs button.on{background:#f472b6;color:#fff}
+    .vanity{
+      position:relative;
+      background:#fdf2f8;
+      border:8px solid #db2777;
+      border-radius:28px;
+      padding:16px 14px 20px;
+      box-shadow:0 12px 0 #9d174d;
+    }
+    .bulbs{display:flex;justify-content:space-between;margin:-6px 4px 8px}
+    .bulbs i{width:14px;height:14px;border-radius:50%;background:#fde68a;box-shadow:0 0 8px #facc15}
+    .mirror{
+      width:min(220px,70vw);margin:0 auto;padding:18px 12px 14px;
+      border-radius:50% 50% 42% 42%;
+      background:linear-gradient(#fff,#fce7f3);
+      border:6px solid #f9a8d4;
+      text-align:center;
+      box-shadow:inset 0 0 20px rgba(236,72,153,.15);
+    }
+    .face{font-size:84px;line-height:1;transition:transform .25s}
+    .face.wave{animation:wave .5s}
+    .face.jump{animation:jump .45s}
+    .face.sit{transform:scale(.85) translateY(10px)}
+    @keyframes wave{25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+    @keyframes jump{50%{transform:translateY(-16px) scale(1.08)}}
+    .who{font-size:24px;font-weight:800;margin-top:4px}
+    .shirt{height:22px;border-radius:999px;margin:8px auto 0;width:64%}
+    .hat{font-size:36px;min-height:42px}
+    .pet{font-size:34px;margin-top:4px}
+    .stage{margin-top:14px;text-align:center}
+    .stage h2{font-size:20px;margin-bottom:8px}
+    input[type=text]{
+      width:min(240px,80vw);font:inherit;font-size:22px;font-weight:800;text-align:center;
+      padding:12px;border-radius:18px;border:0;background:#fff;color:#831843;
+      box-shadow:0 4px 0 #f9a8d4;
+    }
+    .row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}
+    .pick{width:60px;height:60px;border-radius:18px;font-size:30px;background:#fff}
+    .pick.on{outline:4px solid #db2777;background:#fce7f3}
+    .swatch{width:48px;height:48px;border-radius:14px}
+    .swatch.on{outline:4px solid #831843}
+    .nav{display:flex;justify-content:center;gap:10px;margin-top:16px}
+    .nav button{
+      background:#f472b6;color:#fff;font-weight:800;font-size:20px;
+      padding:14px 20px;border-radius:999px;box-shadow:0 6px 0 #9d174d;
+    }
+    .nav button:active{transform:translateY(3px)}
+    .save{
+      display:block;margin:14px auto 0;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;
+      padding:14px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f;
+    }
+    .parade{
+      position:relative;height:90px;overflow:hidden;margin-top:10px;
+      background:linear-gradient(#fce7f3,#f9a8d4);border-radius:16px;display:none;
+    }
+    .parade.on{display:block}
+    .float{position:absolute;bottom:10px;font-size:42px;animation:go 2.4s linear infinite}
+    @keyframes go{from{left:-20%}to{left:110%}}
+    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(88,28,135,.88);z-index:20;gap:10px;color:#fff;padding:20px;text-align:center}
+    .win.on{display:flex}
+    .win h2{font-size:32px}
+    .win button{
+      background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;
+      padding:14px 22px;border-radius:999px;box-shadow:0 6px 0 #e09f1f;margin:4px;
+    }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>My Avatar</h1>
-  <p class="sub">Make your kid. Then play!</p>
-  <div class="preview" id="preview">
-    <div class="face" id="face">🧒</div>
-    <div class="who" id="who">Kid</div>
-    <div class="shirt" id="shirtbar"></div>
-    <div style="font-size:36px;margin-top:6px" id="petface">🐶</div>
+  <h1>Dressing Room</h1>
+  <div class="room">
+    <div class="tabs" id="tabs"></div>
+    <div class="vanity">
+      <div class="bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="mirror">
+        <div class="hat" id="hatface"></div>
+        <div class="face" id="face">🧒</div>
+        <div class="who" id="who">Alab</div>
+        <div class="shirt" id="shirtbar"></div>
+        <div class="pet" id="petface">🐶</div>
+      </div>
+      <div class="parade" id="parade"><div class="float" id="march"></div></div>
+      <div class="stage" id="stage"></div>
+      <div class="nav">
+        <button id="back">← Back</button>
+        <button id="next">Next →</button>
+      </div>
+      <button class="save" id="save">Save kid</button>
+    </div>
   </div>
-  <label>Your name</label>
-  <input id="name" type="text" maxlength="12" placeholder="Alab" value="Alab" />
-  <label>Hair</label>
-  <div class="row" id="hairs"></div>
-  <label>Shirt color</label>
-  <div class="row" id="shirts"></div>
-  <label>Pet friend</label>
-  <div class="row" id="pets"></div>
-  <button class="save" id="save">Save & go home</button>
-  <p class="ok" id="ok"></p>
+  <div class="win" id="win">
+    <div style="font-size:72px">🎉</div>
+    <h2>Parade time!</h2>
+    <p id="winline" style="font-weight:800;font-size:20px"></p>
+    <div>
+      <button id="again">Play again</button>
+      <button id="gohome">Next</button>
+    </div>
+  </div>
   <script>
     var hairs=["🧒","👧","👦","🦊","🐧","🐱"];
     var shirts=["#ff6b6b","#ffd166","#4ecdc4","#45b7d1","#a78bfa","#f472b6"];
     var pets=["🐶","🐱","🐰","🐢","🐥","🦄"];
-    var state={name:"Alab",hair:"🧒",shirt:"#ffd166",pet:"🐶"};
-    try{var s=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(s&&s.name)state=s;}catch(e){}
+    var hats=["","👒","🎩","🧢"];
+    var poses=["wave","jump","sit"];
+    var poseLabel={wave:"Wave",jump:"Jump",sit:"Sit"};
+    var tabNames=["Face","Shirt","Pet","Pose"];
+    var state={name:"Alab",hair:"🧒",shirt:"#ffd166",pet:"🐶",hat:"",pose:"wave"};
+    try{var s=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(s&&s.name){state.name=s.name;state.hair=s.hair||state.hair;state.shirt=s.shirt||state.shirt;state.pet=s.pet||state.pet;if(s.hat)state.hat=s.hat;if(s.pose)state.pose=s.pose;}}catch(e){}
     function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
+    var step=0;
     function render(){
-      document.getElementById("face").textContent=state.hair;
+      var face=document.getElementById("face");
+      face.textContent=state.hair;
+      face.className="face "+state.pose;
       document.getElementById("who").textContent=state.name||"Kid";
       document.getElementById("shirtbar").style.background=state.shirt;
       document.getElementById("petface").textContent=state.pet;
-      document.getElementById("preview").style.boxShadow="0 10px 0 "+state.shirt;
-      document.querySelectorAll("#hairs .pick").forEach(function(b){b.classList.toggle("on",b.dataset.v===state.hair);});
-      document.querySelectorAll("#shirts .swatch").forEach(function(b){b.classList.toggle("on",b.dataset.v===state.shirt);});
-      document.querySelectorAll("#pets .pick").forEach(function(b){b.classList.toggle("on",b.dataset.v===state.pet);});
+      document.getElementById("hatface").textContent=state.hat||" ";
+      document.querySelectorAll("#tabs button").forEach(function(b,i){b.classList.toggle("on",i===step);});
+      document.getElementById("back").style.visibility=step? "visible":"hidden";
+      document.getElementById("next").textContent=step===3?"Save →":"Next →";
     }
-    var hr=document.getElementById("hairs");
-    hairs.forEach(function(h){var b=document.createElement("button");b.className="pick";b.dataset.v=h;b.textContent=h;b.onclick=function(){state.hair=h;beep(520,.08);render();};hr.appendChild(b);});
-    var sr=document.getElementById("shirts");
-    shirts.forEach(function(c){var b=document.createElement("button");b.className="swatch";b.dataset.v=c;b.style.background=c;b.onclick=function(){state.shirt=c;beep(440,.08);render();};sr.appendChild(b);});
-    var pr=document.getElementById("pets");
-    pets.forEach(function(h){var b=document.createElement("button");b.className="pick";b.dataset.v=h;b.textContent=h;b.onclick=function(){state.pet=h;beep(600,.08);render();};pr.appendChild(b);});
-    document.getElementById("name").value=state.name;
-    document.getElementById("name").oninput=function(){state.name=this.value.slice(0,12);render();};
-    document.getElementById("save").onclick=function(){
+    function stage(){
+      var box=document.getElementById("stage");box.innerHTML="";
+      if(step===0){
+        box.innerHTML="<h2>1 Face + name</h2>";
+        var inp=document.createElement("input");inp.type="text";inp.maxLength=12;inp.value=state.name;
+        inp.oninput=function(){state.name=this.value.slice(0,12);render();};
+        box.appendChild(inp);
+        var row=document.createElement("div");row.className="row";
+        hairs.forEach(function(h){
+          var b=document.createElement("button");b.className="pick"+(state.hair===h?" on":"");b.textContent=h;
+          b.onclick=function(){state.hair=h;beep(520,.08);stage();render();};
+          row.appendChild(b);
+        });
+        box.appendChild(row);
+      }else if(step===1){
+        box.innerHTML="<h2>2 Shirt color</h2>";
+        var row=document.createElement("div");row.className="row";
+        shirts.forEach(function(c){
+          var b=document.createElement("button");b.className="swatch"+(state.shirt===c?" on":"");b.style.background=c;
+          b.onclick=function(){state.shirt=c;beep(440,.08);stage();render();};
+          row.appendChild(b);
+        });
+        box.appendChild(row);
+      }else if(step===2){
+        box.innerHTML="<h2>3 Pet friend</h2>";
+        var row=document.createElement("div");row.className="row";
+        pets.forEach(function(h){
+          var b=document.createElement("button");b.className="pick"+(state.pet===h?" on":"");b.textContent=h;
+          b.onclick=function(){state.pet=h;beep(600,.08);stage();render();};
+          row.appendChild(b);
+        });
+        box.appendChild(row);
+      }else{
+        box.innerHTML="<h2>4 Pose + hat</h2>";
+        var row=document.createElement("div");row.className="row";
+        poses.forEach(function(p){
+          var b=document.createElement("button");b.className="pick"+(state.pose===p?" on":"");b.textContent=poseLabel[p];
+          b.style.fontSize="14px";b.style.fontWeight="800";
+          b.onclick=function(){state.pose=p;beep(500,.08);stage();render();};
+          row.appendChild(b);
+        });
+        box.appendChild(row);
+        var hatsRow=document.createElement("div");hatsRow.className="row";
+        hats.forEach(function(h){
+          var b=document.createElement("button");b.className="pick"+(state.hat===h?" on":"");b.textContent=h||"∅";
+          b.onclick=function(){state.hat=h;beep(480,.08);stage();render();};
+          hatsRow.appendChild(b);
+        });
+        box.appendChild(hatsRow);
+      }
+    }
+    var tabs=document.getElementById("tabs");
+    tabNames.forEach(function(n,i){
+      var b=document.createElement("button");b.textContent=(i+1)+" "+n;
+      b.onclick=function(){step=i;beep(400,.06);stage();render();};
+      tabs.appendChild(b);
+    });
+    function doSave(goWin){
       state.name=(state.name||"Kid").trim()||"Kid";
-      localStorage.setItem("alabryuu-avatar",JSON.stringify(state));
+      localStorage.setItem("alabryuu-avatar",JSON.stringify({name:state.name,hair:state.hair,shirt:state.shirt,pet:state.pet,hat:state.hat,pose:state.pose}));
       beep(660,.12);setTimeout(function(){beep(880,.16);},90);
-      document.getElementById("ok").textContent="Saved! Going home…";
-      setTimeout(function(){location.href="../index.html";},500);
+      document.getElementById("march").textContent=(state.hat||"")+state.hair+" "+state.pet;
+      document.getElementById("parade").classList.add("on");
+      if(goWin){
+        document.getElementById("winline").textContent=state.name+" and "+state.pet+" march!";
+        document.getElementById("win").classList.add("on");
+      }
+    }
+    document.getElementById("back").onclick=function(){if(step>0){step--;stage();render();beep(360,.06);}};
+    document.getElementById("next").onclick=function(){
+      if(step<3){step++;stage();render();beep(500,.08);}
+      else doSave(1);
     };
-    render();
+    document.getElementById("save").onclick=function(){doSave(1);};
+    document.getElementById("again").onclick=function(){
+      document.getElementById("win").classList.remove("on");
+      step=0;stage();render();
+    };
+    document.getElementById("gohome").onclick=function(){location.href="../index.html";};
+    stage();render();
   </script>
 </body>
 </html>
