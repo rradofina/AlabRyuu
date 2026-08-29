@@ -5,58 +5,396 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Zoom Race</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#1e293b;color:#fff;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;padding:58px 14px 20px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(30px,8vw,44px)}
-    .msg{font-weight:800;margin:8px 0 14px}
-    .lane{position:relative;height:78px;margin:12px auto;max-width:420px;background:#334155;border-radius:20px;overflow:hidden}
-    .car{position:absolute;left:8px;top:10px;font-size:52px;line-height:1;transition:left .05s linear}
-    .flag{position:absolute;right:8px;top:18px;font-size:36px}
-    .tap{margin:22px auto 0;width:min(280px,86vw);height:120px;border-radius:32px;background:#ea580c;color:#fff;font-weight:800;font-size:28px;box-shadow:0 8px 0 #9a3412}
-    .tap:active{transform:translateY(5px);box-shadow:0 3px 0 #9a3412}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(15,23,42,.88);z-index:8;gap:12px}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      font-family: "Arial Black", Impact, "Arial Narrow", system-ui, sans-serif;
+      background: #1c1917; color: #fff7ed;
+      touch-action: manipulation; user-select: none; -webkit-user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    body {
+      min-height: 100vh; display: flex; flex-direction: column;
+      padding: 58px 12px 0;
+    }
+    body.city { background: linear-gradient(#334155, #1c1917 40%); }
+    body.beach { background: linear-gradient(#38bdf8, #fde68a 38%, #ea580c 90%); color: #1c1917; }
+    body.neon { background: linear-gradient(#2e1065, #0f172a 50%); }
+    .home {
+      position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 12;
+      color: #fff; text-decoration: none; font-family: "Trebuchet MS", system-ui, sans-serif;
+      font-weight: 800; font-size: 17px; background: #ea580c; padding: 8px 14px; border-radius: 8px;
+      box-shadow: 0 3px 0 #9a3412;
+    }
+    #top {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+      margin-bottom: 8px;
+    }
+    #title {
+      font-size: clamp(22px, 6vw, 32px); letter-spacing: 1px; text-transform: uppercase;
+      text-shadow: 2px 3px 0 #9a3412;
+    }
+    body.beach #title { text-shadow: 2px 3px 0 #c2410c; }
+    body.neon #title { text-shadow: 0 0 12px #22d3ee; color: #67e8f9; }
+    #hud {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+      font-family: "Trebuchet MS", system-ui, sans-serif; font-weight: 800; font-size: 13px;
+    }
+    #hud i {
+      font-style: normal; background: #292524; color: #fdba74; padding: 5px 10px; border-radius: 6px;
+      border: 2px solid #ea580c;
+    }
+    body.neon #hud i { background: #1e1b4b; color: #67e8f9; border-color: #22d3ee; }
+    #trackName {
+      font-family: "Trebuchet MS", system-ui, sans-serif; font-weight: 800; font-size: 16px;
+      margin-bottom: 8px; min-height: 1.3em;
+    }
+    .board {
+      display: flex; justify-content: space-between; font-family: "Trebuchet MS", system-ui, sans-serif;
+      font-weight: 800; font-size: 15px; margin-bottom: 8px;
+    }
+    .lane {
+      position: relative; height: 74px; margin: 8px 0; border-radius: 14px; overflow: hidden;
+      background: #292524;
+      background-image: repeating-linear-gradient(90deg, transparent 0 28px, #fbbf24 28px 40px, transparent 40px 68px);
+      background-position: 0 50%;
+      box-shadow: inset 0 0 0 4px #44403c, 0 6px 0 #0c0a09;
+    }
+    body.city .lane { background-color: #44403c; }
+    body.beach .lane { background-color: #78716c; box-shadow: inset 0 0 0 4px #d6d3d1, 0 6px 0 #9a3412; }
+    body.neon .lane {
+      background-color: #1e1b4b;
+      background-image: repeating-linear-gradient(90deg, transparent 0 28px, #22d3ee 28px 40px, transparent 40px 68px);
+      box-shadow: inset 0 0 0 4px #7c3aed, 0 6px 0 #2e1065;
+    }
+    .who {
+      position: absolute; left: 8px; top: 4px; font-family: "Trebuchet MS", system-ui, sans-serif;
+      font-weight: 800; font-size: 11px; opacity: .8;
+    }
+    .car {
+      position: absolute; left: 8px; top: 12px; font-size: 48px; line-height: 1;
+      transition: left 40ms linear;
+    }
+    .flag { position: absolute; right: 6px; top: 16px; font-size: 32px; }
+    #floor {
+      margin-top: auto; display: none; gap: 10px;
+      padding: 12px 0 max(14px, env(safe-area-inset-bottom));
+    }
+    #floor.on { display: flex; }
+    .pad {
+      flex: 1.4; height: 132px; border-radius: 28px; font-weight: 800; font-size: 26px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; letter-spacing: 1px;
+    }
+    .pad small { font-family: "Trebuchet MS", system-ui, sans-serif; font-size: 13px; letter-spacing: 0; }
+    #tap {
+      background: #ea580c; color: #fff7ed; box-shadow: 0 10px 0 #9a3412;
+    }
+    #tap:active { transform: translateY(6px); box-shadow: 0 4px 0 #9a3412; }
+    #tap.coin { box-shadow: 0 10px 0 #9a3412, 0 0 0 6px #fde047; }
+    #boost {
+      flex: 1; background: #44403c; color: #a8a29e; box-shadow: 0 10px 0 #1c1917;
+    }
+    #boost.ready {
+      background: #facc15; color: #422006; box-shadow: 0 10px 0 #ca8a04, 0 0 22px #fde047;
+      animation: glow 0.9s ease-in-out infinite;
+    }
+    #boost.hot { background: #22d3ee; color: #083344; box-shadow: 0 10px 0 #0e7490; }
+    #boost:active { transform: translateY(6px); box-shadow: 0 4px 0 #1c1917; }
+    @keyframes glow { 50% { filter: brightness(1.15); } }
+    #coinPop {
+      position: absolute; top: 10px; right: 16px; font-size: 36px; display: none;
+      animation: pop 0.3s ease;
+    }
+    #coinPop.on { display: block; }
+    @keyframes pop { from { transform: scale(.4); } to { transform: scale(1); } }
+    .cover {
+      position: fixed; inset: 0; z-index: 16; display: flex; align-items: center;
+      justify-content: center; flex-direction: column; text-align: center;
+      padding: 22px 16px; gap: 10px;
+      background: linear-gradient(180deg, #ea580c, #1c1917);
+    }
+    .cover.off { display: none; }
+    .cover h1, .cover h2 {
+      font-size: clamp(32px, 9vw, 48px); text-transform: uppercase;
+      text-shadow: 3px 4px 0 #9a3412;
+    }
+    .cover p { font-family: "Trebuchet MS", system-ui, sans-serif; font-weight: 800; font-size: 18px; max-width: 320px; }
+    .play {
+      font-size: 22px; padding: 14px 24px; border-radius: 14px;
+      background: #fde047; color: #422006; box-shadow: 0 7px 0 #ca8a04;
+    }
+    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #ca8a04; }
+    .play.cyan { background: #22d3ee; box-shadow: 0 7px 0 #0e7490; color: #083344; }
+    .winbtns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .chips i {
+      font-style: normal; font-family: "Trebuchet MS", system-ui, sans-serif; font-weight: 800;
+      font-size: 13px; background: rgba(0,0,0,.3); padding: 6px 10px; border-radius: 8px;
+    }
   </style>
 </head>
-<body>
+<body class="city">
   <a class="home" href="../index.html">← Home</a>
-  <h1>Zoom Race</h1>
-  <p class="msg" id="msg">Tap FAST to beat the blue car!</p>
-  <div class="lane"><div class="car" id="you">🚗</div><div class="flag">🏁</div></div>
-  <div class="lane"><div class="car" id="bot">🚙</div><div class="flag">🏁</div></div>
-  <button class="tap" id="tap">TAP TAP ZOOM</button>
-  <div class="win" id="win">
-    <div style="font-size:72px">🏆</div>
-    <h2 id="wint">You win!</h2>
-    <button class="play" id="again">Race again</button>
+  <div id="top">
+    <div>
+      <div id="title">Zoom Race</div>
+      <div id="trackName">City Day · Lap 1</div>
+    </div>
+    <div id="hud">
+      <i id="lapHud">Lap 1 / 3</i>
+      <i id="coinHud">🪙 0</i>
+      <i id="boostHud">Boost ready</i>
+    </div>
   </div>
+  <div class="board">
+    <span id="youScore">You 0</span>
+    <span id="botScore">Bot 0</span>
+  </div>
+  <div class="lane">
+    <div class="who">YOU</div>
+    <div class="car" id="you">🚗</div>
+    <div class="flag">🏁</div>
+  </div>
+  <div class="lane">
+    <div class="who">BOT</div>
+    <div class="car" id="bot">🚙</div>
+    <div class="flag">🏁</div>
+  </div>
+  <div id="floor">
+    <button class="pad" id="tap" type="button">
+      TAP
+      <small>zoom zoom</small>
+      <span id="coinPop">🪙</span>
+    </button>
+    <button class="pad" id="boost" type="button">
+      BOOST
+      <small id="boostLab">hold</small>
+    </button>
+  </div>
+
+  <div class="cover" id="start">
+    <div style="font-size:72px">🏎️</div>
+    <h1>Zoom Race</h1>
+    <p>Tap fast. Hold boost. Grab coins on the pad!</p>
+    <div class="chips"><i>🏙️ City</i><i>🏖️ Beach</i><i>🌃 Neon</i></div>
+    <button class="play" id="go">Race</button>
+  </div>
+
+  <div class="cover off" id="lapCover">
+    <div style="font-size:64px" id="lapEmoji">🏁</div>
+    <h2 id="lapTitle">Lap done!</h2>
+    <p id="lapLine">Keep going.</p>
+    <div class="winbtns">
+      <button class="play" id="lapAgain">Play again</button>
+      <button class="play cyan" id="lapNext">Next lap</button>
+    </div>
+  </div>
+
+  <div class="cover off" id="win">
+    <div style="font-size:72px">🏆</div>
+    <h1>Zoom champ!</h1>
+    <p id="winLine">You won the race.</p>
+    <div class="winbtns">
+      <button class="play" id="again">Play again</button>
+      <button class="play cyan" id="next">Next track</button>
+    </div>
+  </div>
+
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var you=0,bot=0,go=false,done=false,max=86,last=0;
-    function place(){document.getElementById("you").style.left=you+"%";document.getElementById("bot").style.left=bot+"%";}
-    document.getElementById("tap").onclick=function(){
-      if(done)return;
-      if(!go){go=true;beep(500,.08);loop();}
-      you=Math.min(max,you+2.4);beep(420+you*4,.05);place();check();
+    function beep(f, d, t) {
+      try {
+        var ctx = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
+        if (ctx.state === "suspended") ctx.resume();
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = t || "square"; o.frequency.value = f; g.gain.value = 0.09;
+        o.connect(g); g.connect(ctx.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d);
+        o.stop(ctx.currentTime + d);
+      } catch (e) {}
+    }
+
+    var TRACKS = [
+      { name: "City Day", cls: "city", emoji: "🏙️", you: "🚗", bot: "🚙", botRate: 11.2 },
+      { name: "Beach", cls: "beach", emoji: "🏖️", you: "🚗", bot: "🚕", botRate: 12.4 },
+      { name: "Night Neon", cls: "neon", emoji: "🌃", you: "🚗", bot: "🏎️", botRate: 13.6 }
+    ];
+
+    var you = 0, bot = 0, max = 84, racing = false, locked = false;
+    var lap = 0, startTrack = 0, youLaps = 0, botLaps = 0, coins = 0, botCoins = 0;
+    var boostReady = true, boostHot = 0, boostCd = 0, holdingBoost = false;
+    var coinOn = false, coinT = 0, coinWait = 3.2, last = 0;
+
+    function theme() {
+      var tr = TRACKS[(startTrack + lap) % 3];
+      document.body.className = tr.cls;
+      document.getElementById("you").textContent = tr.you;
+      document.getElementById("bot").textContent = tr.bot;
+      document.getElementById("trackName").textContent = tr.emoji + " " + tr.name + " · Lap " + (lap + 1);
+    }
+
+    function hud() {
+      document.getElementById("lapHud").textContent = "Lap " + (lap + 1) + " / 3";
+      document.getElementById("coinHud").textContent = "🪙 " + coins;
+      document.getElementById("youScore").textContent = "You " + youLaps;
+      document.getElementById("botScore").textContent = "Bot " + botLaps;
+      var bh = document.getElementById("boostHud");
+      var lab = document.getElementById("boostLab");
+      var btn = document.getElementById("boost");
+      btn.classList.toggle("ready", boostReady && boostHot <= 0);
+      btn.classList.toggle("hot", boostHot > 0);
+      if (boostHot > 0) {
+        bh.textContent = "Boost GO";
+        lab.textContent = "zoom!";
+      } else if (boostReady) {
+        bh.textContent = "Boost ready";
+        lab.textContent = "hold";
+      } else {
+        bh.textContent = "Boost wait";
+        lab.textContent = "wait";
+      }
+    }
+
+    function place() {
+      document.getElementById("you").style.left = you + "%";
+      document.getElementById("bot").style.left = bot + "%";
+    }
+
+    function resetLap() {
+      you = 0; bot = 0; locked = false; racing = true;
+      theme(); place(); hud();
+    }
+
+    function resetRace(st) {
+      startTrack = (st + 3) % 3;
+      lap = 0; youLaps = 0; botLaps = 0; coins = 0; botCoins = 0;
+      boostReady = true; boostHot = 0; boostCd = 0; holdingBoost = false;
+      coinOn = false; coinT = 0; coinWait = 2.8;
+      document.getElementById("coinPop").classList.remove("on");
+      document.getElementById("tap").classList.remove("coin");
+      document.getElementById("start").classList.add("off");
+      document.getElementById("lapCover").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("floor").classList.add("on");
+      resetLap();
+      beep(500, 0.08);
+    }
+
+    function showCoin(on) {
+      coinOn = on;
+      document.getElementById("coinPop").classList.toggle("on", on);
+      document.getElementById("tap").classList.toggle("coin", on);
+    }
+
+    function tapZoom() {
+      if (locked || !racing) return;
+      if (coinOn) {
+        coins++; showCoin(false); coinWait = 3 + Math.random() * 2;
+        beep(920, 0.08); hud();
+      }
+      you = Math.min(max, you + 3.05);
+      beep(380 + you * 4, 0.04);
+      place();
+    }
+
+    document.getElementById("tap").addEventListener("pointerdown", function (e) {
+      e.preventDefault(); tapZoom();
+    });
+
+    var boostBtn = document.getElementById("boost");
+    boostBtn.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      if (locked || !racing) return;
+      holdingBoost = true;
+      if (boostReady && boostHot <= 0) {
+        boostReady = false; boostHot = 1.15; boostCd = 4.2;
+        beep(220, 0.12, "sawtooth");
+        hud();
+      }
+    });
+    function endBoostHold() { holdingBoost = false; }
+    boostBtn.addEventListener("pointerup", endBoostHold);
+    boostBtn.addEventListener("pointercancel", endBoostHold);
+    boostBtn.addEventListener("pointerleave", endBoostHold);
+
+    function endLap(youWon) {
+      locked = true; racing = false;
+      if (youWon) { youLaps++; beep(880, 0.16); }
+      else { botLaps++; botCoins++; beep(260, 0.16); }
+      hud();
+      if (lap >= 2) {
+        finishRace();
+        return;
+      }
+      var tr = TRACKS[(startTrack + lap) % 3];
+      document.getElementById("lapEmoji").textContent = youWon ? "🥇" : "🪙";
+      document.getElementById("lapTitle").textContent = youWon ? "You zoomed!" : "Bot was fast";
+      document.getElementById("lapLine").textContent = youWon
+        ? "Lap " + (lap + 1) + " is yours. Next track!"
+        : "Keep going. Coins can still win!";
+      document.getElementById("lapCover").classList.remove("off");
+    }
+
+    function playerWins() {
+      return youLaps >= 2 || coins > botCoins;
+    }
+
+    function finishRace() {
+      var ok = playerWins();
+      document.getElementById("winLine").textContent = ok
+        ? "Laps " + youLaps + "–" + botLaps + " · 🪙 " + coins
+        : "Good race! 🪙 " + coins + " still a trophy.";
+      document.getElementById("win").classList.remove("off");
+      beep(990, 0.22);
+    }
+
+    function loop(ts) {
+      if (!last) last = ts;
+      var dt = Math.min(0.05, (ts - last) / 1000);
+      last = ts;
+      if (racing && !locked) {
+        var tr = TRACKS[(startTrack + lap) % 3];
+        var extra = boostHot > 0 && holdingBoost ? 38 : (boostHot > 0 ? 22 : 0);
+        you = Math.min(max, you + extra * dt);
+        bot = Math.min(max, bot + (tr.botRate + Math.random() * 1.4) * dt);
+        if (boostHot > 0) {
+          boostHot -= dt;
+          if (boostHot <= 0) { boostHot = 0; }
+        } else if (!boostReady) {
+          boostCd -= dt;
+          if (boostCd <= 0) { boostReady = true; beep(640, 0.08); }
+        }
+        coinWait -= dt;
+        if (!coinOn && coinWait <= 0) {
+          showCoin(true); coinT = 1.35;
+        }
+        if (coinOn) {
+          coinT -= dt;
+          if (coinT <= 0) { showCoin(false); coinWait = 2.6 + Math.random() * 1.8; }
+        }
+        place(); hud();
+        if (you >= max) endLap(true);
+        else if (bot >= max) endLap(false);
+      } else {
+        if (boostHot > 0) boostHot = Math.max(0, boostHot - dt);
+      }
+      requestAnimationFrame(loop);
+    }
+
+    document.getElementById("go").onclick = function () { resetRace(0); };
+    document.getElementById("lapAgain").onclick = function () { resetRace(startTrack); };
+    document.getElementById("lapNext").onclick = function () {
+      document.getElementById("lapCover").classList.add("off");
+      lap++; resetLap();
     };
-    function loop(ts){
-      if(done)return;
-      if(!last)last=ts;
-      var dt=Math.min(0.05,(ts-last)/1000);last=ts;
-      bot=Math.min(max,bot+dt*(5.1+Math.random()*0.7));
-      place();check();
-      if(!done)requestAnimationFrame(loop);
-    }
-    function check(){
-      if(done)return;
-      if(you>=max){done=true;document.getElementById("wint").textContent="You zoomed first!";document.getElementById("win").classList.add("on");beep(880,.2);}
-      else if(bot>=max){done=true;document.getElementById("wint").textContent="So close! Tap faster next time." ;document.getElementById("win").classList.add("on");beep(300,.2);}
-    }
-    document.getElementById("again").onclick=function(){location.reload();};
+    document.getElementById("again").onclick = function () { resetRace(startTrack); };
+    document.getElementById("next").onclick = function () { resetRace(startTrack + 1); };
+
+    theme(); place(); hud();
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
