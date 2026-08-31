@@ -56,7 +56,7 @@
   (function () {
     if (!window.THREE) { document.getElementById("bubble").textContent = "Need Three.js"; return; }
     var T = THREE, play = false, era = 0, stars = 0, got = 0, tool = "sun", t = 0;
-    var GLOBE_R = 1.52;
+    var GLOBE_R = 1.38;
     var CUT = [
       { t: "Warm!", p: "The rock glows." },
       { t: "Seas!", p: "Blue water wins." },
@@ -115,7 +115,7 @@
     scene.add(moonMesh);
 
     var world = new T.Group();
-    world.position.y = 0.58;
+    world.position.y = 0.64;
     scene.add(world);
 
     var TEX_W = 1024, TEX_H = 512;
@@ -144,40 +144,52 @@
         g.addColorStop(1, "#431407");
         tx.fillStyle = g;
         tx.fillRect(0, 0, TEX_W, TEX_H);
-        for (var k = 0; k < 18; k++) {
-          blob(Math.random() * TEX_W, Math.random() * TEX_H, 40 + Math.random() * 70, 18 + Math.random() * 40, k % 2 ? "#7c2d12" : "#ea580c", Math.random());
+        for (var k = 0; k < 14; k++) {
+          blob(Math.random() * TEX_W, Math.random() * TEX_H, 36 + Math.random() * 50, 16 + Math.random() * 28, k % 2 ? "#7c2d12" : "#ea580c", Math.random());
         }
         return;
       }
-      tx.fillStyle = kind === "lush" ? "#2563eb" : "#1d4ed8";
+      tx.fillStyle = "#1d4ed8";
       tx.fillRect(0, 0, TEX_W, TEX_H);
-      tx.fillStyle = "rgba(56,189,248,0.22)";
-      blob(300, 200, 220, 80, "rgba(125,211,252,0.2)", 0.2);
-      blob(780, 300, 180, 70, "rgba(125,211,252,0.18)", -0.1);
-      var land = kind === "bare" ? "#a16207" : kind === "early" ? "#65a30d" : "#16a34a";
-      var dark = kind === "bare" ? "#78350f" : "#14532d";
-      blob(220, 150, 78, 70, land, 0.15);
-      blob(235, 230, 58, 95, land, 0.35);
-      blob(248, 330, 48, 88, land, -0.2);
-      blob(210, 175, 36, 40, dark, 0.4);
-      blob(520, 250, 92, 120, land, 0.08);
-      blob(545, 200, 50, 55, land, -0.3);
-      blob(500, 310, 40, 48, dark, 0.2);
-      blob(680, 145, 170, 72, land, 0.05);
-      blob(780, 175, 90, 55, land, -0.15);
-      blob(640, 190, 55, 40, dark, 0.3);
-      blob(860, 320, 58, 38, land, 0.4);
-      blob(330, 70, 48, 28, land, 0.1);
-      blob(930, 210, 28, 36, land, 0);
-      blob(80, 240, 26, 22, land, 0.2);
-      blob(512, 28, 420, 42, "#f8fafc", 0);
-      blob(512, 488, 460, 48, "#f1f5f9", 0);
-      blob(512, 470, 300, 22, "#e2e8f0", 0);
+      blob(280, 210, 260, 90, "#3b82f6", 0.15);
+      blob(760, 300, 220, 80, "#2563eb", -0.1);
+      blob(120, 360, 140, 50, "#38bdf8", 0.2);
+      var land = kind === "early" ? "#4ade80" : "#22c55e";
+      var dark = "#15803d";
+      function continent(cx, cy, pieces) {
+        for (var i = 0; i < pieces.length; i++) {
+          var p = pieces[i];
+          blob(cx + p[0], cy + p[1], p[2], p[3], p[4] || land, p[5] || 0);
+        }
+      }
+      continent(210, 210, [
+        [0, -70, 70, 62, land, 0.2],
+        [18, 20, 52, 88, land, 0.4],
+        [28, 120, 44, 78, land, -0.15],
+        [-8, -40, 28, 30, dark, 0.3]
+      ]);
+      continent(520, 250, [
+        [0, 0, 88, 118, land, 0.05],
+        [30, -55, 48, 50, land, -0.25],
+        [-20, 70, 36, 42, dark, 0.2],
+        [10, -10, 30, 24, dark, 0]
+      ]);
+      continent(720, 155, [
+        [0, 0, 175, 68, land, 0.04],
+        [110, 28, 88, 50, land, -0.12],
+        [-40, 20, 50, 34, dark, 0.25],
+        [60, -8, 40, 22, dark, 0]
+      ]);
+      blob(870, 325, 55, 34, land, 0.35);
+      blob(330, 68, 46, 24, land, 0.1);
+      blob(40, 230, 24, 20, land, 0.2);
+      blob(980, 200, 30, 28, land, 0);
+      blob(512, 22, 500, 48, "#f8fafc", 0);
+      blob(512, 494, 520, 52, "#f1f5f9", 0);
     }
     function paintForEra() {
       if (era === 0) paintEarth("rock");
-      else if (era === 1) paintEarth("bare");
-      else if (era === 2 || era === 3) paintEarth("early");
+      else if (era <= 3) paintEarth("early");
       else paintEarth("lush");
       globeTex.needsUpdate = true;
     }
@@ -235,12 +247,12 @@
 
     function makeTree(scale) {
       var g = new T.Group();
-      var trunk = new T.Mesh(new T.CylinderGeometry(0.035, 0.05, 0.34, 7), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
-      trunk.position.y = 0.17; g.add(trunk);
+      var trunk = new T.Mesh(new T.CylinderGeometry(0.045, 0.065, 0.46, 7), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
+      trunk.position.y = 0.23; g.add(trunk);
       var cols = [0x16a34a, 0x22c55e, 0x4ade80];
       for (var i = 0; i < 3; i++) {
-        var leaf = new T.Mesh(new T.SphereGeometry(0.16 - i * 0.025, 9, 7), new T.MeshLambertMaterial({ color: cols[i] }));
-        leaf.position.set((i - 1) * 0.05, 0.38 + i * 0.1, (i % 2) * 0.04);
+        var leaf = new T.Mesh(new T.SphereGeometry(0.15 - i * 0.02, 9, 7), new T.MeshLambertMaterial({ color: cols[i] }));
+        leaf.position.set((i - 1) * 0.06, 0.5 + i * 0.11, (i % 2) * 0.04);
         g.add(leaf);
       }
       g.scale.setScalar(scale || 1);
@@ -275,24 +287,24 @@
           legs.push(wing);
         }
       } else if (kind === "dino") {
-        body = new T.Mesh(new T.SphereGeometry(0.2, 11, 9), new T.MeshLambertMaterial({ color: 0x4d7c0f }));
-        body.scale.set(1.7, 0.85, 0.95); body.position.y = 0.16; g.add(body);
+        body = new T.Mesh(new T.SphereGeometry(0.28, 11, 9), new T.MeshLambertMaterial({ color: 0x4d7c0f }));
+        body.scale.set(1.75, 0.85, 0.95); body.position.y = 0.22; g.add(body);
         var belly = new T.Mesh(new T.SphereGeometry(0.12, 8, 6), new T.MeshLambertMaterial({ color: 0xbbf7d0 }));
         belly.scale.set(1.3, 0.7, 0.7); belly.position.set(0.04, 0.1, 0.08); g.add(belly);
-        head = new T.Group(); head.position.set(0.32, 0.28, 0); g.add(head);
-        head.add(new T.Mesh(new T.SphereGeometry(0.09, 8, 7), new T.MeshLambertMaterial({ color: 0x4d7c0f })));
-        var snout = new T.Mesh(new T.ConeGeometry(0.045, 0.14, 7), new T.MeshLambertMaterial({ color: 0x365314 }));
-        snout.rotation.z = -Math.PI / 2; snout.position.set(0.1, -0.01, 0); head.add(snout);
+        head = new T.Group(); head.position.set(0.44, 0.38, 0); g.add(head);
+        head.add(new T.Mesh(new T.SphereGeometry(0.12, 8, 7), new T.MeshLambertMaterial({ color: 0x4d7c0f })));
+        var snout = new T.Mesh(new T.ConeGeometry(0.06, 0.2, 7), new T.MeshLambertMaterial({ color: 0x365314 }));
+        snout.rotation.z = -Math.PI / 2; snout.position.set(0.14, -0.01, 0); head.add(snout);
         var deye = new T.Mesh(new T.SphereGeometry(0.02, 6, 5), new T.MeshLambertMaterial({ color: 0x14532d }));
         deye.position.set(0.04, 0.04, 0.06); head.add(deye);
-        tail = new T.Mesh(new T.ConeGeometry(0.07, 0.32, 6), new T.MeshLambertMaterial({ color: 0x3f6212 }));
-        tail.rotation.z = Math.PI / 2; tail.position.set(-0.3, 0.16, 0); g.add(tail);
-        [[0.1, 0.08], [0.1, -0.08], [-0.1, 0.08], [-0.1, -0.08]].forEach(function (p) {
-          var hip = new T.Group(); hip.position.set(p[0], 0.12, p[1]);
-          var thigh = new T.Mesh(new T.SphereGeometry(0.055, 7, 6), new T.MeshLambertMaterial({ color: 0x365314 }));
-          thigh.scale.set(0.7, 1.4, 0.7); thigh.position.y = -0.05; hip.add(thigh);
-          var foot = new T.Mesh(new T.SphereGeometry(0.04, 6, 5), new T.MeshLambertMaterial({ color: 0x14532d }));
-          foot.scale.set(1.3, 0.5, 0.9); foot.position.set(0.03, -0.12, 0); hip.add(foot);
+        tail = new T.Mesh(new T.ConeGeometry(0.1, 0.42, 6), new T.MeshLambertMaterial({ color: 0x3f6212 }));
+        tail.rotation.z = Math.PI / 2; tail.position.set(-0.42, 0.22, 0); g.add(tail);
+        [[0.14, 0.1], [0.14, -0.1], [-0.14, 0.1], [-0.14, -0.1]].forEach(function (p) {
+          var hip = new T.Group(); hip.position.set(p[0], 0.16, p[1]);
+          var thigh = new T.Mesh(new T.SphereGeometry(0.075, 7, 6), new T.MeshLambertMaterial({ color: 0x365314 }));
+          thigh.scale.set(0.7, 1.45, 0.7); thigh.position.y = -0.07; hip.add(thigh);
+          var foot = new T.Mesh(new T.SphereGeometry(0.055, 6, 5), new T.MeshLambertMaterial({ color: 0x14532d }));
+          foot.scale.set(1.3, 0.5, 0.9); foot.position.set(0.04, -0.16, 0); hip.add(foot);
           g.add(hip); legs.push(hip);
         });
       } else if (kind === "fox") {
@@ -335,6 +347,9 @@
     function addWalker(kind, n) {
       for (var i = 0; i < n; i++) {
         var c = makeCritter(kind);
+        c.userData.lon = Math.PI / 2 + i * 0.55;
+        c.userData.lat = 0.12 + (i % 3) * 0.12;
+        if (kind === "dino") c.scale.setScalar(1.15);
         life.add(c);
         walkers.push(c);
       }
@@ -505,8 +520,8 @@
       var portrait = innerHeight > innerWidth;
       cam.fov = portrait ? 46 : 40;
       cam.aspect = innerWidth / innerHeight;
-      cam.position.set(0, 0.42, portrait ? 8.0 : 6.9);
-      cam.lookAt(0, 0.55, 0);
+      cam.position.set(0, 0.48, portrait ? 8.3 : 7.2);
+      cam.lookAt(0, 0.62, 0);
       cam.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
     }
@@ -547,7 +562,7 @@
 
     addEventListener("resize", frameCam);
     frameCam();
-    paintEarth("bare");
+    paintEarth("early");
     globeTex.needsUpdate = true;
     atmos.visible = true;
     clouds.visible = true;
@@ -560,14 +575,14 @@
       if (!dragging) world.rotation.y += dt * 0.07;
       clouds.rotation.y += dt * 0.035;
 
-      var sa = t * 0.034;
-      sunMesh.position.set(Math.cos(sa) * 5.4, 2.15 + Math.sin(sa) * 0.35, -3.6 + Math.sin(sa) * 1.1);
+      var sa = t * 0.032;
+      sunMesh.position.set(3.6 + Math.cos(sa) * 1.1, 2.7 + Math.sin(sa) * 0.3, 3.8 + Math.sin(sa) * 0.7);
       sunL.position.copy(sunMesh.position);
-      moonMesh.position.set(-sunMesh.position.x * 0.7, 1.4, -2.8 - Math.cos(sa) * 0.8);
-      sunBoost *= Math.pow(0.35, dt);
-      sunL.intensity = 1.02 + sunBoost * 0.7;
-      sunL.color.setHex(sunBoost > 0.15 ? 0xffe08a : 0xfff3c4);
-      amb.intensity = 0.32 + sunBoost * 0.08;
+      moonMesh.position.set(-4.2, 1.5, -2.4);
+      sunBoost *= Math.pow(0.4, dt);
+      sunL.intensity = 1.15 + sunBoost * 0.55;
+      sunL.color.setHex(sunBoost > 0.2 ? 0xffe08a : 0xfff4d4);
+      amb.intensity = 0.4 + sunBoost * 0.06;
 
       walkers.forEach(function (w) {
         var u = w.userData;
