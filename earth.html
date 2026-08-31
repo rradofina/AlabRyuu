@@ -184,8 +184,10 @@
       blob(330, 68, 46, 24, land, 0.1);
       blob(40, 230, 24, 20, land, 0.2);
       blob(980, 200, 30, 28, land, 0);
-      blob(512, 22, 500, 48, "#f8fafc", 0);
-      blob(512, 494, 520, 52, "#f1f5f9", 0);
+      blob(512, 18, 540, 78, "#f8fafc", 0);
+      blob(512, 500, 560, 82, "#f8fafc", 0);
+      blob(200, 40, 80, 28, "#e2e8f0", 0);
+      blob(800, 48, 70, 24, "#e2e8f0", 0);
     }
     function paintForEra() {
       if (era === 0) paintEarth("rock");
@@ -347,9 +349,9 @@
     function addWalker(kind, n) {
       for (var i = 0; i < n; i++) {
         var c = makeCritter(kind);
-        c.userData.lon = Math.PI / 2 + i * 0.55;
-        c.userData.lat = 0.12 + (i % 3) * 0.12;
-        if (kind === "dino") c.scale.setScalar(1.15);
+        c.userData.lon = i * (Math.PI * 2 / Math.max(n, 1));
+        c.userData.lat = kind === "dino" ? 0.05 : 0.1 + (i % 3) * 0.1;
+        if (kind === "dino") c.scale.setScalar(1.35);
         life.add(c);
         walkers.push(c);
       }
