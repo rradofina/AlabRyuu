@@ -5,175 +5,309 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Monster Smile</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b0764;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:#1c1917;padding:54px 10px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(24px,7vw,36px);color:#fde68a}
-    .hud{display:flex;justify-content:center;gap:8px;margin:6px}
-    .chip{background:#fff;color:#3b0764;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #a78bfa;font-size:15px}
-    .booth{max-width:380px;margin:8px auto;background:#7f1d1d;border-radius:28px 28px 12px 12px;padding:12px 12px 16px;box-shadow:0 12px 0 #450a0a,inset 0 0 0 6px #b45309}
-    .curtain{height:36px;background:repeating-linear-gradient(90deg,#991b1b 0 18px,#7f1d1d 18px 28px);border-radius:20px 20px 0 0;margin:-12px -12px 10px;position:relative}
-    .curtain:after,.curtain:before{content:"🎀";position:absolute;top:4px;font-size:20px}
-    .curtain:before{left:10px}.curtain:after{right:10px}
-    .stage{background:#111827;border-radius:18px;padding:14px 10px 10px;position:relative;overflow:hidden;min-height:250px}
-    .stickers{position:absolute;inset:0;pointer-events:none;font-size:22px}
-    .stickers span{position:absolute}
-    .face{width:min(200px,70vw);height:200px;margin:8px auto;border-radius:46%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 10px 0 rgba(0,0,0,.25);position:relative;transition:background .2s}
-    .horns{font-size:28px;min-height:28px}
-    .eyes{font-size:52px;line-height:1}
-    .mouth{font-size:48px;line-height:1}
-    .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
-    .flash.on{animation:flash .35s}
-    @keyframes flash{0%{opacity:.95}100%{opacity:0}}
-    .clip{max-width:380px;margin:10px auto;background:#fffbeb;color:#3b2100;border-radius:16px;padding:10px;box-shadow:0 6px 0 #d97706;text-align:left}
-    .clip h3{font-size:14px;margin-bottom:6px}
-    .clip li{list-style:none;font-weight:800;padding:4px 0;font-size:16px}
-    .clip li.done{opacity:.4;text-decoration:line-through}
-    .clip li.now{background:#fde68a;border-radius:8px;padding:6px 8px}
-    .row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:10px}
-    .row button{min-width:76px;padding:12px 10px;border-radius:16px;background:#fff;font-weight:800;box-shadow:0 6px 0 #a78bfa;color:#3b0764;font-size:15px}
-    .row button:active,.go:active{transform:translateY(3px)}
-    .go{margin-top:6px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .msg{font-weight:800;min-height:2em;margin-top:8px;color:#fde68a;font-size:18px}
-    .strip{display:none;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px auto;max-width:380px}
-    .strip.on{display:flex}
-    .polaroid{background:#fff;padding:8px 8px 22px;border-radius:8px;box-shadow:0 6px 0 #444;width:88px}
-    .polaroid .mini{height:64px;border-radius:40%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:18px}
-    .polaroid b{font-size:11px;color:#3b0764}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,10,30,.88);z-index:10;gap:10px;color:#fff;padding:20px}
-    .win.on{display:flex}
-    .win h2{font-size:32px}
-    .stars{font-size:28px;letter-spacing:4px}
-    .collage{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:340px}
-    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
-    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
-    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #5b21b6; color: #ede9fe; touch-action: none; user-select: none; -webkit-user-select: none; }
+    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.3); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
+    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; }
+    #hud b { font-weight: 800; font-size: 13px; background: #ddd6fe; color: #5b21b6; padding: 6px 10px; border-radius: 999px; }
+    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 7; font-weight: 800; font-size: 16px; color: #fde68a; pointer-events: none; text-align: center; width: 92%; }
+    #dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: none; flex-direction: column; gap: 8px; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); background: #4c1d95; }
+    #dock.on { display: flex; }
+    #row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+    #row button { min-width: 70px; height: 52px; border-radius: 14px; background: #c4b5fd; color: #4c1d95; font-weight: 800; font-size: 14px; box-shadow: 0 4px 0 #2e1065; }
+    #acts { display: flex; gap: 8px; justify-content: center; }
+    #acts button { flex: 1; height: 56px; border-radius: 16px; font-weight: 800; font-size: 16px; }
+    #like { background: #fb7185; color: #fff; box-shadow: 0 5px 0 #9d174d; }
+    #shot { background: #fde047; color: #422006; box-shadow: 0 5px 0 #ca8a04; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#7c3aed, #86efac); }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(32px, 9vw, 48px); color: #fff; text-shadow: 0 4px 0 #5b21b6; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; color: #fff; }
+    .btn { background: #fde047; color: #422006; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #ca8a04; }
+    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Monster Smile</h1>
-  <div class="hud">
-    <div class="chip" id="lvl">Pose 1 / 4</div>
-    <div class="chip" id="stars">⭐ 0</div>
-  </div>
-  <div class="booth">
-    <div class="curtain"></div>
-    <div class="stage">
-      <div class="stickers"><span style="left:8px;top:8px">⭐</span><span style="right:10px;top:16px">💖</span><span style="left:12px;bottom:10px">🌈</span><span style="right:8px;bottom:14px">✨</span></div>
-      <div class="face" id="face">
-        <div class="horns" id="horns">🎀</div>
-        <div class="eyes" id="eyes">👀</div>
-        <div class="mouth" id="mouth">🙂</div>
-      </div>
-      <div class="flash" id="flash"></div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="ms">Happy face</b><b id="lk">♡ 0</b></div>
+  <div id="say">Tap parts. Mix a silly pal. Never scary.</div>
+  <div id="dock">
+    <div id="row">
+      <button id="p0" type="button">👀 Eyes</button>
+      <button id="p1" type="button">👄 Mouth</button>
+      <button id="p2" type="button">🎀 Horns</button>
+      <button id="p3" type="button">🎨 Color</button>
+      <button id="p4" type="button">👂 Ears</button>
+    </div>
+    <div id="acts">
+      <button id="like" type="button">♡ I like it</button>
+      <button id="shot" type="button">📸 Photo</button>
     </div>
   </div>
-  <div class="clip">
-    <h3>📷 Mission list</h3>
-    <ul id="missions"></ul>
+  <div class="cover" id="title">
+    <div style="font-size:76px">👾</div>
+    <h1>Monster Smile</h1>
+    <p>Bounce the parts. Mix-match. Dance when you like it. Photo flash. Five soft poses.</p>
+    <button class="btn" id="go">Make a pal</button>
   </div>
-  <div class="row">
-    <button id="eye">Eyes</button>
-    <button id="mo">Mouth</button>
-    <button id="col">Color</button>
-    <button id="hn">Horns</button>
-  </div>
-  <button class="go" id="go">Snap!</button>
-  <p class="msg" id="msg">Make a sleepy face, then snap!</p>
-  <div class="strip" id="strip"></div>
-  <div class="win" id="win">
-    <div style="font-size:64px">📸</div>
-    <h2 id="wintitle">Silly smile!</h2>
-    <p class="stars" id="winstars">⭐⭐⭐⭐</p>
-    <div class="collage" id="collage"></div>
-    <p id="winline">Four friendly faces!</p>
-    <div class="winbtns">
-      <button class="play" id="again">Play again</button>
-      <button class="next" id="next">Next</button>
-    </div>
+  <div class="cover off" id="win">
+    <div style="font-size:76px">📸</div>
+    <h1>Smile studio!</h1>
+    <p id="winP">Five poses. Soft giggles.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var EYES=[{id:"open",e:"👀"},{id:"happy",e:"😊"},{id:"wink",e:"😉"},{id:"closed",e:"😌"},{id:"wide",e:"😯"}];
-    var MOUTHS=[{id:"flat",e:"😐"},{id:"smile",e:"😄"},{id:"O",e:"😮"},{id:"tongue",e:"😜"},{id:"small",e:"🙂"}];
-    var COLS=["#86efac","#f9a8d4","#93c5fd","#fde047","#fda4af","#ddd6fe"];
-    var HORNS=["","🎀","🦄","🌸"];
-    var JOBS=[
-      {n:"sleepy",eyes:"closed",mouth:"small",txt:"Make sleepy"},
-      {n:"silly",eyes:"wink",mouth:"tongue",txt:"Make silly"},
-      {n:"surprised",eyes:"wide",mouth:"O",txt:"Make surprised"},
-      {n:"happy",eyes:"happy",mouth:"smile",txt:"Make happy"}
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, last = 0, t = 0, play = false, miss = 0, likes = 0;
+    var dance = 0, flash = 0, bounce = [0, 0, 0, 0, 0];
+    var m = { eyes: 0, mouth: 0, horn: 0, col: 0, ear: 0 };
+    var conf = [], hearts = [];
+    var COLS = ["#86efac", "#67e8f9", "#fde047", "#f9a8d4", "#c4b5fd", "#fdba74"];
+    var EYES = ["uu", "oo", "^^", "--", "><"];
+    var MOUTH = ["smile", "grin", "o", "cat", "tiny"];
+    var HORNS = ["none", "bow", "nubs", "flower", "hat"];
+    var EARS = ["round", "flop", "tiny", "side"];
+    var MISSIONS = [
+      { n: "Happy face", hint: "Tap mouth until it smiles big.", ok: function () { return m.mouth === 0 || m.mouth === 1; } },
+      { n: "Soft horns", hint: "Add a bow or flower on top.", ok: function () { return m.horn === 1 || m.horn === 3; } },
+      { n: "Silly eyes", hint: "Find the winky or happy eyes.", ok: function () { return m.eyes === 2 || m.eyes === 4; } },
+      { n: "Dance party", hint: "Tap I like it so the pal dances.", ok: function () { return dance > 0.2; } },
+      { n: "Photo booth", hint: "Take a photo flash!", ok: function () { return flash > 0; } }
     ];
-    var ei=0,mi=1,ci=0,hi=1,job=0,shots=[],stars=0,usedHorns=0;
-    function draw(){
-      document.getElementById("eyes").textContent=EYES[ei].e;
-      document.getElementById("mouth").textContent=MOUTHS[mi].e;
-      document.getElementById("horns").textContent=HORNS[hi]||"　";
-      document.getElementById("face").style.background=COLS[ci];
+
+    function beep(f, d, typ) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        if (ac.state === "suspended") ac.resume();
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; g.gain.value = 0.08;
+        o.connect(g); g.connect(ac.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    function list(){
-      var ul=document.getElementById("missions");ul.innerHTML="";
-      JOBS.forEach(function(j,i){
-        var li=document.createElement("li");
-        li.textContent=(i<job?"✅ ":"○ ")+j.txt;
-        if(i<job)li.className="done";if(i===job)li.className="now";
-        ul.appendChild(li);
-      });
+    function say(s) { document.getElementById("say").textContent = s; }
+    function hud() {
+      document.getElementById("ms").textContent = MISSIONS[miss] ? MISSIONS[miss].n : "Done";
+      document.getElementById("lk").textContent = "♡ " + likes;
     }
-    function snapCard(){
-      return {eyes:EYES[ei].e,mouth:MOUTHS[mi].e,horns:HORNS[hi],col:COLS[ci],n:JOBS[job].n};
+    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    addEventListener("resize", resize); resize();
+
+    function start() {
+      play = true; miss = 0; likes = 0; dance = 0; flash = 0;
+      m = { eyes: 0, mouth: 0, horn: 0, col: 0, ear: 0 };
+      conf = []; hearts = [];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      say(MISSIONS[0].hint); hud(); beep(520, 0.1);
     }
-    function cardHtml(s){
-      return "<div class='polaroid'><div class='mini' style='background:"+s.col+"'><div>"+(s.horns||"")+"</div><div>"+s.eyes+"</div><div>"+s.mouth+"</div></div><b>"+s.n+"</b></div>";
+
+    function cycle(key, arr, idx) {
+      m[key] = (m[key] + 1) % arr.length;
+      bounce[idx] = 1;
+      beep(500 + idx * 40, 0.06);
+      maybe();
     }
-    function strip(){
-      var box=document.getElementById("strip");
-      box.classList.toggle("on",shots.length>0);
-      box.innerHTML=shots.map(cardHtml).join("");
-    }
-    document.getElementById("eye").onclick=function(){ei=(ei+1)%EYES.length;draw();beep(480,.06);};
-    document.getElementById("mo").onclick=function(){mi=(mi+1)%MOUTHS.length;draw();beep(540,.06);};
-    document.getElementById("col").onclick=function(){ci=(ci+1)%COLS.length;draw();beep(400,.06);};
-    document.getElementById("hn").onclick=function(){hi=(hi+1)%HORNS.length;if(HORNS[hi])usedHorns=1;draw();beep(360,.06);};
-    document.getElementById("go").onclick=function(){
-      var j=JOBS[job];
-      if(EYES[ei].id!==j.eyes){document.getElementById("msg").textContent="Try "+j.txt+" eyes!";beep(180,.1);return;}
-      if(MOUTHS[mi].id!==j.mouth){document.getElementById("msg").textContent="Try a "+j.n+" mouth!";beep(180,.1);return;}
-      var fl=document.getElementById("flash");fl.classList.remove("on");void fl.offsetWidth;fl.classList.add("on");
-      shots.push(snapCard());strip();beep(880,.12);
-      var got=1;stars+=got;document.getElementById("stars").textContent="⭐ "+stars;
-      job++;list();
-      if(job>=JOBS.length){
-        if(usedHorns)stars+=1;
-        document.getElementById("stars").textContent="⭐ "+stars;
-        setTimeout(function(){showWin();},400);
-      }else{
-        document.getElementById("lvl").textContent="Pose "+(job+1)+" / 4";
-        document.getElementById("msg").textContent=JOBS[job].txt+", then snap!";
-      }
+    document.getElementById("p0").onclick = function () { cycle("eyes", EYES, 0); };
+    document.getElementById("p1").onclick = function () { cycle("mouth", MOUTH, 1); };
+    document.getElementById("p2").onclick = function () { cycle("horn", HORNS, 2); };
+    document.getElementById("p3").onclick = function () { cycle("col", COLS, 3); };
+    document.getElementById("p4").onclick = function () { cycle("ear", EARS, 4); };
+
+    document.getElementById("like").onclick = function () {
+      dance = 1.8; likes++;
+      var i;
+      for (i = 0; i < 10; i++) hearts.push({ x: W * 0.5 + (Math.random() - 0.5) * 80, y: H * 0.4, vy: -40 - Math.random() * 40, life: 1 });
+      say("Dance! SQUISH squash.");
+      beep(880, 0.1); hud(); maybe();
     };
-    function showWin(){
-      document.getElementById("wintitle").textContent="Silly smile!";
-      document.getElementById("winstars").textContent="⭐".repeat(Math.min(4,stars));
-      document.getElementById("collage").innerHTML=shots.map(cardHtml).join("");
-      document.getElementById("winline").textContent="Four friendly faces!";
-      document.getElementById("win").classList.add("on");
+    document.getElementById("shot").onclick = function () {
+      flash = 0.45;
+      var i;
+      for (i = 0; i < 18; i++) conf.push({ x: W * 0.5, y: H * 0.35, vx: (Math.random() - 0.5) * 220, vy: -80 - Math.random() * 80, life: 1, col: COLS[i % COLS.length] });
+      say("Flash! What a pal.");
+      beep(990, 0.08); maybe();
+    };
+
+    function maybe() {
+      if (!MISSIONS[miss]) return;
+      if (MISSIONS[miss].ok()) {
+        miss++;
+        beep(760, 0.1);
+        if (miss >= MISSIONS.length) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("winP").textContent = "♡ " + likes + "  Five soft poses.";
+          document.getElementById("win").classList.remove("off");
+        } else {
+          say("Cute! Next: " + MISSIONS[miss].hint);
+          hud();
+        }
+      }
     }
-    function reset(){
-      ei=0;mi=1;ci=0;hi=1;job=0;shots=[];stars=0;usedHorns=0;
-      document.getElementById("stars").textContent="⭐ 0";
-      document.getElementById("lvl").textContent="Pose 1 / 4";
-      document.getElementById("msg").textContent="Make a sleepy face, then snap!";
-      document.getElementById("strip").innerHTML="";document.getElementById("strip").classList.remove("on");
-      list();draw();
+
+    function update(dt) {
+      t += dt;
+      if (dance > 0) dance -= dt;
+      if (flash > 0) flash -= dt;
+      var i;
+      for (i = 0; i < 5; i++) bounce[i] = Math.max(0, bounce[i] - dt * 2.2);
+      for (i = hearts.length - 1; i >= 0; i--) {
+        hearts[i].life -= dt; hearts[i].y += hearts[i].vy * dt;
+        if (hearts[i].life <= 0) hearts.splice(i, 1);
+      }
+      for (i = conf.length - 1; i >= 0; i--) {
+        conf[i].life -= dt; conf[i].x += conf[i].vx * dt; conf[i].y += conf[i].vy * dt; conf[i].vy += 160 * dt;
+        if (conf[i].life <= 0) conf.splice(i, 1);
+      }
     }
-    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");reset();};
-    document.getElementById("next").onclick=function(){document.getElementById("win").classList.remove("on");reset();};
-    list();draw();
+
+    function drawRoom() {
+      var g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#6d28d9"); g.addColorStop(1, "#86efac");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.fillStyle = "rgba(255,255,255,.12)";
+      var i;
+      for (i = 0; i < 8; i++) {
+        x.beginPath(); x.arc((i * 90 + t * 10) % W, 40 + (i % 3) * 20, 16, 0, Math.PI * 2); x.fill();
+      }
+      x.fillStyle = "#fde68a";
+      for (i = 0; i < 6; i++) {
+        x.beginPath(); x.arc(20 + i * (W - 40) / 5, 18, 5, 0, Math.PI * 2); x.fill();
+      }
+    }
+
+    function drawMonster() {
+      var cx = W * 0.5, cy = H * 0.42;
+      var sq = dance > 0 ? 1 + Math.sin(t * 10) * 0.08 : 1;
+      var sy = dance > 0 ? 1 - Math.sin(t * 10) * 0.08 : 1;
+      var bob = Math.sin(t * 3) * 6;
+      x.save();
+      x.translate(cx, cy + bob);
+      x.scale(sq, sy);
+      var col = COLS[m.col];
+      if (m.ear === 0 || m.ear === 1) {
+        x.fillStyle = col;
+        x.beginPath(); x.ellipse(-70, -10, m.ear === 1 ? 16 : 22, m.ear === 1 ? 28 : 20, -0.4, 0, Math.PI * 2); x.fill();
+        x.beginPath(); x.ellipse(70, -10, m.ear === 1 ? 16 : 22, m.ear === 1 ? 28 : 20, 0.4, 0, Math.PI * 2); x.fill();
+        x.fillStyle = "#fbcfe8";
+        x.beginPath(); x.ellipse(-70, -10, 10, 10, 0, 0, Math.PI * 2); x.fill();
+        x.beginPath(); x.ellipse(70, -10, 10, 10, 0, 0, Math.PI * 2); x.fill();
+      } else if (m.ear === 2) {
+        x.fillStyle = col;
+        x.beginPath(); x.arc(-62, -28, 10, 0, Math.PI * 2); x.fill();
+        x.beginPath(); x.arc(62, -28, 10, 0, Math.PI * 2); x.fill();
+      } else {
+        x.fillStyle = col;
+        x.beginPath(); x.ellipse(-78, 10, 18, 12, 0, 0, Math.PI * 2); x.fill();
+        x.beginPath(); x.ellipse(78, 10, 18, 12, 0, 0, Math.PI * 2); x.fill();
+      }
+      if (m.horn === 1) {
+        x.font = "40px serif"; x.textAlign = "center";
+        x.fillText("🎀", 0, -78 + bounce[2] * -8);
+      } else if (m.horn === 2) {
+        x.fillStyle = "#f9a8d4";
+        x.beginPath(); x.ellipse(-28, -78, 10, 16, -0.2, 0, Math.PI * 2); x.fill();
+        x.beginPath(); x.ellipse(28, -78, 10, 16, 0.2, 0, Math.PI * 2); x.fill();
+      } else if (m.horn === 3) {
+        x.font = "36px serif"; x.textAlign = "center";
+        x.fillText("🌸", 0, -78 + bounce[2] * -8);
+      } else if (m.horn === 4) {
+        x.font = "36px serif"; x.textAlign = "center";
+        x.fillText("🎩", 0, -78);
+      }
+      x.fillStyle = col;
+      x.beginPath(); x.ellipse(0, 8, 78, 70, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "rgba(255,255,255,.25)";
+      x.beginPath(); x.ellipse(-18, -16, 22, 12, -0.3, 0, Math.PI * 2); x.fill();
+      var ey = -8 + bounce[0] * -10;
+      x.fillStyle = "#fff";
+      x.beginPath(); x.ellipse(-22, ey, 16, 18, 0, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.ellipse(22, ey, 16, 18, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#1e1b4b";
+      if (m.eyes === 0) {
+        x.beginPath(); x.arc(-22, ey, 6, 0, Math.PI * 2); x.fill();
+        x.beginPath(); x.arc(22, ey, 6, 0, Math.PI * 2); x.fill();
+      } else if (m.eyes === 1) {
+        x.beginPath(); x.arc(-22, ey + 2, 8, 0, Math.PI * 2); x.fill();
+        x.beginPath(); x.arc(22, ey + 2, 8, 0, Math.PI * 2); x.fill();
+        x.fillStyle = "#fff";
+        x.beginPath(); x.arc(-19, ey - 1, 3, 0, Math.PI * 2); x.fill();
+        x.beginPath(); x.arc(25, ey - 1, 3, 0, Math.PI * 2); x.fill();
+      } else if (m.eyes === 2) {
+        x.strokeStyle = "#1e1b4b"; x.lineWidth = 4;
+        x.beginPath(); x.arc(-22, ey + 4, 8, Math.PI, 0); x.stroke();
+        x.beginPath(); x.arc(22, ey + 4, 8, Math.PI, 0); x.stroke();
+      } else if (m.eyes === 3) {
+        x.fillRect(-30, ey, 16, 4); x.fillRect(14, ey, 16, 4);
+      } else {
+        x.strokeStyle = "#1e1b4b"; x.lineWidth = 4;
+        x.beginPath(); x.moveTo(-30, ey - 6); x.lineTo(-14, ey + 6); x.moveTo(-30, ey + 6); x.lineTo(-14, ey - 6); x.stroke();
+        x.beginPath(); x.arc(22, ey, 6, 0, Math.PI * 2); x.stroke();
+      }
+      var my = 36 + bounce[1] * -8;
+      x.strokeStyle = "#9d174d"; x.fillStyle = "#fb7185"; x.lineWidth = 5; x.lineCap = "round";
+      if (m.mouth === 0) {
+        x.beginPath(); x.arc(0, my, 22, 0.15, Math.PI - 0.15); x.stroke();
+      } else if (m.mouth === 1) {
+        x.beginPath(); x.ellipse(0, my + 4, 24, 14, 0, 0, Math.PI); x.fill();
+        x.fillStyle = "#fff";
+        x.fillRect(-10, my - 2, 6, 8); x.fillRect(4, my - 2, 6, 8);
+      } else if (m.mouth === 2) {
+        x.beginPath(); x.arc(0, my, 10, 0, Math.PI * 2); x.stroke();
+      } else if (m.mouth === 3) {
+        x.beginPath(); x.moveTo(-16, my); x.quadraticCurveTo(0, my + 16, 16, my); x.stroke();
+        x.fillStyle = "#1e1b4b";
+        x.fillRect(-3, my + 2, 6, 5);
+      } else {
+        x.beginPath(); x.arc(0, my, 6, 0.2, Math.PI - 0.2); x.stroke();
+      }
+      x.restore();
+      x.fillStyle = "#4c1d95"; x.font = "bold 18px Trebuchet MS"; x.textAlign = "center";
+      x.fillText("soft pal", cx, cy + 110 + Math.sin(t * 2) * 2);
+    }
+
+    function draw() {
+      drawRoom();
+      drawMonster();
+      var i;
+      for (i = 0; i < hearts.length; i++) {
+        x.globalAlpha = Math.max(0, hearts[i].life);
+        x.font = "22px serif"; x.fillText("💗", hearts[i].x, hearts[i].y);
+      }
+      for (i = 0; i < conf.length; i++) {
+        x.globalAlpha = Math.max(0, conf[i].life);
+        x.fillStyle = conf[i].col;
+        x.fillRect(conf[i].x, conf[i].y, 7, 5);
+      }
+      x.globalAlpha = 1;
+      if (flash > 0) {
+        x.fillStyle = "rgba(255,255,255," + (flash * 0.85) + ")";
+        x.fillRect(0, 0, W, H);
+      }
+      x.fillStyle = "rgba(255,255,255,.2)";
+      x.fillRect(16, 8, W - 32, 6);
+      x.fillStyle = "#fde047";
+      x.fillRect(16, 8, Math.min(W - 32, (miss / 5) * (W - 32)), 6);
+    }
+
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+  })();
   </script>
 </body>
 </html>

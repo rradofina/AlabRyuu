@@ -6,144 +6,125 @@
   <title>Dress the Day</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4c1d95;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:#ede9fe;padding:54px 10px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(24px,7vw,36px)}
-    .hud{display:flex;justify-content:center;gap:8px;margin:6px}
-    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #a78bfa;font-size:15px}
-    .room{max-width:440px;margin:8px auto;display:grid;grid-template-columns:1fr 140px;gap:10px;align-items:stretch}
-    .closet{background:linear-gradient(#92400e,#78350f);border-radius:18px;padding:10px 8px;box-shadow:0 10px 0 #451a03;min-height:280px}
-    .rod{height:8px;background:#d6d3d1;border-radius:8px;margin:4px 10px 10px}
-    .doors{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .door{background:#fef3c7;border-radius:12px;min-height:220px;padding:8px 4px;box-shadow:inset 0 0 0 4px #e7e5e4}
-    .hang{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
-    .hang button{width:58px;height:58px;border-radius:14px;background:#fff;font-size:28px;box-shadow:0 4px 0 #d8b4fe}
-    .hang button.on{outline:3px solid #5b21b6;background:#fde68a}
-    .forecast{background:#fff;border-radius:20px;padding:12px 8px;box-shadow:0 8px 0 #7c3aed;display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .forecast .sky{font-size:56px}
-    .forecast h3{font-size:16px;margin:4px 0}
-    .forecast p{font-weight:800;font-size:14px;line-height:1.3}
-    .mannequin{margin:10px auto;width:min(220px,70vw);background:#fff;border-radius:28px;padding:12px;box-shadow:0 8px 0 #c4b5fd}
-    .kid{font-size:22px;font-weight:800;line-height:1.2}
-    .kid .head{font-size:52px}
-    .go{margin-top:10px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .go:active,.hang button:active{transform:translateY(3px)}
-    .msg{font-weight:800;min-height:2.2em;margin-top:8px;font-size:18px}
-    .lbl{font-size:12px;font-weight:800;color:#fef3c7;margin:4px 0}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.86);z-index:10;gap:10px;color:#fff;padding:20px}
-    .win.on{display:flex}
-    .win h2{font-size:30px}
-    .stars{font-size:28px;letter-spacing:4px}
-    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
-    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
-    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
-    @media(max-width:520px){.room{grid-template-columns:1fr}}
+    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#ede9fe;color:#4c1d95;touch-action:none;user-select:none}
+    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    canvas{display:block;width:100%;height:58%}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800}
+    #hud b{background:#fff;padding:6px 10px;border-radius:999px;box-shadow:0 3px 0 #a78bfa}
+    .panel{position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:8;background:#fff;border:4px solid #7c3aed;border-radius:22px;padding:12px}
+    .who{font-size:13px;font-weight:800}
+    .say{font-size:22px;font-weight:900;margin:4px 0 8px}
+    .chs{display:flex;flex-wrap:wrap;gap:8px}
+    .chs button{min-height:52px;flex:1;border-radius:14px;background:#fde68a;color:#3b2100;font-weight:900;font-size:16px}
+    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#c4b5fd,#7c3aed);color:#fff}
+    .cover.off{display:none}
+    h1{font-size:clamp(32px,8vw,50px)}
+    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Dress the Day</h1>
-  <div class="hud">
-    <div class="chip" id="lvl">Day 1 / 5</div>
-    <div class="chip" id="stars">⭐ 0</div>
+  <div id="hud"><b id="dy">Morning</b> <b id="st">⭐ 0</b></div>
+  <canvas id="c"></canvas>
+  <div class="panel">
+    <div class="who" id="who">Pip</div>
+    <p class="say" id="say">What sky today?</p>
+    <div class="chs" id="chs"></div>
   </div>
-  <div class="room">
-    <div class="closet">
-      <div class="rod"></div>
-      <div class="doors">
-        <div class="door">
-          <div class="lbl">Hats · Coats</div>
-          <div class="hang" id="hats"></div>
-          <div class="hang" id="coats" style="margin-top:8px"></div>
-        </div>
-        <div class="door">
-          <div class="lbl">Shoes · Extra</div>
-          <div class="hang" id="shoes"></div>
-          <div class="hang" id="accs" style="margin-top:8px"></div>
-        </div>
-      </div>
-    </div>
-    <div class="forecast">
-      <div class="sky" id="sky">☀️</div>
-      <h3 id="dayname">Sunny</h3>
-      <p id="hint">Cap, shirt, sneakers, sunnies</p>
-    </div>
+  <div class="cover" id="title">
+    <h1>Dress the Day</h1>
+    <p>A walking kid. Weather talks.<br>Outfit choices change later.</p>
+    <button class="btn" id="go">Dress</button>
   </div>
-  <div class="mannequin">
-    <div class="kid" id="kid"><div class="head">🧒</div></div>
-  </div>
-  <button class="go" id="go">Ready!</button>
-  <p class="msg" id="msg">Open the closet. Dress for the sky!</p>
-  <div class="win" id="win">
-    <div style="font-size:72px">👗</div>
-    <h2 id="wintitle">Dressed for every day!</h2>
-    <p class="stars" id="winstars">⭐⭐⭐</p>
-    <p id="winline">Ready for sun, rain, and snow.</p>
-    <div class="winbtns">
-      <button class="play" id="again">Play again</button>
-      <button class="next" id="next">Next</button>
-    </div>
+  <div class="cover off" id="win">
+    <h1>Ready for bed</h1>
+    <p id="wp"></p>
+    <button class="btn" id="again">New day</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var DAYS=[
-      {e:"☀️",n:"Sunny",hat:"🧢",coat:"👕",shoe:"👟",acc:"🕶️",txt:"Cap, shirt, sneakers, sunnies"},
-      {e:"🌧️",n:"Rain",hat:"👒",coat:"🧥",shoe:"👢",acc:"☂️",txt:"Hat, coat, boots, umbrella"},
-      {e:"❄️",n:"Snow",hat:"🎩",coat:"🧥",shoe:"👢",acc:"🧣",txt:"Warm hat, coat, boots, scarf"},
-      {e:"💨",n:"Wind",hat:"🧢",coat:"🎽",shoe:"👟",acc:"🪁",txt:"Cap, wind shirt, sneakers, kite"},
-      {e:"🌙",n:"Night",hat:"🎀",coat:"👘",shoe:"🩴",acc:"🕯️",txt:"Bow, robe, slippers, little light"}
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, T = 0, si = 0, stars = 0;
+    var flags = { sky: "sun", hat: "cap", coat: "tee", shoes: "sneak", friend: "Pip", wet: false };
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-dress") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function resize() { W = cv.width = innerWidth; H = cv.height = cv.clientHeight; }
+    addEventListener("resize", resize); resize();
+    var SCENES = [
+      { who: "Sky", say: "What sky today?", ch: [["Sunny smile", { sky: "sun" }], ["Soft rain", { sky: "rain" }], ["Windy leaf", { sky: "wind" }]] },
+      { who: "Pip", say: "Pick a hat!", ch: [["Sunny cap", { hat: "cap" }], ["Rain hood", { hat: "hood" }], ["Wind scarf", { hat: "scarf" }]] },
+      { who: "Pip", say: "A coat too.", ch: [["Warm tee", { coat: "tee" }], ["Rain coat", { coat: "rain" }], ["Puffy vest", { coat: "vest" }]] },
+      { who: "Shoes", say: "Feet need help.", ch: [["Sneakers", { shoes: "sneak" }], ["Rain boots", { shoes: "boot" }], ["Soft socks", { shoes: "sock" }]] },
+      { who: "Pip", say: "A problem! Puddle!", ch: [["Jump over", {}], ["Splash kind", { wet: true }]] },
+      { who: "Duck", say: "Need a helper.", ch: [["Share hood", { friend: "Duck" }], ["Wave from path", {}]] },
+      { who: "Pip", say: "A twist! Wind!", ch: [["Hold the hat", {}], ["Let scarf fly", { hat: "scarf" }]] },
+      { who: "Nan", say: "Did you dress kind?", ch: [["Yes, for Duck", {}], ["I dressed me", {}]] },
+      { who: "Pip", say: flags.sky === "rain" ? "Rain likes boots." : "Sun likes caps.", ch: [["Change shoes", { shoes: "boot" }], ["Keep this look", {}]] },
+      { who: "Moon", say: "Pajama time soon.", ch: [["Star pjs", { coat: "pjs" }], ["Keep vest", {}]] },
+      { who: "Pip", say: "Walk to bed.", ch: [["Hug Nan", {}], ["Feed the pet", {}]] },
+      { who: "Pip", say: "The end. Cozy.", ch: [["Play again", { end: true }]] }
     ];
-    var HATS=["🧢","👒","🎩","🎀"],COATS=["👕","🧥","🎽","👘"],SHOES=["👟","👢","🩴"],ACCS=["🕶️","☂️","🧣","🪁","🕯️"];
-    var pick={hat:"",coat:"",shoe:"",acc:""},day=0,stars=0;
-    function row(id,list,key){
-      var box=document.getElementById(id);box.innerHTML="";
-      list.forEach(function(e){
-        var b=document.createElement("button");b.textContent=e;
-        b.onclick=function(){pick[key]=e;box.querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});show();beep(480,.06);};
+    function drawKid() {
+      var g = x.createLinearGradient(0, 0, 0, H);
+      if (flags.sky === "rain") { g.addColorStop(0, "#64748b"); g.addColorStop(1, "#86efac"); }
+      else if (flags.sky === "wind") { g.addColorStop(0, "#fde68a"); g.addColorStop(1, "#fdba74"); }
+      else { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#fde68a"); }
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      if (flags.sky === "rain") {
+        x.strokeStyle = "#7dd3fc"; x.lineWidth = 2;
+        for (var i = 0; i < 18; i++) {
+          var rx = (i * 40 + T * 80) % W, ry = (T * 120 + i * 30) % H;
+          x.beginPath(); x.moveTo(rx, ry); x.lineTo(rx - 4, ry + 14); x.stroke();
+        }
+      }
+      var px = W * 0.5 + Math.sin(T * 2) * 10, py = H * 0.62;
+      var leg = Math.sin(T * 8) * 12;
+      x.strokeStyle = "#4c1d95"; x.lineWidth = 6; x.lineCap = "round";
+      x.beginPath(); x.moveTo(px - 8, py); x.lineTo(px - 8 + leg, py + 28); x.stroke();
+      x.beginPath(); x.moveTo(px + 8, py); x.lineTo(px + 8 - leg, py + 28); x.stroke();
+      x.fillStyle = flags.shoes === "boot" ? "#1d4ed8" : (flags.shoes === "sock" ? "#fff" : "#111");
+      x.fillRect(px - 16 + leg, py + 26, 14, 8); x.fillRect(px + 2 - leg, py + 26, 14, 8);
+      var coat = flags.coat === "rain" ? "#38bdf8" : (flags.coat === "vest" ? "#f97316" : (flags.coat === "pjs" ? "#a78bfa" : "#fde047"));
+      x.fillStyle = coat;
+      x.beginPath(); x.ellipse(px, py - 18, 22, 20, 0, 0, 6.3); x.fill();
+      x.fillStyle = "#ffe0b0";
+      x.beginPath(); x.arc(px, py - 48, 16, 0, 6.3); x.fill();
+      x.fillStyle = flags.hat === "hood" ? "#38bdf8" : (flags.hat === "scarf" ? "#f472b6" : "#f59e0b");
+      x.beginPath(); x.ellipse(px, py - 60, 18, 8, 0, 0, 6.3); x.fill();
+      x.fillStyle = "#111"; x.beginPath(); x.arc(px + 6, py - 50, 2, 0, 6.3); x.fill();
+      x.fillStyle = "#fff";
+      x.beginPath(); x.roundRect ? (x.roundRect(px + 28, py - 88, 150, 44, 16), x.fill()) : (x.fillRect(px + 28, py - 88, 150, 44));
+      x.fillStyle = "#4c1d95"; x.font = "900 18px Verdana";
+      x.fillText(SCENES[Math.min(si, SCENES.length - 1)].say, px + 40, py - 60);
+    }
+    function save() { try { localStorage.setItem("alabryuu-dress", JSON.stringify({ stars: stars, flags: flags })); } catch (e) {} }
+    function show() {
+      var s = SCENES[Math.min(si, SCENES.length - 1)];
+      if (si === 8) s.say = flags.sky === "rain" ? "Rain likes boots." : "Sun likes caps.";
+      document.getElementById("who").textContent = s.who;
+      document.getElementById("say").textContent = s.say;
+      document.getElementById("dy").textContent = "Scene " + (si + 1) + "/12";
+      document.getElementById("st").textContent = "⭐ " + stars;
+      var box = document.getElementById("chs"); box.innerHTML = "";
+      s.ch.forEach(function (pair) {
+        var b = document.createElement("button"); b.textContent = pair[0];
+        b.onclick = function () {
+          Object.assign(flags, pair[1]);
+          if (pair[1].end) {
+            document.getElementById("wp").textContent = "You dressed for " + flags.sky + " with " + flags.friend + ".";
+            document.getElementById("win").classList.remove("off");
+            si = 0;
+          } else { si++; stars++; }
+          save(); if (!pair[1].end) show();
+        };
         box.appendChild(b);
       });
     }
-    function show(){
-      document.getElementById("kid").innerHTML=
-        "<div>"+(pick.hat||"·")+"</div><div class='head'>🧒</div><div>"+(pick.acc||"")+"</div><div>"+(pick.coat||"·")+"</div><div>"+(pick.shoe||"·")+"</div>";
-    }
-    function setDay(){
-      var d=DAYS[day];pick={hat:"",coat:"",shoe:"",acc:""};
-      document.getElementById("sky").textContent=d.e;
-      document.getElementById("dayname").textContent=d.n+" day";
-      document.getElementById("hint").textContent=d.txt;
-      document.getElementById("lvl").textContent="Day "+(day+1)+" / 5";
-      document.getElementById("msg").textContent="Dress the kid. Then Ready!";
-      row("hats",HATS,"hat");row("coats",COATS,"coat");row("shoes",SHOES,"shoe");row("accs",ACCS,"acc");
-      show();
-    }
-    document.getElementById("go").onclick=function(){
-      var d=DAYS[day],miss=[];
-      if(pick.hat!==d.hat)miss.push("hat");
-      if(pick.coat!==d.coat)miss.push("coat");
-      if(pick.shoe!==d.shoe)miss.push("shoes");
-      if(pick.acc!==d.acc)miss.push("extra");
-      if(miss.length){document.getElementById("msg").textContent="Almost! Try a new "+miss[0]+".";beep(180,.1);return;}
-      var got=3;stars+=got;document.getElementById("stars").textContent="⭐ "+stars;beep(820,.12);
-      setTimeout(function(){showWin(day>=DAYS.length-1,got);},280);
-    };
-    function showWin(last,got){
-      document.getElementById("wintitle").textContent=last?"Dressed for every day!":"Cute outfit!";
-      document.getElementById("winstars").textContent="⭐".repeat(got);
-      document.getElementById("winline").textContent=last?"Ready for sun, rain, and snow.":"On to the next sky!";
-      document.getElementById("win").classList.add("on");
-    }
-    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");day=0;stars=0;document.getElementById("stars").textContent="⭐ 0";setDay();};
-    document.getElementById("next").onclick=function(){
-      document.getElementById("win").classList.remove("on");
-      if(day>=DAYS.length-1){day=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
-      else day++;
-      setDay();
-    };
-    setDay();
+    document.getElementById("go").onclick = function () { document.getElementById("title").classList.add("off"); resize(); show(); };
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); si = 0; show(); };
+    function loop() { T += 0.016; drawKid(); requestAnimationFrame(loop); }
+    show(); loop();
+  })();
   </script>
 </body>
 </html>

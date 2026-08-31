@@ -6,266 +6,334 @@
   <title>Piano Keys</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      min-height: 100%;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      color: #f8fafc; touch-action: manipulation; user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    body {
-      min-height: 100vh;
-      background:
-        radial-gradient(ellipse at 50% 0%, #4c1d95, transparent 50%),
-        linear-gradient(#1e1b4b, #312e81 55%, #1c1917 55%);
-      padding: 54px 10px 16px;
-    }
-    .home {
-      position: fixed; top: 12px; left: 12px; z-index: 9;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.35); padding: 8px 14px; border-radius: 999px;
-    }
-    .hud { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-    .chip { background: rgba(255,255,255,.12); font-weight: 800; padding: 6px 12px; border-radius: 999px; font-size: 15px; }
-    h1 { text-align: center; font-size: clamp(24px, 6vw, 34px); }
-    .msg { font-weight: 800; text-align: center; margin: 6px 0 8px; min-height: 1.5em; font-size: 17px; }
-    .stand-wrap { max-width: 400px; margin: 0 auto 8px; position: relative; }
-    .pole { width: 14px; height: 36px; margin: 0 auto; background: linear-gradient(#a16207, #78350f); border-radius: 4px; }
-    .desk {
-      background: linear-gradient(#b45309, #78350f); border-radius: 8px 8px 4px 4px;
-      padding: 10px 12px 14px; box-shadow: 0 10px 0 #451a03;
-      transform: perspective(400px) rotateX(8deg);
-    }
-    .sheet { background: #fffbeb; color: #1c1917; border-radius: 8px; padding: 8px 8px 10px; min-height: 148px; }
-    .sheet h3 { font-size: 15px; margin-bottom: 6px; text-align: center; }
-    .songs { display: flex; flex-direction: column; gap: 4px; }
-    .song {
-      text-align: left; font-weight: 800; font-size: 15px; padding: 7px 10px;
-      border-radius: 8px; background: #fde68a; color: #422006; width: 100%;
-    }
-    .song.on { background: #fbbf24; box-shadow: inset 0 0 0 3px #78350f; }
-    .song.done { background: #bbf7d0; }
-    .bird {
-      position: absolute; right: 8px; top: 28px; font-size: 36px;
-      transition: transform .2s; filter: drop-shadow(0 4px 0 rgba(0,0,0,.25));
-    }
-    .bird.sing { transform: translateY(-8px) scale(1.1); }
-    .modes { display: flex; justify-content: center; gap: 8px; margin: 10px 0 8px; }
-    .modes button {
-      font-weight: 800; padding: 10px 16px; border-radius: 999px; font-size: 15px;
-      background: #334155; color: #e2e8f0;
-    }
-    .modes button.on { background: #fde68a; color: #422006; }
-    .piano {
-      max-width: 420px; margin: 0 auto; background: #111827;
-      border-radius: 12px 12px 22px 22px; padding: 12px 10px 16px; box-shadow: 0 12px 0 #020617;
-    }
-    .brand { text-align: center; font-weight: 800; font-size: 13px; opacity: .6; margin-bottom: 8px; }
-    .keys { display: flex; gap: 6px; }
-    .key {
-      flex: 1; height: 150px; border-radius: 8px 8px 16px 16px;
-      font-weight: 800; font-size: 20px; color: #1c1917;
-      box-shadow: 0 8px 0 rgba(0,0,0,.4);
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      padding-bottom: 14px; gap: 4px;
-    }
-    .key:active, .key.lit { transform: translateY(6px); filter: brightness(1.12); box-shadow: 0 2px 0 rgba(0,0,0,.4); }
-    .key.hint { outline: 4px solid #fde047; }
-    .listen {
-      display: block; margin: 10px auto 0; background: #c4b5fd; color: #2e1065;
-      font-weight: 800; padding: 10px 18px; border-radius: 999px; font-size: 16px;
-    }
-    .win {
-      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      flex-direction: column; background: rgba(20,10,40,.88); z-index: 8; gap: 12px;
-      text-align: center; padding: 20px;
-    }
-    .win.on { display: flex; }
-    .play, .next { font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px; }
-    .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
-    .next { background: #c4b5fd; color: #2e1065; box-shadow: 0 7px 0 #8b5cf6; }
+    html, body { height: 100%; overflow: hidden; font-family: Georgia, "Trebuchet MS", serif; background: #1e1b4b; color: #ede9fe; touch-action: none; user-select: none; -webkit-user-select: none; }
+    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #fff; text-decoration: none; font-family: "Trebuchet MS", sans-serif; font-weight: 800; font-size: 17px; background: rgba(76,29,149,.55); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
+    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; font-family: "Trebuchet MS", sans-serif; }
+    #hud b { font-weight: 800; font-size: 13px; background: #4c1d95; color: #fde68a; padding: 6px 10px; border-radius: 999px; }
+    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 7; font-family: "Trebuchet MS", sans-serif; font-weight: 800; font-size: 16px; color: #fde68a; pointer-events: none; text-align: center; width: 92%; }
+    #dock { position: fixed; left: 8px; right: 8px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 7; display: none; gap: 8px; }
+    #dock.on { display: flex; }
+    #dock button { flex: 1; height: 52px; border-radius: 16px; font-family: "Trebuchet MS", sans-serif; font-weight: 800; font-size: 15px; background: #c4b5fd; color: #1e1b4b; box-shadow: 0 4px 0 #6d28d9; }
+    #dock button.on { background: #fde047; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#1e1b4b, #6d28d9); }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(32px, 9vw, 50px); color: #fff; text-shadow: 0 4px 0 #4c1d95; }
+    .cover p { font-family: "Trebuchet MS", sans-serif; font-weight: 800; font-size: 18px; max-width: 340px; }
+    .btn { font-family: "Trebuchet MS", sans-serif; background: #fde047; color: #422006; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #ca8a04; }
+    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="hud">
-    <div class="chip" id="songChip">Song 1 / 5</div>
-    <div class="chip" id="starChip">★ 0</div>
-    <div class="chip" id="modeChip">Follow</div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="sn">Twinkle</b><b id="oc">Octave 1</b><b id="fr">Follow</b></div>
+  <div id="say">Follow the firefly. Keys go down!</div>
+  <div id="dock">
+    <button id="free" type="button">Free play</button>
+    <button id="hint" type="button">Hear song</button>
   </div>
-  <h1>Piano Keys</h1>
-  <p class="msg" id="msg">Listen, then play!</p>
-  <div class="stand-wrap">
-    <div class="pole"></div>
-    <div class="desk">
-      <div class="sheet">
-        <h3>Song list</h3>
-        <div class="songs" id="songs"></div>
-      </div>
-    </div>
-    <div class="bird" id="bird">🐦</div>
+  <div class="cover" id="title">
+    <div style="font-size:76px">🎹</div>
+    <h1>Piano Keys</h1>
+    <p>Keys depress. Notes fly up. Follow the firefly. Unlock a second octave.</p>
+    <button class="btn" id="go">Play</button>
   </div>
-  <div class="modes">
-    <button class="on" id="followBtn" type="button">Follow</button>
-    <button id="jamBtn" type="button">Free play</button>
-  </div>
-  <div class="piano">
-    <div class="brand">ALAB PIANO</div>
-    <div class="keys" id="keys"></div>
-    <button class="listen" id="listen" type="button">Hear song</button>
-  </div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🎹</div>
-    <h2 id="wint">Pretty song!</h2>
-    <p id="winline"></p>
-    <button class="play" id="again" type="button">Play again</button>
-    <button class="next" id="nextBtn" type="button">Next song</button>
+  <div class="cover off" id="win">
+    <div style="font-size:76px">🌟</div>
+    <h1>Little maestro!</h1>
+    <p id="winP">Five songs. Soft keys.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f, d) {
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, last = 0, t = 0, play = false, free = false, oct2 = 0;
+    var song = 0, step = 0, wait = 0, glow = 0;
+    var keys = [], notes = [], sparks = [], dust = [];
+    var fly = { i: 0, x: 0, y: 0, tx: 0, ty: 0, bob: 0 };
+    var NAMES = ["C", "D", "E", "F", "G", "A", "B", "C2"];
+    var FREQ = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+    var COLS = ["#ef4444", "#f97316", "#facc15", "#22c55e", "#14b8a6", "#3b82f6", "#a855f7", "#f472b6"];
+    var SONGS = [
+      { n: "Twinkle", notes: [0, 0, 4, 4, 5, 5, 4, 3, 3, 2, 2, 1, 1, 0] },
+      { n: "Little Lamb", notes: [2, 1, 0, 1, 2, 2, 2, 1, 1, 1, 2, 4, 4] },
+      { n: "Hot Cross", notes: [1, 0, 1, 2, 1, 0, 1, 2, 2, 3, 4] },
+      { n: "Ode Bit", notes: [2, 2, 3, 4, 4, 3, 2, 1, 0, 0, 1, 2, 2, 1, 1] },
+      { n: "Happy High", notes: [0, 0, 1, 0, 3, 2, 0, 0, 1, 0, 4, 3, 7, 5, 3, 2, 1] }
+    ];
+
+    function beep(f, d, typ) {
       try {
-        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = c.createOscillator(), g = c.createGain();
-        o.type = "triangle"; o.frequency.value = f; g.gain.value = 0.14;
-        o.connect(g); g.connect(c.destination);
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        if (ac.state === "suspended") ac.resume();
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; g.gain.value = 0.11;
+        o.connect(g); g.connect(ac.destination);
         o.start();
-        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
-        o.stop(c.currentTime + d);
+        g.gain.setValueAtTime(0.11, ac.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-    var notes = [
-      { n: "C", f: 262, c: "#fecaca" }, { n: "D", f: 294, c: "#fde68a" },
-      { n: "E", f: 330, c: "#bbf7d0" }, { n: "G", f: 392, c: "#93c5fd" },
-      { n: "A", f: 440, c: "#e9d5ff" }
-    ];
-    var songData = [
-      { name: "Twinkle", pat: [0, 0, 3, 3] },
-      { name: "Little star", pat: [4, 4, 3] },
-      { name: "Wonder", pat: [2, 1, 0, 1] },
-      { name: "World", pat: [0, 3, 4, 3] },
-      { name: "High up", pat: [0, 1, 2, 3, 4] }
-    ];
-    var song = 0, step = 0, lock = true, jam = false, stars = 0, keys = [], finished = [];
-    var list = document.getElementById("songs");
-    songData.forEach(function (s, i) {
-      var b = document.createElement("button");
-      b.className = "song" + (i === 0 ? " on" : "");
-      b.textContent = (i + 1) + ". " + s.name;
-      b.onclick = function () {
-        if (lock && !jam) return;
-        song = i; step = 0; paintList();
-        if (!jam) playSong();
-        else document.getElementById("msg").textContent = "Jam: " + s.name;
-      };
-      list.appendChild(b);
-    });
-    function paintList() {
-      [].slice.call(list.children).forEach(function (el, i) {
-        el.classList.toggle("on", i === song);
-        el.classList.toggle("done", finished.indexOf(i) >= 0);
-      });
-      document.getElementById("songChip").textContent = "Song " + (song + 1) + " / 5";
-      document.getElementById("starChip").textContent = "★ " + stars;
-      document.getElementById("modeChip").textContent = jam ? "Free play" : "Follow";
+    function chord(fs, d) {
+      fs.forEach(function (f, i) { setTimeout(function () { beep(f, d); }, i * 40); });
     }
-    notes.forEach(function (note, i) {
-      var b = document.createElement("button");
-      b.className = "key";
-      b.style.background = note.c;
-      b.innerHTML = "<span>" + note.n + "</span>";
-      b.onclick = function () { tap(i); };
-      document.getElementById("keys").appendChild(b);
-      keys.push(b);
-    });
-    function hint() {
-      keys.forEach(function (k) { k.classList.remove("hint"); });
-      if (!jam && !lock && songData[song]) keys[songData[song].pat[step]].classList.add("hint");
+    function say(s) { document.getElementById("say").textContent = s; }
+    function hud() {
+      document.getElementById("sn").textContent = SONGS[song] ? SONGS[song].n : "Done";
+      document.getElementById("oc").textContent = oct2 ? "Octave 2!" : "Octave 1";
+      document.getElementById("fr").textContent = free ? "Free play" : "Follow";
     }
-    function birdSing() {
-      var bird = document.getElementById("bird");
-      bird.classList.add("sing");
-      setTimeout(function () { bird.classList.remove("sing"); }, 220);
+    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; layoutKeys(); }
+    addEventListener("resize", resize);
+
+    function layoutKeys() {
+      var n = oct2 ? 8 : 7;
+      var pad = 10, kw = (W - pad * 2) / n, kh = Math.min(220, H * 0.32);
+      var ky = H - kh - 78;
+      keys = [];
+      var i;
+      for (i = 0; i < n; i++) {
+        keys.push({
+          i: i, x: pad + i * kw + 3, y: ky, w: kw - 6, h: kh,
+          down: 0, press: 0, name: NAMES[i], f: FREQ[i], col: COLS[i]
+        });
+      }
+      hopFly(SONGS[song] ? SONGS[song].notes[step] || 0 : 0, true);
     }
-    function flash(i) {
-      keys[i].classList.add("lit");
-      birdSing();
-      beep(notes[i].f, 0.18);
-      setTimeout(function () { keys[i].classList.remove("lit"); }, 160);
+
+    function hopFly(i, snap) {
+      var k = keys[Math.min(i, keys.length - 1)];
+      if (!k) return;
+      fly.tx = k.x + k.w * 0.5; fly.ty = k.y - 18;
+      fly.i = i;
+      if (snap) { fly.x = fly.tx; fly.y = fly.ty; }
     }
-    function playSong() {
-      if (jam) return;
-      lock = true; step = 0;
-      keys.forEach(function (k) { k.classList.remove("hint"); });
-      document.getElementById("msg").textContent = "Listen… " + songData[song].name;
-      paintList();
-      var i = 0, pat = songData[song].pat;
-      function n() {
-        if (i >= pat.length) {
-          lock = false;
-          document.getElementById("msg").textContent = "Your turn! Bird shows the note.";
-          hint();
-          birdSing();
-          beep(notes[pat[0]].f, 0.1);
-          return;
+
+    function start() {
+      play = true; song = 0; step = 0; free = false; oct2 = 0; wait = 0.4;
+      notes = []; sparks = []; dust = [];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("free").classList.remove("on");
+      layoutKeys();
+      say("Follow the firefly. Tap the glowing key.");
+      hud(); beep(520, 0.1);
+    }
+
+    function playKey(k, fromUser) {
+      if (!k) return;
+      k.down = 1; k.press = 0.18;
+      var freq = k.f;
+      beep(freq, 0.28, "sine");
+      notes.push({ x: k.x + k.w * 0.5, y: k.y, col: k.col, life: 1, name: k.name, vy: -80 });
+      var i;
+      for (i = 0; i < 8; i++) sparks.push({ x: k.x + k.w * 0.5, y: k.y, vx: (Math.random() - 0.5) * 80, vy: -40 - Math.random() * 60, life: 0.6, col: k.col });
+      if (free || !fromUser) return;
+      var need = SONGS[song].notes[step];
+      if (k.i === need || (need === 7 && k.i === 7)) {
+        step++;
+        glow = 0.3;
+        if (step >= SONGS[song].notes.length) {
+          chord([523, 659, 784], 0.2);
+          if (song === 2 && !oct2) {
+            oct2 = 1; layoutKeys();
+            say("Second octave unlocked! High C is yours.");
+          }
+          song++;
+          if (song >= SONGS.length) {
+            play = false;
+            document.getElementById("dock").classList.remove("on");
+            document.getElementById("winP").textContent = "Five songs. Keys went down. Notes flew up.";
+            document.getElementById("win").classList.remove("off");
+            return;
+          }
+          step = 0; wait = 0.6;
+          say("Song done! Next: " + SONGS[song].n);
+          hud();
+        } else {
+          hopFly(SONGS[song].notes[step], false);
+          say("Yes! " + (step + 1) + " / " + SONGS[song].notes.length);
         }
-        flash(pat[i]); i++; setTimeout(n, 400);
+      } else {
+        beep(180, 0.08, "square");
+        say("Almost — the firefly is on " + NAMES[need] + ".");
+        hopFly(need, false);
       }
-      setTimeout(n, 320);
     }
-    function tap(i) {
-      flash(i);
-      if (jam) { document.getElementById("msg").textContent = "Jam " + notes[i].n + "!"; return; }
-      if (lock) return;
-      if (i !== songData[song].pat[step]) {
-        document.getElementById("msg").textContent = "Almost! Hear it again.";
-        playSong();
-        return;
+
+    function keyAt(mx, my) {
+      var i, k;
+      for (i = 0; i < keys.length; i++) {
+        k = keys[i];
+        if (mx >= k.x && mx <= k.x + k.w && my >= k.y && my <= k.y + k.h) return k;
       }
-      step++;
-      if (step >= songData[song].pat.length) {
-        if (finished.indexOf(song) < 0) { finished.push(song); stars += 2; }
-        paintList();
-        songDone();
-      } else hint();
+      return null;
     }
-    function songDone() {
-      lock = true;
-      keys.forEach(function (k) { k.classList.remove("hint"); });
-      var last = finished.length >= 5;
-      document.getElementById("wint").textContent = last ? "Little pianist!" : "Pretty song!";
-      document.getElementById("winline").textContent = "★ " + stars;
-      document.getElementById("nextBtn").style.display = last ? "none" : "inline-block";
-      document.getElementById("nextBtn").textContent = "Next song";
-      document.getElementById("win").classList.add("on");
-      beep(880, 0.2);
-    }
-    function setJam(on) {
-      jam = on;
-      document.getElementById("followBtn").classList.toggle("on", !on);
-      document.getElementById("jamBtn").classList.toggle("on", on);
-      document.getElementById("listen").style.display = on ? "none" : "block";
-      keys.forEach(function (k) { k.classList.remove("hint"); });
-      lock = false;
-      paintList();
-      document.getElementById("msg").textContent = on ? "Free play — tap any key!" : "Follow the bird.";
-      if (!on) playSong();
-    }
-    document.getElementById("followBtn").onclick = function () { setJam(false); };
-    document.getElementById("jamBtn").onclick = function () { setJam(true); };
-    document.getElementById("listen").onclick = function () { if (!jam) playSong(); };
-    document.getElementById("again").onclick = function () { location.reload(); };
-    document.getElementById("nextBtn").onclick = function () {
-      document.getElementById("win").classList.remove("on");
-      var n = song + 1;
-      while (n < 5 && finished.indexOf(n) >= 0) n++;
-      if (n >= 5) n = 0;
-      song = n; step = 0;
-      playSong();
+
+    addEventListener("pointerdown", function (e) {
+      if (e.target.closest && e.target.closest("a,button")) return;
+      if (!play) return;
+      var k = keyAt(e.clientX, e.clientY);
+      if (k) playKey(k, true);
+    });
+    document.getElementById("free").onclick = function () {
+      free = !free;
+      this.classList.toggle("on", free);
+      hud();
+      say(free ? "Free play. Tap any key. Toggle again to follow." : "Follow the firefly again.");
+      beep(600, 0.07);
     };
-    paintList();
-    setTimeout(playSong, 400);
+    document.getElementById("hint").onclick = function () {
+      if (!SONGS[song]) return;
+      var seq = SONGS[song].notes, i = 0;
+      function next() {
+        if (i >= seq.length || !keys[seq[i]]) return;
+        playKey(keys[Math.min(seq[i], keys.length - 1)], false);
+        i++;
+        if (i < seq.length) setTimeout(next, 280);
+      }
+      next();
+    };
+
+    function update(dt) {
+      t += dt;
+      fly.bob += dt * 6;
+      fly.x += (fly.tx - fly.x) * Math.min(1, dt * 7);
+      fly.y += (fly.ty - fly.y) * Math.min(1, dt * 7);
+      if (glow > 0) glow -= dt;
+      var i, k;
+      for (i = 0; i < keys.length; i++) {
+        k = keys[i];
+        if (k.press > 0) k.press -= dt;
+        k.down += ((k.press > 0 ? 1 : 0) - k.down) * Math.min(1, dt * 16);
+      }
+      for (i = notes.length - 1; i >= 0; i--) {
+        notes[i].life -= dt * 0.7; notes[i].y += notes[i].vy * dt; notes[i].vy -= 20 * dt;
+        if (notes[i].life <= 0) notes.splice(i, 1);
+      }
+      for (i = sparks.length - 1; i >= 0; i--) {
+        sparks[i].life -= dt * 1.6; sparks[i].x += sparks[i].vx * dt; sparks[i].y += sparks[i].vy * dt;
+        if (sparks[i].life <= 0) sparks.splice(i, 1);
+      }
+      if (play && !free && SONGS[song]) hopFly(SONGS[song].notes[step] || 0, false);
+      dust.push({ x: fly.x + (Math.random() - 0.5) * 8, y: fly.y + 6, life: 0.5 });
+      for (i = dust.length - 1; i >= 0; i--) {
+        dust[i].life -= dt * 2; dust[i].y += 12 * dt;
+        if (dust[i].life <= 0) dust.splice(i, 1);
+      }
+    }
+
+    function drawRoom() {
+      var g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#0f0a2e"); g.addColorStop(0.45, "#1e1b4b"); g.addColorStop(1, "#4c1d95");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#fff";
+      var i;
+      for (i = 0; i < 36; i++) {
+        x.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(t * 2 + i));
+        x.fillRect((i * 67 + t * 4) % W, 10 + (i * 43) % (H * 0.35), 2, 2);
+      }
+      x.globalAlpha = 1;
+      x.fillStyle = "rgba(253,224,71,.15)";
+      x.beginPath(); x.arc(W * 0.8, 70, 50, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#2e1065";
+      x.fillRect(0, H * 0.55, W, H * 0.45);
+      x.fillStyle = "#3b0764";
+      x.fillRect(8, H * 0.58, W - 16, 16);
+    }
+
+    function drawKeys() {
+      var i, k, dip, target, need;
+      need = (!free && SONGS[song]) ? SONGS[song].notes[step] : -1;
+      for (i = 0; i < keys.length; i++) {
+        k = keys[i];
+        dip = k.down * 10;
+        x.fillStyle = "#111";
+        x.fillRect(k.x + 3, k.y + 8, k.w, k.h);
+        target = (k.i === need && glow < 0.2 && !free);
+        x.fillStyle = k.press > 0 ? k.col : (target ? "#fde68a" : "#f8fafc");
+        x.beginPath();
+        if (x.roundRect) x.roundRect(k.x, k.y + dip, k.w, k.h - dip, 8);
+        else x.rect(k.x, k.y + dip, k.w, k.h - dip);
+        x.fill();
+        x.fillStyle = k.press > 0 ? "#fff" : "#4c1d95";
+        x.font = "bold 18px Trebuchet MS"; x.textAlign = "center";
+        x.fillText(k.name, k.x + k.w * 0.5, k.y + dip + 28);
+        if (target) {
+          x.strokeStyle = "#fde047"; x.lineWidth = 3;
+          x.strokeRect(k.x + 2, k.y + dip + 2, k.w - 4, k.h - dip - 4);
+        }
+        x.fillStyle = "rgba(0,0,0,.08)";
+        x.fillRect(k.x + 6, k.y + dip + k.h * 0.55, k.w - 12, 8);
+      }
+    }
+
+    function drawFly() {
+      var fy = fly.y + Math.sin(fly.bob) * 5;
+      x.fillStyle = "rgba(253,224,71,.25)";
+      x.beginPath(); x.arc(fly.x, fy, 16 + Math.sin(t * 8) * 3, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#fde047";
+      x.beginPath(); x.arc(fly.x, fy, 7, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "rgba(255,255,255,.7)";
+      x.beginPath(); x.ellipse(fly.x - 8, fy - 2, 7, 4, -0.4, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.ellipse(fly.x + 8, fy - 2, 7, 4, 0.4, 0, Math.PI * 2); x.fill();
+      var i;
+      for (i = 0; i < dust.length; i++) {
+        x.globalAlpha = Math.max(0, dust[i].life);
+        x.fillStyle = "#fde047";
+        x.beginPath(); x.arc(dust[i].x, dust[i].y, 2, 0, Math.PI * 2); x.fill();
+      }
+      x.globalAlpha = 1;
+    }
+
+    function draw() {
+      drawRoom();
+      var i;
+      for (i = 0; i < notes.length; i++) {
+        x.globalAlpha = Math.max(0, notes[i].life);
+        x.fillStyle = notes[i].col;
+        x.beginPath(); x.arc(notes[i].x, notes[i].y, 12, 0, Math.PI * 2); x.fill();
+        x.fillStyle = "#fff"; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
+        x.fillText(notes[i].name, notes[i].x, notes[i].y + 4);
+      }
+      x.globalAlpha = 1;
+      for (i = 0; i < sparks.length; i++) {
+        x.globalAlpha = Math.max(0, sparks[i].life);
+        x.fillStyle = sparks[i].col;
+        x.fillRect(sparks[i].x, sparks[i].y, 3, 3);
+      }
+      x.globalAlpha = 1;
+      drawKeys();
+      if (play) drawFly();
+      if (SONGS[song] && !free) {
+        x.fillStyle = "#c4b5fd"; x.font = "bold 14px Trebuchet MS"; x.textAlign = "left";
+        var seq = SONGS[song].notes, s, lab = "";
+        for (s = 0; s < seq.length; s++) lab += (s === step ? "[" : "") + NAMES[seq[s]] + (s === step ? "] " : " ");
+        x.fillText(lab, 12, 80);
+      }
+      x.fillStyle = "rgba(255,255,255,.2)";
+      x.fillRect(16, 8, W - 32, 6);
+      x.fillStyle = "#fde047";
+      var prog = song / 5 + (SONGS[song] ? step / (SONGS[song].notes.length * 5) : 0);
+      x.fillRect(16, 8, Math.min(W - 32, prog * (W - 32)), 6);
+    }
+
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    resize();
+    requestAnimationFrame(loop);
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+  })();
   </script>
 </body>
 </html>

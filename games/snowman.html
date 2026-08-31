@@ -3,181 +3,357 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Snowman Build</title>
+  <title>Snowman</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#0f172a;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;padding:54px 10px 24px;text-align:center;position:relative;overflow-x:hidden;transition:background .5s}
-    body.dusk{background:linear-gradient(#7dd3fc 0 40%,#e2e8f0 40% 62%,#fff 62%)}
-    body.night{background:linear-gradient(#0f172a 0 46%,#1e293b 46% 64%,#e2e8f0 64%);color:#e0f2fe}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    .flakes{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
-    .flake{position:absolute;top:-20px;color:#fff;font-size:18px;animation:fall linear infinite;opacity:.85;text-shadow:0 0 6px #fff}
-    @keyframes fall{to{transform:translateY(110vh)}}
-    h1{font-size:clamp(24px,7vw,36px);position:relative;z-index:2;color:#0c4a6e}
-    body.night h1{color:#e0f2fe}
-    .hud{display:flex;justify-content:center;gap:8px;margin:6px;position:relative;z-index:2}
-    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #94a3b8;font-size:15px;color:#0f172a}
-    .yard{position:relative;z-index:2;max-width:400px;margin:8px auto}
-    .trees{display:flex;justify-content:space-between;font-size:42px;padding:0 8px;margin-bottom:-10px}
-    .stage{min-height:250px;display:flex;align-items:flex-end;justify-content:center;gap:18px}
-    .pal{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:90px}
-    .pal .name{font-weight:800;font-size:13px;margin-top:4px}
-    .ball{border-radius:50%;background:#f8fafc;box-shadow:inset -8px -6px 0 #cbd5e1,0 4px 0 #94a3b8;margin:-8px 0}
-    .ball.big{width:86px;height:70px}
-    .ball.mid{width:64px;height:52px}
-    .ball.head{width:46px;height:42px;display:grid;place-items:center;font-size:18px}
-    .pal.tall .ball.big{width:96px;height:80px}
-    .pal.tall .ball.mid{width:72px;height:58px}
-    .pal.tall .ball.head{width:50px;height:46px}
-    .bits{font-size:22px;line-height:1;min-height:24px}
-    .sparkle .ball{box-shadow:inset -8px -6px 0 #cbd5e1,0 0 16px #fff,0 4px 0 #94a3b8}
-    .parts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px;position:relative;z-index:2}
-    .parts button{width:74px;height:74px;border-radius:18px;background:#fff;font-size:32px;box-shadow:0 6px 0 #94a3b8}
-    .parts button.done{opacity:.35}
-    .parts button:active{transform:translateY(3px)}
-    .weather{margin:10px auto 0;background:#e0f2fe;color:#0c4a6e;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 6px 0 #38bdf8;font-size:18px;position:relative;z-index:2}
-    .msg{font-weight:800;min-height:2.2em;margin-top:8px;position:relative;z-index:2;font-size:18px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(15,30,50,.86);z-index:10;gap:10px;color:#fff;padding:20px}
-    .win.on{display:flex}
-    .win h2{font-size:30px}
-    .stars{font-size:28px;letter-spacing:4px}
-    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
-    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
-    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", Georgia, sans-serif; background: #e0f2fe; color: #0c4a6e; touch-action: none; user-select: none; -webkit-user-select: none; }
+    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #0c4a6e; text-decoration: none; font-weight: 800; font-size: 17px; background: #fff; padding: 8px 14px; border-radius: 999px; box-shadow: 0 3px 0 #7dd3fc; touch-action: manipulation; }
+    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; }
+    #hud b { font-weight: 800; font-size: 13px; background: #fff; color: #0c4a6e; padding: 6px 10px; border-radius: 999px; }
+    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 7; font-weight: 800; font-size: 16px; color: #0c4a6e; pointer-events: none; text-align: center; width: 92%; }
+    #dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: none; gap: 6px; padding: 8px 8px max(10px, env(safe-area-inset-bottom)); background: rgba(255,255,255,.75); justify-content: center; flex-wrap: wrap; }
+    #dock.on { display: flex; }
+    #dock button { min-width: 64px; height: 52px; border-radius: 14px; background: #e0f2fe; font-weight: 800; font-size: 14px; box-shadow: 0 4px 0 #7dd3fc; }
+    #dock button.on { background: #fde047; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#7dd3fc, #f8fafc); }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(32px, 9vw, 50px); color: #0c4a6e; text-shadow: 0 3px 0 #fff; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; }
+    .btn { background: #38bdf8; color: #fff; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #0369a1; }
+    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
   </style>
 </head>
-<body class="dusk">
+<body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="flakes" id="flakes"></div>
-  <h1>Snowman Build</h1>
-  <div class="hud">
-    <div class="chip" id="lvl">Friend 1 / 3</div>
-    <div class="chip" id="stars">⭐ 0</div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fr">Pal 1</b><b id="wn">Wind</b><b id="ac">Hats</b></div>
+  <div id="say">Roll the snow. It grows!</div>
+  <div id="dock">
+    <button id="a0" type="button">🎩 Hat</button>
+    <button id="a1" type="button">🧣 Scarf</button>
+    <button id="a2" type="button">🥕 Nose</button>
+    <button id="a3" type="button">🔘 Buttons</button>
+    <button id="a4" type="button">🌲 Arms</button>
   </div>
-  <div class="yard">
-    <div class="trees"><span>🌲</span><span>🎄</span><span>🌲</span></div>
-    <div class="stage" id="stage"></div>
+  <div class="cover" id="title">
+    <div style="font-size:76px">⛄</div>
+    <h1>Snowman</h1>
+    <p>Roll snowballs so they grow. Wind knocks the hat — tap to restack. Sparkles always.</p>
+    <button class="btn" id="go">Roll</button>
   </div>
-  <p class="msg" id="msg">First, tap the big snowball!</p>
-  <div class="parts" id="parts"></div>
-  <button class="weather" id="snow">❄️ Extra snow</button>
-  <div class="win" id="win">
-    <div style="font-size:72px">⛄</div>
-    <h2 id="wintitle">Frosty friends!</h2>
-    <p class="stars" id="winstars">⭐⭐⭐</p>
-    <p id="winline">A whole snow family.</p>
-    <div class="winbtns">
-      <button class="play" id="again">Play again</button>
-      <button class="next" id="next">Next</button>
-    </div>
+  <div class="cover off" id="win">
+    <div style="font-size:76px">❄️</div>
+    <h1>Snow pals!</h1>
+    <p id="winP">Five friends. Soft flakes.</p>
+    <button class="btn g" id="again">Roll again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var FRIENDS=[
-      {id:"friend",n:"Friend",cls:"",night:false,need:["big","mid","head","hat","carrot","arms","buttons","scarf"]},
-      {id:"tall",n:"Tall pal",cls:"tall",night:false,need:["big","mid","head","hat","carrot","arms","buttons","scarf"]},
-      {id:"night",n:"Night pal",cls:"",night:true,need:["big","mid","head","hat","carrot","arms","buttons","scarf","lantern"]}
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, last = 0, t = 0, play = false, friend = 0;
+    var balls = [], flakes = [], spark = [], gusts = [];
+    var drag = null, wind = 0, windT = 0, hatOff = 0, hat = { x: 0, y: 0, vx: 0, vy: 0 };
+    var acc = { hat: 1, scarf: 0, nose: 1, btn: 0, arms: 0 };
+    var stackY = 0, done = 0, ground = 0;
+    var FRIENDS = [
+      { n: "Classic", need: ["hat"], scarf: "#ef4444", hint: "Roll 3 balls. Stack big to small. Add a hat." },
+      { n: "Scarf pal", need: ["hat", "scarf"], scarf: "#3b82f6", hint: "This pal wants a warm scarf." },
+      { n: "Carrot grin", need: ["hat", "nose", "btn"], scarf: "#f97316", hint: "Nose and buttons, please!" },
+      { n: "Windy hat", need: ["hat", "arms"], scarf: "#a855f7", hint: "Wind is coming. Restack the hat." },
+      { n: "Family", need: ["hat", "scarf", "arms", "btn"], scarf: "#22c55e", hint: "Dress the last friend fancy." }
     ];
-    var PARTS=[
-      {id:"big",e:"⚪",n:"big snow"},{id:"mid",e:"🔘",n:"middle"},{id:"head",e:"⛄",n:"head"},
-      {id:"hat",e:"🎩",n:"hat"},{id:"carrot",e:"🥕",n:"carrot"},{id:"arms",e:"🪵",n:"arms"},
-      {id:"buttons",e:"⚫",n:"buttons"},{id:"scarf",e:"🧣",n:"scarf"},{id:"lantern",e:"🏮",n:"lantern"}
-    ];
-    var fi=0,step=0,done={},built=[],stars=0,spark=0;
-    function flakes(){
-      var box=document.getElementById("flakes");box.innerHTML="";
-      for(var i=0;i<18;i++){
-        var s=document.createElement("div");s.className="flake";s.textContent="❄";
-        s.style.left=(Math.random()*100)+"%";
-        s.style.animationDuration=(7+Math.random()*8)+"s";
-        s.style.animationDelay=(-Math.random()*8)+"s";
-        s.style.fontSize=(12+Math.random()*16)+"px";
-        box.appendChild(s);
-      }
+
+    function beep(f, d, typ) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        if (ac.state === "suspended") ac.resume();
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; g.gain.value = 0.08;
+        o.connect(g); g.connect(ac.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    function renderPals(){
-      var st=document.getElementById("stage");st.innerHTML="";
-      built.concat([{id:FRIENDS[fi].id,bits:done,cls:FRIENDS[fi].cls,n:FRIENDS[fi].n,spark:spark&&FRIENDS[fi].id===FRIENDS[fi].id}]).forEach(function(p,idx){
-        if(idx===built.length&&!done.big) {
-          var empty=document.createElement("div");empty.className="pal "+p.cls;empty.innerHTML="<div class='bits'>❄️</div><div class='name'>"+p.n+"</div>";st.appendChild(empty);return;
+    function say(s) { document.getElementById("say").textContent = s; }
+    function hud() {
+      document.getElementById("fr").textContent = FRIENDS[friend] ? FRIENDS[friend].n : "Done";
+      document.getElementById("wn").textContent = wind > 0.3 ? "Wind!" : "Calm";
+      document.getElementById("ac").textContent = (acc.hat ? "🎩" : "") + (acc.scarf ? "🧣" : "") + (acc.nose ? "🥕" : "");
+    }
+    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; ground = H * 0.78; }
+    addEventListener("resize", resize); resize();
+
+    function makeFriend() {
+      var baseX = W * 0.5;
+      balls = [
+        { x: baseX - 90, y: ground - 28, r: 28, vx: 0, stacked: 0, id: 0 },
+        { x: baseX + 10, y: ground - 22, r: 22, vx: 0, stacked: 0, id: 1 },
+        { x: baseX + 100, y: ground - 16, r: 16, vx: 0, stacked: 0, id: 2 }
+      ];
+      acc = { hat: 0, scarf: 0, nose: 0, btn: 0, arms: 0 };
+      hatOff = 0; wind = 0; windT = 2 + friend; done = 0;
+      document.getElementById("a0").classList.remove("on");
+      document.getElementById("a1").classList.remove("on");
+      document.getElementById("a2").classList.remove("on");
+      document.getElementById("a3").classList.remove("on");
+      document.getElementById("a4").classList.remove("on");
+      say(FRIENDS[friend].hint);
+      hud();
+    }
+
+    function start() {
+      play = true; friend = 0;
+      flakes = []; spark = []; gusts = [];
+      var i;
+      for (i = 0; i < 70; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, s: 1 + Math.random() * 2, v: 30 + Math.random() * 40, ph: i });
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      makeFriend(); beep(520, 0.1);
+    }
+
+    function ballAt(mx, my) {
+      var i, b, best = null, bd = 80;
+      for (i = 0; i < balls.length; i++) {
+        b = balls[i];
+        var d = Math.hypot(mx - b.x, my - b.y);
+        if (d < b.r + 16 && d < bd) { bd = d; best = b; }
+      }
+      return best;
+    }
+
+    addEventListener("pointerdown", function (e) {
+      if (e.target.closest && e.target.closest("a,button")) return;
+      if (!play) return;
+      if (hatOff && Math.hypot(e.clientX - hat.x, e.clientY - hat.y) < 40) {
+        hatOff = 0; acc.hat = 1; document.getElementById("a0").classList.add("on");
+        say("Hat restacked. Nice catch!");
+        beep(720, 0.08); checkDone(); return;
+      }
+      drag = ballAt(e.clientX, e.clientY);
+    });
+    addEventListener("pointermove", function (e) {
+      if (!drag || !play) return;
+      var nx = Math.max(40, Math.min(W - 40, e.clientX));
+      drag.vx = nx - drag.x;
+      drag.x = nx;
+      if (!drag.stacked) {
+        drag.r = Math.min(52 - drag.id * 8, drag.r + Math.abs(drag.vx) * 0.04);
+        drag.y = ground - drag.r;
+        if (Math.random() < 0.4) spark.push({ x: drag.x, y: drag.y + drag.r * 0.4, life: 0.5 });
+      }
+    });
+    addEventListener("pointerup", function () {
+      if (drag && play) tryStack(drag);
+      drag = null;
+    });
+
+    function tryStack(b) {
+      var sorted = balls.slice().sort(function (a, c) { return c.r - a.r; });
+      if (b === sorted[0]) {
+        b.stacked = 1; b.x = W * 0.5; b.y = ground - b.r;
+        beep(400, 0.06); return;
+      }
+      var under = null, i;
+      for (i = 0; i < balls.length; i++) {
+        if (balls[i] !== b && balls[i].stacked && Math.abs(balls[i].x - b.x) < balls[i].r * 0.7) {
+          if (!under || balls[i].y < under.y) under = balls[i];
         }
-        var bits=p.bits||done;
-        var d=document.createElement("div");d.className="pal "+p.cls+(p.spark||(spark&&idx===built.length)?" sparkle":"");
-        var hat=bits.hat?"🎩":"";
-        var face=(bits.carrot?"🥕":"")+(bits.head?"😊":"");
-        var arms=bits.arms?"🪵":"";
-        var lantern=bits.lantern?"🏮":"";
-        var scarf=bits.scarf?"🧣":"";
-        d.innerHTML=
-          "<div class='bits'>"+hat+"</div>"+
-          (bits.head?"<div class='ball head'>"+face+"</div>":"")+
-          (bits.mid?"<div class='ball mid'>"+(bits.buttons?"⚫":"")+"</div>":"")+
-          (bits.big?"<div class='ball big'>"+scarf+"</div>":"")+
-          "<div class='bits'>"+arms+" "+lantern+"</div>"+
-          "<div class='name'>"+p.n+"</div>";
-        st.appendChild(d);
-      });
-    }
-    function tray(){
-      var F=FRIENDS[fi],box=document.getElementById("parts");box.innerHTML="";
-      var show=step<3?PARTS.slice(0,3):PARTS.filter(function(p){return F.need.indexOf(p.id)>=0&&["big","mid","head"].indexOf(p.id)<0;});
-      show.forEach(function(p){
-        var b=document.createElement("button");b.textContent=p.e;if(done[p.id])b.className="done";
-        b.onclick=function(){
-          var need=F.need[step];
-          if(p.id!==need){document.getElementById("msg").textContent="Next is the "+PARTS.filter(function(x){return x.id===need;})[0].n+"!";beep(180,.1);return;}
-          done[p.id]=1;b.classList.add("done");step++;beep(520+step*40,.1);renderPals();
-          if(step>=F.need.length)finish();
-          else{
-            document.getElementById("msg").textContent=step===3?"Now dress them up!":"Now the "+PARTS.filter(function(x){return x.id===F.need[step];})[0].n+"!";
-            if(step===3)tray();
-          }
-        };
-        box.appendChild(b);
-      });
-    }
-    function finish(){
-      var got=2+(spark?1:0);stars+=got;
-      document.getElementById("stars").textContent="⭐ "+stars;
-      built.push({id:FRIENDS[fi].id,bits:Object.assign({},done),cls:FRIENDS[fi].cls,n:FRIENDS[fi].n,spark:spark});
-      beep(960,.18);
-      setTimeout(function(){showWin(fi>=FRIENDS.length-1,got);},350);
-    }
-    function startFriend(){
-      var F=FRIENDS[fi];step=0;done={};spark=0;
-      document.body.className=F.night?"night":"dusk";
-      document.getElementById("lvl").textContent=F.n+" "+(fi+1)+" / 3";
-      document.getElementById("msg").textContent="First, tap the big snowball!";
-      tray();renderPals();
-    }
-    document.getElementById("snow").onclick=function(){
-      spark=1;renderPals();
-      document.getElementById("msg").textContent="Sparkle snow! So pretty.";
-      beep(700,.08);
-      var box=document.getElementById("flakes");
-      for(var i=0;i<8;i++){
-        var s=document.createElement("div");s.className="flake";s.textContent="✨";
-        s.style.left=(Math.random()*100)+"%";s.style.animationDuration="4s";s.style.fontSize="22px";
-        box.appendChild(s);
       }
-    };
-    function showWin(last,got){
-      document.getElementById("wintitle").textContent=last?"Frosty friends!":"Hello snow pal!";
-      document.getElementById("winstars").textContent="⭐".repeat(got);
-      document.getElementById("winline").textContent=last?"A whole snow family.":"Build the next friend!";
-      document.getElementById("win").classList.add("on");
+      if (under && b.r < under.r + 2) {
+        b.stacked = 1; b.x = under.x; b.y = under.y - under.r - b.r + 6;
+        beep(560, 0.07);
+        checkDone();
+      }
     }
-    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");fi=0;stars=0;built=[];document.getElementById("stars").textContent="⭐ 0";flakes();startFriend();};
-    document.getElementById("next").onclick=function(){
-      document.getElementById("win").classList.remove("on");
-      if(fi>=FRIENDS.length-1){fi=0;stars=0;built=[];document.getElementById("stars").textContent="⭐ 0";flakes();}
-      else fi++;
-      startFriend();
-    };
-    flakes();startFriend();
+
+    function allStacked() {
+      return balls.every(function (b) { return b.stacked; });
+    }
+
+    function checkDone() {
+      if (!allStacked()) return;
+      var need = FRIENDS[friend].need, ok = true, i;
+      for (i = 0; i < need.length; i++) {
+        if (need[i] === "hat" && (!acc.hat || hatOff)) ok = false;
+        if (need[i] === "scarf" && !acc.scarf) ok = false;
+        if (need[i] === "nose" && !acc.nose) ok = false;
+        if (need[i] === "btn" && !acc.btn) ok = false;
+        if (need[i] === "arms" && !acc.arms) ok = false;
+      }
+      if (ok && !done) {
+        done = 1; beep(880, 0.14);
+        friend++;
+        if (friend >= FRIENDS.length) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("winP").textContent = "Five snow friends. Hats came home.";
+          document.getElementById("win").classList.remove("off");
+        } else {
+          say("Pal complete! Next friend...");
+          setTimeout(makeFriend, 700);
+        }
+      }
+    }
+
+    document.getElementById("a0").onclick = function () { if (allStacked()) { acc.hat = 1; hatOff = 0; this.classList.add("on"); beep(600, 0.06); checkDone(); } else say("Stack the balls first."); };
+    document.getElementById("a1").onclick = function () { if (allStacked()) { acc.scarf = 1; this.classList.add("on"); beep(620, 0.06); checkDone(); } else say("Stack first."); };
+    document.getElementById("a2").onclick = function () { if (allStacked()) { acc.nose = 1; this.classList.add("on"); beep(640, 0.06); checkDone(); } else say("Stack first."); };
+    document.getElementById("a3").onclick = function () { if (allStacked()) { acc.btn = 1; this.classList.add("on"); beep(660, 0.06); checkDone(); } else say("Stack first."); };
+    document.getElementById("a4").onclick = function () { if (allStacked()) { acc.arms = 1; this.classList.add("on"); beep(680, 0.06); checkDone(); } else say("Stack first."); };
+
+    function update(dt) {
+      t += dt;
+      var i, f;
+      for (i = 0; i < flakes.length; i++) {
+        f = flakes[i];
+        f.y += f.v * dt; f.x += Math.sin(t + f.ph) * 18 * dt + wind * 40 * dt;
+        if (f.y > H) { f.y = -6; f.x = Math.random() * W; }
+        if (f.x < -8) f.x = W + 4;
+        if (f.x > W + 8) f.x = -4;
+      }
+      for (i = spark.length - 1; i >= 0; i--) {
+        spark[i].life -= dt * 2;
+        if (spark[i].life <= 0) spark.splice(i, 1);
+      }
+      if (!play) return;
+      windT -= dt;
+      if (friend >= 3 && windT < 0 && allStacked() && acc.hat && !hatOff) {
+        wind = 1; hatOff = 1;
+        var top = balls.slice().sort(function (a, b) { return a.y - b.y; })[0];
+        hat.x = top.x; hat.y = top.y - top.r - 10; hat.vx = 80 + friend * 10; hat.vy = -40;
+        windT = 6; say("Whoosh! Tap the hat to restack.");
+        beep(220, 0.12, "sawtooth");
+      }
+      if (wind > 0) wind -= dt * 0.5;
+      if (hatOff) {
+        hat.x += hat.vx * dt; hat.y += hat.vy * dt; hat.vy += 180 * dt;
+        if (hat.y > ground - 10) { hat.y = ground - 10; hat.vy *= -0.3; hat.vx *= 0.7; }
+        if (hat.x < 20 || hat.x > W - 20) hat.vx *= -1;
+      }
+      for (i = 0; i < balls.length; i++) {
+        if (!balls[i].stacked && balls[i] !== drag) {
+          balls[i].vx *= 0.9;
+          balls[i].x += balls[i].vx * dt * 8;
+          balls[i].x = Math.max(balls[i].r, Math.min(W - balls[i].r, balls[i].x));
+        }
+      }
+      hud();
+    }
+
+    function drawSky() {
+      var g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#f8fafc");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#fde047";
+      x.beginPath(); x.arc(W * 0.16, 70, 20, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#fff";
+      x.fillRect(0, ground, W, H - ground);
+      x.fillStyle = "#e0f2fe";
+      var i;
+      for (i = 0; i < 6; i++) {
+        x.beginPath(); x.ellipse(i * (W / 5), ground + 10, 50, 16, 0, 0, Math.PI * 2); x.fill();
+      }
+    }
+
+    function drawBall(b) {
+      var grd = x.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.3, 4, b.x, b.y, b.r);
+      grd.addColorStop(0, "#fff"); grd.addColorStop(1, "#cbd5e1");
+      x.fillStyle = grd;
+      x.beginPath(); x.arc(b.x, b.y, b.r, 0, Math.PI * 2); x.fill();
+      x.strokeStyle = "rgba(148,163,184,.5)"; x.lineWidth = 2;
+      x.beginPath(); x.arc(b.x, b.y, b.r, 0, Math.PI * 2); x.stroke();
+    }
+
+    function drawFace(top) {
+      if (!allStacked()) return;
+      x.fillStyle = "#1e293b";
+      x.beginPath(); x.arc(top.x - 7, top.y - 4, 3, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.arc(top.x + 7, top.y - 4, 3, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.arc(top.x, top.y + 8, 6, 0.15, Math.PI - 0.15); x.stroke();
+      if (acc.nose) {
+        x.fillStyle = "#f97316";
+        x.beginPath(); x.moveTo(top.x, top.y); x.lineTo(top.x + 18, top.y + 4); x.lineTo(top.x, top.y + 6); x.fill();
+      }
+    }
+
+    function drawHatAt(px, py, r) {
+      x.fillStyle = "#1e293b";
+      x.fillRect(px - r * 0.7, py - 8, r * 1.4, 8);
+      x.fillRect(px - r * 0.38, py - 28, r * 0.76, 22);
+    }
+
+    function draw() {
+      drawSky();
+      var i, f;
+      for (i = 0; i < flakes.length; i++) {
+        f = flakes[i];
+        x.globalAlpha = 0.7;
+        x.fillStyle = "#fff";
+        x.beginPath(); x.arc(f.x, f.y, f.s, 0, Math.PI * 2); x.fill();
+      }
+      x.globalAlpha = 1;
+      var sorted = balls.slice().sort(function (a, b) { return a.y - b.y; });
+      var base = balls.slice().sort(function (a, b) { return b.r - a.r; })[0];
+      var mid, top;
+      if (allStacked()) {
+        mid = sorted[1]; top = sorted[0];
+        if (acc.arms) {
+          x.strokeStyle = "#92400e"; x.lineWidth = 4;
+          x.beginPath(); x.moveTo(base.x - base.r + 4, base.y - 8); x.lineTo(base.x - base.r - 28, base.y - 22 + Math.sin(t * 2) * 4); x.stroke();
+          x.beginPath(); x.moveTo(base.x + base.r - 4, base.y - 8); x.lineTo(base.x + base.r + 28, base.y - 18 + Math.cos(t * 2) * 4); x.stroke();
+        }
+      }
+      for (i = 0; i < balls.length; i++) drawBall(balls[i]);
+      if (allStacked()) {
+        top = sorted[0]; mid = sorted[1];
+        drawFace(top);
+        if (acc.scarf) {
+          x.strokeStyle = FRIENDS[friend] ? FRIENDS[friend].scarf : "#ef4444";
+          x.lineWidth = 8; x.lineCap = "round";
+          x.beginPath(); x.arc(top.x, top.y + top.r - 2, top.r * 0.7, 0.2, Math.PI - 0.2); x.stroke();
+          x.fillStyle = x.strokeStyle;
+          x.fillRect(top.x + 8, top.y + top.r, 8, 22);
+        }
+        if (acc.btn && mid) {
+          x.fillStyle = "#1e293b";
+          x.beginPath(); x.arc(mid.x, mid.y - 6, 3, 0, Math.PI * 2); x.fill();
+          x.beginPath(); x.arc(mid.x, mid.y + 6, 3, 0, Math.PI * 2); x.fill();
+        }
+        if (acc.hat && !hatOff) drawHatAt(top.x, top.y - top.r, top.r);
+      }
+      if (hatOff) drawHatAt(hat.x, hat.y, 16);
+      for (i = 0; i < spark.length; i++) {
+        x.globalAlpha = Math.max(0, spark[i].life);
+        x.fillStyle = "#fff";
+        x.fillRect(spark[i].x, spark[i].y, 3, 3);
+      }
+      x.globalAlpha = 1;
+      if (wind > 0.2) {
+        x.strokeStyle = "rgba(14,165,233,.35)"; x.lineWidth = 2;
+        for (i = 0; i < 6; i++) {
+          x.beginPath(); x.moveTo(20, 80 + i * 30); x.lineTo(80 + Math.sin(t * 8 + i) * 20, 80 + i * 30); x.stroke();
+        }
+      }
+      x.fillStyle = "rgba(12,74,110,.2)";
+      x.fillRect(16, 8, W - 32, 6);
+      x.fillStyle = "#38bdf8";
+      x.fillRect(16, 8, Math.min(W - 32, (friend / 5) * (W - 32)), 6);
+    }
+
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+  })();
   </script>
 </body>
 </html>

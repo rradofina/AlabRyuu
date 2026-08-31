@@ -6,277 +6,283 @@
   <title>Number Train</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      min-height: 100%;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      color: #1e3a5f; touch-action: manipulation; user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    body {
-      min-height: 100vh;
-      background: linear-gradient(#7dd3fc 0%, #38bdf8 38%, #94a3b8 38%, #94a3b8 42%, #64748b 42%);
-      padding: 54px 10px 20px;
-    }
-    .home {
-      position: fixed; top: 12px; left: 12px; z-index: 9;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
-    }
-    .sky-deco { text-align: center; font-size: 22px; letter-spacing: 10px; opacity: .8; margin-bottom: 4px; }
-    .station { max-width: 440px; margin: 0 auto; }
-    .roof {
-      background: #b91c1c; clip-path: polygon(4% 100%, 50% 0, 96% 100%);
-      height: 52px; box-shadow: 0 8px 0 #7f1d1d;
-    }
-    .clock {
-      width: 44px; height: 44px; margin: -28px auto 0; border-radius: 50%;
-      background: #fff; border: 4px solid #1e293b; font-weight: 800; font-size: 11px;
-      display: grid; place-items: center; position: relative; z-index: 2;
-    }
-    .hall {
-      background: #fef3c7; border: 6px solid #92400e; border-radius: 0 0 16px 16px;
-      padding: 10px 10px 14px; box-shadow: 0 10px 0 rgba(0,0,0,.18);
-    }
-    .plats { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; }
-    .plat {
-      flex: 1; max-width: 120px; padding: 6px 4px; border-radius: 10px;
-      background: #cbd5e1; font-weight: 800; font-size: 12px; text-align: center;
-    }
-    .plat.on { background: #facc15; box-shadow: 0 0 0 3px #eab308; }
-    .plat.done { background: #86efac; }
-    .cond {
-      display: inline-flex; align-items: center; gap: 8px;
-      margin: 4px auto 8px; padding: 6px 14px; border-radius: 999px;
-      font-weight: 800; color: #222; background: #ffd166;
-    }
-    .ticket {
-      display: flex; justify-content: space-between; gap: 8px;
-      background: #fff; border: 3px dashed #64748b; border-radius: 12px;
-      padding: 8px 12px; font-weight: 800; font-size: 16px; margin-bottom: 10px;
-    }
-    .msg { font-weight: 800; text-align: center; margin: 0 0 8px; font-size: 18px; min-height: 1.4em; }
-    .rails {
-      background: repeating-linear-gradient(#78716c, #78716c 6px, #a8a29e 6px 10px);
-      border-radius: 12px; padding: 10px 8px 14px; position: relative;
-    }
-    .rails::before, .rails::after {
-      content: ""; position: absolute; left: 8px; right: 8px; height: 3px; background: #334155;
-    }
-    .rails::before { top: 8px; }
-    .rails::after { bottom: 10px; }
-    .train { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; position: relative; z-index: 1; }
-    .engine {
-      width: 72px; height: 72px; border-radius: 18px 22px 14px 14px;
-      background: #111827; color: #fff; font-size: 36px;
-      display: grid; place-items: center; box-shadow: 0 6px 0 #020617;
-    }
-    .car {
-      width: 68px; height: 68px; border-radius: 16px; font-size: 20px; font-weight: 800;
-      box-shadow: 0 6px 0 rgba(0,0,0,.25); color: #111;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
-    .car:active { transform: translateY(3px); }
-    .car.ready { outline: 4px solid #fff; animation: pulse 0.6s ease infinite; }
-    .car.loaded { opacity: .55; }
-    @keyframes pulse { 50% { transform: scale(1.06); } }
-    .dock { margin-top: 12px; background: #92400e; border-radius: 14px; padding: 10px; }
-    .dock h3 { color: #fde68a; font-size: 16px; margin-bottom: 8px; text-align: center; }
-    .crates { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-    .crate {
-      width: 64px; height: 64px; border-radius: 12px; font-size: 32px;
-      background: #d97706; box-shadow: 0 5px 0 #78350f;
-    }
-    .crate:active { transform: translateY(3px); }
-    .crate:disabled { opacity: .35; }
-    .win {
-      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      flex-direction: column; background: rgba(15,23,42,.86); z-index: 8; gap: 12px;
-      color: #fff; text-align: center; padding: 20px;
-    }
-    .win.on { display: flex; }
-    .play, .next { font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px; }
-    .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
-    .next { background: #7dd3fc; color: #0c4a6e; box-shadow: 0 7px 0 #38bdf8; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #38bdf8; color: #1e3a5f; touch-action: none; user-select: none; }
+    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .home { position: fixed; top: 12px; left: 12px; z-index: 12; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #hud { position: fixed; top: 12px; right: 12px; z-index: 8; font-weight: 800; text-align: right; pointer-events: none; }
+    #hud b { display: inline-block; background: #fff; padding: 6px 12px; border-radius: 999px; margin-left: 6px; font-size: 14px; box-shadow: 0 3px 0 #1e3a5f; }
+    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 8; font-weight: 800; color: #fff; text-shadow: 0 2px 0 #0369a1; pointer-events: none; text-align: center; width: 92%; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; gap: 8px; padding: 20px 20px 48px; pointer-events: none; }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(30px, 8vw, 46px); color: #fff; text-shadow: 0 4px 0 #1e3a5f; }
+    .cover p { font-weight: 800; color: #e0f2fe; }
+    .btn { pointer-events: auto; background: #ffd166; color: #3b2100; font-weight: 800; font-size: 24px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
+    .btn.g { background: #86efac; color: #14532d; box-shadow: 0 7px 0 #16a34a; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="sky-deco">☁️ ☁️ ☁️</div>
-  <div class="station">
-    <div class="roof"></div>
-    <div class="clock">12:00</div>
-    <div class="hall">
-      <div class="plats">
-        <div class="plat on" id="p0">Platform 1<br>1–5</div>
-        <div class="plat" id="p1">Platform 2<br>1–8</div>
-        <div class="plat" id="p2">Platform 3<br>1–10</div>
-      </div>
-      <div style="text-align:center"><div class="cond" id="cond"></div></div>
-      <div class="ticket">
-        <span id="nextNum">Next: 1</span>
-        <span id="starChip">Cargo ★ 0</span>
-      </div>
-      <p class="msg" id="msg">Tap car 1!</p>
-      <div class="rails">
-        <div class="train" id="track"></div>
-      </div>
-      <div class="dock">
-        <h3>Load cargo</h3>
-        <div class="crates" id="crates"></div>
-      </div>
-    </div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="stn">Station 1</b><b id="nx">Next 1</b><b id="st">⭐ 0</b></div>
+  <div id="say">Tap cars in order as they couple!</div>
+  <div class="cover" id="title">
+    <h1>Number Train</h1>
+    <p>Cars roll in. Tap 1 then 2...<br>Load cargo. Wave to the conductor!</p>
+    <button class="btn" id="go">Play</button>
   </div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🚂</div>
-    <h2 id="wint">Choo choo!</h2>
-    <p id="winline"></p>
-    <button class="play" id="again" type="button">Play again</button>
-    <button class="next" id="nextBtn" type="button">Next platform</button>
+  <div class="cover off" id="win">
+    <h1>All stations!</h1>
+    <p id="winP">Counted to ten.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function av() {
-      try {
-        var a = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null");
-        if (a && a.name) return a;
-      } catch (e) {}
-      return { name: "Kid", hair: "🧒", shirt: "#ffd166", pet: "🐶" };
-    }
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, last = 0, t = 0, mode = "title", stars = 0, station = 0;
+    var cars = [], nextN = 1, maxN = 4, cargo = [], smoke = [], coupled = 0;
+    var av = { name: "Kid", hair: "🧒", hat: "", shirt: "#f472b6" };
+    try {
+      var s = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null");
+      if (s) { av.name = s.name || av.name; av.hair = s.hair || av.hair; av.hat = s.hat || ""; av.shirt = s.shirt || av.shirt; }
+    } catch (e) {}
+
+    var STATIONS = [
+      { n: "Little Halt", max: 4, cargo: ["📦", "📮"] },
+      { n: "Meadow Stop", max: 5, cargo: ["🥕", "📦", "🌼"] },
+      { n: "River Depot", max: 7, cargo: ["🐟", "📦", "📮"] },
+      { n: "Hill Junction", max: 8, cargo: ["🍎", "📦", "🪵", "📮"] },
+      { n: "Grand Central", max: 10, cargo: ["👑", "📦", "🎁", "⭐", "📮"] }
+    ];
+    var CAR_COLS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6", "#3b82f6", "#8b5cf6", "#ec4899", "#f43f5e", "#84cc16"];
+
     function beep(f, d) {
       try {
-        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = c.createOscillator(), g = c.createGain();
-        o.frequency.value = f; g.gain.value = 0.12;
-        o.connect(g); g.connect(c.destination);
-        o.start();
-        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
-        o.stop(c.currentTime + d);
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), gn = ac.createGain();
+        o.type = "sine"; o.frequency.value = f; gn.gain.value = 0.07;
+        o.connect(gn); gn.connect(ac.destination); o.start();
+        gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-    var A = av();
-    var sizes = [5, 8, 10];
-    var cols = ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#14b8a6","#3b82f6","#6366f1","#a855f7","#ec4899"];
-    var crateArt = ["📦","🎁","🧃","🧸","⭐"];
-    var plat = 0, need = 1, stars = 0, waiting = false, carEls = {};
-    document.getElementById("cond").innerHTML = A.hair + " Conductor " + A.name + " " + (A.pet || "");
-    document.getElementById("cond").style.background = A.shirt || "#ffd166";
-    function shuffle(arr) {
-      for (var i = arr.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-      }
-      return arr;
+    function lerp(a, b, p) { return a + (b - a) * p; }
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+
+    function resize() {
+      cv.width = innerWidth * (devicePixelRatio || 1);
+      cv.height = innerHeight * (devicePixelRatio || 1);
+      g.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
+      W = innerWidth; H = innerHeight;
     }
-    function hud() {
-      document.getElementById("nextNum").textContent = waiting ? "Load car " + (need - 1) : "Next: " + need;
-      document.getElementById("starChip").textContent = "Cargo ★ " + stars;
-      for (var i = 0; i < 3; i++) {
-        var el = document.getElementById("p" + i);
-        el.classList.toggle("on", i === plat);
-        el.classList.toggle("done", i < plat);
+    addEventListener("resize", resize); resize();
+
+    function loadStation() {
+      var S = STATIONS[station], i, nums = [];
+      maxN = S.max; nextN = 1; coupled = 0; cars = []; cargo = []; smoke = [];
+      for (i = 1; i <= maxN; i++) nums.push(i);
+      nums.sort(function () { return Math.random() - 0.5; });
+      for (i = 0; i < maxN; i++) {
+        cars.push({
+          n: nums[i], x: W + 80 + i * 90, y: H * 0.58, tx: 0, coupled: 0,
+          roll: rnd(0, 6), col: CAR_COLS[(nums[i] - 1) % 10], cargo: "", bounce: 0
+        });
       }
+      document.getElementById("stn").textContent = S.n;
+      document.getElementById("nx").textContent = "Next " + nextN;
+      document.getElementById("say").textContent = av.name + " says tap " + nextN + "!";
     }
-    function fillCrates() {
-      var box = document.getElementById("crates");
-      box.innerHTML = "";
-      for (var i = 0; i < 4; i++) {
-        var b = document.createElement("button");
-        b.className = "crate";
-        b.textContent = crateArt[i % crateArt.length];
-        b.onclick = onCrate;
-        box.appendChild(b);
-      }
-    }
-    function build() {
-      need = 1; waiting = false; carEls = {};
-      var n = sizes[plat];
-      var nums = [];
-      for (var i = 1; i <= n; i++) nums.push(i);
-      shuffle(nums);
-      var track = document.getElementById("track");
-      track.innerHTML = "";
-      var eng = document.createElement("div");
-      eng.className = "engine";
-      eng.textContent = "🚂";
-      track.appendChild(eng);
-      nums.forEach(function (num) {
-        var b = document.createElement("button");
-        b.className = "car";
-        b.style.background = cols[num - 1];
-        b.innerHTML = "<span>🚃</span><span>" + num + "</span>";
-        b.onclick = function () { onCar(num, b); };
-        track.appendChild(b);
-        carEls[num] = b;
+
+    function engineX() { return 70; }
+
+    function tapCar(mx, my) {
+      if (mode !== "play") return;
+      cars.forEach(function (c) {
+        if (c.coupled) return;
+        if (Math.abs(mx - c.x) < 36 && Math.abs(my - c.y) < 40) {
+          if (c.n === nextN) {
+            c.coupled = 1; c.bounce = 1;
+            c.tx = engineX() + coupled * 62 + 70;
+            coupled++; nextN++;
+            stars += 1;
+            document.getElementById("nx").textContent = nextN <= maxN ? "Next " + nextN : "Cargo!";
+            document.getElementById("st").textContent = "⭐ " + stars;
+            document.getElementById("say").textContent = c.n === maxN ? "All coupled! Load cargo." : "Yes! Now " + nextN + ".";
+            beep(400 + c.n * 40, 0.08);
+            if (coupled >= maxN) startCargo();
+          } else {
+            c.bounce = 1;
+            document.getElementById("say").textContent = "That is " + c.n + ". Looking for " + nextN + ".";
+            beep(180, 0.07);
+          }
+        }
       });
-      fillCrates();
-      document.getElementById("msg").textContent = "Tap car 1!";
-      hud();
+      cargo.forEach(function (k) {
+        if (k.got) return;
+        if (Math.hypot(mx - k.x, my - k.y) < 28) {
+          var free = cars.filter(function (c) { return c.coupled && !c.cargo; })[0];
+          if (free) {
+            k.got = 1; k.tx = free.tx; k.ty = H * 0.58 - 18; free.cargo = k.e;
+            stars += 1; document.getElementById("st").textContent = "⭐ " + stars;
+            beep(640, 0.08);
+            if (cars.every(function (c) { return !c.coupled || c.cargo; })) finishStation();
+          }
+        }
+      });
     }
-    function onCar(num, el) {
-      if (waiting) {
-        document.getElementById("msg").textContent = "Put a box on the car!";
-        beep(180, 0.08);
-        return;
-      }
-      if (num !== need) {
-        beep(180, 0.1);
-        document.getElementById("msg").textContent = "Next is " + need + "!";
-        el.style.transform = "translateX(-6px)";
-        setTimeout(function () { el.style.transform = ""; }, 140);
-        return;
-      }
-      el.classList.add("ready");
-      el.disabled = true;
-      waiting = true;
-      need++;
-      beep(400 + num * 30, 0.1);
-      document.getElementById("msg").textContent = "Load cargo on car " + num + "!";
-      hud();
+
+    function startCargo() {
+      var S = STATIONS[station], i;
+      cargo = S.cargo.map(function (e, i) {
+        return { e: e, x: 80 + i * 50, y: H * 0.78, got: 0, tx: 0, ty: 0, p: 0 };
+      });
+      while (cargo.length < maxN) cargo.push({ e: "📦", x: 80 + cargo.length * 50, y: H * 0.78, got: 0, tx: 0, ty: 0, p: 0 });
+      document.getElementById("say").textContent = "Tap cargo onto the cars!";
     }
-    function onCrate() {
-      if (!waiting) {
-        document.getElementById("msg").textContent = "Tap the next car first!";
-        beep(180, 0.08);
-        return;
-      }
-      var loaded = need - 1;
-      var car = carEls[loaded];
-      car.classList.remove("ready");
-      car.classList.add("loaded");
-      car.innerHTML = "<span>📦</span><span>" + loaded + "</span>";
-      waiting = false;
-      stars++;
-      beep(720, 0.1);
-      this.disabled = true;
-      this.style.opacity = ".35";
-      var max = sizes[plat];
-      if (loaded >= max) {
-        document.getElementById("msg").textContent = "All aboard this platform!";
-        setTimeout(platformDone, 450);
+
+    function finishStation() {
+      stars += 4; document.getElementById("st").textContent = "⭐ " + stars;
+      beep(660, 0.12); setTimeout(function () { beep(880, 0.16); }, 90);
+      if (station < STATIONS.length - 1) {
+        station++;
+        document.getElementById("say").textContent = "Next station!";
+        setTimeout(loadStation, 800);
       } else {
-        document.getElementById("msg").textContent = "Tap car " + need + "!";
-        fillCrates();
+        mode = "win";
+        document.getElementById("win").classList.remove("off");
+        document.getElementById("winP").textContent = av.name + " counted to ten. " + stars + " stars.";
       }
-      hud();
     }
-    function platformDone() {
-      var last = plat >= 2;
-      document.getElementById("wint").textContent = last ? "Choo choo!" : "Platform done!";
-      document.getElementById("winline").textContent = A.name + " loaded ★ " + stars;
-      document.getElementById("nextBtn").style.display = last ? "none" : "inline-block";
-      document.getElementById("nextBtn").textContent = "Next platform";
-      document.getElementById("win").classList.add("on");
-      beep(880, 0.18);
+
+    function drawWorld() {
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.4, "#38bdf8"); grd.addColorStop(0.4, "#94a3b8"); grd.addColorStop(0.46, "#64748b"); grd.addColorStop(1, "#334155");
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      g.fillStyle = "#b91c1c";
+      g.beginPath(); g.moveTo(W * 0.15, 130); g.lineTo(W * 0.5, 70); g.lineTo(W * 0.85, 130); g.fill();
+      g.fillStyle = "#fef3c7"; g.fillRect(W * 0.2, 130, W * 0.6, 36);
+      g.fillStyle = "#fff"; g.beginPath(); g.arc(W * 0.5, 118, 18, 0, 6.28); g.fill();
+      g.strokeStyle = "#1e293b"; g.lineWidth = 3; g.stroke();
+      g.fillStyle = "#1e293b"; g.font = "bold 10px Trebuchet MS"; g.textAlign = "center";
+      g.fillText("12", W * 0.5, 122);
+      g.fillStyle = "#334155";
+      g.fillRect(0, H * 0.58 + 28, W, 8);
+      g.fillRect(0, H * 0.58 + 42, W, 8);
+      var i;
+      for (i = 0; i < 20; i++) g.fillRect(i * (W / 20), H * 0.58 + 24, 16, 30);
     }
-    document.getElementById("again").onclick = function () { location.reload(); };
-    document.getElementById("nextBtn").onclick = function () {
-      document.getElementById("win").classList.remove("on");
-      plat++;
-      build();
-    };
-    build();
+
+    function drawConductor() {
+      g.save();
+      g.translate(36, H * 0.5);
+      g.fillStyle = av.shirt; g.fillRect(-14, 8, 28, 18);
+      g.font = "32px serif"; g.textAlign = "center";
+      g.fillText(av.hat || "", 0, -18);
+      g.fillText(av.hair, 0, 6);
+      g.font = "bold 11px Trebuchet MS"; g.fillStyle = "#fff";
+      g.fillText(av.name, 0, 36);
+      g.restore();
+    }
+
+    function drawEngine() {
+      g.save();
+      g.translate(engineX(), H * 0.58);
+      g.font = "44px serif"; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText("🚂", 0, 0);
+      g.restore();
+      smoke.forEach(function (s) {
+        g.globalAlpha = s.life * 0.5; g.fillStyle = "#e7e5e4";
+        g.beginPath(); g.arc(s.x, s.y, s.r, 0, 6.28); g.fill(); g.globalAlpha = 1;
+      });
+    }
+
+    function drawCars() {
+      cars.forEach(function (c) {
+        g.save();
+        g.translate(c.x, c.y + Math.sin(c.roll) * 2 + (c.bounce > 0 ? Math.sin(c.bounce * 12) * 6 : 0));
+        g.fillStyle = c.col;
+        roundFill(-28, -22, 56, 40, 10);
+        g.fillStyle = "#1e293b";
+        g.beginPath(); g.arc(-16, 20, 7, 0, 6.28); g.arc(16, 20, 7, 0, 6.28); g.fill();
+        g.fillStyle = "#fff"; g.font = "bold 20px Trebuchet MS"; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillText(c.n, 0, -2);
+        if (c.cargo) { g.font = "16px serif"; g.fillText(c.cargo, 0, -28); }
+        g.restore();
+      });
+      cargo.forEach(function (k) {
+        if (k.got && k.p >= 1) return;
+        var x = k.got ? lerp(k.x, k.tx, k.p) : k.x;
+        var y = k.got ? lerp(k.y, k.ty, k.p) - Math.sin(k.p * Math.PI) * 30 : k.y;
+        g.font = "24px serif"; g.textAlign = "center"; g.fillText(k.e, x, y);
+      });
+    }
+
+    function roundFill(x, y, w, h, r) {
+      g.beginPath();
+      g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+      g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.fill();
+    }
+
+    function drawTitleTrain() {
+      drawWorld();
+      drawConductor();
+      var x = W - ((t * 80) % (W + 200));
+      g.font = "44px serif"; g.textAlign = "center";
+      g.fillText("🚂", x, H * 0.56);
+      var i;
+      for (i = 1; i <= 4; i++) {
+        g.fillStyle = CAR_COLS[i - 1];
+        roundFill(x + i * 58 - 20, H * 0.56 - 18, 44, 32, 8);
+        g.fillStyle = "#fff"; g.font = "bold 18px Trebuchet MS"; g.fillText(i, x + i * 58 + 2, H * 0.56 + 4);
+      }
+    }
+
+    function update(dt) {
+      t += dt;
+      if (mode === "title" || mode === "win") {
+        if (Math.random() < 0.3) smoke.push({ x: W - ((t * 80) % (W + 200)), y: H * 0.5, vx: rnd(-8, 8), vy: rnd(-30, -10), life: 1, r: rnd(4, 8) });
+        smoke.forEach(function (s) { s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt * 0.8; s.r += dt * 4; });
+        smoke = smoke.filter(function (s) { return s.life > 0; });
+        return;
+      }
+      cars.forEach(function (c) {
+        if (!c.coupled) {
+          c.x -= 55 * dt;
+          if (c.x < 120) c.x = W + rnd(40, 160);
+          c.roll += dt * 8;
+        } else {
+          c.x = lerp(c.x, c.tx, 1 - Math.pow(0.002, dt));
+          c.roll += dt * 10;
+        }
+        if (c.bounce > 0) c.bounce -= dt;
+      });
+      cargo.forEach(function (k) { if (k.got) k.p = Math.min(1, k.p + dt * 1.6); });
+      if (Math.random() < 0.25) smoke.push({ x: engineX() - 6, y: H * 0.52, vx: rnd(-10, 6), vy: rnd(-36, -14), life: 1, r: rnd(4, 7) });
+      smoke.forEach(function (s) { s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt * 0.8; s.r += dt * 5; });
+      smoke = smoke.filter(function (s) { return s.life > 0; });
+    }
+
+    function draw() {
+      if (mode === "title" || mode === "win") { drawTitleTrain(); return; }
+      drawWorld(); drawConductor(); drawEngine(); drawCars();
+    }
+
+    function loop(now) {
+      var dt = Math.min(0.033, (now - last) / 1000 || 0.016);
+      last = now; update(dt); draw(); requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    function start() {
+      mode = "play"; station = 0; stars = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("st").textContent = "⭐ 0";
+      loadStation(); beep(480, 0.1);
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); start(); };
+    cv.addEventListener("pointerdown", function (e) { tapCar(e.clientX, e.clientY); });
+  })();
   </script>
 </body>
 </html>

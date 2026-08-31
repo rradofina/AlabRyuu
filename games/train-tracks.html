@@ -4,375 +4,299 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Train Tracks</title>
+  <script src="../vendor/three.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      min-height: 100%;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      color: #431407;
-      touch-action: manipulation;
-      user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    body {
-      min-height: 100vh;
-      background: linear-gradient(#fdba74, #fb923c 30%, #9a3412 30%);
-      padding: 54px 10px 20px;
-    }
-    .home {
-      position: fixed; top: 12px; left: 12px; z-index: 9;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
-    }
-    .hud {
-      display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;
-    }
-    .chip {
-      background: #fff7ed; font-weight: 800; padding: 6px 12px; border-radius: 999px;
-      box-shadow: 0 3px 0 #7c2d12; font-size: 15px;
-    }
-    h1 { text-align: center; font-size: clamp(24px, 6vw, 34px); color: #fff7ed; text-shadow: 0 3px 0 #7c2d12; }
-    .msg { font-weight: 800; text-align: center; margin: 6px 0 8px; color: #fff7ed; min-height: 1.4em; }
-    .maps {
-      display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;
-    }
-    .maps button {
-      font-weight: 800; font-size: 13px; padding: 8px 10px; border-radius: 10px;
-      background: #fed7aa; color: #7c2d12;
-    }
-    .maps button.on { background: #fde047; box-shadow: 0 0 0 3px #fff; }
-    .maps button.done { background: #86efac; }
-    .table {
-      max-width: 400px; margin: 0 auto;
-      background:
-        repeating-linear-gradient(90deg, #b45309 0 3px, transparent 3px 28px),
-        repeating-linear-gradient(#b45309 0 3px, transparent 3px 28px),
-        #d97706;
-      border: 12px solid #78350f;
-      border-radius: 18px;
-      padding: 12px;
-      box-shadow: 0 14px 0 #451a03, inset 0 0 0 4px #fbbf24;
-    }
-    .legs {
-      display: flex; justify-content: space-between; max-width: 360px; margin: 0 auto;
-    }
-    .legs i {
-      width: 22px; height: 18px; background: #78350f; border-radius: 0 0 8px 8px;
-    }
-    .board {
-      display: grid; gap: 6px; margin: 0 auto;
-    }
-    .cell {
-      aspect-ratio: 1; border-radius: 10px; background: #fff7ed;
-      font-size: 26px; font-weight: 800;
-      box-shadow: 0 4px 0 #9a3412;
-      position: relative;
-    }
-    .cell:active { transform: translateY(2px); }
-    .cell.fix { background: #fde68a; }
-    .cell.station { background: #bfdbfe; }
-    .cell.cargo { background: #fdba74; }
-    .cell.sw { background: #fef08a; }
-    .cell.trainhere { outline: 4px solid #fff; background: #fde047; }
-    .badge {
-      position: absolute; top: 2px; right: 3px; font-size: 12px;
-    }
-    .go {
-      display: block; margin: 14px auto 0;
-      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 22px;
-      padding: 12px 28px; border-radius: 999px; box-shadow: 0 6px 0 #e09f1f;
-    }
-    .go:active { transform: translateY(4px); }
-    .go:disabled { opacity: .5; }
-    .win {
-      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      flex-direction: column; background: rgba(50,10,10,.86); z-index: 8; gap: 12px;
-      color: #fff; text-align: center; padding: 20px;
-    }
-    .win.on { display: flex; }
-    .play, .next {
-      font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px;
-    }
-    .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
-    .next { background: #fdba74; color: #7c2d12; box-shadow: 0 7px 0 #ea580c; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#365314;color:#fff7ed;touch-action:none;user-select:none}
+    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;font-size:17px;background:rgba(0,0,0,.35);padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800;text-align:right;pointer-events:none}
+    #hud b{display:inline-block;background:#fff7ed;color:#7c2d12;padding:6px 10px;border-radius:999px;margin-left:6px}
+    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;text-shadow:0 2px 0 #7c2d12;z-index:8;pointer-events:none}
+    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:6px;padding:10px;background:#78350f;flex-wrap:wrap;justify-content:center}
+    #dock.on{display:flex}
+    #dock button{min-width:56px;height:56px;border-radius:14px;background:#fed7aa;color:#431407;font-weight:800;font-size:20px;box-shadow:0 5px 0 #431407}
+    #dock button.on{background:#fde047}
+    #goBtn{background:#86efac!important;min-width:86px!important}
+    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#ca8a04,#7c2d12)}
+    .cover.off{display:none}
+    h1{font-size:clamp(32px,8vw,50px)}
+    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="hud">
-    <div class="chip" id="mapChip">Map 1 / 3</div>
-    <div class="chip" id="starChip">★ 0</div>
+  <div id="hud"><b id="mp">Short run</b><b id="cg">📦 0</b><b id="st">⭐ 0</b></div>
+  <div id="say">Snap tracks. Then the train runs!</div>
+  <div id="dock">
+    <button data-p="H" class="on">═</button>
+    <button data-p="V">║</button>
+    <button data-p="NE">╚</button>
+    <button data-p="NW">╝</button>
+    <button data-p="SE">╔</button>
+    <button data-p="SW">╗</button>
+    <button id="goBtn">Choo!</button>
   </div>
-  <h1>Train Tracks</h1>
-  <p class="msg" id="msg">Turn tracks. Then Go!</p>
-  <div class="maps" id="maps"></div>
-  <div class="table">
-    <div class="board" id="board"></div>
+  <div class="cover" id="title">
+    <h1>Train Tracks</h1>
+    <p>3D rails that snap.<br>Wheels turn. Steam puffs.</p>
+    <button class="btn" id="play">Build</button>
   </div>
-  <div class="legs"><i></i><i></i></div>
-  <button class="go" id="go" type="button">Go train!</button>
-
-  <div class="win" id="win">
-    <div style="font-size:72px">🚂</div>
-    <h2 id="wint">All aboard!</h2>
-    <p id="winline"></p>
-    <button class="play" id="again" type="button">Play again</button>
-    <button class="next" id="nextBtn" type="button">Next map</button>
+  <div class="cover off" id="win">
+    <h1>All aboard!</h1>
+    <p id="wp">The train ran your path.</p>
+    <button class="btn" id="again">Build again</button>
   </div>
-
   <script>
+  (function () {
+    if (!window.THREE) return;
+    var T = THREE, play = false, running = false, mapI = 0, stars = 0, cargo = 0, piece = "H", t = 0;
+    var MAPS = [
+      { n: "Short run", w: 5, h: 4, start: [0, 2], goal: [4, 2], need: 2, verb: "straight" },
+      { n: "Hill loop", w: 5, h: 4, start: [0, 1], goal: [4, 3], need: 3, verb: "turn" },
+      { n: "River hop", w: 6, h: 4, start: [0, 0], goal: [5, 3], need: 3, verb: "bridge" },
+      { n: "Night yard", w: 6, h: 5, start: [0, 2], goal: [5, 2], need: 4, verb: "lights" },
+      { n: "Home station", w: 6, h: 5, start: [0, 4], goal: [5, 0], need: 4, verb: "home" }
+    ];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-train") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+
+    var scene = new T.Scene();
+    scene.background = new T.Color(0x86efac);
+    scene.fog = new T.Fog(0x86efac, 18, 40);
+    var cam = new T.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 80);
+    cam.position.set(6, 11, 10);
+    var renderer = new T.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+    document.body.appendChild(renderer.domElement);
+    scene.add(new T.HemisphereLight(0xffffff, 0x7c2d12, 0.85));
+    var sun = new T.DirectionalLight(0xfff1c1, 0.8); sun.position.set(6, 12, 4); scene.add(sun);
+
+    var ground = new T.Mesh(new T.PlaneGeometry(40, 40), new T.MeshLambertMaterial({ color: 0x4d7c0f }));
+    ground.rotation.x = -Math.PI / 2; scene.add(ground);
+    var gridG = new T.Group(); scene.add(gridG);
+    var tiles = {};
+    var boxes = [];
+    var cell = 1.6;
+
+    function key(x, y) { return x + "," + y; }
+    function worldPos(x, y) {
+      var m = MAPS[mapI];
+      return new T.Vector3((x - (m.w - 1) / 2) * cell, 0.05, (y - (m.h - 1) / 2) * cell);
+    }
+
+    function makeRail(kind) {
+      var g = new T.Group();
+      var tieM = new T.MeshLambertMaterial({ color: 0x7c2d12 });
+      var railM = new T.MeshLambertMaterial({ color: 0x78716c });
+      for (var i = 0; i < 4; i++) {
+        var tie = new T.Mesh(new T.BoxGeometry(1.2, 0.08, 0.18), tieM);
+        tie.position.set(0, 0.04, -0.5 + i * 0.35);
+        g.add(tie);
+      }
+      var r1 = new T.Mesh(new T.BoxGeometry(0.08, 0.08, 1.5), railM);
+      r1.position.set(-0.28, 0.1, 0); g.add(r1);
+      var r2 = r1.clone(); r2.position.x = 0.28; g.add(r2);
+      if (kind === "V") g.rotation.y = Math.PI / 2;
+      if (kind === "NE") g.rotation.y = 0;
+      if (kind === "NW") g.rotation.y = Math.PI / 2;
+      if (kind === "SE") g.rotation.y = -Math.PI / 2;
+      if (kind === "SW") g.rotation.y = Math.PI;
+      if (kind !== "H" && kind !== "V") {
+        g.rotation.y += 0;
+      }
+      return g;
+    }
+
+    function rebuildGrid() {
+      while (gridG.children.length) gridG.remove(gridG.children[0]);
+      tiles = {}; boxes = [];
+      var m = MAPS[mapI];
+      for (var y = 0; y < m.h; y++) {
+        for (var x = 0; x < m.w; x++) {
+          var pad = new T.Mesh(new T.BoxGeometry(1.45, 0.06, 1.45), new T.MeshLambertMaterial({ color: 0x65a30d }));
+          var p = worldPos(x, y); pad.position.copy(p);
+          pad.userData = { gx: x, gy: y };
+          gridG.add(pad);
+        }
+      }
+      var start = new T.Mesh(new T.BoxGeometry(1.2, 0.2, 1.2), new T.MeshLambertMaterial({ color: 0x22c55e }));
+      start.position.copy(worldPos(m.start[0], m.start[1])); start.position.y = 0.12; gridG.add(start);
+      var goal = new T.Mesh(new T.BoxGeometry(1.2, 0.2, 1.2), new T.MeshLambertMaterial({ color: 0xf59e0b }));
+      goal.position.copy(worldPos(m.goal[0], m.goal[1])); goal.position.y = 0.12; gridG.add(goal);
+      for (var i = 0; i < m.need; i++) {
+        var box = new T.Mesh(new T.BoxGeometry(0.35, 0.35, 0.35), new T.MeshLambertMaterial({ color: 0xb45309 }));
+        var gx = 1 + (i % (m.w - 2)), gy = (i + 1) % m.h;
+        box.position.copy(worldPos(gx, gy)); box.position.y = 0.4;
+        box.userData = { gx: gx, gy: gy, got: 0 };
+        scene.add(box); boxes.push(box);
+      }
+      placePiece(m.start[0], m.start[1], "H");
+      document.getElementById("mp").textContent = m.n;
+      document.getElementById("cg").textContent = "📦 0/" + m.need;
+      document.getElementById("st").textContent = "⭐ " + stars;
+      document.getElementById("say").textContent = ["Lay a straight!", "Add a turn!", "Bridge the gap!", "Night lights on!", "Home station!"][mapI];
+      cam.position.set(m.w * 0.7, 9 + m.h * 0.3, 8);
+      cam.lookAt(0, 0, 0);
+    }
+
+    function placePiece(x, y, kind) {
+      var k = key(x, y);
+      if (tiles[k] && tiles[k].mesh) gridG.remove(tiles[k].mesh);
+      var mesh = makeRail(kind);
+      var p = worldPos(x, y); mesh.position.copy(p); mesh.position.y = 0.08;
+      gridG.add(mesh);
+      tiles[k] = { kind: kind, mesh: mesh, x: x, y: y };
+    }
+
+    var train = new T.Group();
+    var engine = new T.Mesh(new T.BoxGeometry(0.7, 0.38, 1.1), new T.MeshLambertMaterial({ color: 0xdc2626 }));
+    engine.position.y = 0.38; train.add(engine);
+    var cab = new T.Mesh(new T.BoxGeometry(0.5, 0.32, 0.4), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
+    cab.position.set(0, 0.62, -0.25); train.add(cab);
+    var stack = new T.Mesh(new T.CylinderGeometry(0.08, 0.1, 0.28, 8), new T.MeshLambertMaterial({ color: 0x1c1917 }));
+    stack.position.set(0, 0.7, 0.28); train.add(stack);
+    var wheels = [];
+    [[0.28, 0.28], [0.28, -0.28], [-0.28, 0.28], [-0.28, -0.28]].forEach(function (p) {
+      var w = new T.Mesh(new T.CylinderGeometry(0.14, 0.14, 0.1, 10), new T.MeshLambertMaterial({ color: 0x1c1917 }));
+      w.rotation.z = Math.PI / 2; w.position.set(p[0], 0.14, p[1]); train.add(w); wheels.push(w);
+    });
+    var steam = [];
+    for (var si = 0; si < 8; si++) {
+      var puff = new T.Mesh(new T.SphereGeometry(0.08, 6, 6), new T.MeshLambertMaterial({ color: 0xf8fafc, transparent: true, opacity: 0.5 }));
+      puff.position.set(0, 0.9, 0.28); train.add(puff); steam.push(puff);
+    }
+    scene.add(train);
+    var path = [];
+    var pathI = 0;
+
+    function outs(kind) {
+      if (kind === "H") return [[1, 0], [-1, 0]];
+      if (kind === "V") return [[0, 1], [0, -1]];
+      if (kind === "NE") return [[1, 0], [0, -1]];
+      if (kind === "NW") return [[-1, 0], [0, -1]];
+      if (kind === "SE") return [[1, 0], [0, 1]];
+      return [[-1, 0], [0, 1]];
+    }
+    function buildPath() {
+      var m = MAPS[mapI];
+      path = [];
+      var x = m.start[0], y = m.start[1], px = -1, py = y;
+      for (var step = 0; step < 40; step++) {
+        path.push(worldPos(x, y));
+        if (x === m.goal[0] && y === m.goal[1] && step > 0) return true;
+        var tile = tiles[key(x, y)];
+        if (!tile) return false;
+        var nexts = outs(tile.kind);
+        var nx = x, ny = y, ok = false;
+        for (var i = 0; i < nexts.length; i++) {
+          var cx = x + nexts[i][0], cy = y + nexts[i][1];
+          if (cx === px && cy === py) continue;
+          nx = cx; ny = cy; ok = true; break;
+        }
+        if (!ok) return false;
+        px = x; py = y; x = nx; y = ny;
+      }
+      return false;
+    }
+
     function beep(f, d) {
       try {
-        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = c.createOscillator(), g = c.createGain();
-        o.frequency.value = f; g.gain.value = 0.11;
-        o.connect(g); g.connect(c.destination);
-        o.start();
-        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
-        o.stop(c.currentTime + d);
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.frequency.value = f; g.gain.value = 0.09; o.connect(g); g.connect(ac.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-    var pieces = ["═", "║", "╚", "╔", "╗", "╝"];
-    var open = {
-      "═": ["L", "R"], "║": ["U", "D"],
-      "╚": ["U", "R"], "╔": ["D", "R"], "╗": ["D", "L"], "╝": ["U", "L"]
-    };
-    var maps = [
-      {
-        name: "Short", rows: 3, cols: 5,
-        engine: { r: 1, c: 0 }, house: { r: 1, c: 4 },
-        cargo: { r: 0, c: 2 },
-        start: [
-          ["║", "╔", "═", "╗", "║"],
-          ["🚂", "═", "═", "╝", "🏠"],
-          ["╚", "═", "╗", "╚", "═"]
-        ]
-      },
-      {
-        name: "Station", rows: 4, cols: 5,
-        engine: { r: 1, c: 0 }, house: { r: 1, c: 4 },
-        station: { r: 1, c: 2 },
-        cargo: { r: 1, c: 3 },
-        start: [
-          ["╔", "═", "╗", "║", "╗"],
-          ["🚂", "═", "🚉", "📦", "🏠"],
-          ["╚", "╗", "║", "╔", "╝"],
-          ["═", "╚", "═", "╝", "║"]
-        ]
-      },
-      {
-        name: "Switch", rows: 4, cols: 5,
-        engine: { r: 1, c: 0 }, house: { r: 1, c: 4 },
-        cargo: { r: 0, c: 3 },
-        sw: { r: 1, c: 2 },
-        start: [
-          ["╔", "═", "╗", "📦", "╗"],
-          ["🚂", "═", "🔀", "╔", "🏠"],
-          ["╚", "═", "╗", "╚", "═"],
-          ["║", "╔", "═", "╝", "║"]
-        ]
-      }
-    ];
-    var mapI = 0, cells = [], stars = 0, cleared = [], anim = false;
-    var board = document.getElementById("board");
-    var mapBar = document.getElementById("maps");
 
-    maps.forEach(function (mp, i) {
-      var b = document.createElement("button");
-      b.textContent = (i + 1) + " " + mp.name;
-      b.onclick = function () { if (!anim) load(i); };
-      mapBar.appendChild(b);
+    var ray = new T.Raycaster(), mouse = new T.Vector2();
+    renderer.domElement.addEventListener("pointerdown", function (ev) {
+      if (!play || running) return;
+      mouse.x = (ev.clientX / innerWidth) * 2 - 1;
+      mouse.y = -(ev.clientY / innerHeight) * 2 + 1;
+      ray.setFromCamera(mouse, cam);
+      var hits = ray.intersectObjects(gridG.children, false);
+      if (!hits.length) return;
+      var u = hits[0].object.userData;
+      if (u.gx == null) return;
+      placePiece(u.gx, u.gy, piece);
+      beep(500, 0.05);
     });
 
-    function same(a, b) { return a && b && a.r === b.r && a.c === b.c; }
-    function at(r, c) {
-      var mp = maps[mapI];
-      if (r < 0 || c < 0 || r >= mp.rows || c >= mp.cols) return null;
-      return cells[r * mp.cols + c];
-    }
-    function glyph(cell) {
-      if (cell.kind === "engine" || cell.kind === "house" || cell.kind === "station") return "═";
-      return cell.el.dataset.p;
-    }
-    function paintMaps() {
-      [].slice.call(mapBar.children).forEach(function (el, i) {
-        el.classList.toggle("on", i === mapI);
-        el.classList.toggle("done", cleared.indexOf(i) >= 0);
-      });
-      document.getElementById("mapChip").textContent = "Map " + (mapI + 1) + " / 3";
-      document.getElementById("starChip").textContent = "★ " + stars;
-    }
-    function load(i) {
-      mapI = i;
-      var mp = maps[i];
-      cells = [];
-      board.style.gridTemplateColumns = "repeat(" + mp.cols + ", 1fr)";
-      board.style.width = "min(" + (mp.cols * 64) + "px, 92vw)";
-      board.innerHTML = "";
-      for (var r = 0; r < mp.rows; r++) {
-        for (var c = 0; c < mp.cols; c++) {
-          (function (r, c) {
-            var b = document.createElement("button");
-            b.className = "cell";
-            var kind = "track";
-            var show = mp.start[r][c];
-            if (same(mp.engine, { r: r, c: c })) kind = "engine";
-            else if (same(mp.house, { r: r, c: c })) kind = "house";
-            else if (mp.station && same(mp.station, { r: r, c: c })) kind = "station";
-            else if (mp.cargo && same(mp.cargo, { r: r, c: c })) kind = "cargo";
-            else if (mp.sw && same(mp.sw, { r: r, c: c })) kind = "sw";
-            var p = pieces.indexOf(show) >= 0 ? show : "═";
-            if (kind === "cargo" || kind === "sw") {
-              if (pieces.indexOf(show) >= 0) p = show;
-              else p = "═";
-            }
-            b.dataset.p = p;
-            if (kind === "engine") { b.textContent = "🚂"; b.classList.add("fix"); }
-            else if (kind === "house") { b.textContent = "🏠"; b.classList.add("fix"); }
-            else if (kind === "station") {
-              b.innerHTML = "═<span class='badge'>🚉</span>";
-              b.classList.add("fix", "station");
-              b.dataset.p = "═";
-            } else {
-              b.textContent = p;
-              if (kind === "cargo") {
-                b.innerHTML = p + "<span class='badge'>📦</span>";
-                b.classList.add("cargo");
-              }
-              if (kind === "sw") b.classList.add("sw");
-              b.onclick = function () {
-                if (anim) return;
-                var idx = pieces.indexOf(b.dataset.p);
-                var np = pieces[(idx + 1) % pieces.length];
-                b.dataset.p = np;
-                if (kind === "cargo") b.innerHTML = np + "<span class='badge'>📦</span>";
-                else b.textContent = np;
-                beep(420, 0.05);
-              };
-            }
-            board.appendChild(b);
-            cells.push({ el: b, r: r, c: c, kind: kind });
-          })(r, c);
-        }
-      }
-      document.getElementById("msg").textContent = mp.name + " — turn tracks, then Go!";
-      document.getElementById("go").disabled = false;
-      paintMaps();
-    }
-    function walk() {
-      var mp = maps[mapI];
-      var r = mp.engine.r, c = mp.engine.c, from = "L";
-      var path = [{ r: r, c: c }], seen = {};
-      for (var step = 0; step < 30; step++) {
-        var key = r + "," + c;
-        if (seen[key]) return null;
-        seen[key] = 1;
-        if (r === mp.house.r && c === mp.house.c) return path;
-        var cell = at(r, c);
-        if (!cell) return null;
-        var ways = open[glyph(cell)] || [];
-        var next = ways.filter(function (w) { return w !== from; })[0];
-        if (!next) return null;
-        if (next === "R") { c++; from = "L"; }
-        else if (next === "L") { c--; from = "R"; }
-        else if (next === "U") { r--; from = "D"; }
-        else if (next === "D") { r++; from = "U"; }
-        var nxt = at(r, c);
-        if (!nxt) return null;
-        var need = open[glyph(nxt)] || [];
-        if (need.indexOf(from) < 0) return null;
-        path.push({ r: r, c: c });
-      }
-      return null;
-    }
-    function restFace(cell) {
-      cell.el.classList.remove("trainhere");
-      if (cell.kind === "engine") cell.el.textContent = "🚂";
-      else if (cell.kind === "house") cell.el.textContent = "🏠";
-      else if (cell.kind === "station") cell.el.innerHTML = "═<span class='badge'>🚉</span>";
-      else if (cell.kind === "cargo") cell.el.innerHTML = cell.el.dataset.p + "<span class='badge'>📦</span>";
-      else cell.el.textContent = cell.el.dataset.p;
-    }
-    function showTrain(cell) {
-      cells.forEach(restFace);
-      cell.el.classList.add("trainhere");
-      if (cell.kind === "house") return;
-      if (cell.kind === "station") cell.el.innerHTML = "🚂<span class='badge'>🚉</span>";
-      else if (cell.kind === "cargo") cell.el.innerHTML = "🚂<span class='badge'>📦</span>";
-      else cell.el.textContent = "🚂";
-    }
-    function animate(path, gotCargo, gotStation) {
-      anim = true;
-      document.getElementById("go").disabled = true;
-      var i = 0;
-      function tick() {
-        var cur = at(path[i].r, path[i].c);
-        showTrain(cur);
-        var hold = 280;
-        if (cur.kind === "station") {
-          document.getElementById("msg").textContent = "Station stop!";
-          beep(520, 0.12);
-          hold = 620;
-        } else if (cur.kind === "cargo") {
-          document.getElementById("msg").textContent = "Cargo on!";
-          beep(700, 0.12);
-          hold = 500;
-        } else {
-          beep(480, 0.05);
-        }
-        i++;
-        if (i >= path.length) {
-          setTimeout(function () { finish(gotCargo, gotStation); }, 350);
-          return;
-        }
-        setTimeout(tick, hold);
-      }
-      tick();
-    }
-    function finish(gotCargo, gotStation) {
-      anim = false;
-      var gain = 1 + (gotCargo ? 1 : 0) + (gotStation ? 1 : 0);
-      stars += gain;
-      if (cleared.indexOf(mapI) < 0) cleared.push(mapI);
-      paintMaps();
-      var last = cleared.length >= 3;
-      document.getElementById("wint").textContent = last ? "All aboard!" : "Choo!";
-      document.getElementById("winline").textContent = (gotCargo ? "📦 bonus! " : "") + "★ " + stars;
-      document.getElementById("nextBtn").style.display = last ? "none" : "inline-block";
-      document.getElementById("win").classList.add("on");
-      beep(920, 0.2);
-      document.getElementById("go").disabled = false;
-    }
-    document.getElementById("go").onclick = function () {
-      if (anim) return;
-      cells.forEach(restFace);
-      var path = walk();
-      if (!path) {
-        document.getElementById("msg").textContent = "Turn more tracks!";
-        beep(180, 0.1);
-        return;
-      }
-      var gotCargo = false, gotStation = false;
-      path.forEach(function (p) {
-        var cell = at(p.r, p.c);
-        if (cell.kind === "cargo") gotCargo = true;
-        if (cell.kind === "station") gotStation = true;
-      });
-      document.getElementById("msg").textContent = "Choo choo!";
-      animate(path, gotCargo, gotStation);
+    [].forEach.call(document.querySelectorAll("#dock button[data-p]"), function (b) {
+      b.onclick = function () {
+        piece = b.getAttribute("data-p");
+        [].forEach.call(document.querySelectorAll("#dock button[data-p]"), function (x) { x.classList.toggle("on", x === b); });
+      };
+    });
+    document.getElementById("goBtn").onclick = function () {
+      if (!play) return;
+      if (buildPath()) { running = true; pathI = 0; cargo = 0; beep(280, 0.15); }
+      else { document.getElementById("say").textContent = "Snap to the gold!"; beep(180, 0.1); }
     };
-    document.getElementById("again").onclick = function () { location.reload(); };
-    document.getElementById("nextBtn").onclick = function () {
-      document.getElementById("win").classList.remove("on");
-      var n = mapI + 1;
-      if (n > 2) n = 0;
-      while (cleared.indexOf(n) >= 0 && cleared.length < 3) n = (n + 1) % 3;
-      load(n);
-    };
-    load(0);
+
+    function start() {
+      play = true; running = false; mapI = 0; cargo = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      rebuildGrid();
+    }
+    document.getElementById("play").onclick = start;
+    document.getElementById("again").onclick = start;
+
+    var clock = new T.Clock();
+    function tick() {
+      var dt = Math.min(0.033, clock.getDelta());
+      t += dt;
+      wheels.forEach(function (w) { if (running) w.rotation.x += dt * 8; });
+      steam.forEach(function (p, i) {
+        p.position.y = 0.9 + ((t * 0.6 + i * 0.12) % 0.8);
+        p.material.opacity = running ? 0.45 : 0.12;
+        p.scale.setScalar(0.6 + ((t + i) % 1));
+      });
+      if (running && path.length) {
+        pathI += dt * 2.2;
+        var i0 = Math.min(path.length - 2, Math.floor(pathI));
+        var k = pathI - i0;
+        var a = path[i0], b = path[i0 + 1];
+        train.position.lerpVectors(a, b, k); train.position.y = 0.12;
+        train.lookAt(b.x, 0.12, b.z);
+        boxes.forEach(function (box) {
+          if (!box.userData.got && train.position.distanceTo(box.position) < 0.8) {
+            box.userData.got = 1; box.visible = false; cargo++; stars++;
+            document.getElementById("cg").textContent = "📦 " + cargo + "/" + MAPS[mapI].need;
+            document.getElementById("st").textContent = "⭐ " + stars;
+            try { localStorage.setItem("alabryuu-train", JSON.stringify({ stars: stars })); } catch (e) {}
+            beep(720, 0.07);
+          }
+        });
+        if (pathI >= path.length - 1) {
+          running = false;
+          mapI++;
+          if (mapI >= MAPS.length) {
+            play = false;
+            document.getElementById("dock").classList.remove("on");
+            document.getElementById("wp").textContent = "⭐ " + stars + "  Wheels never stopped.";
+            document.getElementById("win").classList.remove("off");
+          } else rebuildGrid();
+        }
+      } else {
+        var m = MAPS[mapI];
+        train.position.copy(worldPos(m.start[0], m.start[1])); train.position.y = 0.12;
+      }
+      cam.position.x = 6 + Math.sin(t * 0.2) * 0.3;
+      cam.lookAt(train.position.x, 0, train.position.z);
+      renderer.render(scene, cam);
+      requestAnimationFrame(tick);
+    }
+    addEventListener("resize", function () {
+      cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+    rebuildGrid();
+    requestAnimationFrame(tick);
+  })();
   </script>
 </body>
 </html>

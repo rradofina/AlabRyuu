@@ -4,368 +4,219 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Soccer Kick</title>
+  <script src="../vendor/three.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%; overflow: hidden;
-      font-family: "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
-      background: #16a34a; color: #14532d;
-      touch-action: none; user-select: none; -webkit-user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    #field {
-      position: fixed; inset: 0;
-      background:
-        repeating-linear-gradient(90deg, #22c55e 0 48px, #16a34a 48px 96px);
-    }
-    #field::after {
-      content: ""; position: absolute; left: 10%; right: 10%; top: 8%; bottom: 28%;
-      border: 4px solid rgba(255,255,255,.55); border-radius: 8px; pointer-events: none;
-    }
-    .home {
-      position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 12;
-      color: #14532d; text-decoration: none; font-weight: 800; font-size: 17px;
-      background: #fde047; padding: 8px 14px; border-radius: 999px;
-      box-shadow: 0 3px 0 #ca8a04; touch-action: manipulation;
-    }
-    #hud {
-      position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 12;
-      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
-      pointer-events: none;
-    }
-    #hud span {
-      font-weight: 800; font-size: 15px; background: #fff; color: #14532d;
-      padding: 6px 12px; border-radius: 999px; box-shadow: 0 3px 0 rgba(20,83,45,.2);
-    }
-    #crowd {
-      position: fixed; top: 0; left: 0; right: 0; height: 46px; z-index: 1;
-      display: flex; justify-content: space-around; align-items: flex-end;
-      font-size: 22px; pointer-events: none;
-      background: linear-gradient(#1e3a5f, #2563eb);
-      padding-bottom: 2px;
-    }
-    #goalBox {
-      position: fixed; top: 14%; left: 50%; width: 168px; height: 92px;
-      margin-left: -84px; z-index: 3; pointer-events: none;
-    }
-    #goal { font-size: 78px; line-height: 92px; text-align: center; }
-    #keeper {
-      position: absolute; left: 50%; bottom: -6px; width: 44px; margin-left: -22px;
-      font-size: 40px; text-align: center; display: none;
-    }
-    #keeper.on { display: block; }
-    #starL, #starR {
-      position: absolute; top: 8px; font-size: 26px; display: none;
-    }
-    #starL { left: -6px; } #starR { right: -6px; }
-    #starL.on, #starR.on { display: block; }
-    #ball {
-      position: fixed; bottom: 26%; left: 50%; margin-left: -34px;
-      width: 68px; font-size: 64px; text-align: center; z-index: 4; pointer-events: none;
-    }
-    #hint {
-      position: fixed; left: 0; right: 0; bottom: 148px; text-align: center;
-      font-weight: 800; font-size: 22px; color: #fff; text-shadow: 0 3px 0 #14532d;
-      z-index: 5; pointer-events: none;
-    }
-    #powerWrap {
-      position: fixed; left: 16px; right: 16px; bottom: max(16px, env(safe-area-inset-bottom));
-      z-index: 6; pointer-events: none;
-    }
-    #powerLab {
-      font-weight: 800; font-size: 14px; color: #fff; text-shadow: 0 2px 0 #14532d;
-      margin-bottom: 6px;
-    }
-    #powerBar {
-      height: 28px; border-radius: 999px; background: rgba(0,0,0,.28);
-      overflow: hidden; box-shadow: inset 0 0 0 3px rgba(255,255,255,.35);
-      position: relative;
-    }
-    #powerBar::after {
-      content: ""; position: absolute; left: 36%; width: 40%; top: 0; bottom: 0;
-      background: rgba(253, 224, 71, .28);
-    }
-    #powerFill {
-      height: 100%; width: 0; border-radius: inherit;
-      background: linear-gradient(90deg, #86efac, #fde047 50%, #fb7185);
-      transition: none;
-    }
-    .cover {
-      position: fixed; inset: 0; z-index: 20; display: flex; align-items: center;
-      justify-content: center; flex-direction: column; text-align: center;
-      padding: 22px 16px; gap: 10px; color: #fff;
-      background: linear-gradient(180deg, #166534, #4ade80);
-    }
-    .cover.off { display: none; }
-    .cover h1, .cover h2 {
-      font-size: clamp(36px, 10vw, 54px); text-shadow: 0 5px 0 #14532d;
-    }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
-    .play {
-      font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px;
-      background: #fde047; color: #422006; box-shadow: 0 7px 0 #ca8a04;
-    }
-    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #ca8a04; }
-    .play.sky { background: #93c5fd; box-shadow: 0 7px 0 #2563eb; color: #082f49; }
-    .winbtns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-    .chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-    .chips i { font-style: normal; font-weight: 800; font-size: 13px; background: rgba(0,0,0,.22); padding: 6px 10px; border-radius: 999px; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#166534;color:#ecfccb;touch-action:none;user-select:none}
+    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#14532d;text-decoration:none;font-weight:800;background:#fde047;padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
+    #hud b{display:inline-block;background:#fff;color:#14532d;padding:6px 10px;border-radius:999px;margin-left:6px}
+    #say{position:fixed;left:10px;right:10px;bottom:108px;text-align:center;font-weight:800;text-shadow:0 2px 0 #14532d;z-index:8;pointer-events:none}
+    #bar{position:fixed;left:16px;right:16px;bottom:18px;z-index:8;height:16px;background:#14532d;border-radius:999px;overflow:hidden;box-shadow:inset 0 0 0 2px #fff}
+    #fill{height:100%;width:0;background:linear-gradient(90deg,#86efac,#fde047,#f97316)}
+    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#22c55e,#14532d)}
+    .cover.off{display:none}
+    h1{font-size:clamp(34px,9vw,52px);color:#fff;text-shadow:0 4px 0 #14532d}
+    .btn{background:#fde047;color:#422006;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #ca8a04}
   </style>
 </head>
 <body>
-  <div id="field"></div>
-  <div id="crowd">🎩 🧢 🎀 🧢 🎩 🎀 🧢</div>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">
-    <span id="scoreHud">⚽ 0 / 5</span>
-    <span id="halfHud">Half 1</span>
-    <span id="starHud">⭐ 0</span>
-  </div>
-  <div id="goalBox">
-    <div id="goal">🥅</div>
-    <div id="keeper">🧤</div>
-    <div id="starL">⭐</div>
-    <div id="starR">⭐</div>
-  </div>
-  <div id="ball">⚽</div>
-  <div id="hint">Hold to charge. Let go to kick!</div>
-  <div id="powerWrap">
-    <div id="powerLab">Power</div>
-    <div id="powerBar"><div id="powerFill"></div></div>
-  </div>
-
-  <div class="cover" id="start">
-    <div style="font-size:72px">⚽</div>
+  <div id="hud"><b id="hf">Friendly</b><b id="sc">0 – 0</b><b id="gl">⚽ 0</b></div>
+  <div id="say">Hold to power. Let go to kick!</div>
+  <div id="bar"><div id="fill"></div></div>
+  <div class="cover" id="title">
     <h1>Soccer Kick</h1>
-    <p>Hold for power. Kick when the goal is in the middle. Get 5 goals!</p>
-    <div class="chips"><i>Half 1</i><i>Half 2 🧤</i><i>Half 3 ⭐</i></div>
-    <button class="play" id="go">Play</button>
+    <p>3D pitch. Run-up. Spinning ball.<br>Goalie dives.</p>
+    <button class="btn" id="go">Kick off</button>
   </div>
-
-  <div class="cover off" id="mid">
-    <div style="font-size:64px">🏅</div>
-    <h2 id="midTitle">Half done!</h2>
-    <p id="midLine">Nice kicks.</p>
-    <div class="winbtns">
-      <button class="play" id="midAgain">Play again</button>
-      <button class="play sky" id="midNext">Next half</button>
-    </div>
-  </div>
-
   <div class="cover off" id="win">
-    <div style="font-size:72px">🏆</div>
-    <h1>Goal hero!</h1>
-    <p id="winLine">Five goals. What a game!</p>
-    <div class="winbtns">
-      <button class="play" id="again">Play again</button>
-      <button class="play sky" id="next">Next half</button>
-    </div>
+    <h1>Goal party!</h1>
+    <p id="wp">Five matches.</p>
+    <button class="btn" id="again">Play again</button>
   </div>
-
   <script>
-    function beep(f, d, t) {
+  (function () {
+    if (!window.THREE) return;
+    var T = THREE, play = false, match = 0, goals = 0, misses = 0, stars = 0, t = 0;
+    var holding = 0, power = 0, phase = "ready", kickT = 0;
+    var MATCH = [
+      { n: "Friendly", verb: "kick", need: 2, dive: 0.6 },
+      { n: "Windy", verb: "curve", need: 2, dive: 0.7, wind: 1 },
+      { n: "Night lights", verb: "aim", need: 3, dive: 0.8, night: 1 },
+      { n: "Rain pitch", verb: "chip", need: 3, dive: 0.75, rain: 1 },
+      { n: "Cup final", verb: "home", need: 3, dive: 0.85 }
+    ];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-soccer") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+
+    var scene = new T.Scene();
+    var cam = new T.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 80);
+    var renderer = new T.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+    document.body.appendChild(renderer.domElement);
+    scene.add(new T.HemisphereLight(0xffffff, 0x14532d, 0.8));
+    var sun = new T.DirectionalLight(0xfff1c1, 0.9); sun.position.set(-4, 10, 6); scene.add(sun);
+
+    var pitch = new T.Mesh(new T.PlaneGeometry(18, 28), new T.MeshLambertMaterial({ color: 0x22c55e }));
+    pitch.rotation.x = -Math.PI / 2; scene.add(pitch);
+    var stripe = new T.Mesh(new T.PlaneGeometry(0.08, 28), new T.MeshBasicMaterial({ color: 0xecfccb }));
+    stripe.rotation.x = -Math.PI / 2; stripe.position.y = 0.01; scene.add(stripe);
+    var box = new T.Mesh(new T.PlaneGeometry(8, 5), new T.MeshBasicMaterial({ color: 0x4ade80 }));
+    box.rotation.x = -Math.PI / 2; box.position.set(0, 0.015, -9); scene.add(box);
+
+    var goal = new T.Group();
+    var postM = new T.MeshLambertMaterial({ color: 0xf8fafc });
+    var pL = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 2.2, 8), postM); pL.position.set(-2.2, 1.1, -12); goal.add(pL);
+    var pR = pL.clone(); pR.position.x = 2.2; goal.add(pR);
+    var bar = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 4.5, 8), postM); bar.rotation.z = Math.PI / 2; bar.position.set(0, 2.2, -12); goal.add(bar);
+    var net = new T.Mesh(new T.PlaneGeometry(4.4, 2.1), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 }));
+    net.position.set(0, 1.05, -12.4); goal.add(net);
+    scene.add(goal);
+
+    function kid(col) {
+      var g = new T.Group();
+      var body = new T.Mesh(new T.SphereGeometry(0.22, 10, 8), new T.MeshLambertMaterial({ color: col }));
+      body.scale.set(1, 1.2, 0.8); body.position.y = 0.7; g.add(body);
+      var head = new T.Mesh(new T.SphereGeometry(0.16, 10, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
+      head.position.y = 1.05; g.add(head);
+      var hair = new T.Mesh(new T.SphereGeometry(0.17, 8, 6), new T.MeshLambertMaterial({ color: 0x5a3a22 }));
+      hair.position.set(0, 1.14, -0.02); g.add(hair);
+      var legs = [];
+      for (var s = -1; s <= 1; s += 2) {
+        var hip = new T.Group(); hip.position.set(s * 0.09, 0.48, 0);
+        var thigh = new T.Mesh(new T.BoxGeometry(0.09, 0.28, 0.09), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
+        thigh.position.y = -0.14; hip.add(thigh);
+        var foot = new T.Mesh(new T.BoxGeometry(0.1, 0.06, 0.16), new T.MeshLambertMaterial({ color: 0x111827 }));
+        foot.position.set(0, -0.3, 0.03); hip.add(foot);
+        g.add(hip); legs.push(hip);
+      }
+      g.userData = { body: body, head: head, legs: legs };
+      return g;
+    }
+    var player = kid(0xf97316); player.position.set(0, 0, 4); scene.add(player);
+    var goalie = kid(0xfde047); goalie.position.set(0, 0, -11.2); scene.add(goalie);
+    var ball = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), new T.MeshLambertMaterial({ color: 0xf8fafc }));
+    var patch = new T.Mesh(new T.SphereGeometry(0.162, 8, 6), new T.MeshLambertMaterial({ color: 0x111827 }));
+    patch.scale.set(0.4, 1, 0.4); ball.add(patch);
+    ball.position.set(0.15, 0.16, 3.2); scene.add(ball);
+    var ballV = new T.Vector3();
+    var rain = [];
+    for (var i = 0; i < 20; i++) {
+      var d = new T.Mesh(new T.BoxGeometry(0.03, 0.18, 0.03), new T.MeshBasicMaterial({ color: 0x7dd3fc }));
+      d.position.set((Math.random() - 0.5) * 12, 4, (Math.random() - 0.5) * 16);
+      scene.add(d); rain.push(d);
+    }
+
+    function beep(f, d) {
       try {
-        var ctx = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        if (ctx.state === "suspended") ctx.resume();
-        var o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = t || "sine"; o.frequency.value = f; g.gain.value = 0.11;
-        o.connect(g); g.connect(ctx.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d);
-        o.stop(ctx.currentTime + d);
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.frequency.value = f; g.gain.value = 0.1; o.connect(g); g.connect(ac.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-
-    var HALVES = [
-      { name: "Half 1", speed: 1.7, aim: 0.24, keeper: false, stars: false },
-      { name: "Half 2", speed: 2.3, aim: 0.19, keeper: true, kSpeed: 0.7, stars: true },
-      { name: "Half 3", speed: 2.8, aim: 0.16, keeper: true, kSpeed: 1.05, stars: true }
-    ];
-
-    var gx = innerWidth / 2, dir = 1, kx = 0, kdir = 1;
-    var score = 0, stars = 0, half = 0, kicks = 0, halfGoals = 0;
-    var play = false, busy = false, won = false;
-    var charging = false, power = 0, starSide = 0, starOn = false, starWait = 2;
-    var last = 0;
-
-    var goalBox = document.getElementById("goalBox");
-    var keeper = document.getElementById("keeper");
-    var ball = document.getElementById("ball");
-    var fill = document.getElementById("powerFill");
-    var hint = document.getElementById("hint");
-
-    function hud() {
-      document.getElementById("scoreHud").textContent = "⚽ " + score + " / 5";
-      document.getElementById("halfHud").textContent = HALVES[half].name;
-      document.getElementById("starHud").textContent = "⭐ " + stars;
+    function save() { try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {} }
+    function setMatchLook() {
+      var m = MATCH[match];
+      scene.background = new T.Color(m.night ? 0x0f172a : 0x7dd3fc);
+      scene.fog = new T.Fog(scene.background, 20, 50);
+      document.getElementById("hf").textContent = m.n;
+      document.getElementById("say").textContent = ["Hold, then kick!", "Wind curves it!", "Aim the tap!", "Chip the rain!", "Cup kick!"][match];
+      resetKick();
     }
-
-    function setStar(on, side) {
-      starOn = on; starSide = side || 0;
-      document.getElementById("starL").classList.toggle("on", on && side < 0);
-      document.getElementById("starR").classList.toggle("on", on && side > 0);
+    function resetKick() {
+      phase = "ready"; power = 0; kickT = 0; holding = 0;
+      player.position.set(0, 0, 4);
+      ball.position.set(0.15, 0.16, 3.2); ballV.set(0, 0, 0);
+      goalie.position.x = 0;
+      document.getElementById("fill").style.width = "0%";
     }
-
-    function resetHalf(h, keepScore) {
-      half = h;
-      if (!keepScore) { score = 0; stars = 0; }
-      kicks = 0; halfGoals = 0; busy = false; charging = false; power = 0;
-      gx = innerWidth / 2; dir = 1; kx = 0; kdir = 1;
-      starWait = 1.6; setStar(false);
-      keeper.classList.toggle("on", HALVES[half].keeper);
-      fill.style.width = "0%";
-      document.getElementById("powerLab").textContent = "Power";
-      ball.style.transition = "none";
-      ball.style.transform = "none";
-      hint.textContent = half === 0 ? "Hold to charge" : half === 1 ? "Watch the keeper" : "Stars on the posts!";
-      hud();
-    }
-
-    function maybeHalfDone() {
-      if (won) return;
-      if (score >= 5) {
-        play = false; won = true;
-        document.getElementById("winLine").textContent = "⚽ " + score + " · ⭐ " + stars + " · " + HALVES[half].name;
-        document.getElementById("win").classList.remove("off");
-        beep(990, 0.22);
-        return;
-      }
-      var done = halfGoals >= 2 || kicks >= 5;
-      if (done && half < 2) {
-        play = false;
-        document.getElementById("midTitle").textContent = HALVES[half].name + " done!";
-        document.getElementById("midLine").textContent = "Goals " + score + " / 5. Next half!";
-        document.getElementById("mid").classList.remove("off");
-        beep(840, 0.14);
-      }
-    }
-
-    function kick() {
-      if (!play || busy || won) return;
-      busy = true;
-      var h = HALVES[half];
-      var p = power;
-      power = 0; charging = false;
-      fill.style.width = "0%";
-      var mid = innerWidth / 2;
-      var aimed = Math.abs(gx - mid) < innerWidth * h.aim + 16;
-      var keeperHit = false;
-      if (h.keeper) {
-        var goalLeft = gx - 70;
-        var keepX = goalLeft + 84 + kx;
-        keeperHit = aimed && Math.abs(keepX - mid) < 36 && p >= 28;
-      }
-      var short = p < 28;
-      var rise = short ? 0.22 : 0.48;
-      ball.style.transition = "transform .38s ease";
-      ball.style.transform = "translateY(-" + Math.round(innerHeight * rise) + "px)";
-      setTimeout(function () {
-        if (short) {
-          hint.textContent = "Hold a bit more!";
-          beep(180, 0.1);
-        } else if (keeperHit) {
-          hint.textContent = "Nice try, gloves!";
-          beep(200, 0.12);
-        } else if (aimed) {
-          score++; halfGoals++;
-          hint.textContent = p > 88 ? "Boom goal!" : "GOAL!";
-          beep(880, 0.14);
-          if (starOn) {
-            var onLeft = gx < mid;
-            if ((starSide < 0 && onLeft) || (starSide > 0 && !onLeft) || Math.abs(gx - mid) > 20) {
-              stars++; beep(760, 0.08); hint.textContent = "GOAL + star!";
-              setStar(false);
-            }
-          }
-          hud();
-        } else {
-          hint.textContent = "Wait for the middle";
-          beep(160, 0.1);
-        }
-        ball.style.transform = "none";
-        kicks++;
-        setTimeout(function () {
-          busy = false;
-          maybeHalfDone();
-        }, 220);
-      }, 380);
-    }
-
-    addEventListener("pointerdown", function (e) {
-      if (e.target.closest("a,button,.cover")) return;
-      if (!play || busy || won) return;
-      charging = true; power = 20;
-    });
-    addEventListener("pointerup", function (e) {
-      if (e.target.closest("a,button,.cover")) return;
-      if (charging) kick();
-    });
-    addEventListener("pointercancel", function () {
-      if (charging) kick();
-    });
-
-    function loop(ts) {
-      if (!last) last = ts;
-      var dt = Math.min(0.04, (ts - last) / 1000);
-      last = ts;
-      var h = HALVES[half];
-      if (play && !busy && !won) {
-        gx += dir * h.speed * 60 * dt;
-        var pad = 70;
-        if (gx < pad) { gx = pad; dir = 1; }
-        if (gx > innerWidth - pad) { gx = innerWidth - pad; dir = -1; }
-        if (h.keeper) {
-          kx += kdir * h.kSpeed * 40 * dt;
-          if (kx > 46) { kx = 46; kdir = -1; }
-          if (kx < -46) { kx = -46; kdir = 1; }
-          keeper.style.transform = "translateX(" + kx + "px)";
-        }
-        if (h.stars) {
-          starWait -= dt;
-          if (!starOn && starWait <= 0) {
-            setStar(true, Math.random() < 0.5 ? -1 : 1);
-            starWait = 4;
-          } else if (starOn && starWait <= 0) {
-            setStar(false); starWait = 2.2;
-          }
-        }
-      }
-      if (charging && play && !busy) {
-        power = Math.min(100, power + dt * 110);
-        fill.style.width = power + "%";
-        document.getElementById("powerLab").textContent =
-          power < 28 ? "A bit more" : power < 88 ? "Just right" : "Full power";
-      }
-      goalBox.style.left = gx + "px";
-      requestAnimationFrame(loop);
-    }
-
-    function hideCovers() {
-      document.getElementById("start").classList.add("off");
-      document.getElementById("mid").classList.add("off");
+    function start() {
+      play = true; match = 0; goals = 0; misses = 0;
+      document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
+      setMatchLook();
     }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
 
-    function begin(h, keep) {
-      hideCovers();
-      won = false; play = true;
-      resetHalf(h, keep);
-      beep(520, 0.1);
+    function onDown() { if (play && phase === "ready") { holding = 1; phase = "power"; } }
+    function onUp(ev) {
+      if (!play || phase !== "power") return;
+      holding = 0; phase = "run";
+      var nx = (ev.clientX / innerWidth) * 2 - 1;
+      ballV.set(nx * 3.2 + (MATCH[match].wind ? Math.sin(t) * 1.2 : 0), 1.2 + power * 2.2, -10 - power * 8);
+      beep(240, 0.08);
     }
+    renderer.domElement.addEventListener("pointerdown", onDown);
+    renderer.domElement.addEventListener("pointerup", onUp);
 
-    document.getElementById("go").onclick = function () { begin(0, false); };
-    document.getElementById("midAgain").onclick = function () { begin(0, false); };
-    document.getElementById("midNext").onclick = function () { begin(half + 1, true); };
-    document.getElementById("again").onclick = function () { begin(0, false); };
-    document.getElementById("next").onclick = function () {
-      if (half < 2) begin(half + 1, true);
-      else begin(0, false);
-    };
-
-    resetHalf(0, false);
-    requestAnimationFrame(loop);
+    var clock = new T.Clock();
+    function tick() {
+      var dt = Math.min(0.033, clock.getDelta());
+      t += dt;
+      var m = MATCH[match];
+      if (holding) {
+        power = (Math.sin(t * 4) * 0.5 + 0.5);
+        document.getElementById("fill").style.width = (power * 100) + "%";
+      }
+      if (phase === "run" || phase === "fly") {
+        kickT += dt;
+        player.position.z += (3.4 - player.position.z) * 8 * dt;
+        player.userData.legs[1].rotation.x = kickT < 0.25 ? -1.2 : -0.2;
+        player.userData.legs[0].rotation.x = 0.3;
+        if (kickT > 0.18 && phase === "run") phase = "fly";
+      } else {
+        player.userData.legs.forEach(function (hip, i) {
+          hip.rotation.x = Math.sin(t * 5 + i * 3) * 0.15;
+        });
+      }
+      if (phase === "fly") {
+        ballV.y -= 9 * dt;
+        ball.position.addScaledVector(ballV, dt);
+        ball.rotation.x += dt * 10; ball.rotation.y += dt * 6;
+        var dive = Math.max(-2, Math.min(2, ball.position.x)) * m.dive;
+        goalie.position.x += (dive - goalie.position.x) * 4 * dt;
+        goalie.userData.legs[0].rotation.z = dive * 0.4;
+        goalie.userData.legs[1].rotation.z = -dive * 0.2;
+        goalie.rotation.z = -dive * 0.15;
+        if (ball.position.z < -12) {
+          var inGoal = Math.abs(ball.position.x) < 2.1 && ball.position.y < 2.2 && Math.abs(ball.position.x - goalie.position.x) > 0.55;
+          if (inGoal) { goals++; stars++; beep(880, 0.12); document.getElementById("say").textContent = "GOAL!"; }
+          else { misses++; beep(160, 0.1); document.getElementById("say").textContent = "Try again!"; }
+          document.getElementById("sc").textContent = goals + " – " + misses;
+          document.getElementById("gl").textContent = "⚽ " + goals;
+          save();
+          if (goals >= m.need) {
+            match++;
+            if (match >= MATCH.length) {
+              play = false;
+              document.getElementById("wp").textContent = "⚽ " + goals + "  ★ " + stars;
+              document.getElementById("win").classList.remove("off");
+            } else setMatchLook();
+          } else setTimeout(resetKick, 700);
+          phase = "wait";
+        }
+        if (ball.position.y < 0.16) { ball.position.y = 0.16; ballV.y *= -0.35; }
+      }
+      rain.forEach(function (d) {
+        d.visible = !!m.rain;
+        d.position.y -= 9 * dt; if (d.position.y < 0) d.position.y = 5;
+      });
+      cam.position.lerp(new T.Vector3(player.position.x * 0.2, 2.4, player.position.z + 6), 0.08);
+      cam.lookAt(0, 0.8, -8);
+      renderer.render(scene, cam);
+      requestAnimationFrame(tick);
+    }
+    addEventListener("resize", function () {
+      cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+    scene.background = new T.Color(0x7dd3fc);
+    requestAnimationFrame(tick);
+  })();
   </script>
 </body>
 </html>

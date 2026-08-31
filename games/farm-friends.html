@@ -5,181 +5,269 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Farm Friends</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3f2a14;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{
-      min-height:100vh;padding:54px 10px 24px;text-align:center;
-      background:linear-gradient(#87ceeb 0 30%,#86efac 30% 68%,#ca8a04 68%);
-      overflow-x:hidden;
-    }
-    body.rain{background:linear-gradient(#64748b 0 30%,#65a30d 30% 68%,#78716c 68%)}
-    body.sunset{background:linear-gradient(#fb923c 0 30%,#84cc16 30% 68%,#b45309 68%)}
-    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px);color:#14532d;text-shadow:0 2px 0 #fff}
-    body.sunset h1,body.rain h1{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
-    .weather{font-size:28px;margin-top:2px}
-    .rainlayer{display:none;position:fixed;inset:0;pointer-events:none;z-index:3;background:repeating-linear-gradient(185deg,transparent 0 18px,rgba(255,255,255,.18) 18px 19px);animation:rain .7s linear infinite}
-    body.rain .rainlayer{display:block}
-    @keyframes rain{to{background-position:12px 40px}}
-    .hud{display:flex;justify-content:center;gap:8px;margin:6px 0}
-    .chip{background:rgba(255,255,255,.9);padding:6px 12px;border-radius:999px;font-weight:800;font-size:15px}
-    .bubble{
-      display:inline-block;background:#fff;color:#14532d;font-weight:800;font-size:22px;
-      padding:10px 18px;border-radius:22px 22px 22px 6px;margin:8px auto;box-shadow:0 5px 0 #65a30d;
-      min-width:200px;
-    }
-    .farm{width:min(380px,94vw);margin:8px auto;position:relative}
-    .roof{
-      height:54px;background:linear-gradient(#b91c1c,#7f1d1d);clip-path:polygon(50% 0,100% 100%,0 100%);
-      display:flex;align-items:flex-end;justify-content:center;color:#fff;font-weight:800;font-size:14px;padding-bottom:6px;
-    }
-    .map{
-      display:grid;grid-template-columns:118px 1fr;min-height:280px;
-      background:#fef3c7;border:8px solid #7c2d12;border-top:0;border-radius:0 0 18px 18px;
-      box-shadow:0 10px 0 #5a1c0a;
-    }
-    .stalls{background:linear-gradient(#d6a15a,#b45309);padding:8px 6px;display:flex;flex-direction:column;gap:8px}
-    .stall{
-      flex:1;background:linear-gradient(#8b5a2b,#6b3e1a);border-radius:10px;border:3px solid #4a2a12;
-      display:flex;align-items:center;justify-content:center;font-size:40px;min-height:64px;
-      box-shadow:inset 0 -8px 0 #3d2410;
-    }
-    .stall:active{transform:translateY(2px)}
-    .stall.fed{background:linear-gradient(#86efac,#166534)}
-    .field{
-      position:relative;background:
-        repeating-linear-gradient(90deg,transparent 0 22px,rgba(22,101,52,.12) 22px 24px),
-        linear-gradient(#86efac,#4ade80);
-      overflow:hidden;
-    }
-    .pal{
-      position:absolute;font-size:40px;min-width:56px;min-height:56px;
-    }
-    .pal:active{transform:scale(1.08)}
-    .pal.fed{filter:drop-shadow(0 0 6px #fde047)}
-    .haywrap{min-height:76px;margin-top:8px}
-    .hay{
-      display:none;background:#fef08a;color:#713f12;font-weight:800;font-size:22px;
-      padding:14px 28px;border-radius:20px;box-shadow:0 6px 0 #ca8a04;
-    }
-    .hay.on{display:inline-block;animation:bob .6s ease infinite}
-    .hay:active{transform:translateY(3px)}
-    @keyframes bob{50%{transform:translateY(-4px)}}
-    .msg{font-weight:800;margin-top:8px;min-height:1.3em}
-    .banner{
-      display:none;width:min(340px,92vw);margin:12px auto 0;padding:16px;
-      background:#fff7ed;border:6px solid #7c2d12;border-radius:8px;box-shadow:4px 8px 0 #5a1c0a;color:#7c2d12;
-    }
-    .banner.on{display:block}
-    .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .play.next{background:#86efac;color:#14532d;box-shadow:0 6px 0 #16a34a}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #65a30d; color: #3f2a14; touch-action: none; user-select: none; }
+    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .home { position: fixed; top: 12px; left: 12px; z-index: 12; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.32); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #hud { position: fixed; top: 12px; right: 12px; z-index: 8; font-weight: 800; text-align: right; pointer-events: none; }
+    #hud b { display: inline-block; background: rgba(255,255,255,.9); padding: 6px 12px; border-radius: 999px; margin-left: 6px; font-size: 14px; }
+    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 8; font-weight: 800; color: #fff; text-shadow: 0 2px 0 #3f2a14; pointer-events: none; text-align: center; width: 92%; }
+    #hay { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 8; display: none; background: #fef08a; color: #713f12; font-weight: 800; font-size: 22px; padding: 14px 28px; border-radius: 20px; box-shadow: 0 6px 0 #ca8a04; }
+    #hay.on { display: block; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; gap: 8px; padding: 20px 20px 48px; pointer-events: none; }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(32px, 8vw, 48px); color: #14532d; text-shadow: 0 3px 0 #fff; }
+    .cover p { font-weight: 800; color: #14532d; }
+    .btn { pointer-events: auto; background: #ffd166; color: #3b2100; font-weight: 800; font-size: 24px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
+    .btn.g { background: #86efac; color: #14532d; box-shadow: 0 7px 0 #16a34a; }
   </style>
 </head>
 <body>
-  <div class="rainlayer"></div>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Farm Friends</h1>
-  <div class="weather" id="weather">☀️ Sun</div>
-  <div class="hud">
-    <span class="chip" id="fieldChip">Field 1</span>
-    <span class="chip" id="stars">⭐ 0</span>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="ch">Chore 1</b><b id="day">Morning</b><b id="st">⭐ 0</b></div>
+  <div id="say">Find Bella the cow!</div>
+  <button id="hay">🌾 Feed</button>
+  <div class="cover" id="title">
+    <h1>Farm Friends</h1>
+    <p>Find the named pal. Then feed.<br>Day drifts to a kind sunset.</p>
+    <button class="btn" id="go">Play</button>
   </div>
-  <div class="bubble" id="bubble">Where is the cow?</div>
-  <div class="farm">
-    <div class="roof" id="roof">Barn</div>
-    <div class="map">
-      <div class="stalls" id="stalls"></div>
-      <div class="field" id="field"></div>
-    </div>
-  </div>
-  <div class="haywrap"><button class="hay" id="hay">🌾 Feed</button></div>
-  <p class="msg" id="msg">Tap the friend.</p>
-  <div class="banner" id="banner">
-    <div style="font-size:42px">🚜</div>
-    <h2 id="btitle">Happy farm!</h2>
-    <p id="bsub"></p>
-    <div class="acts">
-      <button class="play next" id="nextBtn">Next</button>
-      <button class="play" id="againBtn">Play again</button>
-    </div>
+  <div class="cover off" id="win">
+    <h1>Chores done!</h1>
+    <p id="winP">Five kind chores.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-    var fields=[
-      {name:"Sunny yard",weather:"sun",icon:"☀️ Sun",pals:[{e:"🐄",n:"cow"},{e:"🐷",n:"pig"},{e:"🐔",n:"chicken"},{e:"🐑",n:"sheep"}],asks:3},
-      {name:"Rain barn",weather:"rain",icon:"🌧️ Rain",pals:[{e:"🐄",n:"cow"},{e:"🐷",n:"pig"},{e:"🐔",n:"chicken"},{e:"🐑",n:"sheep"},{e:"🐴",n:"horse"},{e:"🦆",n:"duck"}],asks:4},
-      {name:"Sunset field",weather:"sunset",icon:"🌇 Sunset",pals:[{e:"🐄",n:"cow"},{e:"🐷",n:"pig"},{e:"🐔",n:"chicken"},{e:"🐑",n:"sheep"},{e:"🐴",n:"horse"},{e:"🦆",n:"duck"},{e:"🐐",n:"goat"},{e:"🐕",n:"dog"}],asks:5}
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, last = 0, t = 0, mode = "title", stars = 0, chore = 0;
+    var animals = [], prints = [], snacks = [], day = 0, target = 0, phase = "find";
+    var barn = { x: 0, y: 0, w: 0, h: 0 };
+
+    var CHORES = [
+      { n: "Morning milk", who: "Bella", e: "🐮", food: "🌾", sky: "morning" },
+      { n: "Pig snack", who: "Pip", e: "🐷", food: "🥕", sky: "late morning" },
+      { n: "Duck pond", who: "Dottie", e: "🦆", food: "🌽", sky: "noon" },
+      { n: "Sheep fluff", who: "Snow", e: "🐑", food: "🌾", sky: "afternoon" },
+      { n: "Horse apple", who: "Maple", e: "🐴", food: "🍎", sky: "sunset" }
     ];
-    var spots=[{x:10,y:12},{x:52,y:18},{x:18,y:48},{x:58,y:54},{x:28,y:76}];
-    var lv=0,need=null,phase="find",done=0,stars=0,queue=[],chosen=null;
-    function loadField(){
-      var F=fields[lv];
-      document.body.className=F.weather;
-      document.getElementById("weather").textContent=F.icon;
-      document.getElementById("fieldChip").textContent="Field "+(lv+1);
-      document.getElementById("roof").textContent=F.name;
-      document.getElementById("banner").classList.remove("on");
-      document.getElementById("nextBtn").style.display=lv<2?"":"none";
-      document.getElementById("hay").classList.remove("on");
-      done=0;phase="find";queue=shuffle(F.pals).slice(0,F.asks);
-      drawMap();ask();
+    var HERD = [
+      { name: "Bella", e: "🐮" }, { name: "Pip", e: "🐷" }, { name: "Dottie", e: "🦆" },
+      { name: "Snow", e: "🐑" }, { name: "Maple", e: "🐴" }, { name: "Cluck", e: "🐔" },
+      { name: "Nibble", e: "🐐" }
+    ];
+
+    function beep(f, d) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), gn = ac.createGain();
+        o.type = "sine"; o.frequency.value = f; gn.gain.value = 0.07;
+        o.connect(gn); gn.connect(ac.destination); o.start();
+        gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    function drawMap(){
-      var F=fields[lv],stalls=document.getElementById("stalls"),field=document.getElementById("field");
-      stalls.innerHTML="";field.innerHTML="";
-      var pals=shuffle(F.pals),nStall=Math.min(3,pals.length);
-      pals.forEach(function(p,i){
-        var b=document.createElement("button");
-        b.textContent=p.e;b.dataset.n=p.n;
-        b.onclick=function(){tapPal(p,b);};
-        if(i<nStall){b.className="stall";stalls.appendChild(b);}
-        else{
-          b.className="pal";
-          var s=spots[(i-nStall)%spots.length];
-          b.style.left=s.x+"%";b.style.top=s.y+"%";
-          field.appendChild(b);
+    function lerp(a, b, p) { return a + (b - a) * p; }
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+
+    function resize() {
+      cv.width = innerWidth * (devicePixelRatio || 1);
+      cv.height = innerHeight * (devicePixelRatio || 1);
+      g.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
+      W = innerWidth; H = innerHeight;
+      barn.x = 16; barn.y = 90; barn.w = Math.min(160, W * 0.34); barn.h = 120;
+    }
+    addEventListener("resize", resize); resize();
+
+    function spawnHerd() {
+      animals = HERD.map(function (h, i) {
+        return {
+          name: h.name, e: h.e, x: rnd(W * 0.35, W - 40), y: rnd(H * 0.42, H * 0.78),
+          vx: rnd(-22, 22), vy: rnd(-16, 16), fed: 0, bob: rnd(0, 6), wait: rnd(0, 2)
+        };
+      });
+      prints = []; snacks = []; phase = "find"; target = chore;
+      document.getElementById("hay").classList.remove("on");
+      document.getElementById("ch").textContent = CHORES[chore].n;
+      document.getElementById("say").textContent = "Find " + CHORES[chore].who + " the " + nameKind(CHORES[chore].e) + "!";
+    }
+    function nameKind(e) {
+      return { "🐮": "cow", "🐷": "pig", "🦆": "duck", "🐑": "sheep", "🐴": "horse" }[e] || "pal";
+    }
+
+    function wander(a, dt) {
+      a.wait -= dt;
+      if (a.wait <= 0) {
+        a.vx = rnd(-28, 28); a.vy = rnd(-20, 20); a.wait = rnd(0.8, 2.4);
+      }
+      a.x += a.vx * dt; a.y += a.vy * dt;
+      if (a.x < W * 0.28) { a.x = W * 0.28; a.vx *= -1; }
+      if (a.x > W - 30) { a.x = W - 30; a.vx *= -1; }
+      if (a.y < H * 0.38) { a.y = H * 0.38; a.vy *= -1; }
+      if (a.y > H - 80) { a.y = H - 80; a.vy *= -1; }
+      if (Math.random() < 0.08) prints.push({ x: a.x, y: a.y + 14, life: 1, r: 4 });
+    }
+
+    function tap(mx, my) {
+      if (mode !== "play") return;
+      if (phase === "find") {
+        animals.forEach(function (a) {
+          if (Math.hypot(mx - a.x, my - a.y) < 36) {
+            if (a.e === CHORES[chore].e) {
+              phase = "feed"; a.vx = a.vy = 0;
+              document.getElementById("hay").classList.add("on");
+              document.getElementById("hay").textContent = CHORES[chore].food + " Feed " + a.name;
+              document.getElementById("say").textContent = "That's " + a.name + "! Feed time.";
+              beep(620, 0.1);
+            } else {
+              document.getElementById("say").textContent = "That's " + a.name + ". Looking for " + CHORES[chore].who + ".";
+              beep(240, 0.07);
+            }
+          }
+        });
+      }
+    }
+
+    function feed() {
+      if (phase !== "feed") return;
+      var a = animals.filter(function (x) { return x.e === CHORES[chore].e; })[0];
+      if (!a) return;
+      snacks.push({ x: W / 2, y: H - 40, tx: a.x, ty: a.y, p: 0, e: CHORES[chore].food });
+      beep(500, 0.06);
+    }
+
+    function nextChore() {
+      stars += 4; document.getElementById("st").textContent = "⭐ " + stars;
+      beep(660, 0.12); setTimeout(function () { beep(880, 0.14); }, 90);
+      if (chore < CHORES.length - 1) {
+        chore++; spawnHerd();
+      } else {
+        mode = "win"; day = 1;
+        document.getElementById("hay").classList.remove("on");
+        document.getElementById("win").classList.remove("off");
+        document.getElementById("winP").textContent = "Sunset chores. " + stars + " stars.";
+      }
+    }
+
+    function skyColors() {
+      var p = day;
+      var morn = ["#7dd3fc", "#86efac", "#ca8a04"];
+      var set = ["#fb923c", "#fde68a", "#b45309"];
+      return [
+        lerpC(morn[0], set[0], p),
+        lerpC(morn[1], set[1], p),
+        lerpC(morn[2], set[2], p)
+      ];
+    }
+    function lerpC(a, b, p) {
+      function hex(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+      var A = hex(a), B = hex(b);
+      return "rgb(" + Math.round(lerp(A[0], B[0], p)) + "," + Math.round(lerp(A[1], B[1], p)) + "," + Math.round(lerp(A[2], B[2], p)) + ")";
+    }
+
+    function drawFarm() {
+      var c = skyColors();
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      grd.addColorStop(0, c[0]); grd.addColorStop(0.38, c[1]); grd.addColorStop(1, c[2]);
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      var sunX = lerp(W * 0.15, W * 0.85, day), sunY = lerp(70, 160, Math.sin(day * Math.PI));
+      g.fillStyle = day < 0.7 ? "#fde047" : "#fb923c";
+      g.beginPath(); g.arc(sunX, sunY, 26, 0, 6.28); g.fill();
+      g.fillStyle = "#b91c1c";
+      g.beginPath(); g.moveTo(barn.x, barn.y + 40); g.lineTo(barn.x + barn.w / 2, barn.y); g.lineTo(barn.x + barn.w, barn.y + 40); g.fill();
+      g.fillStyle = "#fef3c7"; g.fillRect(barn.x + 8, barn.y + 40, barn.w - 16, barn.h);
+      g.fillStyle = "#7c2d12"; g.fillRect(barn.x + barn.w * 0.35, barn.y + 70, barn.w * 0.3, barn.h - 30);
+      g.fillStyle = "#fff"; g.font = "bold 12px Trebuchet MS"; g.textAlign = "center";
+      g.fillText("BARN", barn.x + barn.w / 2, barn.y + 58);
+      var i;
+      g.strokeStyle = "#854d0e"; g.lineWidth = 4;
+      g.beginPath(); g.moveTo(barn.x + barn.w, H * 0.4); g.lineTo(W - 10, H * 0.4); g.stroke();
+      for (i = 0; i < 8; i++) g.fillRect(barn.x + barn.w + 20 + i * 36, H * 0.38, 6, 26);
+      g.fillStyle = "#16a34a";
+      g.fillRect(0, H * 0.72, W, 8);
+    }
+
+    function drawAnimals() {
+      prints.forEach(function (p) {
+        g.globalAlpha = p.life * 0.4; g.fillStyle = "#713f12";
+        g.beginPath(); g.ellipse(p.x, p.y, p.r, p.r * 0.6, 0, 0, 6.28); g.fill(); g.globalAlpha = 1;
+      });
+      animals.forEach(function (a) {
+        g.save();
+        g.translate(a.x, a.y + Math.sin(t * 3 + a.bob) * 3);
+        g.scale(a.vx < 0 ? -1 : 1, 1);
+        g.font = "40px serif"; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillText(a.e, 0, 0);
+        g.restore();
+        if (phase === "feed" && a.e === CHORES[chore].e) {
+          g.font = "bold 13px Trebuchet MS"; g.fillStyle = "#fff"; g.textAlign = "center";
+          g.fillText(a.name + "!", a.x, a.y - 28);
         }
+        if (a.fed) { g.font = "16px serif"; g.fillText("💕", a.x + 16, a.y - 18); }
+      });
+      snacks.forEach(function (s) {
+        var x = lerp(s.x, s.tx, s.p), y = lerp(s.y, s.ty, s.p) - Math.sin(s.p * Math.PI) * 40;
+        g.font = "24px serif"; g.textAlign = "center"; g.fillText(s.e, x, y);
       });
     }
-    function ask(){
-      need=queue[done];phase="find";chosen=null;
-      document.getElementById("hay").classList.remove("on");
-      document.getElementById("bubble").textContent="Where is the "+need.n+"?";
-      document.getElementById("msg").textContent="Look in the stalls and field.";
-    }
-    function tapPal(p,b){
-      if(phase!=="find")return;
-      if(p.n!==need.n){
-        document.getElementById("bubble").textContent="That's the "+p.n+"!";
-        document.getElementById("msg").textContent="Find the "+need.n+".";
-        beep(180,.1);return;
+
+    function drawTitleFarm() {
+      drawFarm();
+      var i, es = ["🐮", "🐷", "🦆", "🐑", "🐴"];
+      for (i = 0; i < 5; i++) {
+        g.save();
+        g.translate(W * (0.2 + i * 0.15), H * 0.55 + Math.sin(t * 2 + i) * 8);
+        g.font = "42px serif"; g.textAlign = "center"; g.fillText(es[i], 0, 0);
+        g.restore();
       }
-      chosen=b;phase="feed";stars++;
-      document.getElementById("bubble").textContent="Yay! Feed the "+need.n+"!";
-      document.getElementById("msg").textContent="Tap the hay.";
-      document.getElementById("hay").classList.add("on");
-      beep(760,.1);paintStars();
     }
-    document.getElementById("hay").onclick=function(){
-      if(phase!=="feed")return;
-      phase="wait";
-      if(chosen)chosen.classList.add("fed");
-      this.classList.remove("on");
-      document.getElementById("bubble").textContent="Nom nom!";
-      beep(880,.12);done++;
-      if(done>=queue.length){
-        document.getElementById("btitle").textContent=lv<2?"Nice field!":"Happy farm!";
-        document.getElementById("bsub").textContent="⭐ "+stars+" · All friends fed.";
-        document.getElementById("banner").classList.add("on");beep(940,.2);
-      }else setTimeout(ask,500);
-    };
-    function paintStars(){document.getElementById("stars").textContent="⭐ "+stars;}
-    document.getElementById("nextBtn").onclick=function(){if(lv<2){lv++;loadField();}};
-    document.getElementById("againBtn").onclick=function(){lv=0;stars=0;paintStars();loadField();};
-    loadField();
+
+    function update(dt) {
+      t += dt;
+      if (mode === "title" || mode === "win") { day = mode === "win" ? Math.min(1, day + dt * 0.1) : (Math.sin(t * 0.3) * 0.5 + 0.5) * 0.4; return; }
+      if (mode !== "play") return;
+      day = Math.min(0.92, (chore / 5) + t * 0.004);
+      document.getElementById("day").textContent = day < 0.3 ? "Morning" : day < 0.6 ? "Noon" : day < 0.8 ? "Afternoon" : "Sunset";
+      animals.forEach(function (a) { if (!a.fed) wander(a, dt); });
+      prints.forEach(function (p) { p.life -= dt * 0.35; });
+      prints = prints.filter(function (p) { return p.life > 0; });
+      snacks.forEach(function (s) {
+        s.p += dt * 1.4;
+        if (s.p >= 1 && phase === "feed") {
+          var a = animals.filter(function (x) { return x.e === CHORES[chore].e; })[0];
+          if (a) a.fed = 1;
+          phase = "done";
+          document.getElementById("hay").classList.remove("on");
+          document.getElementById("say").textContent = CHORES[chore].who + " is happy!";
+          setTimeout(nextChore, 700);
+        }
+      });
+      snacks = snacks.filter(function (s) { return s.p < 1; });
+    }
+
+    function draw() {
+      if (mode === "title" || mode === "win") { drawTitleFarm(); return; }
+      drawFarm(); drawAnimals();
+    }
+    function loop(now) {
+      var dt = Math.min(0.033, (now - last) / 1000 || 0.016);
+      last = now; update(dt); draw(); requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    function start() {
+      mode = "play"; chore = 0; stars = 0; day = 0; t = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("st").textContent = "⭐ 0";
+      spawnHerd(); beep(480, 0.1);
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); start(); };
+    document.getElementById("hay").onclick = feed;
+    cv.addEventListener("pointerdown", function (e) { tap(e.clientX, e.clientY); });
+  })();
   </script>
 </body>
 </html>

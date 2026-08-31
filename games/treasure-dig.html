@@ -4,175 +4,213 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Treasure Dig</title>
+  <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#78350f;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{
-      min-height:100vh;padding:54px 8px 20px;text-align:center;
-      background:linear-gradient(#7dd3fc 0 22%,#fde68a 22% 55%,#eab308 55%);
-    }
-    body.moon{background:linear-gradient(#0f172a 0 22%,#1e3a5f 22% 40%,#ca8a04 40%);color:#fef3c7}
-    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px);color:#fff;text-shadow:0 3px 0 #92400e}
-    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px}
-    .chip{background:rgba(255,255,255,.9);padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px;color:#78350f}
-    body.moon .chip{background:rgba(15,23,42,.7);color:#fde68a}
-    .beach{
-      width:min(380px,96vw);margin:8px auto;border-radius:24px 24px 8px 8px;overflow:hidden;
-      box-shadow:0 12px 0 #92400e;position:relative;
-    }
-    .ocean{height:52px;background:linear-gradient(#38bdf8,#0284c7);position:relative;overflow:hidden}
-    .wave{position:absolute;left:-10%;right:-10%;bottom:0;height:22px;background:#7dd3fc;border-radius:50%;animation:wave 2.4s ease-in-out infinite}
-    @keyframes wave{50%{transform:translateX(12px) scaleY(1.15)}}
-    .sand{
-      background:
-        radial-gradient(circle at 20% 30%,rgba(255,255,255,.15) 0 8%,transparent 9%),
-        linear-gradient(#fcd34d,#d97706);
-      padding:10px 8px 14px;min-height:240px;
-    }
-    body.moon .sand{background:linear-gradient(#b45309,#78350f)}
-    .row{display:flex;justify-content:center;gap:8px;margin:6px 0}
-    .row:nth-child(even){padding-left:18px}
-    .mound{
-      width:68px;height:62px;border-radius:50% 50% 18px 18px;
-      background:linear-gradient(#fbbf24,#b45309);font-size:28px;
-      box-shadow:0 5px 0 #92400e;position:relative;
-    }
-    .mound:active{transform:translateY(3px)}
-    .mound.dug{background:#fef3c7;border-radius:16px}
-    .mound.mid{background:#eab308}
-    .mound.loot{background:#fde68a;box-shadow:0 0 12px #fbbf24}
-    .mark{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:16px;pointer-events:none}
-    .map{
-      width:min(340px,92vw);margin:10px auto;padding:10px 14px;
-      background:#fef3c7;border:4px solid #b45309;border-radius:8px;
-      box-shadow:3px 5px 0 #78350f;font-weight:800;transform:rotate(-1.5deg);
-    }
-    .tools{display:flex;justify-content:center;gap:12px;margin:10px}
-    .tool{
-      min-width:120px;padding:12px 16px;border-radius:18px;font-weight:800;font-size:18px;
-      background:#fff7ed;box-shadow:0 6px 0 #b45309;
-    }
-    .tool.on{background:#fde68a;box-shadow:0 6px 0 #ca8a04;outline:3px solid #fff}
-    .msg{font-weight:800;color:#fff;margin-top:6px;min-height:1.3em;text-shadow:0 1px 0 #78350f}
-    .banner{
-      display:none;width:min(340px,92vw);margin:12px auto 0;padding:16px;
-      background:#fff7ed;border-radius:8px;box-shadow:4px 6px 0 #78350f;color:#78350f;
-      border:5px double #b45309;
-    }
-    .banner.on{display:block}
-    .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .play.next{background:#86efac;color:#14532d;box-shadow:0 6px 0 #16a34a}
+    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#1c1917;color:#fef3c7;touch-action:none;user-select:none}
+    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:rgba(0,0,0,.45);padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800;text-align:right;pointer-events:none}
+    #hud b{display:inline-block;background:#fef3c7;color:#7c2d12;padding:6px 10px;border-radius:999px;margin-left:6px}
+    #say{position:fixed;left:10px;right:10px;bottom:110px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
+    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:8px;padding:10px 12px 16px;background:#431407}
+    #dock.on{display:flex}
+    #dock button{flex:1;height:76px;border-radius:16px;background:#fde047;color:#422006;font-weight:800;font-size:18px}
+    #dock button.on{outline:3px solid #fff}
+    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#b45309,#1c1917)}
+    .cover.off{display:none}
+    h1{font-size:clamp(32px,8vw,50px)}
+    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Treasure Dig</h1>
-  <div class="hud">
-    <span class="chip" id="bchip">Shell cove</span>
-    <span class="chip" id="loot">Loot 0 / 2</span>
-    <span class="chip" id="stars">⭐ 0</span>
+  <div id="hud"><b id="cv">Beach cave</b><b id="fd">💎 0</b><b id="st">⭐ 0</b></div>
+  <div id="say">Tap a mound. Lantern finds gold!</div>
+  <div id="dock">
+    <button id="dig" class="on">Dig</button>
+    <button id="lamp">Lantern</button>
+    <button id="brush">Brush</button>
   </div>
-  <div class="map" id="map">Map: near the 🐚</div>
-  <div class="beach" id="beach">
-    <div class="ocean"><div class="wave"></div></div>
-    <div class="sand" id="sand"></div>
+  <div class="cover" id="title">
+    <h1>Treasure Dig</h1>
+    <p>3D cave. Soft lantern.<br>Dig, brush, open the chest.</p>
+    <button class="btn" id="go">Dig</button>
   </div>
-  <div class="tools">
-    <button class="tool on" id="shovel">🪣 Shovel</button>
-    <button class="tool" id="brush">🧹 Brush</button>
-  </div>
-  <p class="msg" id="msg">Pick a tool. Dig the sand!</p>
-  <div class="banner" id="banner">
-    <div style="font-size:42px">🏴‍☠️</div>
-    <h2 id="btitle">Pirate kid!</h2>
-    <p id="bsub"></p>
-    <div class="acts">
-      <button class="play next" id="nextBtn">Next</button>
-      <button class="play" id="againBtn">Play again</button>
-    </div>
+  <div class="cover off" id="win">
+    <h1>Gold hug!</h1>
+    <p id="wp">Five caves.</p>
+    <button class="btn" id="again">Dig again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-    var lootPool=["💎","👑","🪙","💍","🗝️"];
-    var junk=["🐚","🪨","🦴","🌊"];
-    var beaches=[
-      {name:"Shell cove",moon:false,cols:3,rows:3,treasures:2,layers:1,clue:"🐚",clueWord:"near the shell"},
-      {name:"Palm dunes",moon:false,cols:4,rows:3,treasures:3,layers:2,clue:"🌴",clueWord:"by the palm"},
-      {name:"Moon beach",moon:true,cols:4,rows:4,treasures:4,layers:3,clue:"⭐",clueWord:"under the star"}
+  (function () {
+    if (!window.THREE) return;
+    var T = THREE, play = false, caveI = 0, found = 0, stars = 0, tool = "dig", t = 0, lampOn = 0;
+    var CAVES = [
+      { n: "Beach cave", need: 4, verb: "dig" },
+      { n: "Crystal hall", need: 5, verb: "glow" },
+      { n: "Night dig", need: 5, verb: "lamp", night: 1 },
+      { n: "Brush room", need: 6, verb: "brush" },
+      { n: "Home vault", need: 4, verb: "chest" }
     ];
-    var lv=0,tool="shovel",found=0,need=0,stars=0;
-    document.getElementById("shovel").onclick=function(){tool="shovel";this.classList.add("on");document.getElementById("brush").classList.remove("on");beep(300,.05);};
-    document.getElementById("brush").onclick=function(){tool="brush";this.classList.add("on");document.getElementById("shovel").classList.remove("on");beep(500,.05);};
-    function load(){
-      var B=beaches[lv];
-      document.body.className=B.moon?"moon":"";
-      document.getElementById("bchip").textContent=B.name;
-      document.getElementById("map").textContent="Map: "+B.clueWord+" "+B.clue;
-      document.getElementById("banner").classList.remove("on");
-      document.getElementById("nextBtn").style.display=lv<2?"":"none";
-      document.getElementById("msg").textContent="Pick a tool. Dig the sand!";
-      found=0;need=B.treasures;
-      var n=B.cols*B.rows;
-      var items=shuffle(lootPool).slice(0,B.treasures);
-      while(items.length<n)items.push(junk[items.length%junk.length]);
-      items=shuffle(items);
-      var sand=document.getElementById("sand");sand.innerHTML="";
-      var treasureIdx=[];
-      items.forEach(function(it,i){if(lootPool.indexOf(it)>=0)treasureIdx.push(i);});
-      var clueOn=treasureIdx[0];
-      var i=0;
-      for(var r=0;r<B.rows;r++){
-        var row=document.createElement("div");row.className="row";
-        for(var c=0;c<B.cols;c++){
-          (function(item,idx){
-            var layers=(idx===clueOn||(B.layers>1&&idx%3===0))?Math.max(2,B.layers):1;
-            var left=layers,clue=idx===clueOn?B.clue:"";
-            var b=document.createElement("button");b.className="mound";
-            function face(txt){b.innerHTML=txt+(clue?'<span class="mark">'+clue+"</span>":"");}
-            face("🏖️");
-            b.onclick=function(){
-              if(b.classList.contains("dug"))return;
-              left--;
-              if(left>0){
-                b.classList.add("mid");face("🕳️");
-                document.getElementById("msg").textContent=tool==="brush"?"Soft… keep going!":"Deeper!";
-                beep(320,.07);return;
-              }
-              b.classList.add("dug");face(item);
-              if(lootPool.indexOf(item)>=0){
-                b.classList.add("loot");found++;
-                var bonus=tool==="brush"?1:0;stars+=1+bonus;
-                document.getElementById("msg").textContent=bonus?"Gentle brush! Bonus star!":"Treasure!";
-                beep(780,.1);paint();
-                if(found>=need){
-                  document.getElementById("btitle").textContent=lv<2?"Chest found!":"Pirate kid!";
-                  document.getElementById("bsub").textContent="⭐ "+stars+" · Nice digging.";
-                  document.getElementById("banner").classList.add("on");beep(960,.2);
-                }
-              }else{
-                beep(220,.07);
-                document.getElementById("msg").textContent="Just "+item+". Keep digging!";
-              }
-            };
-            row.appendChild(b);
-          })(items[i],i);
-          i++;
-        }
-        sand.appendChild(row);
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-dig") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+
+    var scene = new T.Scene();
+    var cam = new T.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 60);
+    cam.position.set(0, 3.2, 7.2);
+    var renderer = new T.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+    document.body.appendChild(renderer.domElement);
+    var amb = new T.AmbientLight(0x3f2a14, 0.45); scene.add(amb);
+    var sun = new T.DirectionalLight(0xffe8b0, 0.55); sun.position.set(3, 8, 4); scene.add(sun);
+    var lantern = new T.PointLight(0xfde047, 0.4, 7); lantern.position.set(0, 2, 2); scene.add(lantern);
+
+    var floor = new T.Mesh(new T.PlaneGeometry(16, 16), new T.MeshLambertMaterial({ color: 0xa16207 }));
+    floor.rotation.x = -Math.PI / 2; scene.add(floor);
+    var walls = new T.Mesh(new T.CylinderGeometry(7, 7, 5, 16, 1, true), new T.MeshLambertMaterial({ color: 0x44403c, side: T.BackSide }));
+    walls.position.y = 2.4; scene.add(walls);
+
+    var kid = new T.Group();
+    var body = new T.Mesh(new T.SphereGeometry(0.2, 10, 8), new T.MeshLambertMaterial({ color: 0xf97316 }));
+    body.position.y = 0.7; kid.add(body);
+    var head = new T.Mesh(new T.SphereGeometry(0.14, 8, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
+    head.position.y = 1.02; kid.add(head);
+    var lampMesh = new T.Mesh(new T.SphereGeometry(0.09, 8, 8), new T.MeshBasicMaterial({ color: 0xfde047 }));
+    lampMesh.position.set(0.28, 0.72, 0.1); kid.add(lampMesh);
+    var legs = [];
+    for (var s = -1; s <= 1; s += 2) {
+      var hip = new T.Group(); hip.position.set(s * 0.08, 0.42, 0);
+      var th = new T.Mesh(new T.BoxGeometry(0.08, 0.26, 0.08), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
+      th.position.y = -0.12; hip.add(th);
+      kid.add(hip); legs.push(hip);
+    }
+    kid.position.set(0, 0, 2.4); scene.add(kid);
+
+    var mounds = [];
+    var chest = new T.Group();
+    var cbox = new T.Mesh(new T.BoxGeometry(0.8, 0.45, 0.5), new T.MeshLambertMaterial({ color: 0xb45309 }));
+    cbox.position.y = 0.25; chest.add(cbox);
+    var lid = new T.Mesh(new T.BoxGeometry(0.82, 0.14, 0.52), new T.MeshLambertMaterial({ color: 0xf59e0b }));
+    lid.position.set(0, 0.52, 0); chest.add(lid);
+    chest.position.set(0, 0, -2.2); chest.visible = false; scene.add(chest);
+
+    function beep(f, d) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.frequency.value = f; g.gain.value = 0.09; o.connect(g); g.connect(ac.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
+      } catch (e) {}
+    }
+    function save() { try { localStorage.setItem("alabryuu-dig", JSON.stringify({ stars: stars })); } catch (e) {} }
+
+    function spawn() {
+      mounds.forEach(function (m) { scene.remove(m); });
+      mounds = []; found = 0; chest.visible = false; lid.rotation.x = 0;
+      var cv = CAVES[caveI];
+      scene.background = new T.Color(cv.night ? 0x0b1020 : 0x44403c);
+      amb.intensity = cv.night ? 0.15 : 0.5;
+      for (var i = 0; i < cv.need + 2; i++) {
+        var g = new T.Group();
+        var dirt = new T.Mesh(new T.SphereGeometry(0.38, 10, 8), new T.MeshLambertMaterial({ color: 0x92400e }));
+        dirt.scale.set(1.2, 0.7, 1.1); dirt.position.y = 0.18; g.add(dirt);
+        var gem = new T.Mesh(new T.OctahedronGeometry(0.12, 0), new T.MeshLambertMaterial({ color: [0x38bdf8, 0xf472b6, 0xfde047][i % 3] }));
+        gem.position.y = 0.16; gem.visible = false; g.add(gem);
+        g.position.set((i % 3 - 1) * 1.8, 0, (Math.floor(i / 3) - 1) * 1.6);
+        g.userData = { hits: 0, gem: gem, dirt: dirt, done: 0 };
+        scene.add(g); mounds.push(g);
       }
-      paint();
+      document.getElementById("cv").textContent = cv.n;
+      document.getElementById("fd").textContent = "Gems 0/" + cv.need;
+      document.getElementById("say").textContent = ["Tap to dig!", "Crystals wink!", "Hold the lamp!", "Brush the last dirt!", "Open the chest!"][caveI];
     }
-    function paint(){
-      document.getElementById("loot").textContent="Loot "+found+" / "+need;
-      document.getElementById("stars").textContent="⭐ "+stars;
+
+    var ray = new T.Raycaster(), mouse = new T.Vector2();
+    renderer.domElement.addEventListener("pointerdown", function (ev) {
+      if (!play) return;
+      mouse.x = (ev.clientX / innerWidth) * 2 - 1;
+      mouse.y = -(ev.clientY / innerHeight) * 2 + 1;
+      ray.setFromCamera(mouse, cam);
+      if (chest.visible && ray.intersectObject(cbox, false).length) {
+        lid.rotation.x = -1.1; stars += 2; save(); beep(880, 0.12);
+        caveI++;
+        if (caveI >= CAVES.length) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("wp").textContent = "⭐ " + stars;
+          document.getElementById("win").classList.remove("off");
+        } else spawn();
+        return;
+      }
+      var hits = ray.intersectObjects(mounds, true);
+      if (!hits.length) return;
+      var g = hits[0].object.parent;
+      if (!g.userData || g.userData.done) return;
+      var needHits = tool === "brush" ? 1 : 2;
+      g.userData.hits++;
+      g.userData.dirt.scale.y *= 0.75;
+      kid.position.x += (g.position.x - kid.position.x) * 0.6;
+      kid.position.z += (g.position.z + 1.1 - kid.position.z) * 0.6;
+      beep(420, 0.05);
+      if (g.userData.hits >= needHits) {
+        g.userData.done = 1;
+        g.userData.dirt.visible = false;
+        g.userData.gem.visible = true;
+        found++; stars++; save();
+        document.getElementById("fd").textContent = "Gems " + found + "/" + CAVES[caveI].need;
+        if (found >= CAVES[caveI].need) {
+          chest.visible = true;
+          document.getElementById("say").textContent = "Tap the chest!";
+        }
+      }
+    });
+
+    function setTool(n) {
+      tool = n;
+      document.getElementById("dig").classList.toggle("on", n === "dig");
+      document.getElementById("lamp").classList.toggle("on", n === "lamp");
+      document.getElementById("brush").classList.toggle("on", n === "brush");
+      if (n === "lamp") { lampOn = 1; lantern.intensity = 1.6; }
     }
-    document.getElementById("nextBtn").onclick=function(){if(lv<2){lv++;load();}};
-    document.getElementById("againBtn").onclick=function(){lv=0;stars=0;load();};
-    load();
+    document.getElementById("dig").onclick = function () { setTool("dig"); };
+    document.getElementById("lamp").onclick = function () { setTool("lamp"); };
+    document.getElementById("brush").onclick = function () { setTool("brush"); };
+
+    function start() {
+      play = true; caveI = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      setTool("dig"); spawn();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+
+    var clock = new T.Clock();
+    function tick() {
+      var dt = Math.min(0.033, clock.getDelta());
+      t += dt;
+      legs.forEach(function (hip, i) { hip.rotation.x = Math.sin(t * 7 + i * 3) * 0.55; });
+      lampMesh.visible = lampOn || !!CAVES[caveI].night;
+      lantern.position.copy(kid.position); lantern.position.y = 1.1;
+      lantern.intensity += ((lampOn || CAVES[caveI].night ? 1.4 : 0.35) - lantern.intensity) * 0.08;
+      mounds.forEach(function (m) {
+        if (m.userData.gem.visible) m.userData.gem.rotation.y += dt * 2;
+      });
+      cam.position.x = Math.sin(t * 0.2) * 0.4;
+      cam.lookAt(0, 0.4, 0);
+      renderer.render(scene, cam);
+      requestAnimationFrame(tick);
+    }
+    addEventListener("resize", function () {
+      cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+    scene.background = new T.Color(0x44403c);
+    spawn();
+    requestAnimationFrame(tick);
+  })();
   </script>
 </body>
 </html>

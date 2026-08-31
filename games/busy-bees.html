@@ -5,176 +5,330 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Busy Bees</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#713f12;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;padding:54px 8px 20px;text-align:center;background:linear-gradient(#7dd3fc 0 28%,#86efac 28% 70%,#65a30d 70%)}
-    body.wind{background:linear-gradient(#93c5fd 0 28%,#a3e635 28% 70%,#4d7c0f 70%)}
-    body.storm{background:linear-gradient(#64748b 0 28%,#84cc16 28% 70%,#365314 70%)}
-    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px);color:#854d0e;text-shadow:0 2px 0 #fde047}
-    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px}
-    .chip{background:rgba(255,255,255,.88);padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px}
-    .meadow{
-      width:min(380px,96vw);margin:8px auto;display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:stretch;
-    }
-    .field{
-      position:relative;min-height:280px;border-radius:24px;
-      background:
-        radial-gradient(circle at 20% 80%,#bbf7d0 0 20%,transparent 21%),
-        linear-gradient(#86efac,#4ade80);
-      box-shadow:0 8px 0 #365314;overflow:hidden;
-    }
-    .flower{
-      position:absolute;left:50%;top:28%;transform:translateX(-50%);
-      font-size:88px;filter:drop-shadow(0 6px 0 rgba(0,0,0,.12));
-    }
-    .pollen{position:absolute;width:10px;height:10px;border-radius:50%;background:#fde047;pointer-events:none;opacity:.9;animation:dot .7s ease forwards}
-    @keyframes dot{to{opacity:0;transform:scale(.3)}}
-    .flyer{
-      position:absolute;font-size:36px;left:12px;bottom:16px;transition:left .7s ease,top .7s ease;
-      pointer-events:none;z-index:3;
-    }
-    .hive{
-      background:linear-gradient(#f59e0b,#b45309);border-radius:18px;padding:8px 6px;
-      box-shadow:0 8px 0 #78350f;
-    }
-    .hive h3{color:#fff;font-size:13px;margin-bottom:6px}
-    .comb{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-    .cell{
-      aspect-ratio:1;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
-      background:#fde68a;opacity:.35;
-    }
-    .cell.full{opacity:1;background:#fbbf24;box-shadow:0 0 6px #fde047}
-    .branch{
-      display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:12px auto 0;max-width:380px;
-    }
-    .bee{
-      width:76px;height:76px;border-radius:50%;font-size:36px;box-shadow:0 6px 0 #ca8a04;
-    }
-    .bee:active{transform:translateY(3px)}
-    body.wind .bee,body.storm .bee{animation:wobble 1.1s ease-in-out infinite}
-    body.storm .bee{animation-duration:.7s}
-    @keyframes wobble{25%{transform:rotate(-10deg) translateX(-3px)}75%{transform:rotate(10deg) translateX(3px)}}
-    .msg{font-weight:800;margin-top:8px;min-height:1.3em;font-size:20px}
-    .banner{
-      display:none;width:min(340px,92vw);margin:12px auto 0;padding:16px;
-      background:#fef3c7;border-radius:20px;box-shadow:0 0 0 6px #f59e0b,0 10px 0 #b45309;color:#78350f;
-    }
-    .banner.on{display:block}
-    .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .play.next{background:#86efac;color:#14532d;box-shadow:0 6px 0 #16a34a}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #facc15; color: #422006; touch-action: none; user-select: none; -webkit-user-select: none; }
+    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #422006; text-decoration: none; font-weight: 800; font-size: 17px; background: #fff; padding: 8px 14px; border-radius: 999px; box-shadow: 0 3px 0 #ca8a04; touch-action: manipulation; }
+    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; }
+    #hud b { font-weight: 800; font-size: 13px; background: #fffbeb; color: #854d0e; padding: 6px 10px; border-radius: 999px; }
+    #say { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 7; font-weight: 800; font-size: 17px; color: #422006; text-shadow: 0 2px 0 #fde047; pointer-events: none; text-align: center; width: 92%; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#facc15, #86efac); }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(32px, 9vw, 50px); color: #422006; text-shadow: 0 3px 0 #fff; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; }
+    .btn { background: #f97316; color: #fff; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #c2410c; }
+    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Busy Bees</h1>
-  <div class="hud">
-    <span class="chip" id="mchip">Meadow 1</span>
-    <span class="chip" id="wx">☀️ Calm</span>
-    <span class="chip" id="stars">⭐ 0</span>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="md">Spring</b><b id="hn">🍯 0</b><b id="wn">Breeze</b></div>
+  <div id="say">Tap flowers. Bees fly the path.</div>
+  <div class="cover" id="title">
+    <div style="font-size:76px">🐝</div>
+    <h1>Busy Bees</h1>
+    <p>Bees lerp on paths with a sine wiggle. Bloom flowers. Fill the hive. Wind later.</p>
+    <button class="btn" id="go">Buzz</button>
   </div>
-  <div class="meadow">
-    <div class="field" id="field">
-      <div class="flower" id="flower">🌸</div>
-      <div class="flyer" id="flyer" hidden>🐝</div>
-    </div>
-    <div class="hive">
-      <h3>🍯 Hive</h3>
-      <div class="comb" id="comb"></div>
-    </div>
-  </div>
-  <div class="branch" id="branch"></div>
-  <p class="msg" id="msg">Send the matching bee!</p>
-  <div class="banner" id="banner">
-    <div style="font-size:42px">🍯</div>
-    <h2 id="btitle">Honey time!</h2>
-    <p id="bsub"></p>
-    <div class="acts">
-      <button class="play next" id="nextBtn">Next</button>
-      <button class="play" id="againBtn">Play again</button>
-    </div>
+  <div class="cover off" id="win">
+    <div style="font-size:76px">🍯</div>
+    <h1>Hive full!</h1>
+    <p id="winP">Five meadows. Soft pollen.</p>
+    <button class="btn g" id="again">Buzz again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var colors=[
-      {e:"🌸",n:"pink",c:"#f9a8d4"},{e:"🌻",n:"yellow",c:"#fde047"},
-      {e:"🌼",n:"white",c:"#f8fafc"},{e:"🌺",n:"red",c:"#f87171"},{e:"🪻",n:"purple",c:"#c4b5fd"}
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, last = 0, t = 0, play = false, meadow = 0, honey = 0, need = 8;
+    var bees = [], flowers = [], pollen = [], gusts = [], clouds = [];
+    var hive = { x: 0, y: 0, fill: 0 }, wind = 0, windT = 0;
+    var MEADS = [
+      { n: "Spring", sky: ["#7dd3fc", "#fde68a"], grass: "#86efac", wind: 0, need: 6, bees: 2 },
+      { n: "Clover", sky: ["#38bdf8", "#bbf7d0"], grass: "#4ade80", wind: 0.2, need: 7, bees: 3 },
+      { n: "Windy", sky: ["#93c5fd", "#fef08a"], grass: "#22c55e", wind: 0.8, need: 8, bees: 3 },
+      { n: "Sunset sip", sky: ["#fb923c", "#f9a8d4"], grass: "#65a30d", wind: 0.3, need: 8, bees: 4 },
+      { n: "Night jasmine", sky: ["#1e1b4b", "#312e81"], grass: "#14532d", wind: 0.15, need: 9, bees: 4 }
     ];
-    var meadows=[
-      {name:"Sunny meadow",wx:"☀️ Calm",cls:"",need:4,bees:3},
-      {name:"Windy hill",wx:"💨 Wind",cls:"wind",need:6,bees:4},
-      {name:"Storm garden",wx:"🌬️ Gusts",cls:"storm",need:8,bees:5}
-    ];
-    var lv=0,honey=0,got=0,need=null,stars=0,busy=false,cells=12;
-    function mkComb(){
-      var c=document.getElementById("comb");c.innerHTML="";
-      for(var i=0;i<cells;i++){var d=document.createElement("div");d.className="cell"+(i<honey?" full":"");c.appendChild(d);}
+    var PETAL = ["#f472b6", "#facc15", "#fb7185", "#a78bfa", "#f97316", "#fff"];
+
+    function beep(f, d, typ) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        if (ac.state === "suspended") ac.resume();
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = typ || "square"; o.frequency.value = f; g.gain.value = 0.07;
+        o.connect(g); g.connect(ac.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    function mkBees(){
-      var M=meadows[lv],box=document.getElementById("branch");box.innerHTML="";
-      colors.slice(0,M.bees).forEach(function(col){
-        var b=document.createElement("button");b.className="bee";b.textContent="🐝";b.style.background=col.c;
-        b.onclick=function(){send(col,b);};
-        box.appendChild(b);
-      });
+    function say(s) { document.getElementById("say").textContent = s; }
+    function hud() {
+      var m = MEADS[meadow] || MEADS[0];
+      document.getElementById("md").textContent = m.n;
+      document.getElementById("hn").textContent = "🍯 " + honey + " / " + need;
+      document.getElementById("wn").textContent = wind > 0.4 ? "Wind!" : "Breeze";
     }
-    function nextFlower(){
-      var M=meadows[lv];
-      need=colors[Math.floor(Math.random()*M.bees)];
-      document.getElementById("flower").textContent=need.e;
-      document.getElementById("msg").textContent="The "+need.n+" flower!";
-    }
-    function load(){
-      var M=meadows[lv];
-      document.body.className=M.cls;
-      document.getElementById("mchip").textContent=M.name;
-      document.getElementById("wx").textContent=M.wx;
-      document.getElementById("banner").classList.remove("on");
-      document.getElementById("nextBtn").style.display=lv<2?"":"none";
-      got=0;busy=false;if(lv===0)honey=0;
-      mkBees();mkComb();nextFlower();
-    }
-    function send(col,btn){
-      if(busy)return;
-      if(col.n!==need.n){
-        document.getElementById("msg").textContent="This flower wants "+need.n+".";
-        beep(180,.1);return;
+    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; hive.x = W * 0.84; hive.y = H * 0.28; }
+    addEventListener("resize", resize); resize();
+
+    function lerp(a, b, u) { return a + (b - a) * u; }
+
+    function spawnMead() {
+      var m = MEADS[meadow];
+      need = m.need; honey = 0; hive.fill = 0; wind = m.wind; windT = 0;
+      flowers = []; bees = []; pollen = []; gusts = []; clouds = [];
+      var i, f;
+      for (i = 0; i < 8; i++) {
+        flowers.push({
+          x: 50 + (i % 4) * (W * 0.2) + (i > 3 ? 30 : 0),
+          y: H * 0.55 + (i % 3) * 50,
+          bloom: 0.15, col: PETAL[i % PETAL.length], pollen: 0, ph: i, open: 0
+        });
       }
-      busy=true;
-      var field=document.getElementById("field"),fl=document.getElementById("flyer");
-      var br=btn.getBoundingClientRect(),fr=field.getBoundingClientRect();
-      var x0=br.left-fr.left,y0=br.top-fr.top;
-      fl.hidden=false;fl.textContent="🐝";
-      fl.style.left=x0+"px";fl.style.top=y0+"px";fl.style.bottom="auto";
-      for(var i=1;i<=4;i++){
-        (function(k){
-          setTimeout(function(){
-            var d=document.createElement("div");d.className="pollen";
-            d.style.left=(x0+(field.clientWidth*0.42-x0)*k/4)+"px";
-            d.style.top=(y0+(field.clientHeight*0.30-y0)*k/4)+"px";
-            field.appendChild(d);
-            setTimeout(function(){d.remove();},720);
-          },k*90);
-        })(i);
+      for (i = 0; i < m.bees; i++) {
+        bees.push({
+          x: hive.x, y: hive.y + 20, tx: hive.x, ty: hive.y,
+          u: 0, path: [], hold: 0, bag: 0, ph: i * 1.3, wing: 0
+        });
       }
-      beep(620,.08);
-      requestAnimationFrame(function(){fl.style.left="42%";fl.style.top="30%";});
-      setTimeout(function(){
-        fl.hidden=true;fl.style.left="12px";fl.style.top="";fl.style.bottom="16px";
-        honey++;got++;stars++;mkComb();beep(760,.1);
-        document.getElementById("stars").textContent="⭐ "+stars;
-        if(got>=meadows[lv].need){
-          document.getElementById("btitle").textContent=lv<2?"Comb growing!":"Honey time!";
-          document.getElementById("bsub").textContent="The hive is happy · ⭐ "+stars;
-          document.getElementById("banner").classList.add("on");beep(940,.2);busy=false;
-        }else{busy=false;nextFlower();}
-      },720);
+      for (i = 0; i < 5; i++) clouds.push({ x: i * 140, y: 36 + (i % 3) * 18, s: 0.7 + (i % 2) * 0.3, ph: i });
+      hud();
+      say(m.n === "Windy" ? "Wind pushes the bees. Tap more flowers!" : "Tap a flower so it blooms. Bees will visit.");
     }
-    document.getElementById("nextBtn").onclick=function(){if(lv<2){lv++;load();}};
-    document.getElementById("againBtn").onclick=function(){lv=0;stars=0;honey=0;got=0;document.getElementById("stars").textContent="⭐ 0";load();};
-    load();
+
+    function start() {
+      play = true; meadow = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.remove("off");
+      document.getElementById("win").classList.add("off");
+      spawnMead(); beep(500, 0.1);
+    }
+
+    function assignBee(b) {
+      var i, f, best = null;
+      for (i = 0; i < flowers.length; i++) {
+        f = flowers[i];
+        if (f.bloom > 0.7 && f.pollen < 3) {
+          if (!best || f.pollen < best.pollen) best = f;
+        }
+      }
+      if (b.bag >= 2 || !best) {
+        b.path = [{ x: b.x, y: b.y }, { x: hive.x, y: hive.y + 24 }];
+        b.u = 0; b.hold = 0; return;
+      }
+      b.path = [{ x: b.x, y: b.y }, { x: best.x, y: best.y - 18 }];
+      b.u = 0; b.hold = 0; b.target = best;
+    }
+
+    addEventListener("pointerdown", function (e) {
+      if (e.target.closest && e.target.closest("a,button")) return;
+      if (!play) return;
+      var i, f, hit = false;
+      for (i = 0; i < flowers.length; i++) {
+        f = flowers[i];
+        if (Math.hypot(e.clientX - f.x, e.clientY - f.y) < 40) {
+          f.bloom = 1; f.open = 1; hit = true;
+          beep(700 + i * 20, 0.06);
+          say("Bloom! A bee is on the way.");
+        }
+      }
+      if (!hit) {
+        windT = 0.6;
+        gusts.push({ x: e.clientX, y: e.clientY, life: 0.5 });
+      }
+    });
+
+    function update(dt) {
+      t += dt;
+      var m = MEADS[meadow] || MEADS[0];
+      wind = m.wind + (windT > 0 ? 0.6 : 0);
+      if (windT > 0) windT -= dt;
+      var i, b, f, u, p0, p1;
+      for (i = 0; i < clouds.length; i++) clouds[i].x = (clouds[i].x + (12 + wind * 30) * dt) % (W + 80);
+      for (i = 0; i < flowers.length; i++) {
+        f = flowers[i];
+        f.ph += dt * 2;
+        if (f.open) f.bloom += (1 - f.bloom) * dt * 3;
+      }
+      if (!play) return;
+      for (i = 0; i < bees.length; i++) {
+        b = bees[i];
+        b.wing += dt * 28;
+        b.ph += dt;
+        if (!b.path || b.path.length < 2) assignBee(b);
+        if (b.hold > 0) { b.hold -= dt; continue; }
+        b.u = Math.min(1, b.u + dt * (0.55 + meadow * 0.05));
+        p0 = b.path[0]; p1 = b.path[1];
+        u = b.u * b.u * (3 - 2 * b.u);
+        b.x = lerp(p0.x, p1.x, u) + Math.sin(t * 5 + b.ph) * 10 + wind * 16 * Math.sin(t * 2);
+        b.y = lerp(p0.y, p1.y, u) + Math.sin(t * 7 + b.ph) * 8;
+        if (Math.random() < dt * 12) pollen.push({ x: b.x, y: b.y, vx: (Math.random() - 0.5) * 20, vy: 10, life: 0.6, col: "#fde047" });
+        if (b.u >= 1) {
+          if (b.target && Math.hypot(b.x - b.target.x, b.y - (b.target.y - 18)) < 30) {
+            b.target.pollen++; b.bag++; b.hold = 0.25; b.target = null;
+            beep(820, 0.05);
+          } else if (Math.hypot(b.x - hive.x, b.y - (hive.y + 24)) < 36) {
+            if (b.bag) {
+              honey += b.bag; hive.fill = Math.min(1, honey / need);
+              b.bag = 0; hud(); beep(540, 0.08);
+              if (honey >= need) {
+                meadow++;
+                if (meadow >= MEADS.length) {
+                  play = false;
+                  document.getElementById("winP").textContent = "Pollen trails. Five meadows. Hive cozy.";
+                  document.getElementById("win").classList.remove("off");
+                  beep(990, 0.2);
+                } else {
+                  say("Hive full! Next meadow: " + MEADS[meadow].n);
+                  spawnMead();
+                }
+                return;
+              }
+            }
+          }
+          assignBee(b);
+        }
+      }
+      for (i = pollen.length - 1; i >= 0; i--) {
+        pollen[i].life -= dt * 1.6; pollen[i].x += pollen[i].vx * dt + wind * 20 * dt; pollen[i].y += pollen[i].vy * dt;
+        if (pollen[i].life <= 0) pollen.splice(i, 1);
+      }
+      for (i = gusts.length - 1; i >= 0; i--) {
+        gusts[i].life -= dt * 2;
+        if (gusts[i].life <= 0) gusts.splice(i, 1);
+      }
+    }
+
+    function drawSky() {
+      var m = MEADS[meadow] || MEADS[0];
+      var g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, m.sky[0]); g.addColorStop(1, m.sky[1]);
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      if (meadow === 4) {
+        x.fillStyle = "#fff";
+        var s;
+        for (s = 0; s < 28; s++) {
+          x.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(t * 2 + s));
+          x.fillRect((s * 63) % W, 8 + (s * 31) % (H * 0.3), 2, 2);
+        }
+        x.globalAlpha = 1;
+      } else {
+        x.fillStyle = meadow === 3 ? "#fb923c" : "#fde047";
+        x.beginPath(); x.arc(W * 0.16, 54, 20, 0, Math.PI * 2); x.fill();
+      }
+      var i, c;
+      for (i = 0; i < clouds.length; i++) {
+        c = clouds[i];
+        x.fillStyle = meadow === 4 ? "rgba(196,181,253,.4)" : "rgba(255,255,255,.8)";
+        x.beginPath(); x.arc(c.x, c.y, 16 * c.s, 0, Math.PI * 2);
+        x.arc(c.x + 16, c.y - 6, 14 * c.s, 0, Math.PI * 2); x.arc(c.x + 28, c.y, 15 * c.s, 0, Math.PI * 2); x.fill();
+      }
+      x.fillStyle = m.grass;
+      x.fillRect(0, H * 0.7, W, H * 0.3);
+      x.fillStyle = meadow === 4 ? "#166534" : "#22c55e";
+      for (i = 0; i < 12; i++) {
+        x.fillRect(i * (W / 12), H * 0.68 + Math.sin(t * 2 + i) * wind * 4, 3, 16);
+      }
+    }
+
+    function drawHive() {
+      x.fillStyle = "#92400e";
+      x.beginPath();
+      if (x.roundRect) x.roundRect(hive.x - 28, hive.y - 10, 56, 70, 14);
+      else x.rect(hive.x - 28, hive.y - 10, 56, 70);
+      x.fill();
+      x.fillStyle = "#f59e0b";
+      x.fillRect(hive.x - 20, hive.y + 40 - hive.fill * 40, 40, hive.fill * 40);
+      x.fillStyle = "#78350f";
+      var r;
+      for (r = 0; r < 4; r++) x.fillRect(hive.x - 22, hive.y + 6 + r * 12, 44, 3);
+      x.fillStyle = "#1c1917";
+      x.beginPath(); x.arc(hive.x, hive.y + 48, 7, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#fde047"; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
+      x.fillText(Math.round(hive.fill * 100) + "%", hive.x, hive.y - 16);
+    }
+
+    function drawFlower(f) {
+      x.save();
+      x.translate(f.x, f.y);
+      x.rotate(Math.sin(f.ph) * 0.08 + wind * 0.15);
+      x.fillStyle = "#166534";
+      x.fillRect(-2, 0, 4, 28);
+      var sc = 0.35 + f.bloom * 0.75;
+      x.scale(sc, sc);
+      x.fillStyle = f.col;
+      var p;
+      for (p = 0; p < 6; p++) {
+        x.rotate(Math.PI / 3);
+        x.beginPath(); x.ellipse(0, -12, 7, 12, 0, 0, Math.PI * 2); x.fill();
+      }
+      x.fillStyle = "#fde047";
+      x.beginPath(); x.arc(0, 0, 7, 0, Math.PI * 2); x.fill();
+      x.restore();
+    }
+
+    function drawBee(b) {
+      x.save(); x.translate(b.x, b.y); x.rotate(Math.sin(b.ph) * 0.2);
+      var flap = Math.sin(b.wing) * 0.5;
+      x.fillStyle = "rgba(255,255,255,.7)";
+      x.beginPath(); x.ellipse(-2, -8, 8, 5 + flap * 4, -0.5, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.ellipse(6, -8, 8, 5 + flap * 4, 0.5, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#facc15";
+      x.beginPath(); x.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#1c1917";
+      x.fillRect(-6, -8, 3, 16); x.fillRect(2, -8, 3, 16);
+      x.beginPath(); x.arc(10, -2, 3, 0, Math.PI * 2); x.fill();
+      if (b.bag) {
+        x.fillStyle = "#fde047";
+        x.beginPath(); x.arc(-10, 6, 4, 0, Math.PI * 2); x.fill();
+      }
+      x.restore();
+    }
+
+    function draw() {
+      drawSky();
+      drawHive();
+      var i;
+      for (i = 0; i < flowers.length; i++) drawFlower(flowers[i]);
+      for (i = 0; i < pollen.length; i++) {
+        x.globalAlpha = Math.max(0, pollen[i].life);
+        x.fillStyle = pollen[i].col;
+        x.beginPath(); x.arc(pollen[i].x, pollen[i].y, 3, 0, Math.PI * 2); x.fill();
+      }
+      x.globalAlpha = 1;
+      for (i = 0; i < bees.length; i++) drawBee(bees[i]);
+      for (i = 0; i < gusts.length; i++) {
+        x.globalAlpha = Math.max(0, gusts[i].life);
+        x.strokeStyle = "#fff"; x.lineWidth = 2;
+        x.beginPath(); x.arc(gusts[i].x, gusts[i].y, 20 * (1 - gusts[i].life), 0, Math.PI * 2); x.stroke();
+      }
+      x.globalAlpha = 1;
+      if (wind > 0.45) {
+        x.strokeStyle = "rgba(255,255,255,.35)";
+        for (i = 0; i < 7; i++) {
+          x.beginPath(); x.moveTo(10, 90 + i * 28); x.lineTo(70 + Math.sin(t * 6 + i) * 16, 90 + i * 28); x.stroke();
+        }
+      }
+      x.fillStyle = "rgba(0,0,0,.2)";
+      x.fillRect(16, 8, W - 32, 6);
+      x.fillStyle = "#f59e0b";
+      x.fillRect(16, 8, Math.min(W - 32, ((meadow + hive.fill) / 5) * (W - 32)), 6);
+    }
+
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+  })();
   </script>
 </body>
 </html>

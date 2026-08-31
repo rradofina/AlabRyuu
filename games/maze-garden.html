@@ -6,239 +6,518 @@
   <title>Maze Garden</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      min-height: 100%;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      color: #14532d; touch-action: manipulation; user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    body {
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 20% 10%, #86efac 0, transparent 28%),
-        linear-gradient(#4ade80, #166534);
-      padding: 54px 10px 18px;
-    }
-    .home {
-      position: fixed; top: 12px; left: 12px; z-index: 9;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
-    }
-    .hud { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-    .chip {
-      background: #fefce8; font-weight: 800; padding: 6px 12px; border-radius: 999px;
-      box-shadow: 0 3px 0 #365314; font-size: 15px;
-    }
-    h1 { text-align: center; color: #fff; font-size: clamp(24px, 6vw, 36px); text-shadow: 0 3px 0 #14532d; }
-    .msg { font-weight: 800; color: #fff; text-align: center; margin: 6px 0; min-height: 1.4em; }
-    .plot-wrap { position: relative; width: min(360px, 94vw); margin: 8px auto; }
-    .hedge-frame {
-      background: repeating-linear-gradient(90deg, #166534 0 10px, #14532d 10px 18px), #166534;
-      padding: 14px; border-radius: 28px;
-      box-shadow: 0 10px 0 #052e16, inset 0 0 0 6px #3f6212;
-    }
-    .bloom { position: absolute; font-size: 22px; pointer-events: none; }
-    .board { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; background: #a16207; padding: 4px; border-radius: 12px; }
-    .cell { aspect-ratio: 1; border-radius: 8px; background: #fde68a; display: grid; place-items: center; font-size: 20px; }
-    .cell.wall {
-      background: radial-gradient(circle at 30% 30%, #4ade80 0 28%, transparent 30%), #14532d;
-      border-radius: 10px;
-    }
-    .cell.wet { filter: saturate(1.2) brightness(1.05); }
-    .bunny.slip { animation: slip .28s ease; }
-    @keyframes slip { 40% { transform: translateX(6px) rotate(8deg); } }
-    .rain {
-      pointer-events: none; position: absolute; inset: 0; overflow: hidden; border-radius: 28px; display: none;
-    }
-    .rain.on { display: block; }
-    .drop {
-      position: absolute; width: 2px; height: 14px; background: rgba(224,242,254,.75);
-      animation: fall 0.7s linear infinite;
-    }
-    @keyframes fall { to { transform: translateY(360px); } }
-    .pads {
-      display: grid; grid-template-columns: 76px 76px 76px; grid-template-rows: 76px 76px 76px;
-      gap: 8px; width: 244px; margin: 14px auto 0;
-    }
-    .pads button {
-      background: radial-gradient(circle at 30% 30%, #fefce8, #d6d3d1);
-      border-radius: 50%; font-size: 28px; font-weight: 800;
-      box-shadow: 0 6px 0 #365314, inset 0 0 0 4px #a8a29e;
-    }
-    .pads button:active { transform: translateY(4px); box-shadow: 0 2px 0 #365314; }
-    .win {
-      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      flex-direction: column; background: rgba(10,40,20,.84); z-index: 8; gap: 12px;
-      color: #fff; text-align: center; padding: 20px;
-    }
-    .win.on { display: flex; }
-    .play, .next { font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 999px; }
-    .play { background: #ffd166; color: #3b2100; box-shadow: 0 7px 0 #e09f1f; }
-    .next { background: #bbf7d0; color: #14532d; box-shadow: 0 7px 0 #4ade80; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #166534; color: #14532d; touch-action: none; user-select: none; }
+    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .home { position: fixed; top: 12px; left: 12px; z-index: 10; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.32); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; z-index: 12; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #hud { position: fixed; top: 12px; right: 12px; z-index: 8; font-weight: 800; text-align: right; pointer-events: none; }
+    #hud b { display: inline-block; background: #fefce8; padding: 6px 12px; border-radius: 999px; margin-left: 6px; box-shadow: 0 3px 0 #365314; font-size: 14px; }
+    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 8; font-weight: 800; color: #fff; text-shadow: 0 2px 0 #14532d; pointer-events: none; text-align: center; width: 90%; }
+    #pads { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 8; display: none; grid-template-columns: 72px 72px 72px; grid-template-rows: 72px 72px 72px; gap: 8px; }
+    #pads.on { display: grid; }
+    #pads button { background: radial-gradient(circle at 30% 30%, #fefce8, #d6d3d1); border-radius: 50%; font-size: 26px; font-weight: 800; box-shadow: 0 6px 0 #365314; }
+    #pads button:active { transform: translateY(4px); box-shadow: 0 2px 0 #365314; }
+    #pads .n { grid-column: 2; grid-row: 1; } #pads .w { grid-column: 1; grid-row: 2; }
+    #pads .e { grid-column: 3; grid-row: 2; } #pads .s { grid-column: 2; grid-row: 3; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; gap: 8px; padding: 20px 20px 40px; pointer-events: none; }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(34px, 9vw, 52px); color: #fff; text-shadow: 0 4px 0 #14532d; pointer-events: none; }
+    .cover p { font-weight: 800; color: #ecfccb; text-shadow: 0 2px 0 #14532d; }
+    .btn { pointer-events: auto; background: #ffd166; color: #3b2100; font-weight: 800; font-size: 24px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
+    .btn.g { background: #bbf7d0; color: #14532d; box-shadow: 0 7px 0 #4ade80; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; pointer-events: auto; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="hud">
-    <div class="chip" id="gChip">Garden 1 / 4</div>
-    <div class="chip" id="sChip">Snacks 0</div>
-    <div class="chip" id="starChip">★ 0</div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="mz">Patch 1</b><b id="cr">🥕 0</b><b id="st">⭐ 0</b></div>
+  <div id="say">Hop the bunny. Pick carrots!</div>
+  <div id="pads">
+    <button class="n" data-d="0,-1">▲</button>
+    <button class="w" data-d="-1,0">◀</button>
+    <button class="e" data-d="1,0">▶</button>
+    <button class="s" data-d="0,1">▼</button>
   </div>
-  <h1>Maze Garden</h1>
-  <p class="msg" id="msg">Help the bunny!</p>
-  <div class="plot-wrap" id="plot">
-    <div class="bloom" style="top:-8px;left:8px" id="b1">🌸</div>
-    <div class="bloom" style="top:-6px;right:10px" id="b2">🌼</div>
-    <div class="bloom" style="bottom:70px;left:-6px" id="b3">🌷</div>
-    <div class="bloom" style="bottom:80px;right:-4px" id="b4">🌻</div>
-    <div class="hedge-frame">
-      <div class="board" id="board"></div>
-    </div>
-    <div class="rain" id="rain"></div>
+  <div class="cover" id="title">
+    <h1>Maze Garden</h1>
+    <p>Hop cell to cell. Pick carrots.<br>The fox is shy — a gentle boop!</p>
+    <button class="btn" id="go">Play</button>
   </div>
-  <div class="pads">
-    <span></span><button id="u" type="button">▲</button><span></span>
-    <button id="l" type="button">◀</button><button id="wait" type="button">🐰</button><button id="r" type="button">▶</button>
-    <span></span><button id="d" type="button">▼</button><span></span>
-  </div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🥕</div>
-    <h2 id="wint">Yum!</h2>
-    <p id="winline"></p>
-    <button class="play" id="again" type="button">Play again</button>
-    <button class="next" id="nextBtn" type="button">Next garden</button>
+  <div class="cover off" id="win">
+    <h1>Garden hero!</h1>
+    <p id="winP">Five mazes hopped.</p>
+    <div class="row"><button class="btn g" id="again">Play again</button></div>
   </div>
   <script>
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, last = 0, t = 0, mode = "title", stars = 0, stage = 0;
+    var cell = 44, ox = 0, oy = 0, cols = 7, rows = 7;
+    var grid = [], hops = { fromX: 1, fromY: 1, toX: 1, toY: 1, p: 1, squash: 0, dir: 1 };
+    var bunny = { gx: 1, gy: 1, x: 0, y: 0 };
+    var fox = { gx: 0, gy: 0, x: 0, y: 0, path: [], pi: 0, p: 1, wait: 0, smile: 0, on: false };
+    var carrots = [], petals = [], rain = [], splashes = [], sway = [];
+    var collected = 0, need = 0, exit = { x: 0, y: 0 }, wet = false;
+    var boop = { on: 0, x: 0, y: 0 }, butterflies = [], flowers = [];
+    var swipe = { x: 0, y: 0, on: false };
+
+    var STAGES = [
+      { n: "Tiny Patch", rain: 0, fox: 0, map: [
+        "#######",
+        "#B..C.#",
+        "#.###.#",
+        "#...C.#",
+        "###.#.#",
+        "#C....E",
+        "#######"
+      ]},
+      { n: "Carrot Lane", rain: 0, fox: 0, map: [
+        "#########",
+        "#B...C..#",
+        "#.###.#.#",
+        "#.#...#C#",
+        "#.#.###.#",
+        "#C#...#.#",
+        "###.#.#.#",
+        "#....C..E",
+        "#########"
+      ]},
+      { n: "Rain Garden", rain: 1, fox: 0, map: [
+        "#########",
+        "#B.#.C..#",
+        "#.#.###.#",
+        "#.#...#.#",
+        "#C###.#C#",
+        "#...#.#.#",
+        "###.#...#",
+        "#C....#.E",
+        "#########"
+      ]},
+      { n: "Hedge Maze", rain: 0, fox: 1, map: [
+        "###########",
+        "#B..#..C..#",
+        "###.#.###.#",
+        "#...#.#...#",
+        "#.###.#.#C#",
+        "#C..F.#.#.#",
+        "#####.#.#.#",
+        "#.....#...#",
+        "#.#####.#.#",
+        "#..C....#.E",
+        "###########"
+      ]},
+      { n: "Fox Grove", rain: 1, fox: 1, map: [
+        "###########",
+        "#B.#...C..#",
+        "#.###.###.#",
+        "#...#.#.C.#",
+        "###.#.#.###",
+        "#C..F...#.#",
+        "#.#####.#.#",
+        "#.#...#...#",
+        "#.#.#.###.#",
+        "#C..#....#E",
+        "###########"
+      ]}
+    ];
+
     function beep(f, d) {
       try {
-        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = c.createOscillator(), g = c.createGain();
-        o.frequency.value = f; g.gain.value = 0.11;
-        o.connect(g); g.connect(c.destination);
-        o.start();
-        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
-        o.stop(c.currentTime + d);
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), gn = ac.createGain();
+        o.type = "sine"; o.frequency.value = f; gn.gain.value = 0.07;
+        o.connect(gn); gn.connect(ac.destination); o.start();
+        gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-    var gardens = [
-      { maze: ["111011","001010","111110","100000","111110","000011"], start:{x:0,y:0}, goal:{x:5,y:5}, snacks:[{x:5,y:0,e:"🌸"},{x:4,y:4,e:"🥕"}], name: "Sunny patch" },
-      { maze: ["111011","001010","111110","000010","111110","100010"], start:{x:0,y:0}, goal:{x:0,y:5}, snacks:[{x:5,y:0,e:"🌼"},{x:0,y:2,e:"🥕"},{x:2,y:4,e:"🌷"}], name: "Bush walk" },
-      { maze: ["101111","101000","111100","000101","111111","000001"], start:{x:0,y:0}, goal:{x:5,y:5}, snacks:[{x:5,y:0,e:"🥕"},{x:3,y:2,e:"🌸"},{x:0,y:4,e:"🌼"}], name: "Rain garden", rain: true },
-      { maze: ["111101","000101","111101","100111","110000","011111"], start:{x:0,y:0}, goal:{x:5,y:5}, snacks:[{x:5,y:0,e:"🌻"},{x:3,y:2,e:"🥕"},{x:0,y:3,e:"🌸"}], name: "Bloom maze" }
-    ];
-    var m = 0, px, py, got = [], stars = 0, moving = false;
-    var board = document.getElementById("board");
-    var rain = document.getElementById("rain");
-    for (var d = 0; d < 18; d++) {
-      var drop = document.createElement("div");
-      drop.className = "drop";
-      drop.style.left = (4 + Math.random() * 92) + "%";
-      drop.style.animationDelay = (Math.random() * 0.7) + "s";
-      drop.style.height = (10 + Math.random() * 10) + "px";
-      rain.appendChild(drop);
+    function lerp(a, b, p) { return a + (b - a) * p; }
+    function ease(p) { return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+
+    function resize() {
+      W = cv.width = innerWidth * (devicePixelRatio || 1);
+      H = cv.height = innerHeight * (devicePixelRatio || 1);
+      g.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
+      W = innerWidth; H = innerHeight;
     }
-    function growDecor() {
-      var show = [true, m >= 0, m >= 1, m >= 2];
-      ["b1","b2","b3","b4"].forEach(function (id, i) {
-        document.getElementById(id).style.opacity = show[i] ? "1" : ".15";
-        document.getElementById(id).textContent = m >= 3 ? ["🌺","🌻","🌷","🌼"][i] : ["🌸","🌼","🌷","🌻"][i];
+    addEventListener("resize", resize); resize();
+
+    function cellAt(gx, gy) {
+      if (gy < 0 || gy >= rows || gx < 0 || gx >= cols) return "#";
+      return grid[gy][gx];
+    }
+    function walkable(gx, gy) {
+      var c = cellAt(gx, gy);
+      return c === "." || c === "B" || c === "C" || c === "E" || c === "F";
+    }
+    function worldX(gx) { return ox + gx * cell + cell / 2; }
+    function worldY(gy) { return oy + gy * cell + cell / 2; }
+
+    function loadStage() {
+      var S = STAGES[stage];
+      grid = S.map.map(function (r) { return r.split(""); });
+      rows = grid.length; cols = grid[0].length;
+      cell = Math.min(52, Math.floor(Math.min(W - 24, H - 220) / Math.max(cols, rows)));
+      ox = (W - cols * cell) / 2;
+      oy = 78 + (H - 220 - rows * cell) / 2;
+      carrots = []; flowers = []; sway = []; butterflies = [];
+      collected = 0; fox.on = !!S.fox; wet = !!S.rain; fox.path = []; fox.p = 1; fox.smile = 0;
+      var i, j, ch;
+      for (j = 0; j < rows; j++) {
+        for (i = 0; i < cols; i++) {
+          ch = grid[j][i];
+          sway.push({ x: i, y: j, ph: rnd(0, 6.28), kind: ch === "#" ? 1 : 0 });
+          if (ch === "B") { bunny.gx = i; bunny.gy = j; hops.fromX = hops.toX = i; hops.fromY = hops.toY = j; hops.p = 1; }
+          if (ch === "C") carrots.push({ gx: i, gy: j, got: 0, bob: rnd(0, 6) });
+          if (ch === "E") exit = { x: i, y: j };
+          if (ch === "F") { fox.gx = i; fox.gy = j; }
+          if (ch === "#" && Math.random() < 0.35) flowers.push({ gx: i, gy: j, e: ["🌼", "🌸", "🌺", "🌷"][(i + j) % 4], ph: rnd(0, 6) });
+        }
+      }
+      need = carrots.length;
+      if (fox.on) {
+        var dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]], d, nx, ny, k;
+        fox.path = [{ x: fox.gx, y: fox.gy }];
+        for (k = 0; k < 18; k++) {
+          d = dirs[k % 4];
+          nx = fox.path[fox.path.length - 1].x + d[0];
+          ny = fox.path[fox.path.length - 1].y + d[1];
+          if (walkable(nx, ny) && !(nx === bunny.gx && ny === bunny.gy)) fox.path.push({ x: nx, y: ny });
+          else {
+            d = dirs[(k + 1) % 4];
+            nx = fox.path[fox.path.length - 1].x + d[0];
+            ny = fox.path[fox.path.length - 1].y + d[1];
+            if (walkable(nx, ny)) fox.path.push({ x: nx, y: ny });
+          }
+        }
+        fox.pi = 0;
+      }
+      for (i = 0; i < 8; i++) butterflies.push({ x: rnd(ox, ox + cols * cell), y: rnd(oy, oy + rows * cell), ph: rnd(0, 6), e: i % 2 ? "🦋" : "🐝" });
+      rain = [];
+      if (wet) for (i = 0; i < 70; i++) rain.push({ x: rnd(0, W), y: rnd(-H, H), v: rnd(220, 420), len: rnd(10, 18) });
+      hops.p = 1; hops.squash = 0;
+      bunny.x = worldX(bunny.gx); bunny.y = worldY(bunny.gy);
+      document.getElementById("mz").textContent = S.n;
+      document.getElementById("cr").textContent = "🥕 " + collected + "/" + need;
+      document.getElementById("say").textContent = wet ? "Puddle hops! Soft rain." : (fox.on ? "Fox patrols. A gentle boop!" : "Hop to carrots, then the gate!");
+    }
+
+    function tryHop(dx, dy) {
+      if (mode !== "play" || hops.p < 1) return;
+      var nx = bunny.gx + dx, ny = bunny.gy + dy;
+      if (!walkable(nx, ny)) {
+        hops.squash = 0.35; beep(180, 0.06);
+        splashes.push({ x: bunny.x, y: bunny.y, life: 1, e: "💨" });
+        return;
+      }
+      hops.fromX = bunny.gx; hops.fromY = bunny.gy;
+      hops.toX = nx; hops.toY = ny; hops.p = 0; hops.dir = dx !== 0 ? dx : hops.dir;
+      bunny.gx = nx; bunny.gy = ny;
+      beep(520 + Math.abs(dx + dy) * 40, 0.06);
+    }
+
+    function eatCarrots() {
+      carrots.forEach(function (c) {
+        if (!c.got && c.gx === bunny.gx && c.gy === bunny.gy && hops.p > 0.7) {
+          c.got = 1; collected++;
+          document.getElementById("cr").textContent = "🥕 " + collected + "/" + need;
+          beep(720, 0.1); stars += 1;
+          document.getElementById("st").textContent = "⭐ " + stars;
+          splashes.push({ x: worldX(c.gx), y: worldY(c.gy), life: 1, e: "✨" });
+        }
       });
     }
-    function key(x, y) { return x + "," + y; }
-    function hud() {
-      var g = gardens[m];
-      document.getElementById("gChip").textContent = "Garden " + (m + 1) + " / 4";
-      document.getElementById("sChip").textContent = "Snacks " + got.length + " / " + g.snacks.length;
-      document.getElementById("starChip").textContent = "★ " + stars;
+
+    function checkExit() {
+      if (collected >= need && bunny.gx === exit.x && bunny.gy === exit.y && hops.p >= 1) {
+        stars += 3; document.getElementById("st").textContent = "⭐ " + stars;
+        beep(660, 0.12); setTimeout(function () { beep(880, 0.16); }, 90);
+        if (stage < STAGES.length - 1) {
+          stage++;
+          document.getElementById("say").textContent = "Next garden!";
+          setTimeout(loadStage, 500);
+        } else {
+          mode = "win";
+          document.getElementById("pads").classList.remove("on");
+          document.getElementById("win").classList.remove("off");
+          document.getElementById("winP").textContent = "Five mazes. " + stars + " stars.";
+        }
+      }
     }
+
+    function foxStep(dt) {
+      if (!fox.on || !fox.path.length) return;
+      if (fox.smile > 0) { fox.smile -= dt; return; }
+      fox.wait -= dt;
+      if (fox.p >= 1) {
+        if (fox.wait > 0) return;
+        fox.pi = (fox.pi + 1) % fox.path.length;
+        var nxt = fox.path[fox.pi];
+        fox.gx = nxt.x; fox.gy = nxt.y;
+        fox.p = 0; fox.wait = 0.35;
+      } else fox.p = Math.min(1, fox.p + dt * 1.1);
+      var prev = fox.path[(fox.pi + fox.path.length - 1) % fox.path.length];
+      var cur = fox.path[fox.pi];
+      fox.x = lerp(worldX(prev.x), worldX(cur.x), ease(fox.p));
+      fox.y = lerp(worldY(prev.y), worldY(cur.y), ease(fox.p));
+      if (Math.abs(fox.gx - bunny.gx) < 1 && Math.abs(fox.gy - bunny.gy) < 1 && hops.p >= 1) {
+        if (fox.gx === bunny.gx && fox.gy === bunny.gy) {
+          fox.smile = 0.8; boop.on = 1; boop.x = bunny.x; boop.y = bunny.y - 30;
+          var backX = hops.fromX, backY = hops.fromY;
+          if (backX === bunny.gx && backY === bunny.gy) {
+            [[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (d) {
+              if (walkable(bunny.gx + d[0], bunny.gy + d[1])) { backX = bunny.gx + d[0]; backY = bunny.gy + d[1]; return true; }
+            });
+          }
+          hops.fromX = bunny.gx; hops.fromY = bunny.gy;
+          hops.toX = backX; hops.toY = backY; hops.p = 0;
+          bunny.gx = backX; bunny.gy = backY;
+          document.getElementById("say").textContent = "Boop! Fox says excuse me.";
+          beep(320, 0.1);
+        }
+      }
+    }
+
+    function hopUpdate(dt) {
+      if (hops.p < 1) {
+        hops.p = Math.min(1, hops.p + dt * 3.2);
+        var e = ease(hops.p);
+        bunny.x = lerp(worldX(hops.fromX), worldX(hops.toX), e);
+        bunny.y = lerp(worldY(hops.fromY), worldY(hops.toY), e);
+        var air = Math.sin(hops.p * Math.PI);
+        hops.squash = air * 0.28;
+        if (wet && hops.p > 0.92 && hops.p < 0.98) splashes.push({ x: bunny.x, y: bunny.y + 10, life: 0.7, e: "💧" });
+      } else {
+        bunny.x = worldX(bunny.gx); bunny.y = worldY(bunny.gy);
+        hops.squash *= Math.max(0, 1 - dt * 8);
+        eatCarrots(); checkExit();
+      }
+    }
+
+    function drawSky() {
+      var S = STAGES[stage] || STAGES[0];
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      if (mode === "title") { grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.45, "#86efac"); grd.addColorStop(1, "#166534"); }
+      else if (S.rain) { grd.addColorStop(0, "#64748b"); grd.addColorStop(0.4, "#4ade80"); grd.addColorStop(1, "#14532d"); }
+      else if (stage === 4) { grd.addColorStop(0, "#fb923c"); grd.addColorStop(0.4, "#86efac"); grd.addColorStop(1, "#166534"); }
+      else { grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.38, "#86efac"); grd.addColorStop(1, "#15803d"); }
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      if (!S.rain && mode !== "title") {
+        g.fillStyle = "#fde047";
+        g.beginPath(); g.arc(W - 60, 70, 28, 0, 6.28); g.fill();
+      }
+    }
+
+    function drawHedge(gx, gy, ph) {
+      var x = ox + gx * cell, y = oy + gy * cell, s = Math.sin(t * 2 + ph) * 3;
+      g.save();
+      g.translate(x + cell / 2, y + cell / 2);
+      g.rotate(s * 0.015);
+      var r = cell * 0.46;
+      g.fillStyle = "#14532d";
+      g.beginPath(); g.arc(-r * 0.25, 4, r * 0.62, 0, 6.28); g.arc(r * 0.28, 2, r * 0.58, 0, 6.28); g.arc(0, -r * 0.2 + s * 0.3, r * 0.55, 0, 6.28); g.fill();
+      g.fillStyle = "#22c55e";
+      g.beginPath(); g.arc(-r * 0.18, -2, r * 0.38, 0, 6.28); g.arc(r * 0.2, 0, r * 0.32, 0, 6.28); g.fill();
+      g.fillStyle = "#4ade80";
+      g.beginPath(); g.arc(-r * 0.1, -r * 0.15, r * 0.18, 0, 6.28); g.fill();
+      g.restore();
+    }
+
+    function drawPath(gx, gy) {
+      var x = ox + gx * cell, y = oy + gy * cell;
+      g.fillStyle = wet ? "#ca8a04" : "#fde68a";
+      g.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+      g.fillStyle = wet ? "rgba(120,80,20,.18)" : "rgba(180,120,20,.12)";
+      g.beginPath(); g.arc(x + cell * 0.3, y + cell * 0.4, 3, 0, 6.28); g.fill();
+      g.beginPath(); g.arc(x + cell * 0.7, y + cell * 0.65, 2.5, 0, 6.28); g.fill();
+      if (wet) {
+        g.fillStyle = "rgba(125,211,252,.28)";
+        g.beginPath(); g.ellipse(x + cell * 0.5, y + cell * 0.7, cell * 0.22, 5, 0, 0, 6.28); g.fill();
+      }
+    }
+
+    function drawBunny(x, y, squash, dir) {
+      g.save();
+      g.translate(x, y - squash * 16);
+      g.scale(dir < 0 ? -1 : 1, 1);
+      g.scale(1 + squash * 0.15, 1 - squash * 0.35);
+      g.font = (cell * 0.78) + "px serif";
+      g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText("🐰", 0, 0);
+      g.restore();
+    }
+
+    function drawFox(x, y) {
+      g.save();
+      g.translate(x, y + Math.sin(t * 4) * 2);
+      g.font = (cell * 0.72) + "px serif";
+      g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText("🦊", 0, 0);
+      if (fox.smile > 0) {
+        g.font = "bold 14px Trebuchet MS";
+        g.fillStyle = "#fff";
+        g.fillText("boop!", 0, -cell * 0.55);
+      }
+      g.restore();
+    }
+
+    function drawGate(gx, gy) {
+      var x = worldX(gx), y = worldY(gy);
+      g.save();
+      g.translate(x, y);
+      g.fillStyle = collected >= need ? "#86efac" : "#a3e635";
+      g.fillRect(-cell * 0.32, -cell * 0.4, cell * 0.64, cell * 0.7);
+      g.fillStyle = "#854d0e";
+      g.fillRect(-cell * 0.36, -cell * 0.44, 6, cell * 0.78);
+      g.fillRect(cell * 0.3, -cell * 0.44, 6, cell * 0.78);
+      g.font = "16px serif"; g.textAlign = "center";
+      g.fillText(collected >= need ? "🚪" : "🔒", 0, 4);
+      g.restore();
+    }
+
+    function drawTitleGarden() {
+      var i, hx, hy;
+      for (i = 0; i < 14; i++) {
+        hx = (i * 73 + 20) % W; hy = H * 0.55 + Math.sin(t + i) * 8;
+        g.save(); g.translate(hx, hy); g.rotate(Math.sin(t * 1.6 + i) * 0.08);
+        g.font = "42px serif"; g.fillText("🌿", 0, 0); g.restore();
+      }
+      drawBunny(W * 0.5 + Math.sin(t * 2) * 8, H * 0.48 - Math.abs(Math.sin(t * 3)) * 22, Math.abs(Math.sin(t * 3)) * 0.25, 1);
+      g.font = "36px serif"; g.textAlign = "center";
+      g.fillText("🥕", W * 0.32, H * 0.5 + Math.sin(t * 2.2) * 6);
+      g.fillText("🦊", W * 0.7, H * 0.52 + Math.sin(t * 1.4) * 4);
+      petals.forEach(function (p) {
+        g.save(); g.globalAlpha = p.life; g.translate(p.x, p.y); g.rotate(p.r);
+        g.font = "18px serif"; g.fillText(p.e, 0, 0); g.restore();
+      });
+    }
+
+    function drawPlay() {
+      var i, j, c;
+      g.fillStyle = "rgba(21,83,45,.35)";
+      g.beginPath();
+      roundRect(ox - 10, oy - 10, cols * cell + 20, rows * cell + 20, 18);
+      g.fill();
+      for (j = 0; j < rows; j++) {
+        for (i = 0; i < cols; i++) {
+          c = grid[j][i];
+          if (c === "#") drawHedge(i, j, sway[j * cols + i] ? sway[j * cols + i].ph : 0);
+          else drawPath(i, j);
+        }
+      }
+      flowers.forEach(function (f) {
+        g.save();
+        g.translate(worldX(f.gx), worldY(f.gy) - cell * 0.42 + Math.sin(t * 2 + f.ph) * 3);
+        g.font = "16px serif"; g.textAlign = "center"; g.fillText(f.e, 0, 0);
+        g.restore();
+      });
+      drawGate(exit.x, exit.y);
+      carrots.forEach(function (c) {
+        if (c.got) return;
+        g.save();
+        g.translate(worldX(c.gx), worldY(c.gy) + Math.sin(t * 3 + c.bob) * 4);
+        g.rotate(Math.sin(t * 2 + c.bob) * 0.15);
+        g.font = (cell * 0.55) + "px serif"; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillText("🥕", 0, 0);
+        g.restore();
+      });
+      butterflies.forEach(function (b) {
+        b.x += Math.sin(t + b.ph) * 0.4; b.y += Math.cos(t * 0.8 + b.ph) * 0.3;
+        g.save(); g.translate(b.x, b.y + Math.sin(t * 5 + b.ph) * 4);
+        g.font = "16px serif"; g.fillText(b.e, 0, 0); g.restore();
+      });
+      if (fox.on) drawFox(fox.x || worldX(fox.gx), fox.y || worldY(fox.gy));
+      drawBunny(bunny.x, bunny.y, hops.squash, hops.dir);
+      if (boop.on > 0) {
+        g.globalAlpha = boop.on; g.font = "bold 18px Trebuchet MS"; g.fillStyle = "#fff";
+        g.textAlign = "center"; g.fillText("boop!", boop.x, boop.y); g.globalAlpha = 1;
+      }
+      rain.forEach(function (r) {
+        g.strokeStyle = "rgba(224,242,254,.65)"; g.lineWidth = 1.4;
+        g.beginPath(); g.moveTo(r.x, r.y); g.lineTo(r.x - 2, r.y + r.len); g.stroke();
+      });
+      splashes.forEach(function (s) {
+        g.globalAlpha = s.life; g.font = "18px serif"; g.textAlign = "center";
+        g.fillText(s.e, s.x, s.y - (1 - s.life) * 20); g.globalAlpha = 1;
+      });
+    }
+
+    function roundRect(x, y, w, h, r) {
+      g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+      g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r);
+    }
+
+    function update(dt) {
+      t += dt;
+      if (mode === "title") {
+        if (petals.length < 18 && Math.random() < 0.2) petals.push({ x: rnd(0, W), y: -10, v: rnd(20, 50), r: rnd(0, 6), life: 1, e: ["🌸", "🌼", "🍃"][Math.floor(rnd(0, 3))] });
+        petals.forEach(function (p) { p.y += p.v * dt; p.x += Math.sin(t + p.r) * 12 * dt; p.r += dt; p.life -= dt * 0.08; });
+        petals = petals.filter(function (p) { return p.life > 0 && p.y < H + 20; });
+        return;
+      }
+      if (mode !== "play") return;
+      hopUpdate(dt);
+      foxStep(dt);
+      if (boop.on > 0) boop.on -= dt;
+      rain.forEach(function (r) { r.y += r.v * dt; if (r.y > H) { r.y = -20; r.x = rnd(0, W); } });
+      splashes.forEach(function (s) { s.life -= dt * 1.6; });
+      splashes = splashes.filter(function (s) { return s.life > 0; });
+    }
+
     function draw() {
-      var g = gardens[m];
-      board.innerHTML = "";
-      for (var y = 0; y < 6; y++) for (var x = 0; x < 6; x++) {
-        var cell = document.createElement("div");
-        cell.className = "cell";
-        if (g.maze[y][x] === "0") cell.classList.add("wall");
-        if (g.rain && g.maze[y][x] === "1") cell.classList.add("wet");
-        var snack = null;
-        g.snacks.forEach(function (s) {
-          if (s.x === x && s.y === y && got.indexOf(key(x, y)) < 0) snack = s;
-        });
-        if (x === g.goal.x && y === g.goal.y) cell.textContent = "🥕";
-        if (snack) cell.textContent = snack.e;
-        if (x === px && y === py) {
-          cell.textContent = "🐰";
-          cell.classList.add("bunny");
-          if (g.rain) cell.classList.add("slip");
-        }
-        board.appendChild(cell);
-      }
+      drawSky();
+      if (mode === "title" || mode === "win") drawTitleGarden();
+      else drawPlay();
     }
-    function load() {
-      var g = gardens[m];
-      px = g.start.x; py = g.start.y; got = [];
-      rain.classList.toggle("on", !!g.rain);
-      growDecor();
-      document.getElementById("msg").textContent = g.rain ? "Rain! Slick path." : g.name + " — find snacks!";
-      hud();
-      draw();
+
+    function loop(now) {
+      var dt = Math.min(0.033, (now - last) / 1000 || 0.016);
+      last = now; update(dt); draw();
+      requestAnimationFrame(loop);
     }
-    function go(dx, dy) {
-      if (moving) return;
-      var g = gardens[m];
-      var nx = px + dx, ny = py + dy;
-      if (nx < 0 || ny < 0 || nx > 5 || ny > 5 || g.maze[ny][nx] === "0") { beep(160, 0.08); return; }
-      px = nx; py = ny;
-      beep(g.rain ? 420 : 520, 0.06);
-      var k = key(px, py);
-      g.snacks.forEach(function (s) {
-        if (s.x === px && s.y === py && got.indexOf(k) < 0) {
-          got.push(k); stars++;
-          beep(760, 0.1);
-          document.getElementById("msg").textContent = "Yum snack!";
-        }
-      });
-      hud();
-      draw();
-      if (px === g.goal.x && py === g.goal.y) {
-        stars++;
-        moving = true;
-        beep(880, 0.15);
-        setTimeout(gardenDone, 350);
-      }
+    requestAnimationFrame(loop);
+
+    function start() {
+      mode = "play"; stage = 0; stars = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("pads").classList.add("on");
+      document.getElementById("st").textContent = "⭐ 0";
+      loadStage(); beep(520, 0.1);
     }
-    function gardenDone() {
-      var last = m >= 3;
-      document.getElementById("wint").textContent = last ? "Yum!" : "Tasty!";
-      document.getElementById("winline").textContent = "Snacks ★ " + stars;
-      document.getElementById("nextBtn").style.display = last ? "none" : "inline-block";
-      document.getElementById("win").classList.add("on");
-      moving = false;
-    }
-    document.getElementById("u").onclick = function () { go(0, -1); };
-    document.getElementById("d").onclick = function () { go(0, 1); };
-    document.getElementById("l").onclick = function () { go(-1, 0); };
-    document.getElementById("r").onclick = function () { go(1, 0); };
-    var sx = 0, sy = 0;
-    var plot = document.getElementById("plot");
-    plot.addEventListener("touchstart", function (e) {
-      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-    }, { passive: true });
-    plot.addEventListener("touchend", function (e) {
-      var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-      if (Math.hypot(dx, dy) < 28) return;
-      if (Math.abs(dx) > Math.abs(dy)) go(dx > 0 ? 1 : -1, 0);
-      else go(0, dy > 0 ? 1 : -1);
-    });
-    document.getElementById("again").onclick = function () { location.reload(); };
-    document.getElementById("nextBtn").onclick = function () {
-      document.getElementById("win").classList.remove("on");
-      m++;
-      load();
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off"); start();
     };
-    load();
+
+    [].forEach.call(document.querySelectorAll("#pads button"), function (b) {
+      b.addEventListener("pointerdown", function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var d = b.getAttribute("data-d").split(",");
+        tryHop(+d[0], +d[1]);
+      });
+    });
+
+    cv.addEventListener("pointerdown", function (e) {
+      if (mode !== "play") return;
+      swipe.on = true; swipe.x = e.clientX; swipe.y = e.clientY;
+    });
+    addEventListener("pointerup", function (e) {
+      if (!swipe.on || mode !== "play") { swipe.on = false; return; }
+      var dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+      swipe.on = false;
+      if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+      if (Math.abs(dx) > Math.abs(dy)) tryHop(dx > 0 ? 1 : -1, 0);
+      else tryHop(0, dy > 0 ? 1 : -1);
+    });
+    addEventListener("keydown", function (e) {
+      var m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1] };
+      if (m[e.key]) { e.preventDefault(); tryHop(m[e.key][0], m[e.key][1]); }
+    });
+  })();
   </script>
 </body>
 </html>

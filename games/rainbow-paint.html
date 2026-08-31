@@ -5,198 +5,325 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Rainbow Paint</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b0764;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#faf5ff,#fef9c3);padding:54px 10px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(24px,7vw,36px)}
-    .hud{display:flex;justify-content:center;gap:8px;margin:6px}
-    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #c4b5fd;font-size:15px}
-    .wall{max-width:420px;margin:8px auto;background:#e7e5e4;padding:18px 14px 22px;border-radius:8px;box-shadow:inset 0 0 0 8px #d6d3d1}
-    .frame{background:#b45309;padding:10px;border-radius:8px;box-shadow:0 10px 0 #78350f,inset 0 0 0 4px #fbbf24}
-    svg{width:100%;height:auto;background:#fff;display:block;border-radius:4px}
-    svg .reg{cursor:pointer;stroke:#444;stroke-width:1.5}
-    svg .reg:active{filter:brightness(1.08)}
-    svg text{font-weight:800;font-size:11px;pointer-events:none;fill:#3b0764}
-    .pots{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px}
-    .pot{width:62px;height:70px;border-radius:16px 16px 22px 22px;box-shadow:0 6px 0 rgba(0,0,0,.16);font-weight:800;font-size:11px;color:#222}
-    .pot.on{outline:4px solid #3b0764}
-    .pot:active{transform:translateY(3px)}
-    .magic{margin:10px auto 0;display:inline-flex;align-items:center;gap:8px;background:#ddd6fe;color:#3b0764;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 6px 0 #7c3aed;font-size:18px}
-    .msg{font-weight:800;min-height:2.2em;margin-top:8px;font-size:18px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.86);z-index:10;gap:10px;color:#fff;padding:20px}
-    .win.on{display:flex}
-    .win h2{font-size:32px}
-    .stars{font-size:28px;letter-spacing:4px}
-    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
-    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
-    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #1e3a8a; color: #fff; touch-action: none; user-select: none; -webkit-user-select: none; }
+    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.35); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
+    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; }
+    #hud b { font-weight: 800; font-size: 13px; background: #fff; color: #1e3a8a; padding: 6px 10px; border-radius: 999px; }
+    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 7; font-weight: 800; font-size: 16px; color: #fff; text-shadow: 0 2px 0 #1e3a8a; pointer-events: none; text-align: center; width: 92%; }
+    #tray { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: none; gap: 6px; padding: 8px 8px max(10px, env(safe-area-inset-bottom)); background: rgba(15,23,42,.55); justify-content: center; flex-wrap: wrap; }
+    #tray.on { display: flex; }
+    #tray button { width: 42px; height: 42px; border-radius: 50%; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+    #tray button.on { outline: 3px solid #fff; transform: scale(1.1); }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#ef4444, #3b82f6 50%, #a855f7); }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(32px, 9vw, 48px); color: #fff; text-shadow: 0 4px 0 #1e3a8a; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; }
+    .btn { background: #fde047; color: #422006; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #ca8a04; }
+    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Rainbow Paint</h1>
-  <div class="hud">
-    <div class="chip" id="lvl">Picture 1 / 3</div>
-    <div class="chip" id="stars">⭐ 0</div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="pic">Sky bow</b><b id="ord">Red</b></div>
+  <div id="say">Paint the rainbow in order. Clouds love color.</div>
+  <div id="tray"></div>
+  <div class="cover" id="title">
+    <div style="font-size:76px">🌈</div>
+    <h1>Rainbow Paint</h1>
+    <p>Real strokes. Drips fall. Fill the sky rainbow in order. Color the clouds.</p>
+    <button class="btn" id="go">Paint</button>
   </div>
-  <p class="msg" id="msg">Paint red first! 1 then 2 then 3…</p>
-  <div class="wall">
-    <div class="frame"><div id="art"></div></div>
-  </div>
-  <div class="pots" id="pots"></div>
-  <button class="magic" id="magic">✨ Magic pot</button>
-  <div class="win" id="win">
-    <div style="font-size:72px">🌈</div>
-    <h2 id="wintitle">Full rainbow!</h2>
-    <p class="stars" id="winstars">⭐⭐⭐</p>
-    <p id="winline">Every number has a color.</p>
-    <div class="winbtns">
-      <button class="play" id="again">Play again</button>
-      <button class="next" id="next">Next</button>
-    </div>
+  <div class="cover off" id="win">
+    <div style="font-size:76px">☁️</div>
+    <h1>Color sky!</h1>
+    <p id="winP">Five pictures. Soft drips.</p>
+    <button class="btn g" id="again">Paint again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var COLS=[
-      {n:"red",c:"#ef4444"},{n:"orange",c:"#f97316"},{n:"yellow",c:"#facc15"},
-      {n:"green",c:"#22c55e"},{n:"blue",c:"#3b82f6"},{n:"indigo",c:"#4f46e5"},{n:"violet",c:"#a855f7"},
-      {n:"sky",c:"#7dd3fc"},{n:"brown",c:"#b45309"},{n:"pink",c:"#f9a8d4"}
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var layer, lx, W, H, last = 0, t = 0, play = false, pic = 0;
+    var drawing = false, lastP = null, brush = 0, order = 0;
+    var drips = [], clouds = [], guides = [], bits = [];
+    var filled = [0, 0, 0, 0, 0, 0, 0], cloudTint = [];
+    var RAIN = [
+      { n: "Red", c: "#ef4444" },
+      { n: "Orange", c: "#f97316" },
+      { n: "Yellow", c: "#facc15" },
+      { n: "Green", c: "#22c55e" },
+      { n: "Blue", c: "#3b82f6" },
+      { n: "Indigo", c: "#4f46e5" },
+      { n: "Violet", c: "#a855f7" }
     ];
-    var PICS=[
-      {title:"Rainbow",order:true,svg:function(){
-        return '<svg viewBox="0 0 200 150">'+
-          '<rect class="reg" data-i="8" x="0" y="0" width="200" height="122" fill="#fff"/>'+
-          '<path class="reg" data-i="1" d="M8 122 A92 92 0 0 1 192 122 L178 122 A78 78 0 0 0 22 122 Z" fill="#fff"/>'+
-          '<path class="reg" data-i="2" d="M22 122 A78 78 0 0 1 178 122 L164 122 A64 64 0 0 0 36 122 Z" fill="#fff"/>'+
-          '<path class="reg" data-i="3" d="M36 122 A64 64 0 0 1 164 122 L150 122 A50 50 0 0 0 50 122 Z" fill="#fff"/>'+
-          '<path class="reg" data-i="4" d="M50 122 A50 50 0 0 1 150 122 L136 122 A36 36 0 0 0 64 122 Z" fill="#fff"/>'+
-          '<path class="reg" data-i="5" d="M64 122 A36 36 0 0 1 136 122 L122 122 A22 22 0 0 0 78 122 Z" fill="#fff"/>'+
-          '<path class="reg" data-i="6" d="M78 122 A22 22 0 0 1 122 122 L112 122 A12 12 0 0 0 88 122 Z" fill="#fff"/>'+
-          '<path class="reg" data-i="7" d="M88 122 A12 12 0 0 1 112 122 A12 12 0 0 0 88 122 Z" fill="#fff"/>'+
-          '<rect class="reg" data-i="9" x="0" y="122" width="200" height="28" fill="#fff"/>'+
-          '<text x="100" y="52" text-anchor="middle">1</text>'+
-          '<text x="100" y="66" text-anchor="middle">2</text>'+
-          '<text x="100" y="80" text-anchor="middle">3</text>'+
-          '<text x="100" y="94" text-anchor="middle">4</text>'+
-          '<text x="100" y="106" text-anchor="middle">5</text>'+
-          '<text x="100" y="115" text-anchor="middle">6</text>'+
-          '<text x="100" y="121" text-anchor="middle">7</text>'+
-          '<text x="12" y="16">8</text><text x="100" y="142" text-anchor="middle">9</text></svg>';
-      },map:{1:"red",2:"orange",3:"yellow",4:"green",5:"blue",6:"indigo",7:"violet",8:"sky",9:"green"}},
-      {title:"Flower",order:false,svg:function(){
-        return '<svg viewBox="0 0 200 150">'+
-          '<rect class="reg" data-i="9" x="0" y="0" width="200" height="150" fill="#fff"/>'+
-          '<circle class="reg" data-i="2" cx="100" cy="48" r="22" fill="#fff"/>'+
-          '<circle class="reg" data-i="3" cx="128" cy="62" r="22" fill="#fff"/>'+
-          '<circle class="reg" data-i="4" cx="118" cy="90" r="22" fill="#fff"/>'+
-          '<circle class="reg" data-i="5" cx="82" cy="90" r="22" fill="#fff"/>'+
-          '<circle class="reg" data-i="6" cx="72" cy="62" r="22" fill="#fff"/>'+
-          '<circle class="reg" data-i="1" cx="100" cy="70" r="18" fill="#fff"/>'+
-          '<rect class="reg" data-i="7" x="94" y="86" width="12" height="36" fill="#fff"/>'+
-          '<ellipse class="reg" data-i="8" cx="78" cy="112" rx="16" ry="8" fill="#fff"/>'+
-          '<path class="reg" data-i="10" d="M80 122 h40 l8 20 h-56 z" fill="#fff"/>'+
-          '<text x="100" y="74" text-anchor="middle">1</text>'+
-          '<text x="100" y="44" text-anchor="middle">2</text>'+
-          '<text x="132" y="64" text-anchor="middle">3</text>'+
-          '<text x="120" y="96" text-anchor="middle">4</text>'+
-          '<text x="80" y="96" text-anchor="middle">5</text>'+
-          '<text x="68" y="64" text-anchor="middle">6</text>'+
-          '<text x="100" y="108" text-anchor="middle">7</text>'+
-          '<text x="78" y="116" text-anchor="middle">8</text>'+
-          '<text x="14" y="18">9</text>'+
-          '<text x="100" y="140" text-anchor="middle">10</text></svg>';
-      },map:{1:"yellow",2:"pink",3:"red",4:"orange",5:"violet",6:"pink",7:"green",8:"green",9:"sky",10:"brown"}},
-      {title:"Kite",order:false,svg:function(){
-        return '<svg viewBox="0 0 200 150">'+
-          '<rect class="reg" data-i="8" x="0" y="0" width="200" height="118" fill="#fff"/>'+
-          '<polygon class="reg" data-i="1" points="100,18 136,56 100,56" fill="#fff"/>'+
-          '<polygon class="reg" data-i="2" points="100,18 64,56 100,56" fill="#fff"/>'+
-          '<polygon class="reg" data-i="3" points="100,56 136,56 100,96" fill="#fff"/>'+
-          '<polygon class="reg" data-i="4" points="100,56 64,56 100,96" fill="#fff"/>'+
-          '<circle class="reg" data-i="5" cx="112" cy="108" r="8" fill="#fff"/>'+
-          '<circle class="reg" data-i="6" cx="122" cy="122" r="8" fill="#fff"/>'+
-          '<circle class="reg" data-i="7" cx="134" cy="134" r="8" fill="#fff"/>'+
-          '<rect class="reg" data-i="9" x="0" y="118" width="200" height="32" fill="#fff"/>'+
-          '<circle class="reg" data-i="10" cx="168" cy="28" r="14" fill="#fff"/>'+
-          '<text x="114" y="46">1</text><text x="80" y="46">2</text>'+
-          '<text x="114" y="78">3</text><text x="80" y="78">4</text>'+
-          '<text x="109" y="112">5</text><text x="119" y="126">6</text><text x="131" y="138">7</text>'+
-          '<text x="12" y="16">8</text><text x="100" y="140" text-anchor="middle">9</text>'+
-          '<text x="164" y="32">10</text></svg>';
-      },map:{1:"red",2:"yellow",3:"blue",4:"green",5:"pink",6:"orange",7:"violet",8:"sky",9:"green",10:"yellow"}}
+    var PICS = [
+      { n: "Sky bow", hint: "Stroke a rainbow. Red first, then orange...", kind: "bow", clouds: 3 },
+      { n: "House day", hint: "Color the house. Keep the rainbow order.", kind: "house", clouds: 2 },
+      { n: "Flower hill", hint: "Paint petals. Clouds still want color.", kind: "flower", clouds: 3 },
+      { n: "Sun lake", hint: "Fill the sun and lake bands.", kind: "sun", clouds: 2 },
+      { n: "Night sparks", hint: "Last picture. Fireworks + rainbow.", kind: "night", clouds: 4 }
     ];
-    var pi=0,sel=null,filled={},need=1,stars=0,magicUsed=0;
-    function colByName(n){for(var i=0;i<COLS.length;i++)if(COLS[i].n===n)return COLS[i];return COLS[0];}
-    function pots(){
-      var box=document.getElementById("pots");box.innerHTML="";
-      var used={};
-      var map=PICS[pi].map;
-      Object.keys(map).forEach(function(k){used[map[k]]=1;});
-      COLS.forEach(function(c,i){
-        if(!used[c.n])return;
-        var b=document.createElement("button");b.className="pot";b.style.background=c.c;b.textContent=c.n;b.dataset.n=c.n;
-        b.onclick=function(){sel=c.n;document.querySelectorAll(".pot").forEach(function(x){x.classList.toggle("on",x===b);});beep(420+i*30,.06);};
-        box.appendChild(b);
-      });
+
+    function beep(f, d, typ) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        if (ac.state === "suspended") ac.resume();
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; g.gain.value = 0.07;
+        o.connect(g); g.connect(ac.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    function bind(){
-      document.querySelectorAll(".reg").forEach(function(el){
-        el.onclick=function(){
-          var i=+el.getAttribute("data-i"),pic=PICS[pi],want=pic.map[i];
-          if(filled[i])return;
-          if(pic.order&&i!==need){document.getElementById("msg").textContent="Paint "+need+" next! ("+pic.map[need]+")";beep(180,.1);return;}
-          if(!sel){document.getElementById("msg").textContent="Pick a pot first!";beep(180,.1);return;}
-          if(sel!==want){document.getElementById("msg").textContent="Number "+i+" wants "+want+"!";beep(180,.1);return;}
-          paint(i);
+    function say(s) { document.getElementById("say").textContent = s; }
+    function hud() {
+      document.getElementById("pic").textContent = PICS[pic] ? PICS[pic].n : "Done";
+      document.getElementById("ord").textContent = RAIN[order] ? RAIN[order].n : "All!";
+    }
+    function resize() {
+      W = cv.width = innerWidth; H = cv.height = innerHeight;
+      if (!layer) {
+        layer = document.createElement("canvas");
+        lx = layer.getContext("2d");
+      }
+      var old = layer;
+      layer.width = W; layer.height = H;
+      if (old && old !== layer) {}
+    }
+    addEventListener("resize", function () {
+      var snap = null;
+      try { snap = lx.getImageData(0, 0, layer.width, layer.height); } catch (e) {}
+      resize();
+      if (snap) try { lx.putImageData(snap, 0, 0); } catch (e) {}
+    });
+    resize();
+
+    function makeTray() {
+      var tray = document.getElementById("tray");
+      tray.innerHTML = "";
+      RAIN.forEach(function (r, i) {
+        var b = document.createElement("button");
+        b.type = "button"; b.style.background = r.c;
+        if (i === brush) b.className = "on";
+        b.onclick = function () {
+          if (i !== order && i > order) {
+            say("Almost — next is " + RAIN[order].n + "!");
+            beep(200, 0.08); return;
+          }
+          brush = i; markTray(); beep(500 + i * 30, 0.05);
         };
+        tray.appendChild(b);
       });
     }
-    function paint(i){
-      var el=document.querySelector('.reg[data-i="'+i+'"]');
-      if(!el||filled[i])return;
-      filled[i]=1;el.setAttribute("fill",colByName(PICS[pi].map[i]).c);beep(500+i*40,.09);
-      var texts=document.querySelectorAll("#art text");
-      texts.forEach(function(t){if(t.textContent===""+i)t.style.display="none";});
-      if(PICS[pi].order)need=i+1;
-      document.getElementById("msg").textContent=PICS[pi].order&&PICS[pi].map[need]?"Now "+need+" — "+PICS[pi].map[need]+"!":"Pretty! Keep going.";
-      var total=Object.keys(PICS[pi].map).length;
-      if(Object.keys(filled).length>=total){
-        var got=magicUsed===0?3:magicUsed===1?2:1;stars+=got;
-        document.getElementById("stars").textContent="⭐ "+stars;beep(920,.18);
-        setTimeout(function(){showWin(pi>=PICS.length-1,got);},400);
+    function markTray() {
+      var bs = document.getElementById("tray").children, i;
+      for (i = 0; i < bs.length; i++) bs[i].classList.toggle("on", i === brush);
+    }
+
+    function makeClouds(n) {
+      clouds = []; cloudTint = [];
+      var i;
+      for (i = 0; i < n; i++) {
+        clouds.push({ x: 40 + i * (W / (n + 0.5)), y: 90 + (i % 2) * 30, s: 0.8 + (i % 3) * 0.15, ph: i, col: null });
+        cloudTint.push(null);
       }
     }
-    function draw(){
-      filled={};need=1;magicUsed=0;sel=null;
-      document.getElementById("art").innerHTML=PICS[pi].svg();
-      document.getElementById("lvl").textContent="Picture "+(pi+1)+" / 3 · "+PICS[pi].title;
-      document.getElementById("msg").textContent=PICS[pi].order?"Paint red first! 1 then 2 then 3…":"Match each number to a pot.";
-      pots();bind();
+
+    function clearPaint() {
+      lx.clearRect(0, 0, W, H);
+      drips = []; bits = []; filled = [0, 0, 0, 0, 0, 0, 0];
+      order = 0; brush = 0;
     }
-    document.getElementById("magic").onclick=function(){
-      var map=PICS[pi].map,next=null,keys=Object.keys(map).map(Number).sort(function(a,b){return a-b;});
-      for(var i=0;i<keys.length;i++)if(!filled[keys[i]]){next=keys[i];break;}
-      if(next==null)return;
-      magicUsed++;sel=map[next];paint(next);
-      document.getElementById("msg").textContent="Magic painted "+next+"!";
-    };
-    function showWin(last,got){
-      document.getElementById("wintitle").textContent=last?"Full rainbow!":"Pretty picture!";
-      document.getElementById("winstars").textContent="⭐".repeat(got);
-      document.getElementById("winline").textContent=last?"Every number has a color.":"On to the next picture!";
-      document.getElementById("win").classList.add("on");
+
+    function loadPic() {
+      clearPaint();
+      makeClouds(PICS[pic].clouds);
+      makeTray(); markTray();
+      say(PICS[pic].hint); hud();
     }
-    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");pi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";draw();};
-    document.getElementById("next").onclick=function(){
-      document.getElementById("win").classList.remove("on");
-      if(pi>=PICS.length-1){pi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
-      else pi++;
-      draw();
-    };
-    draw();
+
+    function start() {
+      play = true; pic = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("tray").classList.add("on");
+      loadPic(); beep(520, 0.1);
+    }
+
+    function stroke(x1, y1, x2, y2) {
+      var col = RAIN[brush].c;
+      lx.strokeStyle = col; lx.lineWidth = 16; lx.lineCap = "round"; lx.lineJoin = "round";
+      lx.beginPath(); lx.moveTo(x1, y1); lx.lineTo(x2, y2); lx.stroke();
+      lx.fillStyle = col;
+      lx.beginPath(); lx.arc(x2, y2, 8, 0, Math.PI * 2); lx.fill();
+      if (Math.random() < 0.35) {
+        drips.push({ x: x2, y: y2, vy: 20, life: 1.4, col: col, w: 3 + Math.random() * 3 });
+      }
+      filled[brush] += Math.hypot(x2 - x1, y2 - y1);
+      var i, c;
+      for (i = 0; i < clouds.length; i++) {
+        c = clouds[i];
+        if (Math.hypot(x2 - c.x, y2 - c.y) < 40 * c.s) {
+          c.col = col;
+          bits.push({ x: c.x, y: c.y, life: 0.5, col: col });
+        }
+      }
+      if (filled[brush] > 180 && brush === order) {
+        order++;
+        if (order < 7) {
+          brush = order; markTray();
+          say("Yes! Next color: " + RAIN[order].n);
+          beep(700 + order * 20, 0.08); hud();
+        } else {
+          nextPic();
+        }
+      }
+    }
+
+    function nextPic() {
+      var colored = clouds.filter(function (c) { return c.col; }).length;
+      beep(880, 0.12);
+      pic++;
+      if (pic >= PICS.length) {
+        play = false;
+        document.getElementById("tray").classList.remove("on");
+        document.getElementById("winP").textContent = "Clouds painted: " + colored + "+  Five pictures.";
+        document.getElementById("win").classList.remove("off");
+        return;
+      }
+      say("Picture done! " + PICS[pic].n);
+      loadPic();
+    }
+
+    addEventListener("pointerdown", function (e) {
+      if (e.target.closest && e.target.closest("a,button")) return;
+      if (!play) return;
+      drawing = true; lastP = { x: e.clientX, y: e.clientY };
+      stroke(lastP.x, lastP.y, lastP.x + 0.1, lastP.y);
+    });
+    addEventListener("pointermove", function (e) {
+      if (!drawing || !play) return;
+      var p = { x: e.clientX, y: e.clientY };
+      stroke(lastP.x, lastP.y, p.x, p.y);
+      lastP = p;
+    });
+    addEventListener("pointerup", function () { drawing = false; lastP = null; });
+    addEventListener("pointercancel", function () { drawing = false; });
+
+    function update(dt) {
+      t += dt;
+      var i, d;
+      for (i = drips.length - 1; i >= 0; i--) {
+        d = drips[i];
+        d.y += d.vy * dt; d.vy += 80 * dt; d.life -= dt * 0.4;
+        lx.fillStyle = d.col;
+        lx.globalAlpha = Math.max(0, d.life);
+        lx.beginPath(); lx.ellipse(d.x, d.y, d.w * 0.4, d.w, 0, 0, Math.PI * 2); lx.fill();
+        lx.globalAlpha = 1;
+        if (d.life <= 0 || d.y > H) drips.splice(i, 1);
+      }
+      for (i = bits.length - 1; i >= 0; i--) {
+        bits[i].life -= dt * 2;
+        if (bits[i].life <= 0) bits.splice(i, 1);
+      }
+      for (i = 0; i < clouds.length; i++) clouds[i].ph += dt;
+    }
+
+    function drawGuide() {
+      var p = PICS[pic] || PICS[0];
+      x.save();
+      x.globalAlpha = 0.22;
+      x.strokeStyle = "#fff"; x.lineWidth = 4;
+      if (p.kind === "bow" || p.kind === "night") {
+        var i;
+        for (i = 0; i < 7; i++) {
+          x.beginPath(); x.arc(W * 0.5, H * 0.78, 90 + i * 14, Math.PI, Math.PI * 2); x.stroke();
+        }
+      }
+      if (p.kind === "house") {
+        x.strokeRect(W * 0.32, H * 0.48, W * 0.36, H * 0.22);
+        x.beginPath(); x.moveTo(W * 0.3, H * 0.48); x.lineTo(W * 0.5, H * 0.34); x.lineTo(W * 0.7, H * 0.48); x.stroke();
+      }
+      if (p.kind === "flower") {
+        x.beginPath(); x.arc(W * 0.5, H * 0.5, 20, 0, Math.PI * 2); x.stroke();
+        var k;
+        for (k = 0; k < 6; k++) {
+          var a = k * Math.PI / 3;
+          x.beginPath(); x.ellipse(W * 0.5 + Math.cos(a) * 36, H * 0.5 + Math.sin(a) * 36, 16, 10, a, 0, Math.PI * 2); x.stroke();
+        }
+      }
+      if (p.kind === "sun") {
+        x.beginPath(); x.arc(W * 0.22, H * 0.22, 28, 0, Math.PI * 2); x.stroke();
+        x.beginPath(); x.ellipse(W * 0.5, H * 0.72, W * 0.32, 20, 0, 0, Math.PI * 2); x.stroke();
+      }
+      if (p.kind === "night") {
+        x.beginPath(); x.arc(W * 0.7, H * 0.22, 16, 0, Math.PI * 2); x.stroke();
+      }
+      x.restore();
+    }
+
+    function drawScene() {
+      var p = PICS[pic] || PICS[0];
+      var g = x.createLinearGradient(0, 0, 0, H);
+      if (p.kind === "night") { g.addColorStop(0, "#0f172a"); g.addColorStop(1, "#1e1b4b"); }
+      else if (p.kind === "sun") { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#38bdf8"); }
+      else { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#bfdbfe"); }
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      if (p.kind !== "night") {
+        x.fillStyle = "#fde047";
+        x.beginPath(); x.arc(W * 0.82, 60, 18, 0, Math.PI * 2); x.fill();
+      } else {
+        x.fillStyle = "#fff";
+        var s;
+        for (s = 0; s < 30; s++) x.fillRect((s * 59) % W, 10 + (s * 41) % (H * 0.4), 2, 2);
+      }
+      x.fillStyle = p.kind === "night" ? "#14532d" : "#4ade80";
+      x.fillRect(0, H * 0.78, W, H * 0.22);
+      var i, c;
+      for (i = 0; i < clouds.length; i++) {
+        c = clouds[i];
+        x.save(); x.translate(c.x, c.y + Math.sin(t + c.ph) * 4); x.scale(c.s, c.s);
+        x.fillStyle = c.col ? c.col : "rgba(255,255,255,.9)";
+        x.beginPath(); x.arc(0, 0, 20, 0, Math.PI * 2); x.arc(18, -8, 16, 0, Math.PI * 2); x.arc(34, 2, 18, 0, Math.PI * 2); x.fill();
+        x.restore();
+      }
+    }
+
+    function draw() {
+      drawScene();
+      drawGuide();
+      x.drawImage(layer, 0, 0);
+      var i;
+      for (i = 0; i < bits.length; i++) {
+        x.globalAlpha = Math.max(0, bits[i].life);
+        x.fillStyle = bits[i].col;
+        x.beginPath(); x.arc(bits[i].x, bits[i].y, 6, 0, Math.PI * 2); x.fill();
+      }
+      x.globalAlpha = 1;
+      if (play) {
+        x.fillStyle = RAIN[brush].c;
+        x.beginPath(); x.arc(W - 28, 90, 10, 0, Math.PI * 2); x.fill();
+      }
+      x.fillStyle = "rgba(255,255,255,.2)";
+      x.fillRect(16, 8, W - 32, 6);
+      x.fillStyle = "#fde047";
+      x.fillRect(16, 8, Math.min(W - 32, ((pic + order / 7) / 5) * (W - 32)), 6);
+    }
+
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+  })();
   </script>
 </body>
 </html>

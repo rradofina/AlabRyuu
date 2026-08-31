@@ -1,174 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Sky Hop</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sky Hop · AlabRyuu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: Georgia, serif; background: #38bdf8; color: #3b1d4a; touch-action: none; user-select: none; }
-    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .home { position: fixed; top: 12px; left: 12px; z-index: 8; color: #fff; text-decoration: none; font-family: Trebuchet MS, sans-serif; font-weight: 800; font-size: 17px; background: rgba(36,16,56,.4); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
-    canvas { display: block; width: 100%; height: 100%; }
-    #hud { position: fixed; top: 12px; right: 12px; z-index: 7; font-family: Trebuchet MS, sans-serif; font-weight: 800; text-align: right; pointer-events: none; }
-    #hud b { display: inline-block; background: rgba(255,255,255,.85); padding: 6px 12px; border-radius: 999px; margin-left: 6px; }
-    #say { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 7; font-family: Trebuchet MS, sans-serif; font-weight: 800; color: #fff; text-shadow: 0 2px 0 #0369a1; pointer-events: none; }
-    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#38bdf8,#f9a8d4); }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(36px, 10vw, 56px); color: #fff; text-shadow: 0 4px 0 #0369a1; }
-    .btn { font-family: Trebuchet MS, sans-serif; background: #ffd166; color: #3b2100; font-weight: 800; font-size: 26px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
-    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
+    :root { --ink:#16324a; --sky:#7ec8ff; }
+    * { box-sizing: border-box; }
+    html, body { margin:0; height:100%; overflow:hidden; font-family:Nunito,sans-serif; background:#7ec8ff; color:#16324a; }
+    canvas { display:block; width:100%; height:100%; touch-action:none; }
+    .hud { position:fixed; inset:0; pointer-events:none; z-index:2; }
+    .top { display:flex; justify-content:space-between; padding:max(10px,env(safe-area-inset-top)) 12px 0; }
+    a { pointer-events:auto; color:#16324a; font-weight:900; text-decoration:none; background:#fff8; padding:8px 12px; border-radius:999px; }
+    .chip { background:#fff; padding:8px 12px; border-radius:999px; font-weight:900; }
+    .tools { position:absolute; left:50%; bottom:max(12px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; gap:10px; pointer-events:auto; }
+    button { min-height:64px; min-width:88px; border:0; border-radius:20px; background:#ffd84d; color:#16324a; font:900 18px Nunito,sans-serif; }
+    button.on { outline:4px solid #16324a; }
+    .ov { position:fixed; inset:0; background:#7ec8ffee; display:grid; place-items:center; padding:20px; z-index:5; text-align:center; }
+    .ov h1 { font-size:clamp(32px,8vw,56px); margin:0; }
+    .ov p { font-size:22px; max-width:26ch; }
+    .hidden { display:none; }
+    .bubble { position:absolute; left:16px; top:22%; background:#fff; border-radius:20px; padding:12px 16px; font-weight:900; font-size:22px; max-width:16ch; box-shadow:0 8px 0 #0002; }
   </style>
 </head>
 <body>
-  <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="w">Dawn</b><b id="st">⭐ 0</b></div>
-  <div id="say">Tap to hop. Hold to flutter!</div>
-  <div class="cover" id="title">
-    <div style="font-size:80px">☁️</div>
-    <h1>Sky Hop</h1>
-    <p>Jump the clouds. Hold to flutter.<br>Bounce on birds!</p>
-    <button class="btn" id="go">Play</button>
+  <div class="hud">
+    <div class="top"><a href="../index.html">← Hub</a><div class="chip" id="info">Cloud 1</div></div>
+    <div class="bubble" id="say">Tap a cloud!</div>
+    <div class="tools">
+      <button id="hop">Hop</button>
+      <button id="flutter">Flutter</button>
+      <button id="deco">Decorate</button>
+    </div>
   </div>
-  <div class="cover off" id="win">
-    <div style="font-size:80px">🌟</div>
-    <h1>Sky hero!</h1>
-    <p id="winP">Five skies hopped.</p>
-    <button class="btn g" id="again">Play again</button>
-  </div>
+  <div class="ov" id="title"><div><h1>Sky Hop</h1><p>Hop the 3D clouds. Decorate them. Reach the rainbow nest.</p><button id="go">Play</button></div></div>
+  <div class="ov hidden" id="win"><div><h1>Nest!</h1><p id="wp"></p><button id="again">Play again</button></div></div>
+  <script src="../vendor/three.min.js"></script>
   <script>
-  (function () {
-    var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, last = 0, t = 0, play = false, hold = false, world = 0, stars = 0, cam = 0;
-    var kid = { x: 80, y: 0, vy: 0, on: false, face: "🧒" };
-    try { var av = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null"); if (av && av.hair) kid.face = av.hair; } catch (e) {}
-    var plats = [], bits = [], birds = [], gusts = [], puffs = [];
-    var WORLDS = [
-      { n: "Dawn", sky: ["#fda4af", "#7dd3fc"], need: 6 },
-      { n: "Day", sky: ["#38bdf8", "#fde68a"], need: 7 },
-      { n: "Sunset", sky: ["#fb923c", "#7c2d12"], need: 7 },
-      { n: "Night", sky: ["#1e1b4b", "#312e81"], need: 8 },
-      { n: "Storm", sky: ["#334155", "#0f172a"], need: 8 }
-    ];
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.type = "square"; o.frequency.value = f; g.gain.value = 0.09;
-        o.connect(g); g.connect(ac.destination); o.start();
-        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
-    addEventListener("resize", resize); resize();
+(function () {
+  const LS = "alabryuu-sky";
+  const save = JSON.parse(localStorage.getItem(LS) || "{}");
+  const canvas = document.getElementById("c");
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x7ec8ff, 12, 40);
+  const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 80);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight, false);
+  renderer.setClearColor(0x7ec8ff, 1);
+  const clock = new THREE.Clock();
 
-    function makeWorld() {
-      var base = H * 0.72, list = [];
-      for (var i = 0; i < 14; i++) {
-        list.push({ x: i * 160, y: base - (i % 3) * 70 - Math.sin(i) * 30, w: 100 + (i % 3) * 16, move: i > 6 ? 30 : 0, ph: i });
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xffd8a8, 0.9));
+  const sun = new THREE.DirectionalLight(0xfff3c8, 0.8);
+  sun.position.set(6, 10, 4);
+  scene.add(sun);
+
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(50, 16, 12), new THREE.MeshBasicMaterial({ color: 0x4aa8e8, side: THREE.BackSide }));
+  scene.add(sky);
+
+  function puff(x, y, z, s, c) {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshLambertMaterial({ color: c });
+    for (let i = 0; i < 5; i++) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(s * (0.5 + Math.random() * 0.5), 10, 8), mat);
+      m.position.set((Math.random() - 0.5) * s * 1.6, (Math.random() - 0.4) * s * 0.6, (Math.random() - 0.5) * s * 0.8);
+      g.add(m);
+    }
+    g.position.set(x, y, z);
+    scene.add(g);
+    return g;
+  }
+
+  const worlds = [
+    { name: "Puff lane", verb: "hop", n: 6, col: 0xffffff },
+    { name: "Wind lane", verb: "flutter", n: 7, col: 0xe8f7ff },
+    { name: "Candy lane", verb: "decorate", n: 7, col: 0xffd6f0 },
+    { name: "Storm lane", verb: "wait", n: 8, col: 0xc8d8f0 },
+    { name: "Rainbow nest", verb: "home", n: 5, col: 0xffe08a },
+  ];
+  let wi = Math.min(save.world || 0, 4);
+  let clouds = [];
+  let on = 0;
+  let stars = save.stars || 0;
+  let mode = "hop";
+  let hopping = 0;
+  let decorations = 0;
+
+  const kid = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), new THREE.MeshLambertMaterial({ color: 0xff8a5b }));
+  body.scale.set(1, 1.15, 0.8);
+  kid.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), new THREE.MeshLambertMaterial({ color: 0xffe0b0 }));
+  head.position.y = 0.32;
+  kid.add(head);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), new THREE.MeshLambertMaterial({ color: 0x5a3a22 }));
+  hair.position.set(0, 0.4, -0.02);
+  kid.add(hair);
+  const wings = [];
+  for (const s of [-1, 1]) {
+    const w = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), new THREE.MeshLambertMaterial({ color: 0xfff3a8 }));
+    w.scale.set(1.4, 0.35, 0.7);
+    w.position.set(s * 0.28, 0.08, -0.05);
+    kid.add(w);
+    wings.push(w);
+  }
+  const legs = [];
+  for (const s of [-1, 1]) {
+    const l = new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.04, 0.14, 4, 6) : new THREE.CylinderGeometry(0.04, 0.04, 0.18, 6), new THREE.MeshLambertMaterial({ color: 0xffe0b0 }));
+    l.position.set(s * 0.08, -0.28, 0);
+    kid.add(l);
+    legs.push(l);
+  }
+  scene.add(kid);
+
+  function build() {
+    clouds.forEach((c) => scene.remove(c.g));
+    clouds = [];
+    const w = worlds[wi];
+    for (let i = 0; i < w.n; i++) {
+      const g = puff(i * 3.2, Math.sin(i) * 0.6, (i % 2) * -0.4, 0.85, w.col);
+      clouds.push({ g, deco: 0 });
+    }
+    on = 0;
+    decorations = 0;
+    kid.position.copy(clouds[0].g.position).add(new THREE.Vector3(0, 0.9, 0));
+    document.getElementById("info").textContent = w.name + " · ★" + stars;
+    document.getElementById("say").textContent = wi === 0 ? "Tap Hop!" : wi === 1 ? "Flutter more!" : wi === 2 ? "Decorate clouds!" : wi === 3 ? "Wait the rain!" : "Home nest!";
+  }
+  build();
+
+  document.getElementById("go").onclick = () => document.getElementById("title").classList.add("hidden");
+  document.getElementById("again").onclick = () => { document.getElementById("win").classList.add("hidden"); wi = 0; build(); };
+  document.getElementById("hop").onclick = () => { mode = "hop"; hop(); };
+  document.getElementById("flutter").onclick = () => { mode = "flutter"; hopping = 0.35; };
+  document.getElementById("deco").onclick = () => {
+    mode = "deco";
+    const c = clouds[on];
+    if (!c) return;
+    const flower = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshLambertMaterial({ color: 0xff6b9a }));
+    flower.position.set((Math.random() - 0.5) * 0.8, 0.5, 0.2);
+    c.g.add(flower);
+    c.deco++;
+    decorations++;
+    stars++;
+    persist();
+  };
+
+  function hop() {
+    if (hopping > 0) return;
+    if (on >= clouds.length - 1) {
+      stars += 3;
+      persist();
+      if (wi < worlds.length - 1) { wi++; build(); }
+      else {
+        document.getElementById("wp").textContent = "You decorated " + decorations + " clouds!";
+        document.getElementById("win").classList.remove("hidden");
       }
-      plats = list;
-      bits = [];
-      for (var s = 0; s < WORLDS[world].need; s++) bits.push({ x: 180 + s * 200, y: base - 120 - (s % 4) * 40, got: 0 });
-      birds = [];
-      for (var b = 0; b < 4; b++) birds.push({ x: 300 + b * 280, y: base - 160, vx: -40, bob: b });
-      gusts = []; cam = 0;
-      kid.x = 70; kid.y = plats[0].y - 44; kid.vy = 0; kid.on = true;
-      document.getElementById("w").textContent = WORLDS[world].n;
+      return;
     }
-    function start() {
-      play = true; world = 0; stars = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
-      makeWorld(); beep(520, 0.1);
-    }
+    hopping = 0.55;
+    on++;
+  }
+  canvas.addEventListener("pointerdown", hop);
 
-    addEventListener("pointerdown", function (e) {
-      if (e.target.closest && e.target.closest("a,button")) return;
-      hold = true;
-      if (play && kid.on) { kid.vy = -640; kid.on = false; beep(620, 0.07); }
-    });
-    addEventListener("pointerup", function () { hold = false; });
+  function persist() {
+    localStorage.setItem(LS, JSON.stringify({ world: wi, stars }));
+    document.getElementById("info").textContent = worlds[wi].name + " · ★" + stars;
+  }
 
-    function update(dt) {
-      t += dt;
-      if (!play) return;
-      kid.vy += (hold && !kid.on ? 420 : 1700) * dt;
-      if (hold && !kid.on) { kid.vy = Math.max(kid.vy, -80); puffs.push({ x: kid.x + 10, y: kid.y + 40, life: 1 }); }
-      kid.y += kid.vy * dt;
-      kid.x += 140 * dt;
-      kid.on = false;
-      plats.forEach(function (p) {
-        var py = p.y + Math.sin(t * 1.4 + p.ph) * p.move;
-        if (kid.vy >= 0 && kid.x + 20 > p.x && kid.x < p.x + p.w && kid.y + 44 >= py && kid.y + 44 <= py + 22 + kid.vy * dt + 8) {
-          kid.y = py - 44; kid.vy = 0; kid.on = true;
-        }
-      });
-      birds.forEach(function (b) {
-        b.x += b.vx * dt; b.bob += dt * 4;
-        if (Math.hypot(kid.x - b.x, kid.y - (b.y + Math.sin(b.bob) * 10)) < 36 && kid.vy > 0) {
-          kid.vy = -700; beep(800, 0.08); stars++; document.getElementById("st").textContent = "⭐ " + stars;
-        }
-      });
-      bits.forEach(function (s) {
-        if (!s.got && Math.hypot(kid.x - s.x, kid.y - s.y) < 32) {
-          s.got = 1; stars++; document.getElementById("st").textContent = "⭐ " + stars; beep(900, 0.07);
-        }
-      });
-      puffs.forEach(function (p) { p.life -= dt * 3; p.y += 20 * dt; });
-      puffs = puffs.filter(function (p) { return p.life > 0; });
-      cam = Math.max(0, kid.x - W * 0.28);
-      if (kid.y > H + 40) { kid.x = plats[0].x + 20; kid.y = plats[0].y - 44; kid.vy = 0; }
-      var lastP = plats[plats.length - 1];
-      if (kid.x > lastP.x + lastP.w) {
-        world++;
-        if (world >= WORLDS.length) {
-          play = false;
-          document.getElementById("winP").textContent = "⭐ " + stars + "  Five skies!";
-          document.getElementById("win").classList.remove("off");
-        } else makeWorld();
-      }
-      if (world === 4 && Math.random() < dt * 2) gusts.push({ x: cam + W, y: 80 + Math.random() * 200, life: 1 });
-      gusts.forEach(function (g) { g.x -= 200 * dt; g.life -= dt * 0.3; });
-    }
+  const rain = [];
+  for (let i = 0; i < 20; i++) {
+    const d = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.18, 0.03), new THREE.MeshBasicMaterial({ color: 0x8ad4ff }));
+    d.position.set(Math.random() * 20 - 4, 8, Math.random() * 4 - 2);
+    scene.add(d);
+    rain.push(d);
+  }
 
-    function draw() {
-      var w = WORLDS[world] || WORLDS[0];
-      var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, w.sky[0]); g.addColorStop(1, w.sky[1]);
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      x.save(); x.translate(-cam * 0.3, 0);
-      x.globalAlpha = 0.35; x.font = "70px serif";
-      for (var i = 0; i < 10; i++) x.fillText("☁️", i * 180 + Math.sin(t + i) * 10, 80 + (i % 3) * 40);
-      x.globalAlpha = 1; x.restore();
-      x.save(); x.translate(-cam, 0);
-      plats.forEach(function (p) {
-        var py = p.y + Math.sin(t * 1.4 + p.ph) * p.move;
-        x.fillStyle = "#fff";
-        x.beginPath(); x.roundRect ? x.roundRect(p.x, py, p.w, 20, 10) : x.rect(p.x, py, p.w, 20); x.fill();
-        x.font = "20px serif"; x.fillText("☁️", p.x + p.w / 2 - 10, py + 6);
-      });
-      bits.forEach(function (s) { if (!s.got) { x.font = "28px serif"; x.fillText("⭐", s.x, s.y); } });
-      birds.forEach(function (b) { x.font = "32px serif"; x.fillText("🐦", b.x, b.y + Math.sin(b.bob) * 10); });
-      puffs.forEach(function (p) { x.globalAlpha = p.life; x.fillStyle = "#fff"; x.beginPath(); x.arc(p.x, p.y, 6, 0, Math.PI * 2); x.fill(); });
-      x.globalAlpha = 1;
-      x.font = "40px serif"; x.fillText(kid.face, kid.x, kid.y + 40);
-      x.restore();
-      if (world === 3) {
-        x.fillStyle = "#fff";
-        for (var k = 0; k < 20; k++) x.fillRect((k * 73 + t * 20) % W, (k * 41) % (H * 0.5), 2, 2);
-      }
-    }
-    function loop(now) {
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000); last = now;
-      update(dt); draw(); requestAnimationFrame(loop);
-    }
+  function loop() {
     requestAnimationFrame(loop);
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
-  })();
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const t = clock.elapsedTime;
+    wings.forEach((w, i) => { w.rotation.z = Math.sin(t * 14 + i) * 0.55 * (i ? -1 : 1); });
+    legs.forEach((l, i) => { l.rotation.x = hopping > 0 ? -0.8 : Math.sin(t * 8 + i * 3) * 0.4; });
+    if (hopping > 0) {
+      hopping -= dt;
+      const from = clouds[Math.max(0, on - 1)].g.position;
+      const to = clouds[on].g.position;
+      const k = 1 - hopping / 0.55;
+      kid.position.lerpVectors(from, to, k).add(new THREE.Vector3(0, 0.9 + Math.sin(k * Math.PI) * 1.4, 0));
+    } else {
+      kid.position.y = clouds[on].g.position.y + 0.9 + Math.sin(t * 3) * 0.06;
+    }
+    clouds.forEach((c, i) => { c.g.position.y += Math.sin(t * 1.4 + i) * 0.002; });
+    if (wi === 3) rain.forEach((d) => { d.position.y -= 8 * dt; if (d.position.y < 0) d.position.y = 9; });
+    else rain.forEach((d) => { d.position.y = 20; });
+    camera.position.lerp(new THREE.Vector3(kid.position.x - 0.2, kid.position.y + 1.6, 6.2), 0.08);
+    camera.lookAt(kid.position.x + 1.2, kid.position.y, 0);
+    renderer.render(scene, camera);
+  }
+  addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
+  loop();
+})();
   </script>
 </body>
 </html>

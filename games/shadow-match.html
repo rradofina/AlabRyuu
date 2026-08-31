@@ -5,169 +5,223 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Shadow Match</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#e2e8f0;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{
-      min-height:100vh;padding:54px 10px 24px;text-align:center;
-      background:
-        radial-gradient(circle at 78% 8%,#fde68a 0 1.4%,transparent 8%),
-        linear-gradient(#0b1026 0 38%,#1e1b4b 38% 70%,#312e81 70%);
-    }
-    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(24px,7vw,38px);color:#fde68a}
-    .hud{display:flex;justify-content:center;gap:8px;margin:6px;flex-wrap:wrap}
-    .chip{background:rgba(255,255,255,.12);padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px}
-    .room{
-      width:min(380px,94vw);margin:8px auto;padding:16px 12px 20px;border-radius:24px;
-      background:linear-gradient(#1e293b,#0f172a);box-shadow:inset 0 0 40px rgba(0,0,0,.45),0 10px 0 #020617;
-      position:relative;
-    }
-    .lamp{
-      width:54px;height:54px;margin:0 auto 8px;border-radius:50%;
-      background:radial-gradient(circle at 40% 35%,#fff7c2,#f59e0b 55%,#b45309);
-      box-shadow:0 0 28px #fbbf24;font-size:28px;display:grid;place-items:center;
-    }
-    .phases{display:flex;justify-content:center;gap:4px;margin-bottom:8px}
-    .moon{width:18px;height:18px;border-radius:50%;background:#1e293b;border:2px solid #64748b}
-    .moon.on{background:#fde68a;border-color:#fbbf24;box-shadow:0 0 8px #fde68a}
-    .hero{
-      font-size:84px;margin:4px auto 8px;width:110px;height:110px;border-radius:20px;
-      background:radial-gradient(circle at 50% 30%,#fef3c7,#f59e0b 70%);
-      display:grid;place-items:center;box-shadow:0 0 24px rgba(251,191,36,.45);
-    }
-    .wall{
-      min-height:150px;background:linear-gradient(#334155,#1e293b);border-radius:16px;
-      display:flex;justify-content:center;align-items:flex-end;gap:12px;padding:16px 8px 12px;flex-wrap:wrap;
-    }
-    .sh{
-      width:88px;height:100px;border-radius:16px 16px 8px 8px;
-      background:rgba(2,6,23,.55);font-size:56px;
-      filter:grayscale(1) brightness(0.08);
-      box-shadow:0 8px 0 #020617;
-      transition:transform .25s;
-    }
-    .sh:active{transform:translateY(3px)}
-    .sh.pick{outline:3px solid #fde68a}
-    .sh.wiggle{animation:wig .35s}
-    @keyframes wig{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
-    .hint{font-weight:800;margin-top:10px;min-height:1.4em;color:#fde68a;font-size:18px}
-    .confirm{
-      display:none;margin-top:10px;background:#fde68a;color:#3b2100;font-weight:800;font-size:20px;
-      padding:12px 22px;border-radius:999px;box-shadow:0 6px 0 #b45309;
-    }
-    .confirm.on{display:inline-block}
-    .banner{
-      display:none;width:min(340px,92vw);margin:14px auto 0;padding:18px;
-      background:#0f172a;border:3px solid #fde68a;border-radius:50%;width:280px;height:280px;
-      box-shadow:0 0 30px rgba(253,230,138,.35);color:#fde68a;
-      flex-direction:column;align-items:center;justify-content:center;gap:6px;
-    }
-    .banner.on{display:flex}
-    .acts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:20px;padding:10px 16px;border-radius:999px;box-shadow:0 5px 0 #e09f1f}
-    .play.next{background:#c4b5fd;color:#2e1065;box-shadow:0 5px 0 #7c3aed}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #0b1026; color: #e2e8f0; touch-action: none; user-select: none; }
+    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .home { position: fixed; top: 12px; left: 12px; z-index: 12; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.32); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #hud { position: fixed; top: 12px; right: 12px; z-index: 8; font-weight: 800; text-align: right; pointer-events: none; }
+    #hud b { display: inline-block; background: rgba(255,255,255,.12); padding: 6px 12px; border-radius: 999px; margin-left: 6px; font-size: 14px; }
+    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 8; font-weight: 800; color: #fde68a; pointer-events: none; text-align: center; width: 92%; }
+    #spin { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 8; display: none; gap: 10px; }
+    #spin.on { display: flex; }
+    #spin button { background: #fde68a; color: #3b2100; font-weight: 800; font-size: 20px; padding: 12px 20px; border-radius: 999px; box-shadow: 0 6px 0 #b45309; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; gap: 8px; padding: 20px 20px 48px; pointer-events: none; }
+    .cover.off { display: none; }
+    .cover h1 { font-size: clamp(30px, 8vw, 46px); color: #fde68a; }
+    .cover p { font-weight: 800; color: #e2e8f0; }
+    .btn { pointer-events: auto; background: #ffd166; color: #3b2100; font-weight: 800; font-size: 24px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
+    .btn.g { background: #c4b5fd; color: #2e1065; box-shadow: 0 7px 0 #7c3aed; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Shadow Match</h1>
-  <div class="hud">
-    <span class="chip" id="nightChip">Night 1</span>
-    <span class="chip" id="roundChip">Round 1 / 8</span>
-    <span class="chip" id="stars">⭐ 0</span>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="sc">Park day</b><b id="st">⭐ 0</b></div>
+  <div id="say">Turn the toy. Match the shadow!</div>
+  <div id="spin">
+    <button id="ccw">↺</button>
+    <button id="ok">That's it!</button>
+    <button id="cw">↻</button>
   </div>
-  <div class="room">
-    <div class="lamp">🌙</div>
-    <div class="phases" id="phases"></div>
-    <div class="hero" id="hero">🐘</div>
-    <div class="wall" id="wall"></div>
-    <p class="hint" id="msg">Tap the matching shadow!</p>
-    <button class="confirm" id="okBtn">That's it!</button>
+  <div class="cover" id="title">
+    <h1>Shadow Match</h1>
+    <p>The sun moves. Shadows stretch.<br>Rotate. Night moon last!</p>
+    <button class="btn" id="go">Play</button>
   </div>
-  <div class="banner" id="banner">
-    <div style="font-size:48px">🌙</div>
-    <h2 id="btitle">Shadow champ!</h2>
-    <p id="bsub"></p>
-    <div class="acts">
-      <button class="play next" id="nextBtn">Next</button>
-      <button class="play" id="againBtn">Play again</button>
-    </div>
+  <div class="cover off" id="win">
+    <h1>Light hero!</h1>
+    <p id="winP">Five scenes matched.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-    var pals=["🐘","🦒","🐧","🦋","🐢","🐰","🦊","🦉"];
-    var nights=[{from:0,to:2,name:"Night 1",rotate:false,n:3},{from:3,to:5,name:"Night 2",rotate:true,n:3},{from:6,to:7,name:"Night 3",rotate:true,n:4}];
-    var round=0,stars=0,need="",needRot=0,picked=null,nightI=0;
-    function nightOf(r){return r<3?0:r<6?1:2;}
-    function paintPhases(){
-      var p=document.getElementById("phases");p.innerHTML="";
-      for(var i=0;i<8;i++){var m=document.createElement("div");m.className="moon"+(i<=round?" on":"");p.appendChild(m);}
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, last = 0, t = 0, mode = "title", stars = 0, scene = 0, round = 0;
+    var sun = { a: 0.3, ta: 0.3 }, obj = { e: "🦒", rot: 0, want: 0 }, choices = [];
+    var stretch = 1, bits = [];
+
+    var SCENES = [
+      { n: "Park day", night: 0, items: ["🦒", "🌳", "🚲"], rounds: 3 },
+      { n: "Beach noon", night: 0, items: ["🦩", "🌴", "⛵"], rounds: 3 },
+      { n: "Farm dusk", night: 0, items: ["🐮", "🚜", "🌻"], rounds: 3 },
+      { n: "City eve", night: 0, items: ["🚌", "🗽", "🐕"], rounds: 3 },
+      { n: "Moon garden", night: 1, items: ["🦉", "🌵", "🚀"], rounds: 4 }
+    ];
+
+    function beep(f, d) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), gn = ac.createGain();
+        o.type = "sine"; o.frequency.value = f; gn.gain.value = 0.07;
+        o.connect(gn); gn.connect(ac.destination); o.start();
+        gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    function setup(){
-      var N=nights[nightOf(round)];
-      nightI=nightOf(round);
-      document.getElementById("nightChip").textContent=N.name;
-      document.getElementById("roundChip").textContent="Round "+(round+1)+" / 8";
-      document.getElementById("stars").textContent="⭐ "+stars;
-      document.getElementById("banner").classList.remove("on");
-      document.getElementById("okBtn").classList.remove("on");
-      document.getElementById("nextBtn").style.display=round<7?"":"none";
-      picked=null;need=pals[round%pals.length];
-      document.getElementById("hero").textContent=need;
-      needRot=N.rotate?(90*(1+round%3)):0;
-      var others=shuffle(pals.filter(function(p){return p!==need;})).slice(0,N.n-1);
-      var picks=shuffle(others.concat([need]));
-      var wall=document.getElementById("wall");wall.innerHTML="";
-      picks.forEach(function(p){
-        var rot=p===need?needRot:(90*(1+Math.floor(Math.random()*3)));
-        if(!N.rotate)rot=0;
-        var b=document.createElement("button");b.className="sh";b.textContent=p;
-        b.style.transform="rotate("+rot+"deg)";
-        b.dataset.e=p;b.dataset.rot=rot;
-        b.onclick=function(){tap(b,p,N);};
-        wall.appendChild(b);
-      });
-      document.getElementById("msg").textContent=N.rotate?"Tap a shadow to turn it.":"Tap the matching shadow!";
-      paintPhases();
+    function lerp(a, b, p) { return a + (b - a) * p; }
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+
+    function resize() {
+      cv.width = innerWidth * (devicePixelRatio || 1);
+      cv.height = innerHeight * (devicePixelRatio || 1);
+      g.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
+      W = innerWidth; H = innerHeight;
     }
-    function tap(b,p,N){
-      if(!N.rotate){
-        if(p!==need){b.classList.remove("wiggle");void b.offsetWidth;b.classList.add("wiggle");document.getElementById("msg").textContent="Not that shadow.";beep(180,.1);return;}
-        winRound();return;
+    addEventListener("resize", resize); resize();
+
+    function loadRound() {
+      var S = SCENES[scene];
+      obj.e = S.items[round % S.items.length];
+      obj.rot = 0;
+      obj.want = (Math.floor(rnd(0, 4)) * Math.PI) / 2;
+      sun.ta = S.night ? 1.2 : 0.25 + round * 0.18 + scene * 0.08;
+      stretch = 1;
+      var pool = S.items.slice(), extra = ["🍎", "⭐", "🎈", "🦆"];
+      extra.forEach(function (e) { if (pool.indexOf(e) < 0) pool.push(e); });
+      choices = [obj.e];
+      while (choices.length < 3) {
+        var e = pool[Math.floor(rnd(0, pool.length))];
+        if (choices.indexOf(e) < 0) choices.push(e);
       }
-      wallClear();b.classList.add("pick");picked=b;
-      var rot=(+b.dataset.rot+90)%360;b.dataset.rot=rot;b.style.transform="rotate("+rot+"deg)";
-      document.getElementById("okBtn").classList.add("on");
-      document.getElementById("msg").textContent="Turn… then That's it!";
-      beep(440,.06);
+      choices.sort(function () { return Math.random() - 0.5; });
+      document.getElementById("sc").textContent = S.n;
+      document.getElementById("say").textContent = S.night ? "Moonlight stretch. Match the long shadow!" : "Turn the toy to the stretched shadow.";
     }
-    function wallClear(){document.querySelectorAll(".sh").forEach(function(s){s.classList.remove("pick");});}
-    document.getElementById("okBtn").onclick=function(){
-      if(!picked)return;
-      var e=picked.dataset.e,rot=+picked.dataset.rot;
-      if(e!==need){picked.classList.remove("wiggle");void picked.offsetWidth;picked.classList.add("wiggle");document.getElementById("msg").textContent="Not that pal.";beep(180,.1);return;}
-      if((rot%360)!==0){document.getElementById("msg").textContent="Turn it so it stands up!";beep(200,.08);return;}
-      winRound();
-    };
-    function winRound(){
-      stars++;beep(780,.1);
-      document.getElementById("msg").textContent="Yes!";
-      document.getElementById("okBtn").classList.remove("on");
-      paintPhases();
-      document.getElementById("stars").textContent="⭐ "+stars;
-      var lastInNight=round===2||round===5||round===7;
-      if(lastInNight){
-        document.getElementById("btitle").textContent=round===7?"Shadow champ!":nights[nightOf(round)].name+" done!";
-        document.getElementById("bsub").textContent="Moon grows · ⭐ "+stars;
-        document.getElementById("nextBtn").style.display=round<7?"":"none";
-        document.getElementById("banner").classList.add("on");beep(940,.2);
-      }else{round++;setTimeout(setup,400);}
+
+    function confirm() {
+      if (mode !== "play") return;
+      var diff = Math.abs(((obj.rot - obj.want + Math.PI * 8) % (Math.PI * 2)) - 0);
+      diff = Math.min(diff, Math.PI * 2 - diff);
+      if (diff < 0.45) {
+        stars += 3; document.getElementById("st").textContent = "⭐ " + stars;
+        beep(700, 0.1);
+        var i; for (i = 0; i < 10; i++) bits.push({ x: W / 2, y: H * 0.42, vx: rnd(-80, 80), vy: rnd(-100, -20), life: 1, e: "✨" });
+        round++;
+        if (round >= SCENES[scene].rounds) {
+          if (scene < SCENES.length - 1) { scene++; round = 0; document.getElementById("say").textContent = "New light!"; setTimeout(loadRound, 600); }
+          else {
+            mode = "win"; document.getElementById("spin").classList.remove("on");
+            document.getElementById("win").classList.remove("off");
+            document.getElementById("winP").textContent = "Five scenes. " + stars + " stars.";
+            beep(880, 0.16);
+          }
+        } else setTimeout(loadRound, 500);
+      } else {
+        document.getElementById("say").textContent = "Almost! Turn a little more.";
+        beep(200, 0.08);
+      }
     }
-    document.getElementById("nextBtn").onclick=function(){if(round<7){round++;setup();}};
-    document.getElementById("againBtn").onclick=function(){round=0;stars=0;setup();};
-    setup();
+
+    function drawSky() {
+      var S = SCENES[scene] || SCENES[0];
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      if (mode === "title") { grd.addColorStop(0, "#1e1b4b"); grd.addColorStop(1, "#312e81"); }
+      else if (S.night) { grd.addColorStop(0, "#020617"); grd.addColorStop(0.5, "#1e1b4b"); grd.addColorStop(1, "#312e81"); }
+      else { grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.45, "#fdba74"); grd.addColorStop(1, "#78350f"); }
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      var ang = mode === "title" ? t * 0.2 : sun.a;
+      var sx = W * 0.5 + Math.cos(ang) * W * 0.38;
+      var sy = H * 0.18 + Math.sin(ang) * 40;
+      g.fillStyle = (S && S.night && mode === "play") ? "#f8fafc" : "#fde047";
+      g.beginPath(); g.arc(sx, sy, S && S.night && mode === "play" ? 18 : 26, 0, 6.28); g.fill();
+      if (S && S.night && mode === "play") {
+        g.fillStyle = "#020617"; g.beginPath(); g.arc(sx + 8, sy - 4, 14, 0, 6.28); g.fill();
+        var i; g.fillStyle = "#fff";
+        for (i = 0; i < 24; i++) { g.globalAlpha = 0.4 + 0.4 * Math.sin(t + i); g.fillRect((i * 53) % W, 16 + (i * 29) % 90, 2, 2); }
+        g.globalAlpha = 1;
+      }
+    }
+
+    function drawToy() {
+      var ground = H * 0.62;
+      g.fillStyle = "#1e293b"; g.fillRect(0, ground, W, H - ground);
+      var sx = W * 0.5 + Math.cos(sun.a) * 80;
+      var shLen = 40 + Math.abs(Math.cos(sun.a)) * 90 * stretch;
+      var shAng = sun.a + Math.PI;
+      g.save();
+      g.translate(W / 2, ground);
+      g.rotate(obj.want + shAng - Math.PI / 2);
+      g.scale(1, 0.35 + Math.abs(Math.cos(sun.a)) * 0.55);
+      g.globalAlpha = 0.45; g.filter = "grayscale(1) brightness(0.05)";
+      g.font = "84px serif"; g.textAlign = "center"; g.textBaseline = "bottom";
+      g.fillText(obj.e, 0, 0);
+      g.filter = "none"; g.globalAlpha = 1; g.restore();
+
+      g.save();
+      g.translate(W / 2, ground - 10);
+      g.rotate(obj.rot);
+      g.font = "92px serif"; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText(obj.e, 0, -20);
+      g.restore();
+
+      g.fillStyle = "rgba(253,230,138,.15)";
+      g.beginPath(); g.arc(W / 2, ground - 30, 70, 0, 6.28); g.fill();
+    }
+
+    function drawTitleSh() {
+      drawSky();
+      var i, es = ["🦒", "🚲", "🦉", "⛵", "🚀"];
+      for (i = 0; i < 5; i++) {
+        g.save();
+        g.translate(W * (0.15 + i * 0.17), H * 0.5);
+        g.rotate(t * 0.4 + i);
+        g.font = "40px serif"; g.textAlign = "center"; g.fillText(es[i], 0, 0);
+        g.restore();
+        g.save();
+        g.translate(W * (0.15 + i * 0.17), H * 0.62);
+        g.scale(1, 0.35 + 0.2 * Math.sin(t + i));
+        g.globalAlpha = 0.35; g.font = "40px serif"; g.textAlign = "center";
+        g.fillText(es[i], 0, 0); g.restore(); g.globalAlpha = 1;
+      }
+    }
+
+    function update(dt) {
+      t += dt;
+      sun.a = lerp(sun.a, mode === "title" ? 0.4 + Math.sin(t * 0.4) * 0.3 : sun.ta, 1 - Math.pow(0.02, dt));
+      stretch = 1 + Math.abs(Math.cos(sun.a)) * 0.8;
+      bits.forEach(function (b) { b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; });
+      bits = bits.filter(function (b) { return b.life > 0; });
+    }
+
+    function draw() {
+      if (mode === "title" || mode === "win") { drawTitleSh(); return; }
+      drawSky(); drawToy();
+      bits.forEach(function (b) {
+        g.globalAlpha = b.life; g.font = "16px serif"; g.textAlign = "center";
+        g.fillText(b.e, b.x, b.y); g.globalAlpha = 1;
+      });
+    }
+
+    function loop(now) {
+      var dt = Math.min(0.033, (now - last) / 1000 || 0.016);
+      last = now; update(dt); draw(); requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    function start() {
+      mode = "play"; scene = 0; round = 0; stars = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("spin").classList.add("on");
+      document.getElementById("st").textContent = "⭐ 0";
+      loadRound(); beep(500, 0.1);
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); start(); };
+    document.getElementById("cw").onclick = function () { obj.rot += Math.PI / 2; beep(440, 0.05); };
+    document.getElementById("ccw").onclick = function () { obj.rot -= Math.PI / 2; beep(400, 0.05); };
+    document.getElementById("ok").onclick = confirm;
+  })();
   </script>
 </body>
 </html>

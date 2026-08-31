@@ -6,199 +6,244 @@
   <title>Paint House</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b2100;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;padding:56px 10px 28px;text-align:center;transition:background .6s}
-    body.day{background:linear-gradient(#7dd3fc 0 42%,#86efac 42% 70%,#4ade80 70%)}
-    body.night{background:linear-gradient(#1e1b4b 0 48%,#312e81 48% 68%,#14532d 68%);color:#fef9c3}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:4px 0 8px}
-    .chip{background:#fff;color:#3b2100;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 rgba(0,0,0,.15);font-size:15px}
-    body.night .chip{background:#312e81;color:#fef9c3}
-    h1{font-size:clamp(26px,7vw,38px);text-shadow:0 3px 0 rgba(255,255,255,.35)}
-    .who{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-weight:800;margin:6px;color:#222}
-    .row{display:flex;justify-content:center;align-items:flex-start;gap:10px;flex-wrap:wrap;margin:8px 0}
-    .card{width:min(200px,46vw);background:#fffbeb;border-radius:18px;padding:10px;box-shadow:0 7px 0 #d97706;text-align:left;position:relative}
-    body.night .card{background:#451a03;box-shadow:0 7px 0 #9a3412;color:#fde68a}
-    .card:before{content:"";position:absolute;top:-10px;left:18px;width:22px;height:14px;background:#92400e;border-radius:2px}
-    .card h3{font-size:14px;margin-bottom:4px}
-    .card p{font-weight:800;font-size:15px;line-height:1.35}
-    .switch{min-width:120px;padding:14px 16px;border-radius:22px;background:#fde68a;color:#3b2100;font-weight:800;font-size:18px;box-shadow:0 6px 0 #ca8a04}
-    body.night .switch{background:#1e3a8a;color:#fef08a;box-shadow:0 6px 0 #1e40af}
-    .switch:active{transform:translateY(3px)}
-    .yard{position:relative;width:min(360px,96vw);margin:8px auto 0;min-height:360px}
-    .house{position:relative;margin:0 auto}
-    .roof{margin:0 auto;width:78%;height:0;border-left:46px solid transparent;border-right:46px solid transparent;border-bottom:72px solid #b45309;position:relative;z-index:2}
-    .house.tall .roof{width:58%;border-bottom-width:88px;border-bottom-color:#9a3412}
-    .house.night .roof{width:84%;border-bottom-color:#431407;border-bottom-width:64px}
-    .chimney{position:absolute;right:18%;top:-18px;width:22px;height:36px;background:#78716c;border-radius:3px 3px 0 0}
-    .chimney:after{content:"";position:absolute;top:-8px;left:-4px;width:30px;height:10px;background:#57534e;border-radius:2px}
-    .floors{margin:-8px auto 0;background:#fed7aa;border:6px solid #9a3412;border-radius:0 0 16px 16px;overflow:hidden;position:relative;z-index:1;box-shadow:0 10px 0 rgba(0,0,0,.18)}
-    .house.cottage .floors{width:78%}
-    .house.tall .floors{width:58%}
-    .house.night .floors{width:84%;background:#44403c;border-color:#1c1917}
-    .room{min-height:78px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#222;border-bottom:4px solid rgba(0,0,0,.12);position:relative;transition:background .25s}
-    .house.tall .room{min-height:64px}
-    .room:last-child{border-bottom:0}
-    .room span{font-size:28px;line-height:1}
-    .room:active{filter:brightness(1.08)}
-    .winpane{position:absolute;top:10px;right:10px;width:22px;height:22px;background:#bae6fd;border:2px solid #0c4a6e;border-radius:3px;box-shadow:inset 0 0 0 1px #fff}
-    body.night .winpane{background:#fde047;box-shadow:0 0 14px #facc15,inset 0 0 0 1px #fef08a}
-    .garden{margin:8px auto 0;width:88%;min-height:72px;border-radius:18px;border:4px dashed #15803d;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;background:#bbf7d0;color:#14532d}
-    .house.night .garden{border-color:#365314;background:#365314;color:#ecfccb}
-    .garden span{font-size:28px}
-    .msg{font-weight:800;min-height:2.2em;margin-top:10px;font-size:18px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(30,20,70,.86);z-index:10;gap:10px;color:#fff;padding:20px}
-    .win.on{display:flex}
-    .win h2{font-size:32px}
-    .stars{font-size:28px;letter-spacing:4px}
-    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
-    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
-    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
-    .play:active,.next:active{transform:translateY(3px)}
+    html,body{height:100%;overflow:hidden;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#1e1b4b;color:#1e1b4b;touch-action:none;user-select:none}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;font-size:17px;background:rgba(30,27,75,.45);padding:8px 14px;border-radius:999px;touch-action:manipulation}
+    canvas{display:block;width:100%;height:100%}
   </style>
 </head>
-<body class="day">
+<body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Paint House</h1>
-  <div class="who" id="who"></div>
-  <div class="hud">
-    <div class="chip" id="lvl">House 1 / 3</div>
-    <div class="chip" id="stars">⭐ 0</div>
-  </div>
-  <div class="row">
-    <div class="card">
-      <h3>📣 Neighbor</h3>
-      <p id="note">Kitchen pink, garden green</p>
-    </div>
-    <button class="switch" id="light">🌙 Night</button>
-  </div>
-  <div class="yard">
-    <div class="house cottage" id="house">
-      <div class="roof"><i class="chimney"></i></div>
-      <div class="floors" id="floors"></div>
-      <button class="garden" id="garden"><span>🌻</span>Garden</button>
-    </div>
-  </div>
-  <p class="msg" id="msg">Tap rooms to paint. Match the note!</p>
-  <div class="win" id="win">
-    <div style="font-size:72px">🏠</div>
-    <h2 id="wintitle">Pretty house!</h2>
-    <p class="stars" id="winstars">⭐⭐⭐</p>
-    <p id="winline"></p>
-    <div class="winbtns">
-      <button class="play" id="again">Play again</button>
-      <button class="next" id="next">Next</button>
-    </div>
-  </div>
+  <canvas id="c"></canvas>
   <script>
-    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Alab",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var A=av();
-    var COLS=[
-      {n:"cream",c:"#fef3c7"},{n:"pink",c:"#f9a8d4"},{n:"yellow",c:"#fde047"},
-      {n:"green",c:"#86efac"},{n:"blue",c:"#93c5fd"},{n:"purple",c:"#d8b4fe"},{n:"peach",c:"#fdba74"}
+  (function(){
+    var cv=document.getElementById("c"),x=cv.getContext("2d");
+    var W,H,T=0,last=0,stage="title",room=0,stars=0,mx=0,my=0,down=0,brush=null;
+    var hits=[],say="Tap Play!",drips=[],walk=0,walkTo=-1,day=1,painted=[],quest=0,doorGlow=0;
+    var AV={name:"Alab",hair:"🧒",shirt:"#a78bfa"};
+    try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name){AV.name=a.name;AV.hair=a.hair||AV.hair;AV.shirt=a.shirt||AV.shirt;}}catch(e){}
+    var ROOMS=[
+      {n:"Living",want:"#f9a8d4",label:"Pink",sky:"day",furn:"sofa",card:"Paint the living wall pink!"},
+      {n:"Kitchen",want:"#86efac",label:"Mint",sky:"day",furn:"table",card:"Kitchen wants mint!"},
+      {n:"Bed",want:"#93c5fd",label:"Sky",sky:"dusk",furn:"bed",card:"Sleepy blue, please."},
+      {n:"Bath",want:"#67e8f9",label:"Aqua",sky:"night",furn:"tub",card:"Splash aqua tiles."},
+      {n:"Attic",want:"#fde68a",label:"Sun",sky:"night",furn:"box",card:"Sunny attic gold!"}
     ];
-    var HOUSES=[
-      {id:"cottage",title:"Cozy cottage",rooms:[
-        {id:"loft",n:"Loft",e:"🛏️",want:"yellow"},
-        {id:"kitchen",n:"Kitchen",e:"🍳",want:"pink"}
-      ],garden:"green",note:"Kitchen pink, garden green. Loft yellow."},
-      {id:"tall",title:"Tall house",rooms:[
-        {id:"attic",n:"Attic",e:"📦",want:"blue"},
-        {id:"bed",n:"Bed",e:"🛏️",want:"purple"},
-        {id:"bath",n:"Bath",e:"🛁",want:"cream"},
-        {id:"kitchen",n:"Kitchen",e:"🍳",want:"peach"}
-      ],garden:"green",note:"Attic blue, bed purple, bath cream. Kitchen peach, garden green."},
-      {id:"night",title:"Night house",rooms:[
-        {id:"loft",n:"Loft",e:"🌙",want:"purple"},
-        {id:"den",n:"Den",e:"📚",want:"blue"},
-        {id:"kitchen",n:"Kitchen",e:"🍪",want:"pink"}
-      ],garden:"green",note:"Kitchen pink, garden green. Loft purple, den blue.",night:true}
-    ];
-    var hi=0,stars=0,usedNight=0,painted={},night=false;
-    document.getElementById("who").innerHTML=A.hair+" Painter "+A.name;
-    document.getElementById("who").style.background=A.shirt;
-    function colorIndex(name){for(var i=0;i<COLS.length;i++)if(COLS[i].n===name)return i;return 0;}
-    function paintEl(el,idx,e,n){
-      el.style.background=COLS[idx].c;
-      el.innerHTML="<i class='winpane'></i><span>"+e+"</span>"+n;
+    var PAL=["#f9a8d4","#86efac","#93c5fd","#67e8f9","#fde68a","#fdba74"];
+    function beep(f,d,tp){try{var ac=beep.ac||(beep.ac=new(window.AudioContext||window.webkitAudioContext)());var o=ac.createOscillator(),g=ac.createGain();o.type=tp||"sine";o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.stop(ac.currentTime+d);}catch(e){}}
+    function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+    addEventListener("resize",resize);resize();
+    function rnd(a,b){return a+Math.random()*(b-a);}
+    function round(a,b,w,h,r,col){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();if(col){x.fillStyle=col;x.fill();}}
+    function ellipse(cx,cy,rx,ry,col){x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,6.28);x.fillStyle=col;x.fill();}
+    function hitAt(px,py){for(var i=hits.length-1;i>=0;i--){var h=hits[i];if(px>=h.x&&px<=h.x+h.w&&py>=h.y&&py<=h.y+h.h)return h;}return null;}
+    function btn(id,bx,by,bw,bh,label,col,tc){hits.push({id:id,x:bx,y:by,w:bw,h:bh});round(bx,by+5,bw,bh,16,col||"#ffd166");x.fillStyle=tc||"#3b2100";x.font="800 16px Trebuchet MS";x.textAlign="center";x.textBaseline="middle";x.fillText(label,bx+bw/2,by+bh/2);}
+    function skyCol(k){
+      if(k==="day")return["#7dd3fc","#fde68a"];
+      if(k==="dusk")return["#fb923c","#7c3aed"];
+      return["#1e1b4b","#312e81"];
     }
-    function build(){
-      var H=HOUSES[hi];
-      var house=document.getElementById("house");
-      house.className="house "+H.id;
-      document.getElementById("lvl").textContent="House "+(hi+1)+" / 3";
-      document.getElementById("note").textContent=H.note;
-      document.getElementById("msg").textContent="Paint "+H.title+"!";
-      painted={};usedNight=0;
-      night=!!H.night;
-      applySky();
-      var floors=document.getElementById("floors");
-      floors.innerHTML="";
-      H.rooms.forEach(function(r){
-        painted[r.id]=0;
-        var b=document.createElement("button");
-        b.className="room";
-        b.id="r-"+r.id;
-        paintEl(b,0,r.e,r.n);
-        b.onclick=function(){
-          painted[r.id]=(painted[r.id]+1)%COLS.length;
-          paintEl(b,painted[r.id],r.e,r.n);
-          beep(420+painted[r.id]*40,.07);
-          check();
-        };
-        floors.appendChild(b);
-      });
-      painted.garden=0;
-      var g=document.getElementById("garden");
-      g.style.background=COLS[0].c;
-      g.innerHTML="<span>🌻</span>Garden";
-      g.onclick=function(){
-        painted.garden=(painted.garden+1)%COLS.length;
-        g.style.background=COLS[painted.garden].c;
-        g.innerHTML="<span>🌻</span>Garden";
-        beep(380,.07);
-        check();
-      };
+    function drawWindow(wx,wy,ww,wh,k){
+      var sc=skyCol(k);
+      var g=x.createLinearGradient(wx,wy,wx,wy+wh);
+      g.addColorStop(0,sc[0]);g.addColorStop(1,sc[1]);
+      x.fillStyle="#fff";round(wx-6,wy-6,ww+12,wh+12,6,"#fff");
+      x.fillStyle=g;x.fillRect(wx,wy,ww,wh);
+      x.strokeStyle="#c4b5fd";x.lineWidth=4;x.strokeRect(wx,wy,ww,wh);
+      x.beginPath();x.moveTo(wx+ww/2,wy);x.lineTo(wx+ww/2,wy+wh);x.moveTo(wx,wy+wh/2);x.lineTo(wx+ww,wy+wh/2);x.stroke();
+      if(k==="night"){x.fillStyle="#fde68a";x.beginPath();x.arc(wx+ww*0.7,wy+wh*0.28,8,0,6.28);x.fill();
+        for(var i=0;i<6;i++){x.fillRect(wx+8+i*10,wy+8+(i%3)*12,2,2);}
+      }else if(k==="dusk"){ellipse(wx+ww*0.7,wy+wh*0.35,12,12,"#fb923c");}
+      else{ellipse(wx+ww*0.72,wy+wh*0.3,11,11,"#fde047");}
     }
-    function applySky(){
-      document.body.className=night?"night":"day";
-      document.getElementById("light").textContent=night?"☀️ Day":"🌙 Night";
+    function drawFurn(kind,fx,fy){
+      if(kind==="sofa"){
+        round(fx,fy,120,46,12,"#c4b5fd");round(fx+8,fy-16,40,24,8,"#ddd6fe");round(fx+72,fy-16,40,24,8,"#ddd6fe");
+        x.fillStyle="#7c3aed";x.fillRect(fx+10,fy+40,16,16);x.fillRect(fx+94,fy+40,16,16);
+      }else if(kind==="table"){
+        round(fx,fy,100,16,6,"#a8a29e");x.fillStyle="#78716c";x.fillRect(fx+10,fy+16,8,28);x.fillRect(fx+82,fy+16,8,28);
+        ellipse(fx+50,fy-6,16,10,"#fb7185");ellipse(fx+30,fy+2,8,6,"#86efac");
+      }else if(kind==="bed"){
+        round(fx,fy,130,40,10,"#93c5fd");round(fx+8,fy-18,50,24,8,"#fff");round(fx+70,fy-8,50,16,6,"#c4b5fd");
+      }else if(kind==="tub"){
+        round(fx,fy,120,40,18,"#e0f2fe");x.fillStyle="#67e8f9";round(fx+8,fy+8,104,24,12,"#67e8f9");
+        for(var b=0;b<4;b++)ellipse(fx+24+b*22,fy+6,6,4,"rgba(255,255,255,.7)");
+      }else{
+        round(fx,fy,50,40,6,"#d97706");round(fx+56,fy+8,40,32,6,"#fdba74");
+        x.fillStyle="#fde68a";x.font="18px serif";x.fillText("🧸",fx+12,fy+26);
+      }
     }
-    document.getElementById("light").onclick=function(){
-      night=!night;if(night)usedNight=1;applySky();beep(night?280:620,.1);
-    };
-    function check(){
-      var H=HOUSES[hi],ok=true;
-      H.rooms.forEach(function(r){if(COLS[painted[r.id]].n!==r.want)ok=false;});
-      if(COLS[painted.garden].n!==H.garden)ok=false;
-      if(!ok)return;
-      var got=2+(usedNight||H.night?1:0);
-      stars+=got;
-      document.getElementById("stars").textContent="⭐ "+stars;
-      beep(880,.18);
-      setTimeout(function(){showWin(hi>=HOUSES.length-1,got);},350);
+    function drawKid(px,py){
+      ellipse(px,py+36,16,6,"rgba(0,0,0,.15)");
+      x.fillStyle=AV.shirt;round(px-12,py+4,24,22,6,AV.shirt);
+      x.font="22px serif";x.textAlign="center";x.textBaseline="middle";x.fillText(AV.hair,px,py-6);
+      x.fillStyle="#1e1b4b";round(px-10,py+24,8,14,3,"#1e1b4b");round(px+2,py+24,8,14,3,"#1e1b4b");
     }
-    function showWin(last,got){
-      document.getElementById("wintitle").textContent=last?"Pretty house!":"Cute house!";
-      document.getElementById("winstars").textContent="⭐".repeat(got);
-      document.getElementById("winline").textContent=A.name+" painted a cozy home for "+A.pet+"!";
-      document.getElementById("win").classList.add("on");
-      document.getElementById("next").textContent=last?"Next":"Next";
+    function drawRoom(){
+      var R=ROOMS[room],wall=painted[room]||"#f5f3ff";
+      x.fillStyle="#e7e5e4";x.fillRect(0,0,W,H);
+      x.fillStyle=wall;x.fillRect(0,0,W,H*0.68);
+      x.fillStyle="#d6d3d1";
+      x.beginPath();x.moveTo(0,H*0.68);x.lineTo(W*0.08,H*0.58);x.lineTo(W*0.92,H*0.58);x.lineTo(W,H*0.68);x.closePath();x.fill();
+      x.fillStyle="#c4b5fd";x.fillRect(0,0,W,H*0.1);
+      drawWindow(W*0.62,H*0.16,W*0.22,H*0.22,R.sky);
+      drawFurn(R.furn,W*0.12,H*0.48);
+      var lamp=R.sky==="night"?0.35:0.08;
+      x.fillStyle="rgba(30,27,75,"+lamp+")";x.fillRect(0,0,W,H);
+      var kidX=W*0.42+walk;
+      drawKid(kidX,H*0.52);
+      hits.push({id:"wall",x:W*0.28,y:H*0.14,w:W*0.28,h:H*0.38});
+      if(room<4){
+        var dx=W*0.86,dy=H*0.36;
+        hits.push({id:"door",x:dx-30,y:dy,w:60,h:H*0.28});
+        round(dx-28,dy,56,H*0.28,8,painted[room]===R.want?"#86efac":"#a8a29e");
+        x.fillStyle="#fde68a";x.beginPath();x.arc(dx+16,dy+H*0.14,5,0,6.28);x.fill();
+        x.fillStyle="#1e1b4b";x.font="800 11px Trebuchet MS";x.textAlign="center";x.fillText("GO",dx,dy-8);
+      }
+      if(room>0){
+        hits.push({id:"back",x:16,y:H*0.36,w:50,h:H*0.26});
+        round(16,H*0.36,50,H*0.26,8,"#ddd6fe");
+        x.fillStyle="#1e1b4b";x.font="800 12px Trebuchet MS";x.textAlign="center";x.fillText("BACK",41,H*0.48);
+      }
+      round(W*0.08,H*0.12,W*0.44,48,12,"#fffbeb");
+      x.fillStyle="#6d28d9";x.font="800 14px Trebuchet MS";x.textAlign="left";
+      x.fillText("Quest: "+R.card,W*0.1,H*0.14+18);
+      x.fillText(AV.name+" paints "+R.label,W*0.1,H*0.14+36);
     }
-    document.getElementById("again").onclick=function(){
-      document.getElementById("win").classList.remove("on");
-      hi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";build();
-    };
-    document.getElementById("next").onclick=function(){
-      document.getElementById("win").classList.remove("on");
-      if(hi>=HOUSES.length-1){hi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
-      else hi++;
-      build();
-    };
-    build();
+    function drawPots(){
+      for(var i=0;i<PAL.length;i++){
+        var bx=20+i*((W-20)/6),by=H-70;
+        hits.push({id:"pot-"+i,x:bx,y:by,w:56,h:56,col:PAL[i]});
+        ellipse(bx+28,by+40,18,6,"#78716c");
+        x.fillStyle=PAL[i];x.beginPath();x.moveTo(bx+10,by+8);x.lineTo(bx+46,by+8);x.lineTo(bx+40,by+44);x.lineTo(bx+16,by+44);x.closePath();x.fill();
+        if(brush===PAL[i]){x.strokeStyle="#111";x.lineWidth=3;x.stroke();}
+      }
+    }
+    function drawTitle(){
+      var g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#7dd3fc");g.addColorStop(1,"#c4b5fd");
+      x.fillStyle=g;x.fillRect(0,0,W,H);
+      x.fillStyle="#fde68a";x.beginPath();x.arc(W*0.78,H*0.16,30,0,6.28);x.fill();
+      x.fillStyle="#f8fafc";
+      for(var i=0;i<4;i++)ellipse(30+i*90,40+Math.sin(T+i)*6,36,14,"#f8fafc");
+      x.fillStyle="#7c3aed";round(W*0.22,H*0.38,W*0.56,H*0.36,8,"#7c3aed");
+      x.fillStyle="#f5f3ff";x.fillRect(W*0.28,H*0.44,W*0.18,H*0.14);
+      x.fillStyle="#86efac";x.fillRect(W*0.5,H*0.48,W*0.2,H*0.26);
+      x.fillStyle="#fde68a";
+      x.beginPath();x.moveTo(W*0.18,H*0.38);x.lineTo(W*0.5,H*0.22);x.lineTo(W*0.82,H*0.38);x.closePath();x.fill();
+      drawKid(W*0.36,H*0.62);
+      x.fillStyle="#1e1b4b";x.font="800 "+Math.floor(Math.min(44,W/8))+"px Trebuchet MS";x.textAlign="center";
+      x.fillText("Paint House",W/2,H*0.16);
+      btn("play",W/2-80,H*0.8,160,50,"Play!","#ffd166","#3b2100");
+      say="Walk rooms. Paint the quest color.";
+    }
+    function drawWin(){
+      drawRoom();
+      x.fillStyle="rgba(30,27,75,.55)";x.fillRect(0,0,W,H);
+      x.fillStyle="#fff";x.font="800 40px Trebuchet MS";x.textAlign="center";
+      x.fillText("Bright house!",W/2,H*0.28);
+      x.font="800 18px Trebuchet MS";x.fillText(AV.name+" painted 5 rooms. ⭐ "+stars,W/2,H*0.38);
+      btn("again",W/2-80,H*0.7,160,50,"Again","#86efac","#14532d");
+    }
+    function drawHud(){
+      round(W-150,10,140,32,14,"rgba(255,255,255,.9)");
+      x.fillStyle="#1e1b4b";x.font="800 13px Trebuchet MS";x.textAlign="left";x.textBaseline="middle";
+      x.fillText(ROOMS[room].n+"  ⭐ "+stars,W-136,26);
+      round(16,H-118,W-32,36,12,"rgba(255,255,255,.9)");
+      x.textAlign="center";x.fillText(say,W/2,H-100);
+    }
+    function start(){stage="room";room=0;stars=0;painted=["#f5f3ff","#f5f3ff","#f5f3ff","#f5f3ff","#f5f3ff"];walk=0;brush=ROOMS[0].want;say=ROOMS[0].card;beep(500,.1);}
+    function pointer(e,kind){
+      var r=cv.getBoundingClientRect();
+      mx=(e.clientX||(e.touches&&e.touches[0].clientX)||0)-r.left;
+      my=(e.clientY||(e.touches&&e.touches[0].clientY)||0)-r.top;
+      if(kind==="down"){down=1;onDown();}
+      if(kind==="move"&&down)onDrag();
+      if(kind==="up")down=0;
+    }
+    function onDown(){
+      var h=hitAt(mx,my);if(!h)return;
+      if(h.id==="play"){start();return;}
+      if(h.id==="again"){stage="title";return;}
+      if(h.id.indexOf("pot-")===0){brush=h.col;beep(400,.06);say="Brush is ready.";}
+      if(h.id==="door"&&painted[room]===ROOMS[room].want){walkTo=1;beep(600,.1);}
+      if(h.id==="back"){walkTo=-1;beep(320,.08);}
+      if(h.id==="wall"&&brush){paintAt(mx,my);}
+    }
+    function onDrag(){if(stage==="room"){var h=hitAt(mx,my);if(h&&h.id==="wall"&&brush)paintAt(mx,my);}}
+    function paintAt(px,py){
+      drips.push({x:px,y:py,vy:20,c:brush,life:1.4,s:rnd(5,10)});
+      if(brush===ROOMS[room].want){
+        quest+=0.08;
+        if(quest>=1){painted[room]=brush;stars+=2;say="Nice! Tap the door.";quest=0;beep(880,.12);}
+        else say="Paint more "+ROOMS[room].label+"!";
+      }else say="Quest wants "+ROOMS[room].label+".";
+      beep(300+quest*200,.04);
+    }
+    function step(dt){
+      if(walkTo){walk+=walkTo*180*dt;if(walk>W*0.4){room=Math.min(4,room+1);walk=-W*0.2;walkTo=0;quest=0;brush=ROOMS[room].want;say=ROOMS[room].card;if(room===4&&painted[4]===ROOMS[4].want){}}
+        if(walk<-W*0.25){room=Math.max(0,room-1);walk=W*0.2;walkTo=0;say=ROOMS[room].card;}
+      }
+      for(var i=drips.length-1;i>=0;i--){var d=drips[i];d.life-=dt;d.y+=d.vy*dt;d.s+=4*dt;if(d.life<=0)drips.splice(i,1);}
+      if(stage==="room"&&room===4&&painted[4]===ROOMS[4].want){doorGlow+=dt;if(doorGlow>0.8)stage="win";}
+      day=ROOMS[room]?ROOMS[room].sky: "day";
+    }
+    function drawDrips(){
+      for(var i=0;i<drips.length;i++){x.globalAlpha=Math.min(1,drips[i].life);x.fillStyle=drips[i].c;round(drips[i].x-3,drips[i].y,6,drips[i].s,3,drips[i].c);}
+      x.globalAlpha=1;
+    }
+    function draw(){
+      hits=[];
+      if(stage==="title")drawTitle();
+      else if(stage==="win")drawWin();
+      else{drawRoom();drawPots();drawDrips();drawHud();}
+      if(stage==="title"){round(16,H-50,W-32,36,12,"rgba(255,255,255,.9)");x.fillStyle="#1e1b4b";x.font="800 15px Trebuchet MS";x.textAlign="center";x.fillText(say,W/2,H-32);}
+    }
+    cv.addEventListener("pointerdown",function(e){pointer(e,"down");});
+    cv.addEventListener("pointermove",function(e){pointer(e,"move");});
+    cv.addEventListener("pointerup",function(){down=0;});
+
+    var prints=[],kitCat={x:0.2,v:0.08},pics=[{c:"#fde68a",e:"☀️"},{c:"#93c5fd",e:"🌙"},{c:"#86efac",e:"🌿"}];
+    function drawRug(){
+      x.fillStyle="#ddd6fe";x.beginPath();x.ellipse(W*0.5,H*0.66,W*0.28,18,0,0,6.28);x.fill();
+      x.strokeStyle="#c4b5fd";x.setLineDash([6,4]);x.beginPath();x.ellipse(W*0.5,H*0.66,W*0.22,12,0,0,6.28);x.stroke();x.setLineDash([]);
+    }
+    function drawPictures(){
+      for(var i=0;i<3;i++){
+        var px=W*0.14+i*54,py=H*0.2;
+        round(px,py,40,32,4,pics[i].c);
+        x.strokeStyle="#7c3aed";x.lineWidth=3;x.stroke();
+        x.font="16px serif";x.textAlign="center";x.fillText(pics[i].e,px+20,py+20);
+      }
+    }
+    function drawCat(){
+      kitCat.x+=kitCat.v*0.003;if(kitCat.x>0.8||kitCat.x<0.1)kitCat.v*=-1;
+      var cx=kitCat.x*W,cy=H*0.62+Math.sin(T*6)*2;
+      x.fillStyle="#f97316";ellipse(cx,cy,14,8,"#f97316");ellipse(cx+12,cy-4,7,6,"#f97316");
+      x.beginPath();x.moveTo(cx-12,cy);x.quadraticCurveTo(cx-24,cy-12,cx-10,cy-2);x.fill();
+    }
+    function drawLamp(){
+      x.fillStyle="#a8a29e";x.fillRect(W*0.08,H*0.32,6,70);
+      ellipse(W*0.11,H*0.32,16,10,ROOMS[room].sky==="night"?"#fde68a":"#fef3c7");
+      if(ROOMS[room].sky==="night"){x.globalAlpha=0.15;ellipse(W*0.11,H*0.4,40,50,"#fde68a");x.globalAlpha=1;}
+    }
+    function drawStairs(){
+      for(var i=0;i<4;i++){x.fillStyle="#c4b5fd";round(W*0.78,H*0.58-i*10,50,12,2,"#c4b5fd");}
+    }
+    function drawRoller(px,py){
+      if(!brush)return;
+      x.fillStyle="#78716c";round(px,py,6,28,2,"#78716c");
+      x.fillStyle=brush;round(px-8,py-8,22,12,4,brush);
+    }
+    function paintLayer(){
+      if(stage!=="room"&&stage!=="win")return;
+      drawRug();drawPictures();drawCat();drawLamp();drawStairs();
+      if(down)drawRoller(mx,my-20);
+    }
+
+      try{paintLayer();}catch(e){}
+
+    function loop(now){var dt=Math.min(.033,(now-last)/1000)||.016;last=now;T=now/1000;step(dt);draw();requestAnimationFrame(loop);}
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

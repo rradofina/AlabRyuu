@@ -6,160 +6,240 @@
   <title>Ice Cream Shop</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#831843;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fbcfe8 0 28%,#a5f3fc 28% 28.6%,#fce7f3 28.6%);padding:54px 10px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(24px,7vw,36px)}
-    .hud{display:flex;justify-content:center;gap:8px;margin:6px}
-    .chip{background:#fff;font-weight:800;padding:6px 12px;border-radius:999px;box-shadow:0 4px 0 #f472b6;font-size:15px}
-    .parlor{max-width:420px;margin:0 auto}
-    .guest{display:flex;align-items:flex-start;justify-content:center;gap:8px;margin:8px}
-    .face{font-size:56px}
-    .bubble{background:#fff;border-radius:22px;padding:10px 14px;font-weight:800;box-shadow:0 6px 0 #f9a8d4;position:relative;max-width:240px;text-align:left}
-    .bubble:after{content:"";position:absolute;left:-10px;top:18px;border:10px solid transparent;border-right-color:#fff}
-    .stand{margin:8px auto;width:min(200px,60vw);min-height:230px;background:linear-gradient(#e2e8f0,#cbd5e1);border-radius:16px 16px 40px 40px;box-shadow:inset 0 8px 0 #94a3b8,0 8px 0 #64748b;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:12px 8px 20px;position:relative}
-    .cone{font-size:44px;line-height:1.02;min-height:160px;display:flex;flex-direction:column;justify-content:flex-end}
-    .cone.drip .scoop.top{animation:drip 1.2s ease-in-out infinite}
-    @keyframes drip{50%{transform:translateY(8px)}}
-    .case{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;background:#fff;border:6px solid #67e8f9;border-radius:20px;padding:10px;margin:10px 0;box-shadow:0 8px 0 #22d3ee}
-    .case button{width:72px;height:72px;border-radius:18px;background:#fdf2f8;font-size:34px;box-shadow:0 5px 0 #f9a8d4}
-    .tops{display:flex;justify-content:center;gap:8px;min-height:80px;margin:6px}
-    .tops button{width:80px;height:72px;border-radius:18px;background:#fff;font-size:32px;box-shadow:0 5px 0 #f472b6;font-weight:800}
-    .case button:active,.tops button:active{transform:translateY(3px)}
-    .row{display:flex;justify-content:center;gap:10px;margin-top:8px}
-    .row button{background:#ffd166;color:#3b2100;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 6px 0 #e09f1f;font-size:18px}
-    .msg{font-weight:800;min-height:2em;margin-top:8px;font-size:18px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,10,40,.86);z-index:10;gap:10px;color:#fff;padding:20px}
-    .win.on{display:flex}
-    .win h2{font-size:32px}
-    .stars{font-size:28px;letter-spacing:4px}
-    .winbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-    .play,.next{font-weight:800;font-size:22px;padding:14px 22px;border-radius:999px}
-    .play{background:#ffd166;color:#3b2100;box-shadow:0 7px 0 #e09f1f}
-    .next{background:#86efac;color:#14532d;box-shadow:0 7px 0 #16a34a}
+    html,body{height:100%;overflow:hidden;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#831843;color:#831843;touch-action:none;user-select:none}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;font-size:17px;background:rgba(80,10,50,.45);padding:8px 14px;border-radius:999px;touch-action:manipulation}
+    canvas{display:block;width:100%;height:100%}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="parlor">
-    <h1>Ice Cream Shop</h1>
-    <div class="hud">
-      <div class="chip" id="lvl">Cone 1 / 5</div>
-      <div class="chip" id="stars">⭐ 0</div>
-    </div>
-    <div class="guest">
-      <div class="face" id="face">🧒</div>
-      <div class="bubble" id="bubble">Please: 🍓 🍫 + 🍒</div>
-    </div>
-    <div class="stand"><div class="cone" id="cone">🍦</div></div>
-    <div class="case" id="flavs"></div>
-    <div class="tops" id="tops"></div>
-    <div class="row">
-      <button id="undo">Oops</button>
-      <button id="serve">Serve</button>
-    </div>
-    <p class="msg" id="msg">Stack scoops. Then a topping!</p>
-  </div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🍨</div>
-    <h2 id="wintitle">Sweet shop!</h2>
-    <p class="stars" id="winstars">⭐⭐⭐</p>
-    <p id="winline">So many smiles.</p>
-    <div class="winbtns">
-      <button class="play" id="again">Play again</button>
-      <button class="next" id="next">Next</button>
-    </div>
-  </div>
+  <canvas id="c"></canvas>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var FLAV=["🍓","🍫","🍦","🍇","🍋"];
-    var FACES=["🧒","👧","🦊","🐧","🐱"];
+  (function(){
+    var cv=document.getElementById("c"),x=cv.getContext("2d");
+    var W,H,T=0,last=0,stage="title",order=0,stars=0,mx=0,my=0,down=0;
+    var hits=[],say="Tap Play!",scoops=[],melt=0,steam=[],spr=[],drip=[],spin=0,served=0,shake=0;
+    var FLAV=[{id:"str",c:"#fb7185",h:"#fda4af",n:"Berry"},{id:"cho",c:"#7c2d12",h:"#b45309",n:"Choco"},{id:"van",c:"#fef3c7",h:"#fde68a",n:"Van"},{id:"min",c:"#6ee7b7",h:"#a7f3d0",n:"Mint"},{id:"lem",c:"#fde047",h:"#fef08a",n:"Lemon"}];
+    var TOPS=[{id:"spr",n:"Sprinkle",c:"#f472b6"},{id:"chry",n:"Cherry",c:"#e11d48"},{id:"sauc",n:"Sauce",c:"#9a3412"}];
     var ORDERS=[
-      {s:["🍓","🍫"],t:"🍒"},
-      {s:["🍦","🍋"],t:"✨"},
-      {s:["🍇","🍓","🍫"],t:"🍒"},
-      {s:["🍋","🍦","🍇"],t:"✨"},
-      {s:["🍓","🍫","🍦","🍇"],t:"both"}
+      {who:"🧒",name:"Pip",want:["str","cho"],top:"chry",line:"Berry then choco, please!"},
+      {who:"🦊",name:"Fizz",want:["van","lem"],top:"spr",line:"Sunny scoops + dots!"},
+      {who:"🐧",name:"Wadd",want:["min","min"],top:"sauc",line:"Two mints. Cold!"},
+      {who:"🐱",name:"Mew",want:["cho","van","str"],top:"spr",line:"Tall stack, pretty dots."},
+      {who:"🦄",name:"Nova",want:["lem","min","str"],top:"chry",line:"Rainbow cone, cherry hat!"}
     ];
-    var oi=0,have=[],top="",stars=0,drip=false,dripT=null;
+    function beep(f,d,tp){try{var ac=beep.ac||(beep.ac=new(window.AudioContext||window.webkitAudioContext)());var o=ac.createOscillator(),g=ac.createGain();o.type=tp||"sine";o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.stop(ac.currentTime+d);}catch(e){}}
+    function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+    addEventListener("resize",resize);resize();
+    function rnd(a,b){return a+Math.random()*(b-a);}
+    function round(a,b,w,h,r,col){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();if(col){x.fillStyle=col;x.fill();}}
+    function ellipse(cx,cy,rx,ry,col){x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,6.28);x.fillStyle=col;x.fill();}
+    function hitAt(px,py){for(var i=hits.length-1;i>=0;i--){var h=hits[i];if(px>=h.x&&px<=h.x+h.w&&py>=h.y&&py<=h.y+h.h)return h;}return null;}
+    function btn(id,bx,by,bw,bh,label,col,tc){hits.push({id:id,x:bx,y:by,w:bw,h:bh});round(bx,by+5,bw,bh,18,"rgba(0,0,0,.15)");round(bx,by,bw,bh-4,18,col||"#ffd166");x.fillStyle=tc||"#3b2100";x.font="800 "+Math.floor(bh*.32)+"px Trebuchet MS";x.textAlign="center";x.textBaseline="middle";x.fillText(label,bx+bw/2,by+bh/2-2);}
+    function flav(id){for(var i=0;i<FLAV.length;i++)if(FLAV[i].id===id)return FLAV[i];return FLAV[0];}
+    function drawScoop(f,cx,cy,r,meltAmt){
+      var squish=1+meltAmt*0.18,drop=meltAmt*10;
+      ellipse(cx,cy+r*0.55+drop,r*0.95,r*0.28*squish,"rgba(80,20,50,.12)");
+      ellipse(cx,cy+drop,r,r*0.82*squish,f.c);
+      ellipse(cx-r*0.25,cy-r*0.2+drop,r*0.35,r*0.22,f.h);
+      if(meltAmt>0.25){x.strokeStyle=f.c;x.lineWidth=5;x.beginPath();x.moveTo(cx+r*0.4,cy+r*0.4+drop);x.quadraticCurveTo(cx+r*0.6,cy+r+drop*2,cx+r*0.35,cy+r*1.2+drop*2);x.stroke();}
+    }
+    function drawCone(cx,baseY){
+      x.fillStyle="#d97706";
+      x.beginPath();x.moveTo(cx,baseY+70);x.lineTo(cx-28,baseY);x.lineTo(cx+28,baseY);x.closePath();x.fill();
+      x.strokeStyle="#b45309";x.lineWidth=2;
+      for(var i=0;i<5;i++){x.beginPath();x.moveTo(cx-22+i*4,baseY+6+i*12);x.lineTo(cx+18-i*3,baseY+10+i*10);x.stroke();}
+    }
+    function drawStack(cx,baseY){
+      drawCone(cx,baseY);
+      for(var i=0;i<scoops.length;i++){
+        var m=Math.max(0,melt-(scoops.length-1-i)*0.12);
+        drawScoop(flav(scoops[i]),cx,baseY-18-i*34,26,m);
+      }
+    }
+    function drawParlor(){
+      var g=x.createLinearGradient(0,0,0,H);
+      g.addColorStop(0,"#fbcfe8");g.addColorStop(.28,"#f9a8d4");g.addColorStop(.282,"#67e8f9");g.addColorStop(.3,"#fce7f3");g.addColorStop(1,"#fda4af");
+      x.fillStyle=g;x.fillRect(0,0,W,H);
+      x.fillStyle="#fb7185";
+      for(var i=0;i<10;i++){x.fillRect(i*(W/9),0,W/18,H*0.1);}
+      x.fillStyle="#fff";x.globalAlpha=.35;x.fillRect(0,H*0.1,W,10);x.globalAlpha=1;
+      x.fillStyle="#e2e8f0";round(W*0.58,H*0.18,W*0.38,H*0.36,16,"#e2e8f0");
+      x.strokeStyle="#67e8f9";x.lineWidth=8;x.stroke();
+      x.fillStyle="rgba(255,255,255,.35)";x.fillRect(W*0.6,H*0.2,W*0.12,H*0.3);
+      for(i=0;i<5;i++){
+        var f=FLAV[i],bx=W*0.64+ (i%3)*46,by=H*0.26+Math.floor(i/3)*54;
+        ellipse(bx,by+16,18,8,"#94a3b8");
+        ellipse(bx,by,16,12,f.c);
+      }
+      if(Math.random()<0.25)steam.push({x:W*0.72+rnd(-40,50),y:H*0.22,vy:-18,life:1.2,s:10});
+      x.fillStyle="#cbd5e1";round(W*0.08,H*0.62,W*0.5,H*0.16,20,"#cbd5e1");
+      spin+=0.02;
+    }
+    function drawGuest(){
+      var o=ORDERS[order],gx=W*0.22,gy=H*0.28+Math.sin(T*3)*4;
+      x.font="52px serif";x.textAlign="center";x.textBaseline="middle";x.fillText(o.who,gx,gy);
+      var bx=gx+50,by=gy-36,bw=Math.min(240,W*0.5);
+      x.fillStyle="#fff";round(bx,by,bw,64,16,"#fff");
+      x.beginPath();x.moveTo(bx,by+22);x.lineTo(bx-12,by+30);x.lineTo(bx,by+38);x.fill();
+      x.fillStyle="#831843";x.font="800 14px Trebuchet MS";x.textAlign="left";
+      x.fillText(o.name+" says:",bx+12,by+18);
+      x.font="800 13px Trebuchet MS";x.fillText(o.line,bx+12,by+40);
+    }
+    function drawHud(){
+      round(W-158,10,146,34,16,"rgba(255,255,255,.92)");
+      x.fillStyle="#831843";x.font="800 14px Trebuchet MS";x.textAlign="left";x.textBaseline="middle";
+      x.fillText("Cone "+(order+1)+"/5  ⭐ "+stars,W-144,27);
+      round(16,H-50,W-32,38,14,"rgba(255,255,255,.92)");
+      x.textAlign="center";x.fillText(say,W/2,H-31);
+    }
+    function reset(){scoops=[];melt=0;served=0;spr=[];drip=[];say="Tap flavors. Stack scoops!";}
+    function start(){stage="order";order=0;stars=0;reset();beep(520,.1);}
+    function pointer(e,kind){
+      var r=cv.getBoundingClientRect();
+      mx=(e.clientX||(e.touches&&e.touches[0].clientX)||0)-r.left;
+      my=(e.clientY||(e.touches&&e.touches[0].clientY)||0)-r.top;
+      if(kind==="down")onDown();
+    }
+    function onDown(){
+      var h=hitAt(mx,my);if(!h)return;
+      if(h.id==="play"){start();return;}
+      if(h.id==="again"){stage="title";return;}
+      if(stage==="order"&&h.id==="go"){stage="scoop";say="Tap scoops in order.";beep(400,.08);return;}
+      if(stage==="scoop"&&h.id.indexOf("f-")===0){addScoop(h.id.slice(2));}
+      if(stage==="scoop"&&h.id==="oops"){restack();return;}
+      if(stage==="top"&&h.id.indexOf("t-")===0){addTop(h.id.slice(2));}
+      if(stage==="serve"&&h.id==="serve"){doServe();}
+    }
+    function addScoop(id){
+      var need=ORDERS[order].want;
+      if(scoops.length>=need.length){say="That's tall! Add a top.";stage="top";beep(700,.1);return;}
+      if(id!==need[scoops.length]){say="Next is "+flav(need[scoops.length]).n+"!";beep(180,.08);return;}
+      scoops.push(id);beep(480+scoops.length*40,.08);
+      for(var i=0;i<6;i++)drip.push({x:W*0.38+rnd(-10,10),y:H*0.58,vy:20,c:flav(id).c,life:0.8});
+      if(scoops.length>=need.length){stage="top";say="Tap a topping!";}
+    }
+    function restack(){scoops=[];melt=0;say="New stack. Kind try!";beep(300,.1);}
+    function addTop(id){
+      if(id!==ORDERS[order].top){say="This guest wants "+ORDERS[order].top+"!";beep(200,.08);return;}
+      if(id==="spr"){for(var i=0;i<24;i++)spr.push({x:W*0.38+rnd(-24,24),y:H*0.42+rnd(-30,10),vx:rnd(-20,20),vy:rnd(20,80),c:["#f472b6","#38bdf8","#fde047","#fb7185"][i%4],life:1.2,s:rnd(3,6)});}
+      stage="serve";say="Serve the cone!";beep(820,.12);
+    }
+    function doServe(){served=1;stars+=2+(melt<0.7?1:0);beep(980,.16);say="Smile!";}
+    function step(dt){
+      if((stage==="scoop"||stage==="top")&&scoops.length){melt=Math.min(1.1,melt+dt*0.07);if(melt>0.95){say="Melt! Restack — no fail.";}}
+      for(var i=steam.length-1;i>=0;i--){var s=steam[i];s.life-=dt;s.y+=s.vy*dt;s.s+=6*dt;if(s.life<=0)steam.splice(i,1);}
+      for(i=spr.length-1;i>=0;i--){var p=spr[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.life<=0)spr.splice(i,1);}
+      for(i=drip.length-1;i>=0;i--){var d=drip[i];d.life-=dt;d.y+=d.vy*dt;if(d.life<=0)drip.splice(i,1);}
+      if(served){shake+=dt;if(shake>1.2){if(order>=4)stage="win";else{order++;reset();stage="order";shake=0;}}}
+    }
+    function drawCase(){
+      x.fillStyle="#fff";round(10,H*0.72,W-20,H*0.16,16,"#fff");
+      x.strokeStyle="#67e8f9";x.lineWidth=6;x.stroke();
+      if(stage==="scoop"){
+        for(var i=0;i<FLAV.length;i++){
+          var bx=24+i*((W-40)/5),by=H*0.80;
+          hits.push({id:"f-"+FLAV[i].id,x:bx,y:by-30,w:64,h:64});
+          round(bx,by-30,64,64,16,FLAV[i].h);
+          ellipse(bx+32,by,18,14,FLAV[i].c);
+          x.fillStyle="#831843";x.font="800 11px Trebuchet MS";x.textAlign="center";x.fillText(FLAV[i].n,bx+32,by+22);
+        }
+        btn("oops",W-110,H*0.64,90,36,"Oops","#fecaca","#9f1239");
+      }
+      if(stage==="top"){
+        for(i=0;i<TOPS.length;i++){
+          var tx=W*0.18+i*W*0.22,ty=H*0.80;
+          hits.push({id:"t-"+TOPS[i].id,x:tx-36,y:ty-30,w:72,h:60});
+          round(tx-36,ty-30,72,60,14,"#fdf2f8");
+          x.fillStyle=TOPS[i].c;x.font="800 14px Trebuchet MS";x.textAlign="center";x.fillText(TOPS[i].n,tx,ty);
+        }
+      }
+      if(stage==="serve")btn("serve",W/2-70,H*0.78,140,48,"Serve!","#ffd166","#3b2100");
+    }
+    function drawTitle(){
+      drawParlor();
+      drawCone(W*0.5,H*0.55);
+      drawScoop(FLAV[0],W*0.5,H*0.48,28,0.1+Math.sin(T)*0.05);
+      drawScoop(FLAV[3],W*0.5,H*0.38,26,0);
+      x.fillStyle="#831843";x.font="800 "+Math.floor(Math.min(44,W/8))+"px Trebuchet MS";x.textAlign="center";
+      x.fillText("Ice Cream",W/2,H*0.16);
+      btn("play",W/2-80,H*0.78,160,54,"Play!","#ffd166","#3b2100");
+      say="Stack. Melt is kind. Serve smiles.";
+    }
+    function drawOrder(){drawParlor();drawGuest();drawStack(W*0.42,H*0.58);btn("go",W/2-70,H*0.78,140,48,"I can!","#a7f3d0","#065f46");}
+    function drawPlay(){drawParlor();drawGuest();drawStack(W*0.38,H*0.56);drawCase();}
+    function drawWin(){
+      drawParlor();
+      x.fillStyle="rgba(80,10,50,.5)";x.fillRect(0,0,W,H);
+      x.fillStyle="#fff";x.font="800 40px Trebuchet MS";x.textAlign="center";
+      x.fillText("Sweet shop!",W/2,H*0.28);
+      x.font="800 18px Trebuchet MS";x.fillText("⭐ "+stars+"  •  5 cones",W/2,H*0.38);
+      btn("again",W/2-80,H*0.7,160,52,"Again","#86efac","#14532d");
+    }
+    function drawFX(){
+      for(var i=0;i<steam.length;i++){x.globalAlpha=steam[i].life*0.35;ellipse(steam[i].x,steam[i].y,steam[i].s,steam[i].s*0.6,"#e0f2fe");}
+      x.globalAlpha=1;
+      for(i=0;i<spr.length;i++){x.globalAlpha=spr[i].life;x.fillStyle=spr[i].c;x.fillRect(spr[i].x,spr[i].y,spr[i].s,3);}
+      x.globalAlpha=1;
+      for(i=0;i<drip.length;i++){x.globalAlpha=drip[i].life;ellipse(drip[i].x,drip[i].y,4,6,drip[i].c);}
+      x.globalAlpha=1;
+    }
     function draw(){
-      var extra=top==="both"?"✨🍒":(top||"");
-      document.getElementById("cone").innerHTML=(extra?"<div>"+extra+"</div>":"")+have.slice().reverse().map(function(s,i){return "<div class='scoop"+(i===0?" top":"")+"'>"+s+"</div>";}).join("")+"<div>🍦</div>";
+      hits=[];
+      if(stage==="title")drawTitle();
+      else if(stage==="order")drawOrder();
+      else if(stage==="win")drawWin();
+      else drawPlay();
+      drawFX();
+      if(stage!=="title"&&stage!=="win")drawHud();
+      else if(stage==="title"){round(16,H-50,W-32,38,14,"rgba(255,255,255,.92)");x.fillStyle="#831843";x.font="800 15px Trebuchet MS";x.textAlign="center";x.fillText(say,W/2,H-31);}
     }
-    function bubble(){
-      var o=ORDERS[oi],tp=o.t==="both"?"✨ + 🍒":o.t;
-      document.getElementById("bubble").textContent="Please: "+o.s.join(" ")+" + "+tp;
-      document.getElementById("face").textContent=FACES[oi%FACES.length];
+    cv.addEventListener("pointerdown",function(e){pointer(e,"down");});
+
+    var bannerA=0,dripPool=[],coneStack=[],spinPole=0;
+    function drawPole(){
+      spinPole+=0.04;
+      var px=W*0.06,py=H*0.2;
+      for(var i=0;i<10;i++){
+        x.fillStyle=i%2?"#fb7185":"#fff";
+        x.beginPath();x.moveTo(px,py+i*12);x.lineTo(px+14,py+i*12+spinPole%8);x.lineTo(px+14,py+(i+1)*12+spinPole%8);x.lineTo(px,py+(i+1)*12);x.fill();
+      }
     }
-    function armDrip(){
-      drip=false;document.getElementById("cone").classList.remove("drip");
-      if(dripT)clearTimeout(dripT);
-      dripT=setTimeout(function(){
-        drip=true;document.getElementById("cone").classList.add("drip");
-        document.getElementById("msg").textContent="Hurry — friend is hungry!";beep(240,.08);
-      },14000);
+    function drawBanner(){
+      bannerA=Math.sin(T*2)*6;
+      x.fillStyle="#db2777";round(W*0.22,H*0.08+bannerA,W*0.56,28,8,"#db2777");
+      x.fillStyle="#fff";x.font="800 14px Trebuchet MS";x.textAlign="center";
+      x.fillText("SCOOP  •  SMILE  •  CHILL",W/2,H*0.08+bannerA+18);
     }
-    function tops(show){
-      var box=document.getElementById("tops");box.innerHTML="";
-      if(!show)return;
-      [["✨","Sprinkle"],["🍒","Cherry"]].forEach(function(x){
-        var b=document.createElement("button");b.innerHTML=x[0]+"<br>"+x[1];
-        b.onclick=function(){
-          var o=ORDERS[oi];
-          if(o.t==="both"){
-            if(x[0]==="✨"&&top!=="both")top=top==="🍒"?"both":"✨";
-            else if(x[0]==="🍒"&&top!=="both")top=top==="✨"?"both":"🍒";
-          }else top=x[0];
-          draw();beep(600,.07);
-        };
-        box.appendChild(b);
-      });
+    function drawStools(){
+      for(var i=0;i<3;i++){
+        var sx=W*0.18+i*70,sy=H*0.68;
+        x.fillStyle="#94a3b8";x.fillRect(sx,sy,8,28);ellipse(sx+4,sy,16,6,"#e2e8f0");
+      }
     }
-    function round(){
-      have=[];top="";
-      document.getElementById("lvl").textContent="Cone "+(oi+1)+" / 5";
-      document.getElementById("msg").textContent="Stack scoops from the bottom.";
-      bubble();draw();tops(false);armDrip();
+    function drawFreezerFan(){
+      x.save();x.translate(W*0.86,H*0.22);x.rotate(T*3);
+      x.strokeStyle="#67e8f9";x.lineWidth=3;
+      for(var i=0;i<4;i++){x.beginPath();x.moveTo(0,0);x.lineTo(16,0);x.stroke();x.rotate(1.57);}
+      x.restore();
     }
-    FLAV.forEach(function(s){
-      var b=document.createElement("button");b.textContent=s;
-      b.onclick=function(){
-        if(have.length>=ORDERS[oi].s.length){tops(true);document.getElementById("msg").textContent="Now a topping!";return;}
-        have.push(s);draw();beep(540,.07);
-        if(have.length>=ORDERS[oi].s.length){tops(true);document.getElementById("msg").textContent="Add sprinkles or a cherry!";}
-      };
-      document.getElementById("flavs").appendChild(b);
-    });
-    document.getElementById("undo").onclick=function(){
-      if(top){top=top==="both"?"✨":"";draw();beep(240,.06);return;}
-      have.pop();draw();tops(have.length>=ORDERS[oi].s.length);beep(240,.06);
-    };
-    document.getElementById("serve").onclick=function(){
-      var o=ORDERS[oi];
-      if(have.join()!==o.s.join()){document.getElementById("msg").textContent="Stack them in that order!";beep(180,.1);return;}
-      var tok=o.t==="both"?top==="both":top===o.t;
-      if(!tok){document.getElementById("msg").textContent="Friend still wants a topping!";beep(180,.1);return;}
-      if(dripT)clearTimeout(dripT);
-      var got=2+(drip?0:1);stars+=got;
-      document.getElementById("stars").textContent="⭐ "+stars;
-      beep(840,.12);
-      setTimeout(function(){showWin(oi>=ORDERS.length-1,got);},280);
-    };
-    function showWin(last,got){
-      document.getElementById("wintitle").textContent=last?"Sweet shop!":"Yum cone!";
-      document.getElementById("winstars").textContent="⭐".repeat(got);
-      document.getElementById("winline").textContent=drip?"Still yummy. Friend is glad!":"Quick and sweet!";
-      document.getElementById("win").classList.add("on");
+    function drawPuddle(){
+      if(melt>0.5){x.globalAlpha=0.25;ellipse(W*0.38,H*0.66,20+melt*16,6,"#fda4af");x.globalAlpha=1;}
     }
-    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");oi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";round();};
-    document.getElementById("next").onclick=function(){
-      document.getElementById("win").classList.remove("on");
-      if(oi>=ORDERS.length-1){oi=0;stars=0;document.getElementById("stars").textContent="⭐ 0";}
-      else oi++;
-      round();
-    };
-    round();
+    function drawCherry(cx,cy){
+      ellipse(cx,cy,6,6,"#e11d48");x.strokeStyle="#166534";x.lineWidth=2;x.beginPath();x.moveTo(cx,cy-6);x.lineTo(cx+6,cy-16);x.stroke();
+    }
+    function iceLayer(){
+      drawPole();drawBanner();drawStools();drawFreezerFan();drawPuddle();
+      if(stage==="serve")drawCherry(W*0.38,H*0.4-scoops.length*34);
+      x.fillStyle="rgba(255,255,255,.12)";x.fillRect(W*0.58,H*0.18,8,H*0.36);
+    }
+
+      try{iceLayer();}catch(e){}
+
+    function loop(now){var dt=Math.min(.033,(now-last)/1000)||.016;last=now;T=now/1000;step(dt);draw();requestAnimationFrame(loop);}
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

@@ -9,283 +9,509 @@
     html, body {
       height: 100%; overflow: hidden;
       font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: #e0f2fe; color: #0c4a6e;
-      touch-action: manipulation; user-select: none;
+      background: #0e7490; color: #fff; touch-action: none; user-select: none;
     }
     button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      background: transparent; border: 0; appearance: none;
       -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
     }
     .home {
       position: fixed; top: 12px; left: 12px; z-index: 12;
       color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
+      background: rgba(0,0,0,.25); padding: 8px 14px; border-radius: 999px;
     }
+    canvas { display: block; width: 100%; height: 100%; }
     #hud {
       position: fixed; top: 12px; right: 12px; z-index: 12;
       display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
-    }
-    #hud span {
-      font-weight: 800; background: rgba(255,255,255,.7);
-      padding: 6px 12px; border-radius: 16px; font-size: 15px;
-    }
-    #room {
-      position: fixed; inset: 0;
-      background:
-        repeating-linear-gradient(90deg, #e0f2fe 0 48px, #bae6fd 48px 50px),
-        repeating-linear-gradient(#e0f2fe 0 48px, #bae6fd 48px 50px);
-      background-color: #e0f2fe;
-    }
-    #faucet {
-      position: absolute; top: 18%; right: 10%; width: 90px; height: 90px;
-      z-index: 3; pointer-events: none;
-    }
-    #faucet .pipe {
-      width: 18px; height: 40px; background: linear-gradient(#e5e7eb, #9ca3af);
-      border-radius: 8px; margin-left: 36px;
-      box-shadow: inset -3px 0 0 #6b7280;
-    }
-    #faucet .spout {
-      width: 54px; height: 22px; background: linear-gradient(#f3f4f6, #9ca3af);
-      border-radius: 10px 18px 8px 8px; margin-left: 10px;
-      box-shadow: 2px 3px 0 #6b7280;
-    }
-    #drip {
-      position: absolute; left: 22px; top: 58px; font-size: 18px;
-      animation: drip 1.4s ease-in infinite;
-    }
-    @keyframes drip { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(40px); opacity: 0; } }
-    #tub {
-      position: absolute; left: 4%; right: 4%; bottom: 0; height: 46%;
-      background: linear-gradient(#38bdf8, #0284c7);
-      border: 12px solid #e5e7eb;
-      border-bottom: 0;
-      border-radius: 80px 80px 0 0;
-      box-shadow: inset 0 14px 0 rgba(255,255,255,.28), 0 -6px 0 #9ca3af;
-      overflow: hidden;
-    }
-    #foamline {
-      position: absolute; left: 0; right: 0; top: 0; height: 28px;
-      background:
-        radial-gradient(circle at 10% 80%, #fff 10px, transparent 11px),
-        radial-gradient(circle at 28% 40%, #fff 12px, transparent 13px),
-        radial-gradient(circle at 50% 70%, #f8fafc 11px, transparent 12px),
-        radial-gradient(circle at 72% 40%, #fff 12px, transparent 13px),
-        radial-gradient(circle at 90% 80%, #fff 10px, transparent 11px);
       pointer-events: none;
     }
-    #duck {
-      position: absolute; bottom: 28%; left: 12%; width: 88px; height: 88px;
-      font-size: 72px; z-index: 6;
-      animation: quack 1.8s ease-in-out infinite;
-      filter: drop-shadow(0 6px 0 rgba(0,0,0,.15));
+    #hud span {
+      font-weight: 800; background: rgba(8,47,73,.7); padding: 6px 12px;
+      border-radius: 16px; font-size: 15px; border: 2px solid #67e8f9;
     }
-    @keyframes quack { 50% { transform: translateY(-8px) rotate(-6deg); } }
-    .bub {
-      position: absolute; width: 64px; height: 64px; font-size: 44px;
-      display: grid; place-items: center; z-index: 5;
+    #say {
+      position: fixed; left: 50%; top: 70px; transform: translateX(-50%);
+      z-index: 8; font-weight: 800; font-size: 20px; text-shadow: 0 3px 0 #0c4a6e;
+      width: 90%; text-align: center; pointer-events: none;
     }
-    .toy {
-      position: absolute; width: 72px; height: 72px; font-size: 48px;
-      display: grid; place-items: center; z-index: 5;
-      filter: drop-shadow(0 0 8px #fde68a);
+    #chain {
+      position: fixed; left: 50%; top: 32%; transform: translateX(-50%);
+      font-weight: 800; font-size: 34px; color: #fde68a;
+      text-shadow: 0 4px 0 #0c4a6e; opacity: 0; pointer-events: none; z-index: 8;
     }
-    #combo {
-      position: fixed; top: 120px; left: 0; right: 0; text-align: center;
-      font-weight: 800; font-size: 26px; color: #0369a1;
-      opacity: 0; pointer-events: none; z-index: 8;
-    }
-    #combo.on { opacity: 1; }
-    .hint {
-      position: fixed; bottom: 48%; left: 0; right: 0; text-align: center;
-      font-weight: 800; font-size: 16px; pointer-events: none; z-index: 4;
-    }
+    #chain.on { opacity: 1; }
     .cover {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
-      background: linear-gradient(#7dd3fc, #38bdf8 40%, #fde047); color: #0c4a6e;
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 12px; padding: 24px;
+      background: linear-gradient(180deg, rgba(14,116,144,.35), rgba(8,47,73,.5));
     }
     .cover.off { display: none; }
-    .cover h1 { font-size: clamp(34px, 9vw, 52px); }
+    h1 { font-size: clamp(34px, 9vw, 52px); text-shadow: 0 5px 0 #0c4a6e; }
     .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
-    .play {
-      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
-      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    .btn {
+      background: #67e8f9; color: #083344; font-weight: 800; font-size: 26px;
+      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #0891b2;
     }
-    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
-    .starrow { font-size: 36px; letter-spacing: 4px; }
+    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #0891b2; }
+    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
   <div id="hud">
-    <span id="score">🫧 0 / 10</span>
-    <span id="bathHud">Bath 1 / 3</span>
+    <span id="bath">Bath 1</span>
+    <span id="got">🫧 0</span>
+    <span id="lives">💛💛💛💛💛</span>
   </div>
-  <div id="combo"></div>
-  <p class="hint">Tap duck to pop a near bubble!</p>
-  <div id="room">
-    <div id="faucet">
-      <div class="pipe"></div>
-      <div class="spout"></div>
-      <div id="drip">💧</div>
-    </div>
-    <div id="tub">
-      <div id="foamline"></div>
-    </div>
-    <button id="duck" type="button" aria-label="Duck helper">🦆</button>
-  </div>
-  <div class="cover" id="start">
-    <div style="font-size:72px">🛁</div>
+  <div id="say">Pop bubbles!</div>
+  <div id="chain"></div>
+  <div class="cover" id="title">
     <h1>Bubble Bath</h1>
-    <p>Pop bubbles. Tap the duck for help. Toys are bonus!</p>
-    <button class="play" id="go">Play</button>
-  </div>
-  <div class="cover off" id="mid">
-    <div style="font-size:64px">🫧</div>
-    <h1 id="midTitle">Bath done!</h1>
-    <p id="midLine"></p>
-    <div class="starrow" id="midStars"></div>
-    <button class="play" id="next">Next bath</button>
+    <p>Pop rising bubbles. Chains splash nearby ones. The duck rides the water!</p>
+    <button class="btn" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:72px">🛁</div>
     <h1>Squeaky clean!</h1>
-    <p>So shiny and soapy.</p>
-    <div class="starrow" id="winStars">⭐⭐⭐</div>
-    <button class="play" id="again">Play again</button>
+    <p id="winP">Five baths. So shiny.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f, d) {
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, t = 0, last = 0, mode = "title", bath = 0, score = 0, lives = 5;
+    var waterY = 0, waterWave = 0, chainT = 0;
+    var bubbles = [], foam = [], splash = [], toys = [], steam = [];
+    var tiles = [], bottles = [], duck = { x: 0, vx: 40, blink: 0 };
+    var ducks = [], windowSky = [], soap = { drip: 0 }, mat = [];
+    var mirrorRip = [], towels = [], cups = [], drips = [];
+    var BATHS = [
+      { n: "Warm splash", rise: 36, sizes: [16, 22, 30], toys: 0, foam: 0.3, chain: 42, need: 8, say: "Pop the big ones too!" },
+      { n: "Toy tub", rise: 40, sizes: [14, 20, 28, 36], toys: 2, foam: 0.4, chain: 48, need: 9, say: "Toys float in. Pop!" },
+      { n: "Foam party", rise: 44, sizes: [12, 18, 26, 34], toys: 2, foam: 1.1, chain: 52, need: 10, say: "Foam everywhere!" },
+      { n: "Duck race", rise: 48, sizes: [14, 22, 32], toys: 3, foam: 0.5, chain: 50, need: 10, say: "Duck zooms. Keep popping!" },
+      { n: "Castle bath", rise: 42, sizes: [16, 24, 38], toys: 4, foam: 0.7, chain: 58, need: 12, say: "Build a bubble castle!" }
+    ];
+    var TOYKIND = ["boat", "fish", "star", "whale"];
+
+    function beep(f, d, typ, vol) {
       try {
-        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = c.createOscillator(), g = c.createGain();
-        o.frequency.value = f; g.gain.value = 0.1;
-        o.connect(g); g.connect(c.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
-        o.stop(c.currentTime + d);
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), a = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; a.gain.value = vol || 0.08;
+        o.connect(a); a.connect(ac.destination); o.start();
+        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-    var BATHS = [
-      { need: 10, rate: 24 },
-      { need: 14, rate: 20 },
-      { need: 16, rate: 16 }
-    ];
-    var LOOK = ["🫧", "⚪", "💧"];
-    var TOYS = ["🚤", "🥤", "🧸"];
-    var bath = 0, score = 0, need = 10, play = false, items = [], acc = 0;
-    var foam = 0, foamMax = 0, toysGot = 0, duckHelps = 0;
-    var room = document.getElementById("room");
-    var duck = document.getElementById("duck");
-
+    function chord(ns, d) { for (var i = 0; i < ns.length; i++) beep(ns[i], d, "triangle", 0.04); }
+    function say(s) { document.getElementById("say").textContent = s; }
     function hud() {
-      document.getElementById("score").textContent = "🫧 " + score + " / " + need;
-      document.getElementById("bathHud").textContent = "Bath " + (bath + 1) + " / 3";
+      document.getElementById("bath").textContent = BATHS[Math.min(bath, 4)].n;
+      document.getElementById("got").textContent = "🫧 " + score;
+      var h = ""; for (var i = 0; i < lives; i++) h += "💛";
+      document.getElementById("lives").textContent = h || "…";
     }
-    function toast(t) {
-      var el = document.getElementById("combo");
-      el.textContent = t; el.classList.add("on");
-      clearTimeout(toast._t);
-      toast._t = setTimeout(function () { el.classList.remove("on"); }, 800);
+    function showChain(n) {
+      if (n < 2) return;
+      var el = document.getElementById("chain");
+      el.textContent = "Pop x" + n + "!";
+      el.classList.add("on");
+      chainT = 0.8;
     }
-    function popItem(it, bonus) {
-      if (!play || it.dead) return;
-      it.dead = true; it.el.remove();
-      var add = it.toy ? 2 : 1;
-      if (bonus) add += 1;
-      score += add;
-      if (it.toy) toysGot++;
-      foam++;
-      if (foam > foamMax) foamMax = foam;
-      if (foam >= 3 && foam % 3 === 0) {
-        score += 1;
-        toast("Foam combo!");
-        beep(900, 0.12);
-      } else {
-        beep(it.toy ? 820 : 640 + Math.min(score, 12) * 16, 0.08);
-      }
+    function resize() {
+      W = cv.width = innerWidth; H = cv.height = innerHeight;
+      waterY = H * 0.62;
+      duck.x = W * 0.5;
+      if (!tiles.length) seed();
+    }
+    function seed() {
+      tiles = []; bottles = []; steam = [];
+      var i;
+      for (i = 0; i < 80; i++) tiles.push({ x: i % 10, y: (i / 10) | 0 });
+      bottles.push({ x: 0.12, c: "#f472b6", h: 44 });
+      bottles.push({ x: 0.88, c: "#a78bfa", h: 50 });
+      bottles.push({ x: 0.78, c: "#67e8f9", h: 36 });
+      for (i = 0; i < 10; i++) steam.push({ x: Math.random(), y: 0.55 + Math.random() * 0.1, ph: Math.random() * 6, s: 16 + Math.random() * 18 });
+      ducks = [{ x: 0.25, ph: 0, s: 0.7 }, { x: 0.7, ph: 2, s: 0.55 }];
+      towels = [{ x: 0.04, c: "#f9a8d4" }, { x: 0.96, c: "#67e8f9" }];
+      cups = [{ x: 0.3, c: "#fde047" }, { x: 0.62, c: "#a78bfa" }];
+    }
+    function resetBath() {
+      var b = BATHS[bath];
+      bubbles = []; foam = []; splash = []; toys = [];
+      say(b.say);
       hud();
-      if (score >= need) endBath();
+      duck.vx = bath === 3 ? 90 : 40;
+      var i;
+      for (i = 0; i < 6; i++) spawnBub(true);
+      for (i = 0; i < b.toys; i++) spawnToy();
     }
-    function spawn(toy) {
-      if (!play) return;
-      var b = document.createElement("button");
-      b.className = toy ? "toy" : "bub";
-      b.textContent = toy ? TOYS[Math.floor(Math.random() * TOYS.length)] : LOOK[Math.floor(Math.random() * LOOK.length)];
-      var x = 20 + Math.random() * (innerWidth - 80);
-      var y = innerHeight * 0.78;
-      var sp = 1.1 + Math.random() * 1.7;
-      b.style.left = x + "px"; b.style.top = y + "px";
-      room.appendChild(b);
-      var it = { el: b, x: x, y: y, sp: sp, t: 0, toy: !!toy, dead: false };
-      b.onclick = function () { popItem(it, false); };
-      items.push(it);
+    function startGame() {
+      mode = "play"; bath = 0; score = 0; lives = 5;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      resetBath();
+      chord([349, 440, 523], 0.16);
     }
-    duck.onclick = function () {
-      if (!play) return;
-      var alive = items.filter(function (it) { return !it.dead && !it.toy; });
-      if (!alive.length) { beep(220, 0.08); return; }
-      var dr = duck.getBoundingClientRect();
-      var dx = dr.left + 40, dy = dr.top + 40, best = alive[0], bestD = 9999;
-      alive.forEach(function (it) {
-        var d = Math.abs(it.x - dx) + Math.abs(it.y - dy);
-        if (d < bestD) { bestD = d; best = it; }
+    function winGame() {
+      mode = "win";
+      document.getElementById("winP").textContent = "You popped " + score + " bubbles!";
+      document.getElementById("win").classList.remove("off");
+      chord([523, 659, 784], 0.28);
+    }
+    function nextBath() {
+      bath++;
+      if (bath >= 5) { winGame(); return; }
+      resetBath();
+      beep(700, 0.12, "triangle", 0.1);
+    }
+    function spawnBub(any) {
+      var b = BATHS[Math.min(bath, 4)];
+      var r = b.sizes[(Math.random() * b.sizes.length) | 0];
+      bubbles.push({
+        x: 30 + Math.random() * (W - 60),
+        y: any ? waterY + 20 + Math.random() * (H - waterY - 40) : H + 10,
+        r: r, ph: Math.random() * 6, popped: false
       });
-      duckHelps++;
-      toast("Duck pop!");
-      popItem(best, true);
-      beep(500, 0.1);
-    };
-    function endBath() {
-      play = false;
-      items.forEach(function (it) { if (!it.dead) it.el.remove(); });
-      items = [];
-      var stars = 1 + (foamMax >= 3 ? 1 : 0) + (toysGot > 0 || duckHelps > 0 ? 1 : 0);
-      if (stars > 3) stars = 3;
-      var row = "⭐".repeat(stars) + "☆".repeat(3 - stars);
-      if (bath >= 2) {
-        document.getElementById("winStars").textContent = row;
-        document.getElementById("win").classList.remove("off");
-        beep(900, 0.2);
-      } else {
-        document.getElementById("midTitle").textContent = "Bath " + (bath + 1) + " sparkle!";
-        document.getElementById("midLine").textContent = "More bubbles next.";
-        document.getElementById("midStars").textContent = row;
-        document.getElementById("mid").classList.remove("off");
-        beep(800, 0.16);
+    }
+    function spawnToy() {
+      toys.push({
+        kind: TOYKIND[(Math.random() * TOYKIND.length) | 0],
+        x: 40 + Math.random() * (W - 80),
+        y: waterY + 8,
+        vx: (Math.random() - 0.5) * 30,
+        ph: Math.random() * 6
+      });
+    }
+    function spray(x, y, n) {
+      for (var i = 0; i < n; i++) {
+        splash.push({
+          x: x, y: y, vx: (Math.random() - 0.5) * 200, vy: -60 - Math.random() * 140,
+          life: 0.4 + Math.random() * 0.4, s: 2 + Math.random() * 4, c: "#e0f2fe"
+        });
+        foam.push({
+          x: x + (Math.random() - 0.5) * 20, y: y, vx: (Math.random() - 0.5) * 40,
+          vy: -10 - Math.random() * 20, life: 0.8 + Math.random() * 0.8, r: 4 + Math.random() * 8
+        });
       }
     }
-    function startBath() {
-      need = BATHS[bath].need; score = 0; foam = 0; items = []; acc = 0;
-      hud(); play = true;
+    function popAt(x, y, depth) {
+      var b = BATHS[Math.min(bath, 4)];
+      var n = 0;
+      for (var i = bubbles.length - 1; i >= 0; i--) {
+        var u = bubbles[i];
+        var dx = u.x + Math.sin(t * 1.5 + u.ph) * 8 - x;
+        var dy = u.y - y;
+        var rad = depth === 0 ? u.r + 22 : b.chain;
+        if (dx * dx + dy * dy < rad * rad) {
+          spray(u.x, u.y, 8);
+          bubbles.splice(i, 1);
+          n++;
+          score++;
+          if (depth === 0 && n === 1) {
+            var extra = popAt(u.x, u.y, depth + 1);
+            n += extra;
+          }
+        }
+      }
+      if (depth === 0 && n > 0) {
+        showChain(n);
+        beep(400 + n * 60, 0.08, "sine", 0.08);
+        if (n >= 3) chord([523, 659], 0.12);
+        hud();
+        if (score >= b.need) nextBath();
+      }
+      return n > 0 ? n - (depth === 0 ? 1 : 0) : 0;
     }
-    function loop() {
-      acc++;
-      if (play && acc % BATHS[bath].rate === 0) spawn(false);
-      if (play && acc % 160 === 0) spawn(true);
-      items.forEach(function (it) {
-        if (it.dead) return;
-        it.t++; it.y -= it.sp; it.x += Math.sin(it.t / 12) * 0.7;
-        it.el.style.top = it.y + "px"; it.el.style.left = it.x + "px";
-        if (it.y < -50) { it.dead = true; it.el.remove(); foam = 0; }
-      });
-      items = items.filter(function (it) { return !it.dead; });
+    function drawTileFloor() {
+      var ts = Math.max(36, W / 10);
+      for (var y = 0; y < H; y += ts) {
+        for (var x = 0; x < W; x += ts) {
+          var odd = ((x / ts) | 0) % 2 ^ ((y / ts) | 0) % 2;
+          g.fillStyle = odd ? "#bae6fd" : "#e0f2fe";
+          g.fillRect(x, y, ts + 1, ts + 1);
+          g.strokeStyle = "rgba(14,116,144,.15)"; g.lineWidth = 2;
+          g.strokeRect(x, y, ts, ts);
+        }
+      }
+    }
+    function drawBottles() {
+      for (var i = 0; i < bottles.length; i++) {
+        var b = bottles[i];
+        var x = b.x * W, y = H * 0.42 + Math.sin(t + i) * 2;
+        g.fillStyle = b.c;
+        g.beginPath();
+        g.moveTo(x - 10, y); g.lineTo(x - 12, y + b.h); g.lineTo(x + 12, y + b.h); g.lineTo(x + 10, y);
+        g.closePath(); g.fill();
+        g.fillStyle = "rgba(255,255,255,.45)";
+        g.fillRect(x - 6, y + 6, 5, b.h * 0.4);
+        g.fillStyle = "#0c4a6e";
+        g.fillRect(x - 5, y - 10, 10, 12);
+      }
+    }
+    function drawOneDuck(x, y, sc, look) {
+      g.save(); g.translate(x, y); g.scale(sc, sc);
+      g.fillStyle = "#facc15";
+      g.beginPath(); g.ellipse(0, 0, 22, 14, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(16, -8, 10, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#fb923c";
+      g.beginPath(); g.ellipse(26, -6, 8, 4, 0.1, 0, Math.PI * 2); g.fill();
+      var blink = Math.sin(t * 2.6 + look) > 0.9;
+      g.fillStyle = "#1c1917";
+      if (blink) g.fillRect(16, -11, 5, 1.4);
+      else { g.beginPath(); g.arc(18, -10, 2, 0, Math.PI * 2); g.fill(); }
+      g.fillStyle = "#facc15";
+      g.beginPath(); g.ellipse(-4, -16 + Math.sin(t * 6 + look) * 2, 6, 8, -0.2, 0, Math.PI * 2); g.fill();
+      g.restore();
+    }
+    function drawDuck() {
+      var wy = waterY + Math.sin(t * 2.2 + duck.x * 0.02) * 6;
+      drawOneDuck(duck.x, wy - 8, 1, 0);
+      for (var i = 0; i < ducks.length; i++) {
+        var d = ducks[i];
+        var x = d.x * W + Math.sin(t * 0.8 + d.ph) * 30;
+        var y = waterY + Math.sin(t * 2 + d.ph) * 5 - 4;
+        drawOneDuck(x, y, d.s, d.ph);
+      }
+    }
+    function drawWindow() {
+      var x = W * 0.5, y = H * 0.22;
+      g.fillStyle = "#7dd3fc";
+      g.fillRect(x - 40, y - 28, 80, 56);
+      g.strokeStyle = "#fff"; g.lineWidth = 4;
+      g.strokeRect(x - 40, y - 28, 80, 56);
+      g.beginPath(); g.moveTo(x, y - 28); g.lineTo(x, y + 28); g.moveTo(x - 40, y); g.lineTo(x + 40, y); g.stroke();
+      g.fillStyle = "#fde047";
+      g.beginPath(); g.arc(x + 18, y - 10, 8, 0, Math.PI * 2); g.fill();
+      if (bath === 2) {
+        g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 1;
+        for (var i = 0; i < 6; i++) {
+          var rx = x - 30 + (t * 40 + i * 12) % 70;
+          g.beginPath(); g.moveTo(rx, y - 20); g.lineTo(rx - 3, y + 10); g.stroke();
+        }
+      }
+    }
+    function drawMirror() {
+      var x = W * 0.18, y = H * 0.24;
+      g.fillStyle = "#e0f2fe";
+      g.beginPath(); g.ellipse(x, y, 28, 36, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#f9a8d4"; g.lineWidth = 5;
+      g.stroke();
+      g.fillStyle = "rgba(250,204,21,.35)";
+      g.beginPath(); g.arc(x + 4, y - 6, 8, 0, Math.PI * 2); g.fill();
+    }
+    function drawTowels() {
+      for (var i = 0; i < towels.length; i++) {
+        var tw = towels[i];
+        var x = tw.x * W, y = H * 0.36 + Math.sin(t + i) * 2;
+        g.fillStyle = tw.c;
+        g.fillRect(x - 14, y, 28, 50);
+        g.fillStyle = "rgba(255,255,255,.4)";
+        g.fillRect(x - 10, y + 6, 20, 8);
+      }
+    }
+    function drawSoap() {
+      var x = W * 0.86, y = H * 0.4;
+      g.fillStyle = "#fff";
+      g.beginPath(); g.roundRect ? (g.roundRect(x - 10, y, 20, 28, 6), g.fill()) : (g.fillRect(x - 10, y, 20, 28));
+      g.fillStyle = "#67e8f9";
+      g.fillRect(x - 6, y - 10, 12, 12);
+      if (Math.sin(t * 2) > 0.7) {
+        drips.push({ x: x, y: y + 28, vy: 30, life: 1, r: 3 });
+      }
+    }
+    function drawMat() {
+      g.fillStyle = "#67e8f9";
+      g.beginPath(); g.ellipse(W * 0.5, H * 0.94, W * 0.28, 16, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#22d3ee";
+      for (var i = -3; i <= 3; i++) g.fillRect(W * 0.5 + i * 18 - 4, H * 0.92, 8, 10);
+    }
+    function drawToy(ty) {
+      var y = waterY + Math.sin(t * 2 + ty.ph) * 5 + 4;
+      g.save(); g.translate(ty.x, y);
+      if (ty.kind === "boat") {
+        g.fillStyle = "#f97316";
+        g.beginPath(); g.moveTo(-16, 0); g.lineTo(16, 0); g.lineTo(10, 10); g.lineTo(-10, 10); g.fill();
+        g.fillStyle = "#fff"; g.fillRect(-2, -16, 4, 16);
+        g.fillStyle = "#38bdf8";
+        g.beginPath(); g.moveTo(2, -16); g.lineTo(14, -8); g.lineTo(2, -4); g.fill();
+      } else if (ty.kind === "fish") {
+        g.fillStyle = "#fb7185";
+        g.beginPath(); g.ellipse(0, 0, 12, 7, 0, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.moveTo(-12, 0); g.lineTo(-20, -6); g.lineTo(-20, 6); g.fill();
+        g.fillStyle = "#1c1917"; g.beginPath(); g.arc(5, -2, 1.5, 0, Math.PI * 2); g.fill();
+      } else if (ty.kind === "star") {
+        g.fillStyle = "#fde047";
+        g.beginPath();
+        for (var i = 0; i < 5; i++) {
+          var a = -Math.PI / 2 + i * 1.256;
+          g.lineTo(Math.cos(a) * 12, Math.sin(a) * 12);
+          g.lineTo(Math.cos(a + 0.628) * 5, Math.sin(a + 0.628) * 5);
+        }
+        g.fill();
+      } else {
+        g.fillStyle = "#38bdf8";
+        g.beginPath(); g.ellipse(0, 4, 16, 9, 0, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(10, -2, 8, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#1c1917"; g.beginPath(); g.arc(12, -4, 1.6, 0, Math.PI * 2); g.fill();
+      }
+      g.restore();
+    }
+    function drawBubble(u) {
+      var x = u.x + Math.sin(t * 1.5 + u.ph) * 8;
+      var grd = g.createRadialGradient(x - u.r * 0.3, u.y - u.r * 0.3, 2, x, u.y, u.r);
+      grd.addColorStop(0, "rgba(255,255,255,.55)");
+      grd.addColorStop(0.6, "rgba(165,243,252,.25)");
+      grd.addColorStop(1, "rgba(14,116,144,.35)");
+      g.fillStyle = grd;
+      g.beginPath(); g.arc(x, u.y, u.r, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 2;
+      g.stroke();
+      g.fillStyle = "rgba(255,255,255,.7)";
+      g.beginPath(); g.ellipse(x - u.r * 0.28, u.y - u.r * 0.32, u.r * 0.16, u.r * 0.22, -0.4, 0, Math.PI * 2); g.fill();
+    }
+    function drawWater() {
+      waterWave += 0.03;
+      g.fillStyle = "rgba(14,116,144,.55)";
+      g.beginPath();
+      g.moveTo(0, H);
+      g.lineTo(0, waterY);
+      for (var x = 0; x <= W; x += 12) {
+        var y = waterY + Math.sin(x * 0.03 + t * 2.2) * 7 + Math.sin(x * 0.01 + t) * 4;
+        g.lineTo(x, y);
+      }
+      g.lineTo(W, H); g.closePath(); g.fill();
+      g.fillStyle = "rgba(165,243,252,.25)";
+      g.beginPath();
+      g.moveTo(0, waterY + 18);
+      for (x = 0; x <= W; x += 16) g.lineTo(x, waterY + 18 + Math.sin(x * 0.04 + t * 3) * 5);
+      g.lineTo(W, H); g.lineTo(0, H); g.fill();
+    }
+    function drawCurtain() {
+      g.fillStyle = "#f9a8d4";
+      for (var i = 0; i < 8; i++) {
+        var x = i * (W / 8);
+        var sway = Math.sin(t * 1.4 + i) * 6;
+        g.beginPath();
+        g.moveTo(x, 0); g.quadraticCurveTo(x + 20 + sway, H * 0.12, x + sway, H * 0.22);
+        g.lineTo(x + W / 8 - 4 + sway, H * 0.22);
+        g.quadraticCurveTo(x + W / 8 + 10, H * 0.12, x + W / 8, 0);
+        g.fill();
+      }
+      g.fillStyle = "#fb7185";
+      g.fillRect(0, 0, W, 14);
+    }
+    function update(dt) {
+      var b = BATHS[Math.min(bath, 4)];
+      t += dt;
+      if (chainT > 0) { chainT -= dt; if (chainT <= 0) document.getElementById("chain").classList.remove("on"); }
+      waterY = H * (0.60 + Math.sin(t * 0.6) * 0.025);
+      duck.x += duck.vx * dt;
+      if (duck.x > W - 40) { duck.x = W - 40; duck.vx *= -1; }
+      if (duck.x < 40) { duck.x = 40; duck.vx *= -1; }
+      var i, u;
+      if (mode === "play") {
+        if (bubbles.length < 8 + bath) spawnBub(false);
+        for (i = bubbles.length - 1; i >= 0; i--) {
+          u = bubbles[i];
+          u.y -= b.rise * dt;
+          if (u.y + u.r < 40) {
+            bubbles.splice(i, 1);
+          }
+        }
+        for (i = 0; i < toys.length; i++) {
+          toys[i].x += toys[i].vx * dt + Math.sin(t + toys[i].ph) * 8 * dt;
+          toys[i].y = waterY + 6;
+          if (toys[i].x < 20 || toys[i].x > W - 20) toys[i].vx *= -1;
+        }
+      } else {
+        if (bubbles.length < 10) spawnBub(true);
+        for (i = 0; i < bubbles.length; i++) {
+          bubbles[i].y -= 12 * dt;
+          if (bubbles[i].y < 60) bubbles[i].y = H * 0.75;
+        }
+      }
+      if (Math.random() < b.foam * dt * 8) {
+        foam.push({ x: Math.random() * W, y: waterY, vx: (Math.random() - 0.5) * 20, vy: -8, life: 1.2, r: 6 + Math.random() * 10 });
+      }
+      for (i = foam.length - 1; i >= 0; i--) {
+        var f = foam[i]; f.x += f.vx * dt; f.y += f.vy * dt; f.life -= dt;
+        if (f.life <= 0) foam.splice(i, 1);
+      }
+      for (i = splash.length - 1; i >= 0; i--) {
+        var p = splash[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 240 * dt; p.life -= dt;
+        if (p.life <= 0) splash.splice(i, 1);
+      }
+      for (i = drips.length - 1; i >= 0; i--) {
+        drips[i].y += drips[i].vy * dt; drips[i].life -= dt;
+        if (drips[i].life <= 0 || drips[i].y > waterY) drips.splice(i, 1);
+      }
+    }
+    function draw() {
+      drawTileFloor();
+      drawCurtain();
+      drawWindow();
+      drawMirror();
+      drawTowels();
+      drawSoap();
+      drawBottles();
+      drawMat();
+      var i;
+      for (i = 0; i < steam.length; i++) {
+        var s = steam[i];
+        var sx = s.x * W + Math.sin(t + s.ph) * 10;
+        var sy = s.y * H - (t * 12 + s.ph * 8) % 80;
+        g.fillStyle = "rgba(255,255,255," + (0.08 + 0.06 * Math.sin(t + s.ph)) + ")";
+        g.beginPath(); g.ellipse(sx, sy, s.s, s.s * 0.6, 0, 0, Math.PI * 2); g.fill();
+      }
+      drawWater();
+      for (i = 0; i < toys.length; i++) drawToy(toys[i]);
+      drawDuck();
+      for (i = 0; i < bubbles.length; i++) drawBubble(bubbles[i]);
+      for (i = 0; i < foam.length; i++) {
+        g.fillStyle = "rgba(255,255,255," + Math.max(0, foam[i].life * 0.45) + ")";
+        g.beginPath(); g.arc(foam[i].x, foam[i].y, foam[i].r, 0, Math.PI * 2); g.fill();
+      }
+      for (i = 0; i < splash.length; i++) {
+        g.globalAlpha = Math.max(0, splash[i].life);
+        g.fillStyle = splash[i].c;
+        g.beginPath(); g.arc(splash[i].x, splash[i].y, splash[i].s, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = 1;
+      }
+      for (i = 0; i < drips.length; i++) {
+        g.fillStyle = "rgba(165,243,252,.7)";
+        g.beginPath(); g.arc(drips[i].x, drips[i].y, drips[i].r, 0, Math.PI * 2); g.fill();
+      }
+      for (i = 0; i < cups.length; i++) {
+        var cp = cups[i];
+        var cx = cp.x * W + Math.sin(t + i) * 6, cy = waterY + 10;
+        g.fillStyle = cp.c;
+        g.beginPath(); g.moveTo(cx - 8, cy); g.lineTo(cx - 6, cy + 12); g.lineTo(cx + 6, cy + 12); g.lineTo(cx + 8, cy); g.fill();
+      }
+    }
+    function loop(now) {
       requestAnimationFrame(loop);
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
     }
-    document.getElementById("go").onclick = function () {
-      document.getElementById("start").classList.add("off");
-      bath = 0; foamMax = 0; toysGot = 0; duckHelps = 0;
-      startBath(); beep(520, 0.1);
-    };
-    document.getElementById("next").onclick = function () {
-      document.getElementById("mid").classList.add("off");
-      bath++; startBath(); beep(600, 0.1);
-    };
-    document.getElementById("again").onclick = function () {
-      document.getElementById("win").classList.add("off");
-      document.getElementById("start").classList.remove("off");
-    };
-    loop();
+    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    cv.addEventListener("pointerdown", function (e) {
+      if (mode !== "play") return;
+      var p = pos(e);
+      var n = popAt(p.x, p.y, 0);
+      if (n === 0) { /* miss is ok */ }
+    });
+    document.getElementById("go").onclick = startGame;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
+    addEventListener("resize", resize);
+    resize();
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

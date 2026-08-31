@@ -9,11 +9,10 @@
     html, body {
       height: 100%; overflow: hidden;
       font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: #0369a1; color: #ecfeff;
-      touch-action: manipulation; user-select: none;
+      background: #14532d; color: #fff; touch-action: none; user-select: none;
     }
     button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      background: transparent; border: 0; appearance: none;
       -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
     }
     .home {
@@ -21,247 +20,393 @@
       color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
       background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
     }
+    canvas { display: block; width: 100%; height: 100%; }
     #hud {
       position: fixed; top: 12px; right: 12px; z-index: 12;
       display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+      pointer-events: none;
     }
     #hud span {
-      font-weight: 800; background: rgba(255,255,255,.18);
-      padding: 6px 12px; border-radius: 16px; font-size: 15px;
-    }
-    #pond {
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse at 20% 80%, #065f46 0 18%, transparent 19%),
-        radial-gradient(ellipse at 85% 70%, #047857 0 14%, transparent 15%),
-        linear-gradient(#67e8f9, #0284c7 55%, #065f46);
-    }
-    #reeds {
-      position: absolute; left: 0; right: 0; bottom: 0; height: 16%;
-      pointer-events: none; font-size: 40px; letter-spacing: 18px;
-      padding: 8px 10px 0;
+      font-weight: 800; background: rgba(20,83,45,.75); padding: 6px 12px;
+      border-radius: 16px; font-size: 15px; border: 2px solid #bbf7d0;
     }
     #word {
-      position: fixed; top: 108px; left: 0; right: 0;
-      display: flex; justify-content: center; gap: 8px; z-index: 5; pointer-events: none;
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+      z-index: 8; font-weight: 800; font-size: 28px; letter-spacing: 6px;
+      background: #fff7ed; color: #14532d; padding: 10px 22px; border-radius: 18px;
+      box-shadow: 0 6px 0 #166534; pointer-events: none;
     }
-    #word i {
-      width: 48px; height: 56px; border-radius: 12px;
-      background: #fff; color: #0f172a; display: grid; place-items: center;
-      font-style: normal; font-weight: 800; font-size: 28px;
-      box-shadow: 0 5px 0 #0f766e;
-    }
-    #word i.on { background: #fde68a; }
-    .pad {
-      position: absolute; width: 78px; height: 78px;
-    }
-    .pad::before {
-      content: ""; position: absolute; inset: 8px 4px 0;
-      background: #16a34a; border-radius: 50%;
-      box-shadow: 0 8px 0 #14532d, inset 0 6px 0 #4ade80;
-    }
-    .pad b {
-      position: relative; z-index: 1; font-weight: 800; font-size: 28px; color: #14532d;
-    }
-    .pad.wig { animation: wig .3s; }
-    @keyframes wig { 25% { transform: scale(1.08) rotate(-10deg); } 75% { transform: rotate(10deg); } }
-    #frog {
-      position: absolute; width: 64px; height: 64px; font-size: 48px;
-      pointer-events: none; z-index: 6; transition: left .45s ease, top .45s ease;
-      filter: drop-shadow(0 4px 0 rgba(0,0,0,.2));
-    }
-    #hint {
-      position: fixed; bottom: 16px; left: 0; right: 0; text-align: center;
-      font-weight: 800; font-size: 16px; pointer-events: none;
+    #say {
+      position: fixed; left: 50%; top: 70px; transform: translateX(-50%);
+      z-index: 8; font-weight: 800; font-size: 20px; text-shadow: 0 3px 0 #14532d;
+      width: 90%; text-align: center; pointer-events: none;
     }
     .cover {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
-      background: linear-gradient(#67e8f9, #22c55e 50%, #fde047); color: #064e3b;
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 12px; padding: 24px;
+      background: linear-gradient(180deg, rgba(20,83,45,.32), rgba(22,101,52,.5));
     }
     .cover.off { display: none; }
-    .cover h1 { font-size: clamp(34px, 9vw, 52px); }
+    h1 { font-size: clamp(34px, 9vw, 52px); text-shadow: 0 5px 0 #14532d; }
     .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
-    .play {
-      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
-      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    .btn {
+      background: #fde047; color: #422006; font-weight: 800; font-size: 26px;
+      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #ca8a04;
     }
-    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
-    .starrow { font-size: 36px; letter-spacing: 4px; }
+    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
+    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
   <div id="hud">
-    <span id="wordHud">Word 1 / 5</span>
-    <span id="starHud">⭐ 0</span>
+    <span id="stage">Word 1</span>
+    <span id="got">Aa 0</span>
+    <span id="lives">💛💛💛💛💛💛</span>
   </div>
-  <div id="word"></div>
-  <div id="pond">
-    <div id="reeds">🌾🌾 🌾 🌾🌾</div>
-    <div id="frog">🐸</div>
-  </div>
-  <p id="hint">Frog hops to the next letter!</p>
-  <div class="cover" id="start">
-    <div style="font-size:72px">🐸</div>
+  <div id="say">Tap letters in order!</div>
+  <div id="word">___</div>
+  <div class="cover" id="title">
     <h1>Letter Pond</h1>
-    <p>Tap letters in order. Frog shows the next one!</p>
-    <button class="play" id="go">Play</button>
-  </div>
-  <div class="cover off" id="mid">
-    <div style="font-size:64px">✨</div>
-    <h1 id="midTitle">You spelled it!</h1>
-    <p id="midLine"></p>
-    <div class="starrow" id="midStars"></div>
-    <button class="play" id="next">Next word</button>
+    <p>Letters bob on lily pads. Tap them in order. The frog hops to help!</p>
+    <button class="btn" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:72px">🔤</div>
-    <h1>Word wizard!</h1>
-    <p>Five little words. Wow!</p>
-    <div class="starrow" id="winStars">⭐⭐⭐</div>
-    <button class="play" id="again">Play again</button>
+    <h1>Words done!</h1>
+    <p id="winP">Five words. Big smile.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f, d) {
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, t = 0, last = 0, mode = "title", stage = 0, score = 0, lives = 6;
+    var nextI = 0, built = "";
+    var pads = [], fish = [], frog = { x: 0, y: 0, tx: 0, ty: 0, hop: 0, blink: 0 };
+    var spark = [], reeds = [], bugs = [], ripples = [], extra = [];
+    var WORDS = [
+      { w: "SUN", n: "Sunny pad", nibble: 0.15, say: "Spell SUN" },
+      { w: "FROG", n: "Frog word", nibble: 0.28, say: "Spell FROG" },
+      { w: "LILY", n: "Lily word", nibble: 0.35, say: "Fish nibble pads!" },
+      { w: "POND", n: "Pond word", nibble: 0.4, say: "Spell POND" },
+      { w: "SMILE", n: "Smile word", nibble: 0.32, say: "Last word. SMILE!" }
+    ];
+
+    function beep(f, d, typ, vol) {
       try {
-        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = c.createOscillator(), g = c.createGain();
-        o.frequency.value = f; g.gain.value = 0.11;
-        o.connect(g); g.connect(c.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
-        o.stop(c.currentTime + d);
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), a = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; a.gain.value = vol || 0.08;
+        o.connect(a); a.connect(ac.destination); o.start();
+        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-    var WORDS = ["CAT", "SUN", "BUS", "HAT", "RED"];
-    var EXTRA = "AEIOUBMPRLN".split("");
-    var wi = 0, got = 0, play = false, letters = [], frogUses = 0, starsTotal = 0;
-    var pond = document.getElementById("pond");
-    var frog = document.getElementById("frog");
-    var hopT = 0;
-
-    function showWord() {
-      var w = WORDS[wi], box = document.getElementById("word"), h = "";
-      for (var i = 0; i < w.length; i++) {
-        h += "<i class='" + (i < got ? "on" : "") + "'>" + (i < got ? w[i] : "_") + "</i>";
+    function chord(ns, d) { for (var i = 0; i < ns.length; i++) beep(ns[i], d, "triangle", 0.045); }
+    function say(s) { document.getElementById("say").textContent = s; }
+    function hud() {
+      var wd = WORDS[Math.min(stage, 4)];
+      document.getElementById("stage").textContent = wd.n;
+      document.getElementById("got").textContent = "Aa " + score;
+      var h = ""; for (var i = 0; i < lives; i++) h += "💛";
+      document.getElementById("lives").textContent = h || "…";
+      var show = "";
+      for (var k = 0; k < wd.w.length; k++) show += (k < nextI ? wd.w[k] : "_");
+      document.getElementById("word").textContent = show;
+    }
+    function resize() {
+      W = cv.width = innerWidth; H = cv.height = innerHeight;
+      if (!reeds.length) seed();
+    }
+    function seed() {
+      reeds = []; bugs = []; spark = [];
+      var i;
+      for (i = 0; i < 16; i++) reeds.push({ x: Math.random(), side: i < 8 ? 0 : 1, h: 50 + Math.random() * 60, ph: Math.random() * 6 });
+      for (i = 0; i < 10; i++) bugs.push({ x: Math.random(), y: 0.3 + Math.random() * 0.4, ph: Math.random() * 6 });
+      for (i = 0; i < 40; i++) spark.push({ x: Math.random(), y: 0.4 + Math.random() * 0.5, ph: Math.random() * 6, s: 1 + Math.random() * 2 });
+    }
+    function layoutPads(word) {
+      pads = [];
+      var letters = word.split("");
+      var extras = "ABCDEFGHJKLMNOPRSTVWY";
+      var used = {};
+      var i, ch;
+      for (i = 0; i < letters.length; i++) {
+        used[letters[i]] = 1;
+        pads.push({
+          ch: letters[i], need: true, done: false,
+          x: 0.18 + (i / Math.max(1, letters.length - 1)) * 0.64,
+          y: 0.42 + (i % 2) * 0.16,
+          ph: i, r: 34, vx: 0, vy: 0
+        });
       }
-      box.innerHTML = h;
-      document.getElementById("wordHud").textContent = "Word " + (wi + 1) + " / 5";
-      document.getElementById("starHud").textContent = "⭐ " + starsTotal;
-    }
-    function extraCount() {
-      return 3 + wi;
-    }
-    function spawnSet() {
-      letters.forEach(function (L) { L.el.remove(); });
-      letters = [];
-      var w = WORDS[wi];
-      var chars = w.split("");
-      var extras = EXTRA.slice();
-      for (var e = extras.length - 1; e > 0; e--) {
-        var j = Math.floor(Math.random() * (e + 1));
-        var tmp = extras[e]; extras[e] = extras[j]; extras[j] = tmp;
-      }
-      extras.slice(0, extraCount()).forEach(function (ch) {
-        if (chars.indexOf(ch) === -1) chars.push(ch);
-      });
-      for (var i = chars.length - 1; i > 0; i--) {
-        var k = Math.floor(Math.random() * (i + 1));
-        var t = chars[i]; chars[i] = chars[k]; chars[k] = t;
-      }
-      chars.forEach(function (ch, n) {
-        var b = document.createElement("button");
-        b.className = "pad";
-        b.innerHTML = "<b>" + ch + "</b>";
-        var L = {
-          el: b, ch: ch,
-          x: 20 + Math.random() * Math.max(40, innerWidth - 100),
-          y: 180 + Math.random() * Math.max(60, innerHeight - 300),
-          vx: (n % 2 ? 1 : -1) * (0.45 + Math.random() * 0.5),
-          vy: (n % 3 ? 0.35 : -0.35),
-          dead: false
-        };
-        b.style.left = L.x + "px"; b.style.top = L.y + "px";
-        b.onclick = function () {
-          if (!play || L.dead) return;
-          var need = WORDS[wi][got];
-          if (ch !== need) {
-            b.classList.remove("wig"); void b.offsetWidth; b.classList.add("wig");
-            beep(180, 0.1);
-            return;
-          }
-          got++;
-          starsTotal++;
-          L.dead = true; b.remove();
-          beep(640 + got * 40, 0.1);
-          showWord();
-          hopFrog();
-          if (got >= w.length) endWord();
-        };
-        pond.appendChild(b);
-        letters.push(L);
-      });
-      hopFrog();
-    }
-    function hopFrog() {
-      var need = WORDS[wi] && WORDS[wi][got];
-      var target = null;
-      letters.forEach(function (L) {
-        if (!L.dead && L.ch === need) target = L;
-      });
-      if (!target) return;
-      frog.style.left = (target.x - 8) + "px";
-      frog.style.top = (target.y - 36) + "px";
-      frogUses++;
-    }
-    function endWord() {
-      play = false;
-      var stars = 3;
-      var row = "⭐⭐⭐";
-      if (wi >= 4) {
-        document.getElementById("winStars").textContent = row;
-        document.getElementById("win").classList.remove("off");
-        beep(900, 0.2);
-      } else {
-        document.getElementById("midTitle").textContent = WORDS[wi] + "!";
-        document.getElementById("midLine").textContent = "Word " + (wi + 1) + " of 5. Next!";
-        document.getElementById("midStars").textContent = row;
-        document.getElementById("mid").classList.remove("off");
-        beep(820, 0.16);
+      var extraN = 2 + stage;
+      for (i = 0; i < extraN; i++) {
+        do { ch = extras[(Math.random() * extras.length) | 0]; } while (used[ch]);
+        used[ch] = 1;
+        pads.push({
+          ch: ch, need: false, done: false,
+          x: 0.15 + Math.random() * 0.7,
+          y: 0.38 + Math.random() * 0.32,
+          ph: 3 + i, r: 30, vx: 0, vy: 0
+        });
       }
     }
-    function startWord() {
-      got = 0; play = true; hopT = 0;
-      showWord(); spawnSet();
-    }
-    function loop() {
-      letters.forEach(function (L) {
-        if (L.dead) return;
-        L.x += L.vx; L.y += L.vy;
-        if (L.x < 8 || L.x > innerWidth - 86) L.vx *= -1;
-        if (L.y < 160 || L.y > innerHeight - 90) L.vy *= -1;
-        L.el.style.left = L.x + "px"; L.el.style.top = L.y + "px";
-      });
-      if (play) {
-        hopT++;
-        if (hopT % 180 === 0) hopFrog();
+    function resetWord() {
+      var wd = WORDS[stage];
+      nextI = 0; built = "";
+      layoutPads(wd.w);
+      fish = []; ripples = []; extra = [];
+      for (var i = 0; i < 3 + stage; i++) {
+        fish.push({
+          x: Math.random() * W, y: H * 0.5 + Math.random() * H * 0.2,
+          a: Math.random() * 6, s: 14 + Math.random() * 8,
+          c: i % 2 ? "#fb7185" : "#38bdf8", target: -1, nibbleT: 1 + Math.random() * 2
+        });
       }
-      requestAnimationFrame(loop);
+      frog.x = W * 0.12; frog.y = H * 0.72; frog.hop = 0;
+      hopToNext();
+      say(wd.say);
+      hud();
     }
-    document.getElementById("go").onclick = function () {
-      document.getElementById("start").classList.add("off");
-      wi = 0; starsTotal = 0; frogUses = 0;
-      startWord(); beep(520, 0.1);
-    };
-    document.getElementById("next").onclick = function () {
-      document.getElementById("mid").classList.add("off");
-      wi++; startWord(); beep(600, 0.1);
-    };
-    document.getElementById("again").onclick = function () {
+    function hopToNext() {
+      var wd = WORDS[Math.min(stage, 4)];
+      var ch = wd.w[nextI];
+      for (var i = 0; i < pads.length; i++) {
+        if (pads[i].ch === ch && !pads[i].done && pads[i].need) {
+          frog.tx = pads[i].x * W; frog.ty = pads[i].y * H - 28;
+          frog.hop = 1;
+          return;
+        }
+      }
+    }
+    function startGame() {
+      mode = "play"; stage = 0; score = 0; lives = 6;
+      document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("start").classList.remove("off");
-    };
-    loop();
+      resetWord();
+      chord([349, 440, 523], 0.16);
+    }
+    function winGame() {
+      mode = "win";
+      document.getElementById("winP").textContent = "You spelled five pond words!";
+      document.getElementById("win").classList.remove("off");
+      chord([523, 659, 784, 880], 0.3);
+    }
+    function nextWord() {
+      stage++;
+      if (stage >= 5) { winGame(); return; }
+      resetWord();
+      beep(720, 0.12, "triangle", 0.1);
+    }
+    function ripple(x, y) { ripples.push({ x: x, y: y, r: 6, life: 0.8 }); }
+    function drawPad(p) {
+      var x = p.x * W + Math.sin(t * 1.4 + p.ph) * 8 + p.vx;
+      var y = p.y * H + Math.cos(t * 1.1 + p.ph) * 6 + p.vy;
+      g.save();
+      g.fillStyle = p.done ? "#86efac" : "#16a34a";
+      g.beginPath(); g.ellipse(x, y, p.r, p.r * 0.62, 0, 0.25, Math.PI * 2 - 0.35); g.fill();
+      g.fillStyle = p.done ? "#bbf7d0" : "#22c55e";
+      g.beginPath(); g.ellipse(x - 4, y - 2, p.r * 0.55, p.r * 0.32, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = p.done ? "#14532d" : "#14532d";
+      g.font = "bold 28px Trebuchet MS"; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText(p.ch, x, y - 2);
+      if (mode === "play" && p.need && !p.done && WORDS[stage].w[nextI] === p.ch) {
+        g.strokeStyle = "rgba(253,224,71,.85)"; g.lineWidth = 3;
+        g.beginPath(); g.ellipse(x, y, p.r + 6 + Math.sin(t * 6) * 3, p.r * 0.7 + 4, 0, 0, Math.PI * 2); g.stroke();
+      }
+      g.restore();
+      p._x = x; p._y = y;
+    }
+    function drawFrog() {
+      var x = frog.x, y = frog.y;
+      if (frog.hop > 0) {
+        var k = 1 - frog.hop;
+        x = frog.x + (frog.tx - frog.x) * k;
+        y = frog.y + (frog.ty - frog.y) * k - Math.sin(k * Math.PI) * 40;
+      }
+      g.save(); g.translate(x, y);
+      g.fillStyle = "#65a30d";
+      g.beginPath(); g.ellipse(0, 6, 18, 12, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(-8, -6, 8, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(8, -6, 8, 0, Math.PI * 2); g.fill();
+      var blink = Math.sin(t * 2.5) > 0.9;
+      g.fillStyle = "#fde047";
+      if (blink) { g.fillRect(-11, -8, 6, 1.5); g.fillRect(5, -8, 6, 1.5); }
+      else {
+        g.beginPath(); g.arc(-8, -7, 4, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(8, -7, 4, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#14532d";
+        g.beginPath(); g.arc(-7, -7, 2, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(9, -7, 2, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = "#4d7c0f";
+      g.beginPath(); g.ellipse(-16, 10, 7, 4, -0.4, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(16, 10, 7, 4, 0.4, 0, Math.PI * 2); g.fill();
+      g.restore();
+      frog._x = x; frog._y = y;
+    }
+    function drawFish(f) {
+      g.save(); g.translate(f.x, f.y); g.rotate(f.a);
+      g.fillStyle = f.c;
+      g.beginPath(); g.ellipse(0, 0, f.s, f.s * 0.5, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.moveTo(-f.s, 0); g.lineTo(-f.s - 8, -5); g.lineTo(-f.s - 8, 5); g.fill();
+      g.fillStyle = "#0f172a";
+      g.beginPath(); g.arc(f.s * 0.4, -2, 1.8, 0, Math.PI * 2); g.fill();
+      g.restore();
+    }
+    function drawBg() {
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.35, "#38bdf8"); grd.addColorStop(1, "#0ea5e9");
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      g.fillStyle = "#fde047";
+      g.beginPath(); g.arc(W * 0.84, H * 0.12, 24, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "rgba(253,224,71,.2)";
+      g.beginPath(); g.arc(W * 0.84, H * 0.12, 44, 0, Math.PI * 2); g.fill();
+      var i;
+      g.fillStyle = "#0284c7";
+      g.beginPath(); g.moveTo(0, H * 0.32);
+      for (i = 0; i <= W; i += 16) g.lineTo(i, H * 0.32 + Math.sin(i * 0.03 + t) * 6);
+      g.lineTo(W, H); g.lineTo(0, H); g.fill();
+      g.fillStyle = "#0ea5e9";
+      g.beginPath(); g.moveTo(0, H * 0.38);
+      for (i = 0; i <= W; i += 14) g.lineTo(i, H * 0.38 + Math.sin(i * 0.04 + t * 1.5) * 8);
+      g.lineTo(W, H); g.lineTo(0, H); g.fill();
+      for (i = 0; i < spark.length; i++) {
+        var s = spark[i];
+        var sx = ((s.x + t * 0.03) % 1) * W;
+        var sy = s.y * H + Math.sin(t * 2 + s.ph) * 6;
+        g.fillStyle = "rgba(255,255,255," + (0.25 + 0.35 * Math.sin(t * 4 + s.ph)) + ")";
+        g.beginPath(); g.arc(sx, sy, s.s, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = "#166534";
+      g.beginPath(); g.ellipse(0, H, W * 0.45, 90, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(W, H, W * 0.5, 100, 0, 0, Math.PI * 2); g.fill();
+      for (i = 0; i < reeds.length; i++) {
+        var r = reeds[i];
+        var rx = r.side ? W - r.x * W * 0.16 : r.x * W * 0.16;
+        var sway = Math.sin(t * 1.8 + r.ph) * 10;
+        g.strokeStyle = "#365314"; g.lineWidth = 4;
+        g.beginPath(); g.moveTo(rx, H * 0.82);
+        g.quadraticCurveTo(rx + sway, H * 0.82 - r.h * 0.5, rx + sway * 1.2, H * 0.82 - r.h);
+        g.stroke();
+      }
+    }
+    function update(dt) {
+      var wd = WORDS[Math.min(stage, 4)];
+      t += dt;
+      var i, p, f;
+      if (frog.hop > 0) {
+        frog.hop -= dt * 1.6;
+        if (frog.hop <= 0) { frog.x = frog.tx; frog.y = frog.ty; frog.hop = 0; }
+      }
+      for (i = 0; i < pads.length; i++) {
+        p = pads[i];
+        p.vx *= 0.96; p.vy *= 0.96;
+        p.x += p.vx * dt * 0.002;
+        p.y += p.vy * dt * 0.002;
+        if (p.x < 0.08) p.x = 0.08;
+        if (p.x > 0.92) p.x = 0.92;
+        if (p.y < 0.34) p.y = 0.34;
+        if (p.y > 0.78) p.y = 0.78;
+      }
+      for (i = 0; i < fish.length; i++) {
+        f = fish[i];
+        f.nibbleT -= dt;
+        if (f.nibbleT <= 0 && mode === "play") {
+          f.target = (Math.random() * pads.length) | 0;
+          f.nibbleT = 2.2 + Math.random() * 2;
+        }
+        if (f.target >= 0 && pads[f.target]) {
+          var tx = pads[f.target]._x || pads[f.target].x * W;
+          var ty = pads[f.target]._y || pads[f.target].y * H;
+          f.x += (tx - 20 - f.x) * dt * 1.4;
+          f.y += (ty - f.y) * dt * 1.4;
+          f.a = Math.atan2(ty - f.y, tx - f.x);
+          if (Math.hypot(tx - f.x, ty - f.y) < 28 && Math.random() < wd.nibble) {
+            pads[f.target].vx += (Math.random() - 0.5) * 80;
+            pads[f.target].vy += (Math.random() - 0.5) * 40;
+            ripple(tx, ty);
+            beep(180, 0.04, "sine", 0.03);
+          }
+        } else {
+          f.a += dt * 0.5;
+          f.x = W * 0.5 + Math.cos(f.a + i) * W * 0.28;
+          f.y = H * 0.58 + Math.sin(f.a * 2) * H * 0.1;
+        }
+      }
+      for (i = ripples.length - 1; i >= 0; i--) {
+        ripples[i].r += 36 * dt; ripples[i].life -= dt;
+        if (ripples[i].life <= 0) ripples.splice(i, 1);
+      }
+    }
+    function tap(x, y) {
+      var wd = WORDS[stage];
+      var i, p, dx, dy, hit = -1;
+      for (i = 0; i < pads.length; i++) {
+        p = pads[i];
+        dx = x - (p._x || p.x * W); dy = y - (p._y || p.y * H);
+        if (dx * dx + dy * dy < (p.r + 16) * (p.r + 16)) { hit = i; break; }
+      }
+      if (hit < 0) return;
+      p = pads[hit];
+      if (p.done) return;
+      if (p.ch === wd.w[nextI] && p.need) {
+        p.done = true;
+        nextI++;
+        score++;
+        ripple(p._x, p._y);
+        beep(480 + nextI * 40, 0.08, "triangle", 0.08);
+        hud();
+        if (nextI >= wd.w.length) {
+          say(wd.w + "!");
+          chord([523, 659, 784], 0.18);
+          setTimeout(function () { if (mode === "play") nextWord(); }, 500);
+        } else {
+          hopToNext();
+        }
+      } else {
+        lives = Math.max(0, lives - 1);
+        say("Next is " + wd.w[nextI]);
+        beep(160, 0.07, "sine", 0.05);
+        hud();
+        if (lives <= 0) { lives = 6; hud(); }
+      }
+    }
+    function draw() {
+      drawBg();
+      var i;
+      for (i = 0; i < ripples.length; i++) {
+        g.strokeStyle = "rgba(255,255,255," + (ripples[i].life * 0.5) + ")"; g.lineWidth = 2;
+        g.beginPath(); g.arc(ripples[i].x, ripples[i].y, ripples[i].r, 0, Math.PI * 2); g.stroke();
+      }
+      for (i = 0; i < pads.length; i++) drawPad(pads[i]);
+      for (i = 0; i < fish.length; i++) drawFish(fish[i]);
+      drawFrog();
+      for (i = 0; i < bugs.length; i++) {
+        var b = bugs[i];
+        var bx = ((b.x + Math.sin(t * 0.3 + b.ph) * 0.08) % 1) * W;
+        var by = b.y * H + Math.sin(t * 2 + b.ph) * 8;
+        g.fillStyle = "rgba(0,0,0,.35)";
+        g.beginPath(); g.arc(bx, by, 1.4, 0, Math.PI * 2); g.fill();
+      }
+    }
+    function loop(now) {
+      requestAnimationFrame(loop);
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
+    }
+    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    cv.addEventListener("pointerdown", function (e) { if (mode === "play") tap(pos(e).x, pos(e).y); });
+    document.getElementById("go").onclick = startGame;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
+    addEventListener("resize", resize);
+    resize();
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

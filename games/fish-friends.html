@@ -9,311 +9,405 @@
     html, body {
       height: 100%; overflow: hidden;
       font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: #1c1917; color: #ecfeff;
-      touch-action: manipulation; user-select: none;
+      background: #0c4a6e; color: #fff; touch-action: none; user-select: none;
     }
     button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      background: transparent; border: 0; appearance: none;
       -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
     }
     .home {
       position: fixed; top: 12px; left: 12px; z-index: 12;
       color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.4); padding: 8px 14px; border-radius: 999px;
+      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
     }
+    canvas { display: block; width: 100%; height: 100%; }
     #hud {
       position: fixed; top: 12px; right: 12px; z-index: 12;
       display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+      pointer-events: none;
     }
     #hud span {
-      font-weight: 800; background: rgba(255,255,255,.18);
-      padding: 6px 12px; border-radius: 16px; font-size: 15px;
+      font-weight: 800; background: rgba(12,74,110,.75); padding: 6px 12px;
+      border-radius: 16px; font-size: 15px; border: 2px solid #67e8f9;
     }
-    #room {
-      position: fixed; inset: 0;
-      background: linear-gradient(#44403c 0 48px, #292524 48px);
+    #say {
+      position: fixed; left: 50%; top: 70px; transform: translateX(-50%);
+      z-index: 8; font-weight: 800; font-size: 20px; text-shadow: 0 3px 0 #0c4a6e;
+      width: 90%; text-align: center; pointer-events: none;
     }
-    #lamp {
-      position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
-      z-index: 4; font-size: 28px; font-weight: 800;
-      background: #fde68a; color: #3b2100; padding: 6px 16px; border-radius: 999px;
-    }
-    #frame {
-      position: absolute; left: 4%; right: 4%; top: 56px; bottom: 118px;
-      border: 14px solid #a8a29e;
-      border-radius: 18px;
-      box-shadow:
-        inset 0 0 0 6px #e7e5e4,
-        inset 0 0 0 10px rgba(125,211,252,.35),
-        0 12px 0 #44403c;
-      overflow: hidden;
-      background: linear-gradient(#7dd3fc, #0e7490 62%, #155e75);
-    }
-    #frame.night {
-      background: linear-gradient(#164e63, #0f172a 70%, #082f49);
-    }
-    #frame.night::after {
-      content: ""; position: absolute; inset: 0; pointer-events: none;
-      background: radial-gradient(ellipse at 50% 0%, rgba(253,230,138,.22), transparent 55%);
-    }
-    #shine {
-      position: absolute; inset: 0; pointer-events: none;
-      background: linear-gradient(115deg, rgba(255,255,255,.22) 0 12%, transparent 18% 100%);
-    }
-    #gravel {
-      position: absolute; left: 0; right: 0; bottom: 0; height: 52px;
-      background:
-        radial-gradient(circle at 10% 60%, #d6d3d1 8px, transparent 9px),
-        radial-gradient(circle at 28% 80%, #a8a29e 7px, transparent 8px),
-        radial-gradient(circle at 46% 50%, #e7e5e4 9px, transparent 10px),
-        radial-gradient(circle at 64% 75%, #78716c 8px, transparent 9px),
-        radial-gradient(circle at 82% 55%, #d6d3d1 8px, transparent 9px),
-        linear-gradient(#ca8a04, #a16207);
-    }
-    #plants { position: absolute; inset: 0; pointer-events: none; }
-    .plant {
-      position: absolute; bottom: 40px; font-size: 42px;
-    }
-    #decoLayer { position: absolute; inset: 0; pointer-events: none; }
-    .deco {
-      position: absolute; font-size: 40px; pointer-events: none;
-    }
-    .fish {
-      position: absolute; width: 76px; height: 76px; font-size: 52px;
-      display: grid; place-items: center;
-    }
-    .fish.hungry::after {
-      content: "Yum?"; position: absolute; left: 50%; top: -8px;
-      transform: translateX(-50%); font-size: 13px; font-weight: 800;
-      background: #fff; color: #0e7490; padding: 3px 8px; border-radius: 10px;
-      white-space: nowrap; box-shadow: 0 3px 0 #0f766e;
-    }
-    .fish.gold { filter: drop-shadow(0 0 10px #facc15); }
-    .fish.gold.hungry::after { content: "Gold!"; color: #a16207; }
-    .pop { position: absolute; font-size: 24px; pointer-events: none; }
-    #tray {
-      position: fixed; left: 0; right: 0; bottom: 0; height: 110px; z-index: 5;
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      background: #44403c; border-top: 6px solid #78716c;
-    }
-    #tray p { font-weight: 800; font-size: 14px; color: #e7e5e4; width: 70px; }
-    #tray button {
-      width: 72px; height: 72px; border-radius: 18px; background: #292524;
-      font-size: 36px; box-shadow: 0 6px 0 #1c1917;
-    }
-    #tray button:active { transform: translateY(3px); box-shadow: 0 3px 0 #1c1917; }
     .cover {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
-      background: linear-gradient(#155e75, #0e7490 40%, #fde047);
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 12px; padding: 24px;
+      background: linear-gradient(180deg, rgba(12,74,110,.32), rgba(8,47,73,.52));
     }
     .cover.off { display: none; }
-    .cover h1 { font-size: clamp(34px, 9vw, 52px); }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; color: #082f49; }
-    .play {
-      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
-      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    h1 { font-size: clamp(34px, 9vw, 52px); text-shadow: 0 5px 0 #0c4a6e; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
+    .btn {
+      background: #67e8f9; color: #083344; font-weight: 800; font-size: 26px;
+      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #0891b2;
     }
-    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
-    .starrow { font-size: 36px; letter-spacing: 4px; }
+    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #0891b2; }
+    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
   <div id="hud">
-    <span id="score">Feeds 0 / 5</span>
-    <span id="tankHud">Tank 1 / 3</span>
+    <span id="tank">Tank 1</span>
+    <span id="got">🐟 0</span>
+    <span id="lives">💛💛💛💛💛💛</span>
   </div>
-  <div id="room">
-    <button id="lamp" type="button">☀️ Day</button>
-    <div id="frame">
-      <div id="shine"></div>
-      <div id="plants">
-        <div class="plant" style="left:8%">🌿</div>
-        <div class="plant" style="left:22%;font-size:34px">🌱</div>
-        <div class="plant" style="right:10%">🌿</div>
-      </div>
-      <div id="gravel"></div>
-      <div id="decoLayer"></div>
-    </div>
-  </div>
-  <div id="tray">
-    <p>Tap to place</p>
-    <button type="button" data-e="🌿">🌿</button>
-    <button type="button" data-e="🏰">🏰</button>
-    <button type="button" data-e="🪨">🪨</button>
-  </div>
-  <div class="cover" id="start">
-    <div style="font-size:72px">🐠</div>
+  <div id="say">Tap a hungry fish!</div>
+  <div class="cover" id="title">
     <h1>Fish Friends</h1>
-    <p>Tap the hungry fish. Decorate the tank. Night light too!</p>
-    <button class="play" id="go">Play</button>
-  </div>
-  <div class="cover off" id="mid">
-    <div style="font-size:64px">🫧</div>
-    <h1 id="midTitle">Full tank!</h1>
-    <p id="midLine"></p>
-    <div class="starrow" id="midStars"></div>
-    <button class="play" id="next">Next tank</button>
+    <p>Tap a hungry fish. Flakes fall. The lamp turns day and night!</p>
+    <button class="btn" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:72px">🐠</div>
     <h1>Full tummies!</h1>
-    <p>Every fish is happy.</p>
-    <div class="starrow" id="winStars">⭐⭐⭐</div>
-    <button class="play" id="again">Play again</button>
+    <p id="winP">Five tanks. Happy swim.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f, d) {
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, t = 0, last = 0, mode = "title", tank = 0, score = 0, lives = 6;
+    var lamp = 1, lampT = 0, fed = 0, need = 0;
+    var fishes = [], flakes = [], bubbles = [], plants = [], rocks = [];
+    var snails = [], gravel = [], glow = [], castle = { bob: 0 };
+    var TANKS = [
+      { n: "Gold pals", night: 0, kinds: ["gold"], fishN: 4, need: 6, decor: "pot", say: "Tap the open mouth!" },
+      { n: "Tetra school", night: 0, kinds: ["tetra", "tetra", "gold"], fishN: 6, need: 8, decor: "plant", say: "Many little fish." },
+      { n: "Angel tank", night: 0.2, kinds: ["angel", "gold", "tetra"], fishN: 5, need: 8, decor: "castle", say: "Tall angel fish." },
+      { n: "Night glow", night: 1, kinds: ["glow", "tetra"], fishN: 5, need: 8, decor: "glow", say: "Lamp is dim. Find them!" },
+      { n: "Reef party", night: 0.35, kinds: ["gold", "angel", "tetra", "glow"], fishN: 7, need: 10, decor: "reef", say: "Feed every friend!" }
+    ];
+    var KIND = {
+      gold: { c: "#f59e0b", c2: "#fde047", s: 22, name: "gold" },
+      tetra: { c: "#38bdf8", c2: "#f472b6", s: 12, name: "tetra" },
+      angel: { c: "#f8fafc", c2: "#1e293b", s: 20, name: "angel" },
+      glow: { c: "#4ade80", c2: "#a3e635", s: 14, name: "glow" }
+    };
+
+    function beep(f, d, typ, vol) {
       try {
-        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = c.createOscillator(), g = c.createGain();
-        o.frequency.value = f; g.gain.value = 0.1;
-        o.connect(g); g.connect(c.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
-        o.stop(c.currentTime + d);
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), a = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; a.gain.value = vol || 0.08;
+        o.connect(a); a.connect(ac.destination); o.start();
+        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-    var TANKS = [
-      { n: 3, need: 5, gold: false },
-      { n: 5, need: 8, gold: true },
-      { n: 6, need: 10, gold: true }
-    ];
-    var KINDS = ["🐟", "🐠", "🐡", "🐬", "🦈", "🐙"];
-    var tank = 0, feeds = 0, need = 5, hungryI = 0, fish = [], play = false;
-    var night = false, goldFeeds = 0, placed = 0;
-    var frame = document.getElementById("frame");
-    var decoLayer = document.getElementById("decoLayer");
-
+    function chord(ns, d) { for (var i = 0; i < ns.length; i++) beep(ns[i], d, "triangle", 0.04); }
+    function say(s) { document.getElementById("say").textContent = s; }
     function hud() {
-      document.getElementById("score").textContent = "Feeds " + feeds + " / " + need;
-      document.getElementById("tankHud").textContent = "Tank " + (tank + 1) + " / 3";
+      document.getElementById("tank").textContent = TANKS[Math.min(tank, 4)].n;
+      document.getElementById("got").textContent = "🐟 " + score;
+      var h = ""; for (var i = 0; i < lives; i++) h += "💛";
+      document.getElementById("lives").textContent = h || "…";
     }
-    function rect() {
-      return frame.getBoundingClientRect();
+    function resize() {
+      W = cv.width = innerWidth; H = cv.height = innerHeight;
+      if (!plants.length) seed();
     }
-    function clearFish() {
-      fish.forEach(function (f) { f.el.remove(); });
-      fish = [];
+    function seed() {
+      plants = []; rocks = []; gravel = []; snails = []; glow = [];
+      var i;
+      for (i = 0; i < 8; i++) plants.push({ x: 0.06 + i * 0.12, h: 50 + Math.random() * 70, ph: Math.random() * 6, c: i % 2 ? "#15803d" : "#166534" });
+      for (i = 0; i < 5; i++) rocks.push({ x: 0.1 + Math.random() * 0.8, y: 0.86, r: 14 + Math.random() * 16, c: i % 2 ? "#78716c" : "#57534e" });
+      for (i = 0; i < 50; i++) gravel.push({ x: Math.random(), y: 0.9 + Math.random() * 0.08, c: i % 3 ? "#a8a29e" : "#d6d3d1", s: 3 + Math.random() * 3 });
+      for (i = 0; i < 2; i++) snails.push({ x: Math.random(), y: 0.88, dir: 1, ph: i });
+      for (i = 0; i < 12; i++) glow.push({ x: Math.random(), y: 0.3 + Math.random() * 0.5, ph: Math.random() * 6 });
     }
-    function makeFish(i, gold) {
-      var el = document.createElement("button");
-      el.className = "fish" + (gold ? " gold" : "");
-      el.innerHTML = '<span class="face">' + (gold ? "🌟🐠" : KINDS[i % KINDS.length]) + "</span>";
-      frame.appendChild(el);
-      var r = rect();
-      var f = {
-        el: el, gold: gold,
-        x: 20 + Math.random() * Math.max(40, r.width - 100),
-        y: 40 + Math.random() * Math.max(40, r.height - 140),
-        vx: (Math.random() < 0.5 ? -1 : 1) * (0.7 + Math.random() * 1.1),
-        vy: (Math.random() < 0.5 ? -1 : 1) * (0.3 + Math.random() * 0.6)
+    function makeFish(kind, i) {
+      return {
+        kind: kind, u: Math.random() * 6, path: i % 4,
+        wander: Math.random() * 6, hungry: Math.random() < 0.55,
+        fed: 0, blink: 0, mouth: 0, x: 0, y: 0, a: 0
       };
-      el.onclick = function () {
-        if (!play) return;
-        if (fish[hungryI] !== f) {
-          el.style.transform = "scale(.88)";
-          setTimeout(function () { el.style.transform = ""; }, 140);
-          beep(200, 0.08);
-          return;
-        }
-        var add = f.gold ? 2 : 1;
-        feeds += add;
-        if (f.gold) goldFeeds++;
-        var b = document.createElement("div");
-        b.className = "pop"; b.textContent = f.gold ? "✨+2" : "🫧";
-        b.style.left = f.x + "px"; b.style.top = f.y + "px";
-        frame.appendChild(b);
-        setTimeout(function () { b.remove(); }, 500);
-        beep(f.gold ? 880 : 700, 0.09);
-        hud();
-        pickHungry();
-        if (feeds >= need) endTank();
-      };
-      fish.push(f);
     }
-    function startTank() {
-      clearFish();
-      var t = TANKS[tank];
-      need = t.need; feeds = 0;
-      var goldAt = t.gold ? Math.floor(Math.random() * t.n) : -1;
-      for (var i = 0; i < t.n; i++) makeFish(i, i === goldAt);
-      pickHungry();
+    function fishXY(f) {
+      var u = f.u;
+      var wx = Math.sin(f.wander) * 18;
+      var wy = Math.cos(f.wander * 0.7) * 10;
+      var p;
+      if (f.path === 0) p = { x: W * 0.5 + Math.cos(u) * W * 0.32, y: H * 0.45 + Math.sin(u * 2) * H * 0.16 };
+      else if (f.path === 1) p = { x: W * 0.22 + (Math.sin(u) * 0.5 + 0.5) * W * 0.56, y: H * 0.38 + Math.sin(u * 3) * H * 0.14 };
+      else if (f.path === 2) p = { x: W * 0.5 + Math.sin(u * 1.2) * W * 0.3, y: H * 0.62 + Math.cos(u * 0.8) * H * 0.12 };
+      else p = { x: W * 0.3 + Math.cos(u * 0.7) * W * 0.28 + Math.sin(u * 2) * 20, y: H * 0.5 + Math.sin(u) * H * 0.18 };
+      return { x: p.x + wx, y: p.y + wy };
+    }
+    function resetTank() {
+      var T = TANKS[tank];
+      fishes = []; flakes = []; bubbles = [];
+      fed = 0; need = T.need; lamp = T.night > 0.7 ? 0.25 : 1; lampT = 0;
+      for (var i = 0; i < T.fishN; i++) {
+        var k = T.kinds[i % T.kinds.length];
+        fishes.push(makeFish(k, i));
+      }
+      say(T.say);
       hud();
-      play = true;
     }
-    function pickHungry() {
-      if (!fish.length) return;
-      var opts = [];
-      for (var i = 0; i < fish.length; i++) if (i !== hungryI) opts.push(i);
-      if (!opts.length) opts = [0];
-      hungryI = opts[Math.floor(Math.random() * opts.length)];
-      fish.forEach(function (f, i) { f.el.classList.toggle("hungry", i === hungryI); });
+    function startGame() {
+      mode = "play"; tank = 0; score = 0; lives = 6;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      resetTank();
+      chord([330, 392, 494], 0.16);
     }
-    function endTank() {
-      play = false;
-      var stars = 1 + (placed >= 2 ? 1 : 0) + (goldFeeds > 0 || tank === 0 ? 1 : 0);
-      if (stars > 3) stars = 3;
-      var row = "⭐".repeat(stars) + "☆".repeat(3 - stars);
-      if (tank >= 2) {
-        document.getElementById("winStars").textContent = row;
-        document.getElementById("win").classList.remove("off");
-        beep(900, 0.2);
+    function winGame() {
+      mode = "win";
+      document.getElementById("winP").textContent = "You fed friends " + score + " times!";
+      document.getElementById("win").classList.remove("off");
+      chord([523, 659, 784], 0.3);
+    }
+    function nextTank() {
+      tank++;
+      if (tank >= 5) { winGame(); return; }
+      resetTank();
+      beep(700, 0.12, "triangle", 0.1);
+    }
+    function dropFlakes(x, y) {
+      for (var i = 0; i < 7; i++) {
+        flakes.push({
+          x: x + (Math.random() - 0.5) * 30, y: y,
+          vx: (Math.random() - 0.5) * 20, vy: 20 + Math.random() * 30,
+          r: 3 + Math.random() * 2, life: 4, rot: Math.random() * 6
+        });
+      }
+      beep(640, 0.06, "sine", 0.06);
+    }
+    function drawFish(f) {
+      var info = KIND[f.kind] || KIND.gold;
+      var p = { x: f.x, y: f.y };
+      g.save(); g.translate(p.x, p.y); g.rotate(f.a);
+      var s = info.s;
+      if (f.kind === "angel") {
+        g.fillStyle = info.c;
+        g.beginPath(); g.moveTo(0, -s * 1.4); g.lineTo(s * 0.5, 0); g.lineTo(0, s * 1.4); g.lineTo(-s * 0.4, 0); g.fill();
+        g.fillStyle = info.c2;
+        g.fillRect(-s * 0.15, -s, 5, s * 2);
       } else {
-        document.getElementById("midTitle").textContent = "Tank " + (tank + 1) + " full!";
-        document.getElementById("midLine").textContent = "More friends next.";
-        document.getElementById("midStars").textContent = row;
-        document.getElementById("mid").classList.remove("off");
-        beep(820, 0.16);
+        g.fillStyle = info.c;
+        g.beginPath(); g.ellipse(0, 0, s, s * 0.55, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = info.c2;
+        g.beginPath(); g.ellipse(s * 0.1, 0, s * 0.35, s * 0.28, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = info.c;
+        g.beginPath(); g.moveTo(-s, 0); g.lineTo(-s - 10, -7 + Math.sin(t * 8 + f.u) * 3); g.lineTo(-s - 10, 7); g.fill();
+      }
+      if (f.kind === "glow") {
+        g.fillStyle = "rgba(134,239,172,.35)";
+        g.beginPath(); g.arc(0, 0, s * 1.6, 0, Math.PI * 2); g.fill();
+      }
+      var blink = Math.sin(t * 2.8 + f.u) > 0.9;
+      g.fillStyle = "#0f172a";
+      if (blink) g.fillRect(s * 0.35, -4, 5, 1.3);
+      else { g.beginPath(); g.arc(s * 0.45, -2, 2.1, 0, Math.PI * 2); g.fill(); }
+      if (f.hungry) {
+        g.fillStyle = "#9f1239";
+        g.beginPath(); g.ellipse(s * 0.55, 4, 5 + Math.sin(t * 6) * 1.5, 3, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#fde68a";
+        g.font = "bold 12px Trebuchet MS"; g.textAlign = "center";
+        g.rotate(-f.a);
+        g.fillText("yum?", 0, -s - 8);
+      } else {
+        g.strokeStyle = "#0f172a"; g.lineWidth = 1.4;
+        g.beginPath(); g.arc(s * 0.4, 5, 3, 0.2, Math.PI - 0.2); g.stroke();
+      }
+      g.restore();
+    }
+    function drawDecor() {
+      var T = TANKS[Math.min(tank, 4)];
+      var i;
+      for (i = 0; i < plants.length; i++) {
+        var p = plants[i];
+        var px = p.x * W;
+        var sway = Math.sin(t * 1.5 + p.ph) * 10;
+        g.strokeStyle = p.c; g.lineWidth = 7;
+        g.beginPath(); g.moveTo(px, H * 0.92);
+        g.quadraticCurveTo(px + sway, H * 0.92 - p.h * 0.5, px + sway * 1.2, H * 0.92 - p.h);
+        g.stroke();
+        g.fillStyle = p.c;
+        g.beginPath(); g.ellipse(px + sway * 1.2, H * 0.92 - p.h, 8, 14, sway * 0.04, 0, Math.PI * 2); g.fill();
+      }
+      for (i = 0; i < rocks.length; i++) {
+        var r = rocks[i];
+        g.fillStyle = r.c;
+        g.beginPath(); g.ellipse(r.x * W, r.y * H, r.r, r.r * 0.55, 0, 0, Math.PI * 2); g.fill();
+      }
+      if (T.decor === "castle" || T.decor === "reef") {
+        var cx = W * 0.72, cy = H * 0.78 + Math.sin(t) * 2;
+        g.fillStyle = "#a8a29e";
+        g.fillRect(cx - 28, cy - 10, 56, 36);
+        g.fillRect(cx - 24, cy - 36, 16, 26);
+        g.fillRect(cx + 8, cy - 40, 16, 30);
+        g.fillStyle = "#0c4a6e";
+        g.beginPath(); g.arc(cx, cy + 8, 10, Math.PI, 0); g.fill();
+      }
+      if (T.decor === "pot" || tank === 0) {
+        g.fillStyle = "#b45309";
+        g.beginPath(); g.ellipse(W * 0.22, H * 0.82, 18, 14, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#166534";
+        g.beginPath(); g.moveTo(W * 0.22, H * 0.78); g.quadraticCurveTo(W * 0.22 + Math.sin(t) * 8, H * 0.68, W * 0.22, H * 0.6); g.stroke();
+      }
+      for (i = 0; i < snails.length; i++) {
+        var sn = snails[i];
+        var sx = ((sn.x + t * 0.015 * sn.dir) % 1) * W;
+        g.fillStyle = "#a8a29e";
+        g.beginPath(); g.arc(sx, H * 0.88, 7, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#d6d3d1";
+        g.beginPath(); g.arc(sx - 2, H * 0.88, 3, 0, Math.PI * 2); g.fill();
       }
     }
-    document.getElementById("lamp").onclick = function () {
-      night = !night;
-      frame.classList.toggle("night", night);
-      this.textContent = night ? "🌙 Night" : "☀️ Day";
-      beep(night ? 300 : 520, 0.1);
-    };
-    document.querySelectorAll("#tray button").forEach(function (b) {
-      b.onclick = function () {
-        var r = rect();
-        var d = document.createElement("div");
-        d.className = "deco";
-        d.textContent = b.dataset.e;
-        d.style.left = (12 + Math.random() * Math.max(20, r.width - 80)) + "px";
-        d.style.bottom = (36 + Math.random() * 40) + "px";
-        decoLayer.appendChild(d);
-        placed++;
-        beep(640, 0.08);
-      };
-    });
-    function loop() {
-      var r = rect();
-      var maxX = Math.max(30, r.width - 90), maxY = Math.max(40, r.height - 110);
-      fish.forEach(function (f) {
-        f.x += f.vx; f.y += f.vy;
-        if (f.x < 8 || f.x > maxX) f.vx *= -1;
-        if (f.y < 28 || f.y > maxY) f.vy *= -1;
-        f.el.style.left = f.x + "px"; f.el.style.top = f.y + "px";
-        var face = f.el.querySelector(".face");
-        if (face) face.style.transform = f.vx < 0 ? "scaleX(-1)" : "";
-      });
-      requestAnimationFrame(loop);
+    function drawLamp() {
+      var lx = W * 0.5, ly = 18;
+      g.fillStyle = "#334155";
+      g.fillRect(lx - 40, 0, 80, 16);
+      var glowA = 0.15 + lamp * 0.45;
+      var grd = g.createRadialGradient(lx, ly + 10, 4, lx, ly + 10, 120);
+      grd.addColorStop(0, "rgba(254,243,199," + glowA + ")");
+      grd.addColorStop(1, "rgba(254,243,199,0)");
+      g.fillStyle = grd;
+      g.beginPath(); g.arc(lx, ly + 10, 120, 0, Math.PI * 2); g.fill();
+      g.fillStyle = lamp > 0.5 ? "#fde047" : "#64748b";
+      g.beginPath(); g.ellipse(lx, ly + 8, 28, 10, 0, 0, Math.PI * 2); g.fill();
     }
-    document.getElementById("go").onclick = function () {
-      document.getElementById("start").classList.add("off");
-      tank = 0; goldFeeds = 0; placed = 0;
-      decoLayer.innerHTML = "";
-      startTank(); beep(520, 0.1);
-    };
-    document.getElementById("next").onclick = function () {
-      document.getElementById("mid").classList.add("off");
-      tank++; startTank(); beep(600, 0.1);
-    };
-    document.getElementById("again").onclick = function () {
-      document.getElementById("win").classList.add("off");
-      document.getElementById("start").classList.remove("off");
-    };
-    loop();
+    function drawBg() {
+      var T = TANKS[Math.min(tank, 4)];
+      var night = Math.max(T.night, 1 - lamp);
+      var top = night > 0.6 ? "#0f172a" : "#38bdf8";
+      var bot = night > 0.6 ? "#082f49" : "#0c4a6e";
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      grd.addColorStop(0, top); grd.addColorStop(1, bot);
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      g.fillStyle = "rgba(255,255,255,.06)";
+      g.fillRect(8, 8, W - 16, H - 16);
+      var i;
+      for (i = 0; i < gravel.length; i++) {
+        g.fillStyle = gravel[i].c;
+        g.beginPath(); g.arc(gravel[i].x * W, gravel[i].y * H, gravel[i].s, 0, Math.PI * 2); g.fill();
+      }
+      drawDecor();
+      drawLamp();
+      if (night > 0.5) {
+        for (i = 0; i < glow.length; i++) {
+          var gl = glow[i];
+          g.fillStyle = "rgba(190,242,100," + (0.15 + 0.2 * Math.sin(t * 2 + gl.ph)) + ")";
+          g.beginPath(); g.arc(gl.x * W, gl.y * H, 4, 0, Math.PI * 2); g.fill();
+        }
+      }
+    }
+    function update(dt) {
+      var T = TANKS[Math.min(tank, 4)];
+      t += dt;
+      lampT += dt;
+      if (mode === "play" && lampT > 7) {
+        lampT = 0;
+        lamp = lamp > 0.6 ? 0.28 : 1;
+        say(lamp > 0.6 ? "Day lamp!" : "Night lamp.");
+        beep(lamp > 0.6 ? 520 : 320, 0.1, "sine", 0.06);
+      }
+      var i, f, p, fl;
+      for (i = 0; i < fishes.length; i++) {
+        f = fishes[i];
+        f.u += dt * (0.5 + (f.hungry ? 0.25 : 0.15));
+        f.wander += dt * 1.1;
+        p = fishXY(f);
+        var ox = f.x || p.x, oy = f.y || p.y;
+        f.x = p.x; f.y = p.y;
+        f.a = Math.atan2(p.y - oy, p.x - ox);
+        if (!f.hungry && Math.random() < 0.002) f.hungry = true;
+        if (f.hungry) {
+          var best = null, bd = 80;
+          for (var k = 0; k < flakes.length; k++) {
+            var d = Math.hypot(flakes[k].x - f.x, flakes[k].y - f.y);
+            if (d < bd) { bd = d; best = flakes[k]; }
+          }
+          if (best && bd < 28) {
+            best.life = 0;
+            f.hungry = false; f.fed++;
+            score++; fed++;
+            beep(600, 0.07, "triangle", 0.08);
+            hud();
+            if (fed >= need) nextTank();
+          }
+        }
+      }
+      for (i = flakes.length - 1; i >= 0; i--) {
+        fl = flakes[i];
+        fl.vy += 80 * dt;
+        fl.vx *= 0.99;
+        fl.x += fl.vx * dt;
+        fl.y += fl.vy * dt;
+        fl.rot += dt * 3;
+        fl.life -= dt;
+        if (fl.y > H * 0.9 || fl.life <= 0) flakes.splice(i, 1);
+      }
+      if (Math.random() < 0.12) bubbles.push({ x: 20 + Math.random() * (W - 40), y: H * 0.9, r: 2 + Math.random() * 5, vy: -24 - Math.random() * 20 });
+      for (i = bubbles.length - 1; i >= 0; i--) {
+        bubbles[i].y += bubbles[i].vy * dt;
+        bubbles[i].x += Math.sin(t * 2 + i) * 8 * dt;
+        if (bubbles[i].y < 30) bubbles.splice(i, 1);
+      }
+    }
+    function tap(x, y) {
+      var i, f, dx, dy;
+      for (i = 0; i < fishes.length; i++) {
+        f = fishes[i];
+        dx = x - f.x; dy = y - f.y;
+        if (dx * dx + dy * dy < 44 * 44) {
+          if (f.hungry) {
+            dropFlakes(f.x, f.y - 20);
+            say("Yum flakes!");
+          } else {
+            say("That pal is full.");
+            beep(240, 0.05, "sine", 0.04);
+          }
+          return;
+        }
+      }
+      dropFlakes(x, 40);
+    }
+    function draw() {
+      drawBg();
+      var i;
+      for (i = 0; i < bubbles.length; i++) {
+        g.strokeStyle = "rgba(255,255,255,.4)"; g.lineWidth = 1.5;
+        g.beginPath(); g.arc(bubbles[i].x, bubbles[i].y, bubbles[i].r, 0, Math.PI * 2); g.stroke();
+        g.fillStyle = "rgba(255,255,255,.15)";
+        g.beginPath(); g.arc(bubbles[i].x - 1, bubbles[i].y - 1, bubbles[i].r * 0.3, 0, Math.PI * 2); g.fill();
+      }
+      for (i = 0; i < fishes.length; i++) drawFish(fishes[i]);
+      for (i = 0; i < flakes.length; i++) {
+        g.save(); g.translate(flakes[i].x, flakes[i].y); g.rotate(flakes[i].rot);
+        g.fillStyle = "#fdba74";
+        g.fillRect(-flakes[i].r, -2, flakes[i].r * 2, 4);
+        g.restore();
+      }
+      if (TANKS[Math.min(tank, 4)].night > 0.5 && lamp < 0.5) {
+        g.fillStyle = "rgba(15,23,42," + (0.25) + ")";
+        g.fillRect(0, 0, W, H);
+      }
+    }
+    function loop(now) {
+      requestAnimationFrame(loop);
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
+    }
+    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    cv.addEventListener("pointerdown", function (e) { if (mode === "play") tap(pos(e).x, pos(e).y); });
+    document.getElementById("go").onclick = startGame;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
+    addEventListener("resize", resize);
+    resize();
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

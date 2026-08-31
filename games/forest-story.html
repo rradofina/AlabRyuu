@@ -6,274 +6,149 @@
   <title>Forest Story</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3f2a14;touch-action:manipulation}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{
-      min-height:100vh;
-      background:
-        radial-gradient(circle at 12% 18%,rgba(190,242,100,.35),transparent 28%),
-        repeating-linear-gradient(90deg,rgba(22,101,52,.08) 0 2px,transparent 2px 28px),
-        linear-gradient(#86efac,#4ade80 40%,#166534);
-      padding:56px 10px 118px;
-    }
-    body.night{
-      background:
-        radial-gradient(circle at 80% 12%,#fde68a 0 2px,transparent 8px),
-        radial-gradient(circle at 20% 30%,#fef08a 0 1px,transparent 6px),
-        linear-gradient(#14532d,#052e16);
-      color:#fef3c7;
-    }
-    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(20,83,45,.55);padding:8px 14px;border-radius:999px}
-    .stars{position:fixed;top:14px;right:14px;z-index:12;background:#fffbeb;color:#854d0e;font-weight:800;padding:8px 12px;border-radius:999px;box-shadow:0 4px 0 #365314}
-    body.night .stars{background:#14532d;color:#fde68a;box-shadow:0 4px 0 #022c22}
-    .desk{max-width:520px;margin:0 auto}
-    .book-wrap{position:relative;perspective:900px}
-    .bookmark{
-      position:absolute;right:18px;top:-18px;z-index:3;
-      width:36px;height:78px;
-      background:linear-gradient(#86efac,#166534);
-      clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);
-      box-shadow:2px 4px 0 rgba(20,83,45,.25);
-      font-size:22px;display:grid;place-items:end center;padding-bottom:18px;
-    }
-    .book{
-      position:relative;
-      display:grid;grid-template-columns:1fr 1.15fr;
-      min-height:340px;
-      background:#f7ecd0;
-      border-radius:6px 22px 22px 8px;
-      box-shadow:
-        inset 18px 0 0 #e8d4a8,
-        0 0 0 8px #7c4a1e,
-        0 14px 0 #3f2a14;
-      overflow:hidden;
-      transform-origin:center left;
-    }
-    .book.flip{animation:flip .38s ease}
-    @keyframes flip{0%{transform:rotateY(0)}40%{transform:rotateY(-14deg)}100%{transform:rotateY(0)}}
-    body.night .book{background:#1e3a2f;box-shadow:inset 18px 0 0 #14532d,0 0 0 8px #365314,0 14px 0 #022c22}
-    .page-left,.page-right{padding:18px 14px 16px;min-height:340px}
-    .page-left{
-      background:
-        linear-gradient(90deg,#e8d4a8 0 10px,transparent 10px),
-        repeating-linear-gradient(0deg,transparent 0 27px,rgba(120,80,30,.08) 27px 28px),
-        #f3e4bc;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      border-right:2px dashed rgba(120,80,30,.25);
-    }
-    body.night .page-left{
-      background:linear-gradient(90deg,#14532d 0 10px,transparent 10px),#16382c;
-      border-right-color:rgba(253,230,138,.2);
-    }
-    .art{font-size:86px;line-height:1;filter:drop-shadow(0 8px 0 rgba(63,42,20,.12))}
-    .chapter{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#166534;margin-top:8px}
-    body.night .chapter{color:#bbf7d0}
-    .page-right{
-      background:
-        repeating-linear-gradient(0deg,transparent 0 27px,rgba(120,80,30,.1) 27px 28px),
-        #f7ecd0;
-      text-align:left;
-    }
-    body.night .page-right{background:#1e3a2f}
-    h1{font-size:26px;line-height:1.15;margin-bottom:10px;color:#3f2a14}
-    body.night h1{color:#fef3c7}
-    .lines{font-size:22px;font-weight:800;line-height:1.35;min-height:4.2em}
-    .lines span{display:block}
-    .turn{
-      margin-top:14px;width:100%;
-      background:#bbf7d0;color:#14532d;font-weight:800;font-size:20px;
-      padding:14px 12px;border-radius:16px;box-shadow:0 5px 0 #15803d;
-    }
-    body.night .turn{background:#365314;color:#fef3c7;box-shadow:0 5px 0 #022c22}
-    .turn:active{transform:translateY(3px);box-shadow:0 2px 0 #15803d}
-    .choices{display:none;flex-direction:column;gap:10px;margin-top:12px}
-    .choices.on{display:flex}
-    .choices button{
-      background:#fffbeb;color:#3f2a14;font-weight:800;font-size:18px;
-      padding:14px 12px;border-radius:16px;box-shadow:0 5px 0 #a16207;text-align:left;
-    }
-    body.night .choices button{background:#052e16;color:#fef3c7;box-shadow:0 5px 0 #14532d}
-    .choices button:active{transform:translateY(3px);box-shadow:0 2px 0 #a16207}
-    .flies{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0}
-    body.night .flies{opacity:1}
-    .fly{position:absolute;width:7px;height:7px;border-radius:50%;background:#fde68a;box-shadow:0 0 10px #facc15;animation:wink 2.4s ease-in-out infinite}
-    @keyframes wink{0%,100%{opacity:.2;transform:translateY(0)}50%{opacity:1;transform:translateY(-10px)}}
-    .tray{
-      position:fixed;left:0;right:0;bottom:0;z-index:10;
-      background:#365314;color:#fef3c7;
-      display:flex;justify-content:center;gap:12px;padding:10px 12px 16px;
-      box-shadow:0 -6px 0 #14532d;
-    }
-    .slot{
-      width:88px;min-height:72px;border-radius:16px;
-      background:rgba(254,243,199,.1);border:2px dashed rgba(254,243,199,.35);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      font-weight:800;font-size:13px;
-    }
-    .slot .g{font-size:28px;filter:grayscale(1);opacity:.35}
-    .slot.got{border-style:solid;background:#14532d}
-    .slot.got .g{filter:none;opacity:1}
-    .pop{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);z-index:15;font-size:28px;font-weight:800;color:#854d0e;text-shadow:0 2px 0 #fff;pointer-events:none;opacity:0}
-    .pop.on{animation:pop .9s ease}
-    @keyframes pop{0%{opacity:0;transform:translate(-50%,-20px)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,-50px)}}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,83,45,.88);z-index:20;gap:10px;color:#fff;padding:20px;text-align:center}
-    .win.on{display:flex}
-    .win h2{font-size:32px}
-    .gifts{font-size:42px;letter-spacing:8px;margin:6px 0}
-    .win button{
-      background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;
-      padding:14px 22px;border-radius:999px;box-shadow:0 6px 0 #e09f1f;margin:4px;
-    }
-    @media (max-width:520px){
-      .book{grid-template-columns:1fr;min-height:auto}
-      .page-left{min-height:160px;border-right:0;border-bottom:2px dashed rgba(120,80,30,.25)}
-      .page-right,.page-left{min-height:0}
-      .art{font-size:72px}
-    }
+    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#14532d;color:#3f2a14;touch-action:none;user-select:none}
+    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    canvas{display:block;width:100%;height:100%}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:rgba(20,83,45,.7);padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800}
+    #hud b{background:#fffbeb;padding:6px 10px;border-radius:999px}
+    .panel{position:fixed;left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom));z-index:8;background:#f7ecd0ee;border:4px solid #7c4a1e;border-radius:22px;padding:12px}
+    .who{font-size:13px;font-weight:800;color:#166534}
+    .say{font-size:24px;font-weight:900;margin:4px 0 10px}
+    .chs{display:flex;flex-wrap:wrap;gap:8px}
+    .chs button{min-height:54px;flex:1;border-radius:16px;background:#bbf7d0;color:#14532d;font-weight:900;font-size:17px;box-shadow:0 5px 0 #15803d}
+    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#86efac,#14532d);color:#fff}
+    .cover.off{display:none}
+    h1{font-size:clamp(32px,8vw,52px);text-shadow:0 4px 0 #14532d}
+    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="stars" id="stars">⭐ 0</div>
-  <div class="pop" id="pop"></div>
-  <div class="desk">
-    <div class="book-wrap">
-      <div class="bookmark">🍃</div>
-      <div class="book" id="book">
-        <div class="flies" id="flies"></div>
-        <div class="page-left">
-          <div class="art" id="art">🦊</div>
-          <div class="chapter" id="chapter">A walk in trees</div>
-        </div>
-        <div class="page-right">
-          <h1 id="title">Pip the Fox</h1>
-          <div class="lines" id="lines"></div>
-          <button class="turn" id="turn">Turn page →</button>
-          <div class="choices" id="choices"></div>
-        </div>
-      </div>
-    </div>
+  <div id="hud"><b id="ch">Start</b> <b id="st">⭐ 0</b></div>
+  <canvas id="c"></canvas>
+  <div class="panel" id="panel">
+    <div class="who" id="who">Pip</div>
+    <p class="say" id="say">Trees say hello.</p>
+    <div class="chs" id="chs"></div>
   </div>
-  <div class="tray" id="tray"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">📖</div>
-    <h2 id="wintitle">The end</h2>
-    <p id="winline" style="font-weight:800;font-size:20px"></p>
-    <div class="gifts" id="wingifts"></div>
-    <div>
-      <button id="again">Play again</button>
-      <button id="nextwalk">Next walk</button>
-    </div>
+  <div class="cover" id="title">
+    <h1>Forest Story</h1>
+    <p>Pip walks. Friends talk.<br>Your path changes the ending.</p>
+    <button class="btn" id="go">Walk</button>
+  </div>
+  <div class="cover off" id="win">
+    <h1>Cozy trees</h1>
+    <p id="wp"></p>
+    <button class="btn" id="again">Walk again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var GIFTS=["berry","hat","stone"];
-    var ICONS={berry:"🫐",hat:"🎩",stone:"🪨"};
-    var LABELS={berry:"Berry",hat:"Hat",stone:"Stone"};
-    var walks=[
-      {
-        start:{art:"🦊",ch:"Chapter 1",t:"Pip the Fox",lines:["Pip found a gold leaf.","It wiggled. Hello!"],next:[{l:"Follow the leaf 🍃",to:"leaf"},{l:"Follow a butterfly 🦋",to:"fly"}]},
-        leaf:{art:"🐿️",ch:"Whisper path",t:"Berry Path",lines:["A squirrel drops a berry.","A gift for Pip!"],gift:"berry",next:[{l:"Wear the berry hat",to:"hat"},{l:"Give it back",to:"give",kind:1}]},
-        fly:{art:"🦋",ch:"Blue wings",t:"Sky Puddle",lines:["A puddle looks like sky.","Turtle shares a berry."],gift:"berry",next:[{l:"Skip a stone 🪨",to:"stone"},{l:"Look for frogs 🐸",to:"frog"}]},
-        hat:{art:"🎩",ch:"Berry fancy",t:"Bee Dance",lines:["Bees like the fancy hat.","Honey on a stump!"],gift:"hat",next:[{l:"Sit and nibble",to:"dusk"}]},
-        give:{art:"🐿️",ch:"Kind Pip",t:"Good Friend",lines:["Squirrel hugs Pip.","You may keep a hat."],gift:"hat",kindAuto:1,next:[{l:"Share a cookie",to:"dusk"}]},
-        stone:{art:"🪨",ch:"Plip plop",t:"Skip Stone",lines:["Rings on the water.","A frog in a bow tie!"],gift:"stone",next:[{l:"Go to the pond",to:"dusk"}]},
-        frog:{art:"🐸",ch:"Silly song",t:"Frog Choir",lines:["Frogs sing about bugs.","Pip laughs and laughs."],gift:"stone",next:[{l:"Sing with them",to:"dusk"}]},
-        dusk:{art:"🌅",ch:"Chapter 2",t:"Sun Goes Soft",lines:["The trees turn gold.","A leaf hat waits."],gift:"hat",next:[{l:"Walk into night",to:"night"}]},
-        night:{art:"✨",ch:"Night",t:"Firefly Woods",lines:["Tiny lights wink.","A glow stone drops."],gift:"stone",night:1,next:[{l:"Share your light",to:"endPicnic",kind:1},{l:"Dance with bugs",to:"endPond"}]},
-        endPicnic:{art:"🧺",ch:"The end",t:"Happy Picnic",lines:["Friends sit in a circle.","Berries and jokes."],end:"picnic"},
-        endPond:{art:"🎉",ch:"The end",t:"Pond Party",lines:["Frogs drum lily pads.","Pip does a fox jig."],end:"pond"}
-      },
-      {
-        start:{art:"🦉",ch:"New walk",t:"Owl Map",lines:["Hoot! A new path.","Owl has two ways."],next:[{l:"Mushroom lane 🍄",to:"mush"},{l:"Moon creek 🌙",to:"creek"}]},
-        mush:{art:"🍄",ch:"Soft hats",t:"Mushroom Lane",lines:["Little houses glow.","A gnome waves."],gift:"berry",next:[{l:"Say hello",to:"gnome",kind:1},{l:"Peek inside",to:"gnome"}]},
-        creek:{art:"🌙",ch:"Shiny water",t:"Moon Creek",lines:["Water looks like milk.","A smooth stone winks."],gift:"stone",next:[{l:"Pick up the stone",to:"otter"},{l:"Skip it gently",to:"otter"}]},
-        gnome:{art:"🎩",ch:"Tiny gift",t:"Kind Gnome",lines:["Gnome tips a leaf hat.","For you, friend."],gift:"hat",next:[{l:"Thank you",to:"dusk2"}]},
-        otter:{art:"🦦",ch:"Splash",t:"Otter Friend",lines:["Otter claps. Bravo!","A leaf hat floats by."],gift:"hat",next:[{l:"Wave thanks",to:"dusk2",kind:1}]},
-        dusk2:{art:"🌅",ch:"Soft gold",t:"Quiet Path",lines:["Birds go home.","A shiny stone waits."],gift:"stone",next:[{l:"Follow the glow",to:"night2"}]},
-        night2:{art:"✨",ch:"Night",t:"Firefly Bridge",lines:["Bugs make a bridge.","A night berry glows."],gift:"berry",night:1,next:[{l:"Help a lost bug",to:"endPicnic",kind:1},{l:"Wiggle across",to:"endPond"}]},
-        endPicnic:{art:"🧺",ch:"The end",t:"Moon Picnic",lines:["Owl shares warm tea.","Soft and sleepy."],end:"picnic"},
-        endPond:{art:"🎉",ch:"The end",t:"Glow Party",lines:["Bugs blink a song.","Pip yawns a smile."],end:"pond"}
-      }
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, T = 0, si = 0, stars = 0;
+    var flags = { helpedSquirrel: false, path: "leaf", friend: "Pip", night: false, gift: "" };
+    try {
+      var sv = JSON.parse(localStorage.getItem("alabryuu-forest") || "{}");
+      if (sv.stars) stars = sv.stars;
+      if (sv.flags) flags = Object.assign(flags, sv.flags);
+    } catch (e) {}
+    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    addEventListener("resize", resize); resize();
+
+    var SCENES = [
+      { who: "Pip", say: "A gold leaf winks.", ch: [["Follow leaf", { path: "leaf" }], ["Follow bee", { path: "bee" }]] },
+      { who: "Squirrel", say: "I dropped berries!", ch: [["Pick them up", { helpedSquirrel: true }], ["Wave hello", {}]] },
+      { who: "Pip", say: flags.helpedSquirrel ? "Squirrel smiles big." : "Squirrel still hunts.", ch: [["Share a hat", { gift: "hat" }], ["Keep walking", {}]] },
+      { who: "Owl", say: "Two soft ways.", ch: [["Mushroom lane", { path: "mush" }], ["Moon creek", { path: "creek" }]] },
+      { who: "Frog", say: "I lost my song.", ch: [["Sing with frog", { gift: "song" }], ["Clap the beat", {}]] },
+      { who: "Pip", say: "A twist! Fog rolls.", ch: [["Hold Owl wing", { friend: "Owl" }], ["Light a bug", { night: true }]] },
+      { who: "Bee", say: "Who helped nuts?", ch: [["We did!", {}], ["Ask Pip", {}]] },
+      { who: "Pip", say: flags.path === "creek" ? "Water looks like milk." : "Soft hats glow.", ch: [["Sit a minute", {}], ["Leave a gift", { gift: "berry" }]] },
+      { who: "Turtle", say: "Need a helper.", ch: [["Take Pip", { friend: "Pip" }], ["Take Owl", { friend: "Owl" }]] },
+      { who: "Pip", say: "Almost home stump.", ch: [["Decorate nest", {}], ["Save a seed", {}]] },
+      { who: "All", say: "Picnic time. Hug?", ch: [["Hug everyone", {}], ["Nap in moss", {}]] },
+      { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }]] }
     ];
-    var walk=0,id="start",found={berry:0,hat:0,stone:0},kindStars=0,ready=0;
-    function tray(){
-      document.getElementById("tray").innerHTML=GIFTS.map(function(k){
-        return '<div class="slot'+(found[k]?" got":"")+'"><div class="g">'+ICONS[k]+'</div>'+LABELS[k]+"</div>";
-      }).join("");
+
+    function walkBody(px, py, col, phase, scale) {
+      x.save();
+      x.translate(px, py); x.scale(scale || 1, scale || 1);
+      var leg = Math.sin(phase) * 10;
+      x.strokeStyle = "#3f2a14"; x.lineWidth = 5; x.lineCap = "round";
+      x.beginPath(); x.moveTo(-6, 8); x.lineTo(-6 + leg, 22); x.stroke();
+      x.beginPath(); x.moveTo(6, 8); x.lineTo(6 - leg, 22); x.stroke();
+      x.beginPath(); x.moveTo(-12, -2); x.lineTo(-18 - leg * 0.3, 6); x.stroke();
+      x.beginPath(); x.moveTo(12, -2); x.lineTo(18 + leg * 0.3, 6); x.stroke();
+      x.fillStyle = col;
+      x.beginPath(); x.ellipse(0, 0, 16, 13, 0, 0, 6.3); x.fill();
+      x.fillStyle = "#ffe0b0";
+      x.beginPath(); x.arc(10, -16, 11, 0, 6.3); x.fill();
+      x.fillStyle = "#5a3a22";
+      x.beginPath(); x.ellipse(8, -22, 10, 6, 0, 0, 6.3); x.fill();
+      x.fillStyle = "#1c1917";
+      x.beginPath(); x.arc(14, -17, 1.6, 0, 6.3); x.fill();
+      x.restore();
     }
-    function pop(txt){
-      var el=document.getElementById("pop");el.textContent=txt;el.classList.remove("on");void el.offsetWidth;el.classList.add("on");
-    }
-    function flies(){
-      var box=document.getElementById("flies");box.innerHTML="";
-      for(var i=0;i<8;i++){
-        var d=document.createElement("div");d.className="fly";
-        d.style.left=(8+Math.random()*84)+"%";d.style.top=(10+Math.random()*70)+"%";
-        d.style.animationDelay=(Math.random()*2)+"s";
-        box.appendChild(d);
+
+    function draw() {
+      var night = flags.night || si > 5;
+      var g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, night ? "#0f172a" : "#7dd3fc");
+      g.addColorStop(0.45, night ? "#14532d" : "#86efac");
+      g.addColorStop(1, "#166534");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      for (var i = 0; i < 8; i++) {
+        var tx = (i / 8) * W + Math.sin(T * 0.4 + i) * 6;
+        x.fillStyle = "#7c2d12"; x.fillRect(tx, H * 0.42, 18, H * 0.4);
+        x.fillStyle = night ? "#14532d" : "#22c55e";
+        x.beginPath(); x.arc(tx + 9, H * 0.42, 38, 0, 6.3); x.fill();
       }
-    }
-    function show(nid){
-      id=nid;
-      var p=walks[walk][id];
-      var book=document.getElementById("book");
-      book.classList.remove("flip");void book.offsetWidth;book.classList.add("flip");
-      document.body.classList.toggle("night",!!p.night);
-      if(p.night)flies();
-      if(p.gift&&!found[p.gift]){found[p.gift]=1;pop(ICONS[p.gift]+" Gift!");beep(720,.12);}
-      if(p.kindAuto){kindStars++;pop("⭐ Kind!");}
-      document.getElementById("art").textContent=p.art;
-      document.getElementById("chapter").textContent=p.ch;
-      document.getElementById("title").textContent=p.t;
-      document.getElementById("lines").innerHTML=p.lines.map(function(s){return "<span>"+s+"</span>";}).join("");
-      document.getElementById("stars").textContent="⭐ "+kindStars;
-      var turn=document.getElementById("turn");
-      var box=document.getElementById("choices");
-      box.classList.remove("on");box.innerHTML="";
-      if(p.end){
-        turn.style.display="none";
-        setTimeout(function(){win(p);},700);
-        return;
+      if (night) {
+        for (var f = 0; f < 12; f++) {
+          x.fillStyle = "rgba(253,224,71," + (0.4 + Math.sin(T * 4 + f) * 0.3) + ")";
+          x.beginPath(); x.arc((f * 73 + T * 20) % W, H * 0.3 + Math.sin(T + f) * 20, 3, 0, 6.3); x.fill();
+        }
       }
-      turn.style.display="block";
-      turn.textContent="Turn page →";
-      ready=0;
-      turn.onclick=function(){
-        if(ready)return;
-        ready=1;beep(480,.08);
-        turn.style.display="none";
-        p.next.forEach(function(n){
-          var b=document.createElement("button");b.textContent=n.l;
-          b.onclick=function(){
-            if(n.kind){kindStars++;pop("⭐ Kind!");beep(880,.1);}
-            else beep(520,.08);
-            show(n.to);
-          };
-          box.appendChild(b);
-        });
-        box.classList.add("on");
-      };
-      tray();
+      var baseY = H * 0.62;
+      walkBody(W * 0.38 + Math.sin(T * 2) * 8, baseY, "#f97316", T * 8, 1.4);
+      walkBody(W * 0.58 + Math.sin(T * 2 + 1) * 6, baseY + 6, flags.friend === "Owl" ? "#a78bfa" : "#38bdf8", T * 8 + 1, 1.2);
+      x.fillStyle = "#fff";
+      x.beginPath();
+      var bx = W * 0.38 + 30, by = baseY - 70;
+      x.moveTo(bx, by); x.quadraticCurveTo(bx + 80, by - 40, bx + 140, by);
+      x.quadraticCurveTo(bx + 80, by + 30, bx, by); x.fill();
+      x.fillStyle = "#3f2a14"; x.font = "900 20px Verdana"; x.fillText(SCENES[Math.min(si, SCENES.length - 1)].say, bx + 16, by + 6);
     }
-    function win(p){
-      var n=GIFTS.filter(function(k){return found[k];}).length;
-      document.getElementById("wintitle").textContent=p.end==="picnic"?"Happy picnic!":"Pond party!";
-      document.getElementById("winline").textContent=n+" gifts · "+kindStars+" kind stars";
-      document.getElementById("wingifts").textContent=GIFTS.map(function(k){return found[k]?ICONS[k]:"·";}).join(" ");
-      document.getElementById("win").classList.add("on");
-      beep(880,.2);
+
+    function save() { try { localStorage.setItem("alabryuu-forest", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {} }
+    function show() {
+      var s = SCENES[Math.min(si, SCENES.length - 1)];
+      if (si === 2) s.say = flags.helpedSquirrel ? "Squirrel smiles big." : "Squirrel still hunts.";
+      if (si === 7) s.say = flags.path === "creek" ? "Water looks like milk." : "Soft hats glow.";
+      document.getElementById("who").textContent = s.who;
+      document.getElementById("say").textContent = s.say;
+      document.getElementById("ch").textContent = "Scene " + (si + 1) + "/12";
+      document.getElementById("st").textContent = "⭐ " + stars;
+      var box = document.getElementById("chs"); box.innerHTML = "";
+      s.ch.forEach(function (pair) {
+        var b = document.createElement("button"); b.textContent = pair[0];
+        b.onclick = function () {
+          Object.assign(flags, pair[1]);
+          if (pair[1].end) {
+            document.getElementById("wp").textContent = "You walked with " + flags.friend + (flags.helpedSquirrel ? " and helped Squirrel." : ".");
+            document.getElementById("win").classList.remove("off");
+            si = 0;
+          } else { si++; stars++; }
+          save(); if (!pair[1].end) show();
+        };
+        box.appendChild(b);
+      });
     }
-    function reset(next){
-      if(next)walk=1-walk;
-      else {walk=0;found={berry:0,hat:0,stone:0};kindStars=0;}
-      document.getElementById("win").classList.remove("on");
-      document.body.classList.remove("night");
-      show("start");
-    }
-    document.getElementById("again").onclick=function(){reset(0);};
-    document.getElementById("nextwalk").onclick=function(){reset(1);};
-    flies();tray();show("start");
+    document.getElementById("go").onclick = function () { document.getElementById("title").classList.add("off"); show(); };
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); si = 0; show(); };
+    function loop() { T += 0.016; draw(); requestAnimationFrame(loop); }
+    show(); loop();
+  })();
   </script>
 </body>
 </html>

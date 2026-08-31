@@ -9,278 +9,482 @@
     html, body {
       height: 100%; overflow: hidden;
       font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: #7dd3fc; color: #0f172a;
-      touch-action: manipulation; user-select: none;
+      background: #7c3aed; color: #fff; touch-action: none; user-select: none;
     }
     button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      background: transparent; border: 0; appearance: none;
       -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
     }
     .home {
       position: fixed; top: 12px; left: 12px; z-index: 12;
       color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
+      background: rgba(0,0,0,.25); padding: 8px 14px; border-radius: 999px;
     }
+    canvas { display: block; width: 100%; height: 100%; }
     #hud {
       position: fixed; top: 12px; right: 12px; z-index: 12;
       display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+      pointer-events: none;
     }
     #hud span {
-      font-weight: 800; background: rgba(255,255,255,.55);
-      padding: 6px 12px; border-radius: 16px; font-size: 15px;
+      font-weight: 800; background: rgba(76,29,149,.72); padding: 6px 12px;
+      border-radius: 16px; font-size: 15px; border: 2px solid #fde68a;
     }
-    #sky {
-      position: fixed; inset: 0;
-      background: linear-gradient(#7dd3fc 0 55%, #86efac 55% 78%, #fde68a 78%);
+    #ask {
+      position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+      z-index: 8; font-weight: 800; font-size: 22px;
+      background: #fff; color: #3b0764; padding: 10px 22px; border-radius: 999px;
+      box-shadow: 0 6px 0 #c4b5fd; pointer-events: none; min-width: 180px; text-align: center;
     }
-    #bunting {
-      position: absolute; top: 52px; left: 0; right: 0; height: 54px;
-      display: flex; justify-content: center; pointer-events: none;
-    }
-    #bunting i {
-      width: 0; height: 0; display: block;
-      border-left: 16px solid transparent; border-right: 16px solid transparent;
-      border-top: 28px solid #ef4444; margin: 0 1px;
-    }
-    #bunting i:nth-child(2n) { border-top-color: #3b82f6; }
-    #bunting i:nth-child(3n) { border-top-color: #facc15; }
-    #bunting i:nth-child(4n) { border-top-color: #22c55e; }
-    #bunting i:nth-child(5n) { border-top-color: #a855f7; }
-    #tents {
-      position: absolute; left: 0; right: 0; bottom: 0; height: 22%;
-      pointer-events: none;
-      background:
-        linear-gradient(120deg, transparent 40%, #ef4444 40% 60%, transparent 60%) 8% 100% / 90px 90px no-repeat,
-        linear-gradient(120deg, transparent 40%, #3b82f6 40% 60%, transparent 60%) 78% 100% / 80px 80px no-repeat,
-        linear-gradient(#fde68a, #fbbf24);
-    }
-    #banner {
-      position: fixed; top: 108px; left: 50%; transform: translateX(-50%);
-      z-index: 4; min-width: 200px; text-align: center;
-      background: #fff; border-radius: 18px; padding: 8px 18px 10px;
-      box-shadow: 0 6px 0 rgba(0,0,0,.15); font-weight: 800; font-size: 22px;
-    }
-    #banner .swatch {
-      display: inline-block; width: 28px; height: 28px; border-radius: 50%;
-      vertical-align: middle; margin-right: 8px; border: 3px solid #0f172a;
-    }
-    #combo {
-      position: fixed; top: 168px; left: 0; right: 0; text-align: center;
-      font-weight: 800; font-size: 26px; color: #be123c;
-      opacity: 0; pointer-events: none; z-index: 5;
-    }
-    #combo.on { opacity: 1; }
-    .bal {
-      position: absolute; width: 72px; height: 92px;
-    }
-    .bal i {
-      display: block; width: 64px; height: 74px; margin: 0 auto;
-      border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
-      box-shadow: inset -8px -6px 0 rgba(0,0,0,.12), 0 4px 0 rgba(0,0,0,.12);
-    }
-    .bal::after {
-      content: ""; position: absolute; left: 50%; bottom: 2px;
-      width: 2px; height: 16px; background: #57534e;
-    }
-    .bal.rain i {
-      background: linear-gradient(180deg,#ef4444,#f97316,#facc15,#22c55e,#3b82f6,#a855f7);
-    }
-    .bal.wig { animation: wig .35s; }
-    @keyframes wig { 25% { transform: rotate(-14deg); } 75% { transform: rotate(14deg); } }
-    .popbit {
-      position: absolute; font-size: 28px; pointer-events: none; font-weight: 800;
+    #say {
+      position: fixed; left: 50%; top: 70px; transform: translateX(-50%);
+      z-index: 8; font-weight: 800; font-size: 20px; text-shadow: 0 3px 0 #5b21b6;
+      pointer-events: none; width: 90%; text-align: center;
     }
     .cover {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-      flex-direction: column; z-index: 20; gap: 10px; text-align: center; padding: 24px;
-      background: linear-gradient(#7dd3fc, #f9a8d4 50%, #fde047); color: #0f172a;
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 12px; padding: 24px;
+      background: linear-gradient(180deg, rgba(124,58,237,.32), rgba(91,33,182,.5));
     }
     .cover.off { display: none; }
-    .cover h1 { font-size: clamp(34px, 9vw, 52px); }
+    h1 { font-size: clamp(34px, 9vw, 52px); text-shadow: 0 5px 0 #5b21b6; }
     .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
-    .play {
-      background: #ffd166; color: #3b2100; font-weight: 800; font-size: 28px;
-      padding: 14px 32px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f;
+    .btn {
+      background: #fde68a; color: #422006; font-weight: 800; font-size: 26px;
+      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #ca8a04;
     }
-    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #e09f1f; }
-    .starrow { font-size: 36px; letter-spacing: 4px; }
+    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
+    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
   <div id="hud">
-    <span id="score">Pops 0 / 8</span>
-    <span id="comboHud">Combo 0</span>
-    <span id="waveHud">Wave 1 / 3</span>
+    <span id="wave">Wave 1</span>
+    <span id="got">🎈 0</span>
+    <span id="lives">💛💛💛💛💛💛</span>
   </div>
-  <div id="sky">
-    <div id="bunting"></div>
-    <div id="tents"></div>
-  </div>
-  <div id="banner"><i class="swatch" id="swatch"></i><span id="ask">Pop RED</span></div>
-  <div id="combo"></div>
-  <div class="cover" id="start">
-    <div style="font-size:72px">🎈</div>
+  <div id="say">Pop the color!</div>
+  <div id="ask">Pop RED</div>
+  <div class="cover" id="title">
     <h1>Balloon Pop</h1>
-    <p>Pop the color on the banner. Rainbow counts as any!</p>
-    <button class="play" id="go">Play</button>
-  </div>
-  <div class="cover off" id="mid">
-    <div style="font-size:64px">🎉</div>
-    <h1 id="midTitle">Wave done!</h1>
-    <p id="midLine"></p>
-    <div class="starrow" id="midStars"></div>
-    <button class="play" id="next">Next wave</button>
+    <p>Tap the color we ask. Balloons bob and sway. Rainbow is always a yes!</p>
+    <button class="btn" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:72px">🎊</div>
-    <h1>Pop party!</h1>
-    <p>What a festival!</p>
-    <div class="starrow" id="winStars">⭐⭐⭐</div>
-    <button class="play" id="again">Play again</button>
+    <h1>Party yes!</h1>
+    <p id="winP">Five waves. Big pops.</p>
+    <button class="btn g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f, d) {
-      try {
-        var c = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = c.createOscillator(), g = c.createGain();
-        o.frequency.value = f; g.gain.value = 0.11;
-        o.connect(g); g.connect(c.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
-        o.stop(c.currentTime + d);
-      } catch (e) {}
-    }
-    var ALL = [
-      { n: "RED", c: "#ef4444" },
-      { n: "BLUE", c: "#3b82f6" },
-      { n: "YELLOW", c: "#facc15" },
-      { n: "GREEN", c: "#22c55e" },
-      { n: "PURPLE", c: "#a855f7" }
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, t = 0, last = 0, mode = "title", wave = 0, score = 0, lives = 6;
+    var ask = "red", combo = 0, askT = 0;
+    var balloons = [], bits = [], conf = [], flags = [], stalls = [], birds = [];
+    var clouds = [], kids = [], lanterns = [];
+    var wheel = { a: 0 }, carts = [], dogs = [], notes = [], stars = [];
+    var banner = { x: 0 }, popcorn = [], streamers = [];
+    var COLORS = [
+      { k: "red", c: "#ef4444", n: "RED" },
+      { k: "blue", c: "#3b82f6", n: "BLUE" },
+      { k: "yellow", c: "#facc15", n: "YELLOW" },
+      { k: "green", c: "#22c55e", n: "GREEN" },
+      { k: "pink", c: "#f472b6", n: "PINK" },
+      { k: "orange", c: "#fb923c", n: "ORANGE" }
     ];
     var WAVES = [
-      { colors: 3, need: 8 },
-      { colors: 4, need: 10 },
-      { colors: 5, need: 12 }
+      { n: "Parade", wind: 0, rise: 18, mix: 0, rain: 0, need: 7, say: "Tap the asked color." },
+      { n: "Breeze", wind: 28, rise: 22, mix: 0, rain: 0, need: 8, say: "Wind slides them." },
+      { n: "Mix-up", wind: 10, rise: 24, mix: 1, rain: 0, need: 8, say: "Colors swap. Look!" },
+      { n: "Gust", wind: 55, rise: 26, mix: 0, rain: 0, need: 9, say: "Big wind. Hold on!" },
+      { n: "Rainbow", wind: 16, rise: 20, mix: 0, rain: 1, need: 10, say: "Rainbows count too!" }
     ];
-    var wave = 0, score = 0, need = 8, combo = 0, comboMax = 0, needCol = ALL[0];
-    var play = false, items = [], acc = 0, rainbows = 0, palette = ALL.slice(0, 3);
-    var sky = document.getElementById("sky");
 
-    (function bunting() {
-      var b = document.getElementById("bunting");
-      for (var i = 0; i < 16; i++) b.appendChild(document.createElement("i"));
-    })();
-
+    function beep(f, d, typ, vol) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), a = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; a.gain.value = vol || 0.08;
+        o.connect(a); a.connect(ac.destination); o.start();
+        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
+    }
+    function chord(ns, d) { for (var i = 0; i < ns.length; i++) beep(ns[i], d, "triangle", 0.045); }
+    function say(s) { document.getElementById("say").textContent = s; }
     function hud() {
-      document.getElementById("score").textContent = "Pops " + score + " / " + need;
-      document.getElementById("comboHud").textContent = "Combo " + combo;
-      document.getElementById("waveHud").textContent = "Wave " + (wave + 1) + " / 3";
+      document.getElementById("wave").textContent = WAVES[Math.min(wave, 4)].n;
+      document.getElementById("got").textContent = "🎈 " + score;
+      var h = ""; for (var i = 0; i < lives; i++) h += "💛";
+      document.getElementById("lives").textContent = h || "…";
+      var col = COLORS.filter(function (c) { return c.k === ask; })[0];
+      document.getElementById("ask").textContent = "Pop " + (col ? col.n : "RAINBOW");
+      document.getElementById("ask").style.color = col ? col.c : "#7c3aed";
     }
-    function setNeed() {
-      needCol = palette[Math.floor(Math.random() * palette.length)];
-      document.getElementById("ask").textContent = "Pop " + needCol.n;
-      document.getElementById("swatch").style.background = needCol.c;
-      document.getElementById("banner").style.border = "6px solid " + needCol.c;
+    function resize() {
+      W = cv.width = innerWidth; H = cv.height = innerHeight;
+      if (!flags.length) seed();
     }
-    function toast(t) {
-      var el = document.getElementById("combo");
-      el.textContent = t; el.classList.add("on");
-      clearTimeout(toast._t);
-      toast._t = setTimeout(function () { el.classList.remove("on"); }, 800);
+    function seed() {
+      flags = []; clouds = []; stalls = []; kids = []; lanterns = []; birds = [];
+      var i;
+      for (i = 0; i < 14; i++) flags.push({ x: i / 13, c: COLORS[i % COLORS.length].c, ph: i * 0.5 });
+      for (i = 0; i < 5; i++) clouds.push({ x: Math.random(), y: 0.08 + Math.random() * 0.14, w: 70 + Math.random() * 70, s: 6 + Math.random() * 8 });
+      for (i = 0; i < 3; i++) stalls.push({ x: 0.15 + i * 0.34, c: COLORS[(i + 2) % COLORS.length].c, name: ["Jam", "Hats", "Pies"][i] });
+      for (i = 0; i < 4; i++) kids.push({ x: 0.1 + i * 0.22, ph: i, shirt: COLORS[i % COLORS.length].c });
+      for (i = 0; i < 6; i++) lanterns.push({ x: 0.1 + i * 0.15, y: 0.22, ph: i * 0.7, c: COLORS[i % COLORS.length].c });
+      for (i = 0; i < 2; i++) birds.push({ x: Math.random(), y: 0.16, s: 28 + Math.random() * 16, ph: i });
+      carts = [
+        { x: 0.22, kind: "candy", bob: 0 },
+        { x: 0.78, kind: "pop", bob: 1 }
+      ];
+      dogs = [{ x: 0.4, ph: 0 }, { x: 0.62, ph: 2 }];
+      streamers = [];
+      for (i = 0; i < 10; i++) streamers.push({ x: Math.random(), y: Math.random() * 0.2, c: COLORS[i % COLORS.length].c, ph: i });
     }
-    function spawn() {
-      if (!play) return;
-      var rain = Math.random() < 0.12;
-      var col = palette[Math.floor(Math.random() * palette.length)];
-      var b = document.createElement("button");
-      b.className = "bal" + (rain ? " rain" : "");
-      b.innerHTML = "<i></i>";
-      if (!rain) b.querySelector("i").style.background = col.c;
-      var x = 16 + Math.random() * (innerWidth - 90);
-      var y = innerHeight + 10;
-      var sp = 1.3 + Math.random() * 1.5;
-      b.style.left = x + "px"; b.style.top = y + "px";
-      sky.appendChild(b);
-      var it = { el: b, x: x, y: y, sp: sp, col: col, rain: rain, dead: false };
-      b.onclick = function () {
-        if (!play || it.dead) return;
-        var ok = rain || col.n === needCol.n;
-        if (!ok) {
-          b.classList.remove("wig"); void b.offsetWidth; b.classList.add("wig");
-          combo = 0; hud(); beep(180, 0.1);
-          return;
-        }
-        it.dead = true; b.remove();
-        score++;
-        if (rain) rainbows++;
-        if (col.n === needCol.n || rain) {
-          combo++;
-          if (combo > comboMax) comboMax = combo;
-          if (combo >= 2) toast((rain ? "Rainbow! " : "") + "Combo x" + combo);
-        }
-        var bit = document.createElement("div");
-        bit.className = "popbit"; bit.textContent = rain ? "🌈" : "💥";
-        bit.style.left = x + "px"; bit.style.top = it.y + "px";
-        sky.appendChild(bit);
-        setTimeout(function () { bit.remove(); }, 400);
-        beep(rain ? 860 : 720, 0.08);
-        hud();
-        if (score >= need) endWave();
-        else if (combo === 0 || combo % 2 === 0) setNeed();
-      };
-      items.push(it);
+    function newAsk() {
+      ask = COLORS[(Math.random() * COLORS.length) | 0].k;
+      askT = 0;
+      hud();
     }
-    function endWave() {
-      play = false;
-      items.forEach(function (it) { if (!it.dead) it.el.remove(); });
-      items = [];
-      var stars = 1 + (comboMax >= 3 ? 1 : 0) + (rainbows > 0 ? 1 : 0);
-      if (stars > 3) stars = 3;
-      var row = "⭐".repeat(stars) + "☆".repeat(3 - stars);
-      if (wave >= 2) {
-        document.getElementById("winStars").textContent = row;
-        document.getElementById("win").classList.remove("off");
-        beep(900, 0.2);
-      } else {
-        document.getElementById("midTitle").textContent = "Wave " + (wave + 1) + " party!";
-        document.getElementById("midLine").textContent = "More colors next.";
-        document.getElementById("midStars").textContent = row;
-        document.getElementById("mid").classList.remove("off");
-        beep(820, 0.16);
+    function resetWave() {
+      balloons = []; bits = [];
+      say(WAVES[wave].say);
+      newAsk();
+      for (var i = 0; i < 6; i++) spawnBal(true);
+    }
+    function startGame() {
+      mode = "play"; wave = 0; score = 0; lives = 6; combo = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      resetWave();
+      chord([392, 494, 587], 0.16);
+    }
+    function winGame() {
+      mode = "win";
+      document.getElementById("winP").textContent = "You popped " + score + " balloons!";
+      document.getElementById("win").classList.remove("off");
+      for (var i = 0; i < 50; i++) spray(W * 0.5, H * 0.4, COLORS[i % COLORS.length].c);
+      chord([523, 659, 784, 988], 0.3);
+    }
+    function nextWave() {
+      wave++;
+      if (wave >= 5) { winGame(); return; }
+      resetWave();
+      beep(720, 0.12, "triangle", 0.1);
+    }
+    function spawnBal(anywhere) {
+      var col = COLORS[(Math.random() * COLORS.length) | 0];
+      var rain = WAVES[Math.min(wave, 4)].rain && Math.random() < 0.18;
+      balloons.push({
+        x: anywhere ? 40 + Math.random() * (W - 80) : 30 + Math.random() * (W - 60),
+        y: anywhere ? 80 + Math.random() * (H * 0.55) : H + 30,
+        r: 26 + Math.random() * 10,
+        col: col.k, hex: col.c,
+        rain: rain,
+        ph: Math.random() * 6,
+        str: 48 + Math.random() * 28,
+        face: (Math.random() * 3) | 0
+      });
+    }
+    function spray(x, y, c) {
+      for (var i = 0; i < 16; i++) {
+        bits.push({
+          x: x, y: y, vx: (Math.random() - 0.5) * 260, vy: (Math.random() - 0.5) * 260 - 40,
+          life: 0.5 + Math.random() * 0.45, c: c, s: 3 + Math.random() * 5
+        });
       }
     }
-    function startWave() {
-      var w = WAVES[wave];
-      palette = ALL.slice(0, w.colors);
-      need = w.need; score = 0; combo = 0; items = []; acc = 0;
-      setNeed(); hud(); play = true;
+    function popBal(b, good) {
+      spray(b.x, b.y, b.rain ? "#a78bfa" : b.hex);
+      if (good) {
+        score += b.rain ? 3 : 1;
+        combo++;
+        beep(520 + combo * 30, 0.08, "triangle", 0.08);
+        if (b.rain) { say("Rainbow yes!"); chord([659, 784, 988], 0.14); }
+        if (combo >= 3 && combo % 3 === 0) say("Nice streak!");
+        if (WAVES[wave].mix) newAsk();
+        else if (Math.random() < 0.45) newAsk();
+        hud();
+        if (score >= WAVES[wave].need) nextWave();
+      } else {
+        combo = 0;
+        lives = Math.max(0, lives - 1);
+        say("Oops. Try " + (COLORS.filter(function (c) { return c.k === ask; })[0] || { n: "that" }).n + "!");
+        beep(180, 0.08, "sine", 0.05);
+        hud();
+        if (lives <= 0) { lives = 6; hud(); say("New hearts!"); }
+      }
     }
-    function loop() {
-      acc++;
-      if (play && acc % 32 === 0) spawn();
-      items.forEach(function (it) {
-        if (it.dead) return;
-        it.y -= it.sp;
-        it.el.style.top = it.y + "px";
-        if (it.y < -100) { it.dead = true; it.el.remove(); }
-      });
-      items = items.filter(function (it) { return !it.dead; });
+    function drawBalloon(b) {
+      var bob = Math.sin(t * 2.2 + b.ph) * 10;
+      var sway = Math.sin(t * 1.5 + b.ph) * 8 + WAVES[Math.min(wave, 4)].wind * 0.12 * Math.sin(t + b.ph);
+      var x = b.x + sway, y = b.y + bob;
+      g.save();
+      g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(x, y + b.r);
+      g.quadraticCurveTo(x + Math.sin(t * 2 + b.ph) * 10, y + b.r + b.str * 0.5, x + Math.sin(t + b.ph) * 6, y + b.r + b.str);
+      g.stroke();
+      if (b.rain) {
+        var rg = ["#ef4444", "#fb923c", "#facc15", "#22c55e", "#3b82f6", "#a78bfa"];
+        for (var i = 0; i < 6; i++) {
+          g.fillStyle = rg[i];
+          g.beginPath(); g.ellipse(x, y, b.r - i * 2.2, b.r * 1.15 - i * 2, 0, 0, Math.PI * 2); g.fill();
+        }
+      } else {
+        g.fillStyle = b.hex;
+        g.beginPath(); g.ellipse(x, y, b.r, b.r * 1.18, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "rgba(255,255,255,.45)";
+        g.beginPath(); g.ellipse(x - b.r * 0.3, y - b.r * 0.35, b.r * 0.22, b.r * 0.32, -0.4, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = b.rain ? "#7c3aed" : b.hex;
+      g.beginPath(); g.moveTo(x - 4, y + b.r * 1.1); g.lineTo(x + 4, y + b.r * 1.1); g.lineTo(x, y + b.r * 1.28); g.fill();
+      var blink = Math.sin(t * 3 + b.ph) > 0.9;
+      g.fillStyle = "#1e1b4b";
+      if (blink) { g.fillRect(x - 8, y - 4, 6, 1.5); g.fillRect(x + 2, y - 4, 6, 1.5); }
+      else {
+        g.beginPath(); g.arc(x - 6, y - 3, 2.2, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(x + 6, y - 3, 2.2, 0, Math.PI * 2); g.fill();
+      }
+      if (b.face === 1) {
+        g.strokeStyle = "#1e1b4b"; g.lineWidth = 1.5;
+        g.beginPath(); g.arc(x, y + 6, 5, 0.15, Math.PI - 0.15); g.stroke();
+      } else if (b.face === 2) {
+        g.fillStyle = "#1e1b4b";
+        g.beginPath(); g.arc(x, y + 7, 3, 0, Math.PI * 2); g.fill();
+      }
+      g.restore();
+    }
+    function drawBunting() {
+      g.beginPath();
+      g.moveTo(0, 28);
+      var i, f, x, y;
+      g.strokeStyle = "#fde68a"; g.lineWidth = 3;
+      g.beginPath();
+      for (i = 0; i < flags.length; i++) {
+        f = flags[i];
+        x = f.x * W;
+        y = 34 + Math.sin(t * 2 + f.ph) * 6;
+        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+      }
+      g.stroke();
+      for (i = 0; i < flags.length; i++) {
+        f = flags[i];
+        x = f.x * W;
+        y = 34 + Math.sin(t * 2 + f.ph) * 6;
+        g.fillStyle = f.c;
+        g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x + 10, y); g.lineTo(x, y + 22 + Math.sin(t * 3 + f.ph) * 3); g.fill();
+      }
+    }
+    function drawStall(st) {
+      var x = st.x * W, y = H * 0.78;
+      g.fillStyle = "#b45309";
+      g.fillRect(x - 36, y, 72, 28);
+      g.fillStyle = st.c;
+      g.beginPath(); g.moveTo(x - 42, y); g.lineTo(x, y - 26); g.lineTo(x + 42, y); g.fill();
+      g.fillStyle = "#fff7ed";
+      g.font = "bold 11px Trebuchet MS"; g.textAlign = "center";
+      g.fillText(st.name, x, y + 18);
+    }
+    function drawFerris() {
+      var cx = W * 0.88, cy = H * 0.52, r = 52;
+      wheel.a += 0.008;
+      g.strokeStyle = "#fde68a"; g.lineWidth = 3;
+      g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.arc(cx, cy, r * 0.55, 0, Math.PI * 2); g.stroke();
+      var i, a, bx, by;
+      for (i = 0; i < 8; i++) {
+        a = wheel.a + i * Math.PI / 4;
+        bx = cx + Math.cos(a) * r; by = cy + Math.sin(a) * r;
+        g.beginPath(); g.moveTo(cx, cy); g.lineTo(bx, by); g.stroke();
+        g.fillStyle = COLORS[i % COLORS.length].c;
+        g.beginPath(); g.roundRect ? (g.beginPath(), g.arc(bx, by, 7, 0, Math.PI * 2), g.fill()) : (g.beginPath(), g.arc(bx, by, 7, 0, Math.PI * 2), g.fill());
+      }
+      g.fillStyle = "#7c3aed";
+      g.beginPath(); g.moveTo(cx - 8, H * 0.76); g.lineTo(cx, cy + 8); g.lineTo(cx + 8, H * 0.76); g.fill();
+    }
+    function drawCart(c) {
+      var x = c.x * W, y = H * 0.74 + Math.sin(t * 2 + c.bob) * 2;
+      g.fillStyle = "#fff7ed";
+      g.fillRect(x - 22, y - 8, 44, 22);
+      g.fillStyle = c.kind === "candy" ? "#f472b6" : "#fde047";
+      g.beginPath(); g.moveTo(x - 26, y - 8); g.lineTo(x, y - 26); g.lineTo(x + 26, y - 8); g.fill();
+      g.fillStyle = "#1e1b4b";
+      g.beginPath(); g.arc(x - 12, y + 16, 6, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(x + 12, y + 16, 6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#fff";
+      g.font = "bold 10px Trebuchet MS"; g.textAlign = "center";
+      g.fillText(c.kind === "candy" ? "sweet" : "pop", x, y + 6);
+    }
+    function drawDog(d) {
+      var x = d.x * W + Math.sin(t * 1.2 + d.ph) * 20;
+      var y = H * 0.86;
+      g.fillStyle = "#fdba74";
+      g.beginPath(); g.ellipse(x, y, 14, 8, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(x + 12, y - 4, 6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#1c1917";
+      g.beginPath(); g.arc(x + 14, y - 5, 1.4, 0, Math.PI * 2); g.fill();
+      var wag = Math.sin(t * 10 + d.ph) * 8;
+      g.strokeStyle = "#fdba74"; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(x - 14, y); g.quadraticCurveTo(x - 20, y - 10 + wag, x - 16, y - 4); g.stroke();
+    }
+    function drawBand() {
+      var x = W * 0.12, y = H * 0.7;
+      g.fillStyle = "#fde68a";
+      g.fillRect(x - 20, y, 40, 18);
+      g.fillStyle = "#c4b5fd";
+      g.beginPath(); g.moveTo(x - 24, y); g.lineTo(x, y - 20); g.lineTo(x + 24, y); g.fill();
+      if (Math.random() < 0.03) notes.push({ x: x, y: y - 24, vy: -20, life: 1, ch: Math.random() > 0.5 ? "♪" : "♫" });
+    }
+    function drawKid(k) {
+      var x = k.x * W + Math.sin(t * 1.5 + k.ph) * 14;
+      var y = H * 0.86 + Math.abs(Math.sin(t * 4 + k.ph)) * -6;
+      g.fillStyle = "#fde68a";
+      g.beginPath(); g.arc(x, y - 22, 8, 0, Math.PI * 2); g.fill();
+      g.fillStyle = k.shirt;
+      g.beginPath(); g.roundRect ? (g.roundRect(x - 8, y - 14, 16, 16, 4), g.fill()) : (g.fillRect(x - 8, y - 14, 16, 16));
+      g.strokeStyle = "#422006"; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(x - 5, y + 2); g.lineTo(x - 6, y + 14); g.moveTo(x + 5, y + 2); g.lineTo(x + 7, y + 14); g.stroke();
+    }
+    function drawBg() {
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      grd.addColorStop(0, wave === 4 ? "#4c1d95" : "#7dd3fc");
+      grd.addColorStop(0.45, wave === 4 ? "#7c3aed" : "#f9a8d4");
+      grd.addColorStop(1, "#86efac");
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      if (wave !== 4) {
+        g.fillStyle = "#fde047";
+        g.beginPath(); g.arc(W * 0.82, H * 0.14, 26, 0, Math.PI * 2); g.fill();
+      }
+      var i;
+      for (i = 0; i < clouds.length; i++) {
+        var c = clouds[i];
+        var cx = ((c.x + t * c.s * 0.005) % 1.3) * W - 30;
+        g.fillStyle = "rgba(255,255,255,.82)";
+        g.beginPath(); g.ellipse(cx, c.y * H, c.w, 16, 0, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.ellipse(cx + 22, c.y * H - 8, c.w * 0.5, 14, 0, 0, Math.PI * 2); g.fill();
+      }
+      if (wave === 4) {
+        for (i = 0; i < lanterns.length; i++) {
+          var L = lanterns[i];
+          var lx = L.x * W, ly = L.y * H + Math.sin(t + L.ph) * 8;
+          g.strokeStyle = "rgba(253,230,138,.4)"; g.beginPath(); g.moveTo(lx, 40); g.lineTo(lx, ly - 10); g.stroke();
+          g.fillStyle = L.c;
+          g.beginPath(); g.ellipse(lx, ly, 8, 11, 0, 0, Math.PI * 2); g.fill();
+        }
+      }
+      g.fillStyle = "#4d7c0f";
+      g.fillRect(0, H * 0.76, W, H);
+      g.fillStyle = "#65a30d";
+      g.fillRect(0, H * 0.76, W, 10);
+      for (i = 0; i < stalls.length; i++) drawStall(stalls[i]);
+      for (i = 0; i < kids.length; i++) drawKid(kids[i]);
+      drawBunting();
+      drawFerris();
+      for (i = 0; i < carts.length; i++) drawCart(carts[i]);
+      for (i = 0; i < dogs.length; i++) drawDog(dogs[i]);
+      drawBand();
+      for (i = 0; i < streamers.length; i++) {
+        var st = streamers[i];
+        g.strokeStyle = st.c; g.lineWidth = 2;
+        g.beginPath();
+        g.moveTo(st.x * W, 40);
+        g.quadraticCurveTo(st.x * W + Math.sin(t * 2 + st.ph) * 16, 80, st.x * W + Math.sin(t + st.ph) * 10, 110);
+        g.stroke();
+      }
+      for (i = 0; i < birds.length; i++) {
+        var b = birds[i];
+        var bx = ((b.x + t * 0.05) % 1.2) * W;
+        var by = b.y * H + Math.sin(t * 4 + b.ph) * 5;
+        var fl = Math.sin(t * 9 + b.ph) * 7;
+        g.strokeStyle = "#3b0764"; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(bx - 9, by - fl); g.quadraticCurveTo(bx, by, bx + 9, by - fl); g.stroke();
+      }
+    }
+    function update(dt) {
+      var w = WAVES[Math.min(wave, 4)];
+      t += dt;
+      var i, b;
+      if (mode === "play") {
+        if (balloons.length < 7 + wave) spawnBal(false);
+        for (i = balloons.length - 1; i >= 0; i--) {
+          b = balloons[i];
+          b.y -= w.rise * dt;
+          b.x += Math.sin(t * 1.2 + b.ph) * 12 * dt + w.wind * dt * 0.35;
+          if (b.x < 24) b.x = 24;
+          if (b.x > W - 24) b.x = W - 24;
+          if (b.y < -50) {
+            balloons.splice(i, 1);
+            if (b.col === ask || b.rain) { /* floated away, no punish */ }
+          }
+        }
+      } else {
+        if (balloons.length < 8) spawnBal(true);
+        for (i = 0; i < balloons.length; i++) {
+          balloons[i].y += Math.sin(t + i) * 4 * dt;
+          balloons[i].x += Math.sin(t * 0.6 + i) * 10 * dt;
+        }
+      }
+      for (i = bits.length - 1; i >= 0; i--) {
+        var p = bits[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 200 * dt; p.life -= dt;
+        if (p.life <= 0) bits.splice(i, 1);
+      }
+      if (mode === "win" && Math.random() < 0.12) spray(Math.random() * W, Math.random() * H * 0.5, COLORS[(Math.random() * 6) | 0].c);
+      for (i = notes.length - 1; i >= 0; i--) {
+        notes[i].y += notes[i].vy * dt; notes[i].life -= dt;
+        if (notes[i].life <= 0) notes.splice(i, 1);
+      }
+    }
+    function draw() {
+      drawBg();
+      var i;
+      for (i = 0; i < balloons.length; i++) drawBalloon(balloons[i]);
+      for (i = 0; i < bits.length; i++) {
+        g.globalAlpha = Math.max(0, bits[i].life);
+        g.fillStyle = bits[i].c;
+        g.beginPath(); g.arc(bits[i].x, bits[i].y, bits[i].s, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = 1;
+      }
+      for (i = 0; i < notes.length; i++) {
+        g.globalAlpha = Math.max(0, notes[i].life);
+        g.fillStyle = "#fde68a";
+        g.font = "20px Trebuchet MS"; g.textAlign = "center";
+        g.fillText(notes[i].ch, notes[i].x, notes[i].y);
+        g.globalAlpha = 1;
+      }
+    }
+    function hit(x, y) {
+      for (var i = balloons.length - 1; i >= 0; i--) {
+        var b = balloons[i];
+        var bob = Math.sin(t * 2.2 + b.ph) * 10;
+        var sway = Math.sin(t * 1.5 + b.ph) * 8;
+        var dx = x - (b.x + sway), dy = y - (b.y + bob);
+        if (dx * dx + dy * dy < (b.r + 18) * (b.r + 18)) {
+          var good = b.col === ask || b.rain;
+          popBal(b, good);
+          balloons.splice(i, 1);
+          return;
+        }
+      }
+    }
+    function loop(now) {
       requestAnimationFrame(loop);
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
     }
-    document.getElementById("go").onclick = function () {
-      document.getElementById("start").classList.add("off");
-      wave = 0; comboMax = 0; rainbows = 0;
-      startWave(); beep(520, 0.1);
-    };
-    document.getElementById("next").onclick = function () {
-      document.getElementById("mid").classList.add("off");
-      wave++; startWave(); beep(600, 0.1);
-    };
-    document.getElementById("again").onclick = function () {
-      document.getElementById("win").classList.add("off");
-      document.getElementById("start").classList.remove("off");
-    };
-    loop();
+    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    cv.addEventListener("pointerdown", function (e) { if (mode === "play") hit(pos(e).x, pos(e).y); });
+    document.getElementById("go").onclick = startGame;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
+    addEventListener("resize", resize);
+    resize();
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>
