@@ -211,46 +211,47 @@
     wings.forEach((w, i) => { w.rotation.z = Math.sin(t * (hopPhase === "air" || hopping > 0 ? 18 : 14) + i) * 0.55 * (i ? -1 : 1); });
     if (hopPhase === "crouch") {
       hopT += dt;
-      const k = Math.min(1, hopT / 0.22);
-      body.scale.set(1.2, 0.72, 0.95);
-      kid.position.copy(hopFrom).add(new THREE.Vector3(0, 0.72 - 0.2 * k, 0));
-      hips.forEach((h) => { h.rotation.x = 1.05 * k; });
-      head.rotation.x = 0.4 * k;
-      kid.rotation.x = 0.12 * k;
-      if (hopT >= 0.22) { hopPhase = "takeoff"; hopT = 0; puffCloud(7); }
+      const k = Math.min(1, hopT / 0.24);
+      body.scale.set(1.45, 0.52, 1.15);
+      kid.position.copy(hopFrom).add(new THREE.Vector3(0, 0.68 - 0.28 * k, 0));
+      hips.forEach((h) => { h.rotation.x = 1.35 * k; h.position.y = -0.18 - 0.06 * k; });
+      head.rotation.x = 0.55 * k;
+      kid.rotation.x = 0.22 * k;
+      wings.forEach((w, i) => { w.rotation.z = 0.7 * k * (i ? -1 : 1); });
+      if (hopT >= 0.24) { hopPhase = "takeoff"; hopT = 0; puffCloud(8); }
     } else if (hopPhase === "takeoff") {
       hopT += dt;
-      const k = Math.min(1, hopT / 0.09);
-      body.scale.set(0.88, 1.38, 0.72);
-      hips.forEach((h) => { h.rotation.x = -0.45; });
-      head.rotation.x = -0.28;
-      kid.rotation.x = -0.22;
-      kid.position.lerpVectors(hopFrom, hopTo, k * 0.14).add(new THREE.Vector3(0, 0.95 + k * 0.55, 0));
-      if (hopT >= 0.09) { hopPhase = "air"; hopT = 0; on++; }
+      const k = Math.min(1, hopT / 0.1);
+      body.scale.set(0.78, 1.55, 0.68);
+      hips.forEach((h) => { h.rotation.x = -0.55; h.position.y = -0.12; });
+      head.rotation.x = -0.4;
+      kid.rotation.x = -0.32;
+      kid.position.lerpVectors(hopFrom, hopTo, k * 0.16).add(new THREE.Vector3(0, 1.05 + k * 0.7, 0));
+      if (hopT >= 0.1) { hopPhase = "air"; hopT = 0; on++; }
     } else if (hopPhase === "air") {
       hopT += dt;
-      const dur = 0.52;
+      const dur = 0.55;
       const k = Math.min(1, hopT / dur);
       const hang = Math.sin(k * Math.PI);
-      const loft = hang > 0.62 ? hang * 1.22 : hang;
-      kid.position.lerpVectors(hopFrom, hopTo, k).add(new THREE.Vector3(0, 0.9 + loft * 1.6, 0));
-      body.scale.set(0.92, 1.22, 0.78);
-      hips.forEach((h) => { h.rotation.x = -1.2; });
-      head.rotation.x = -0.22;
-      kid.rotation.x = -0.18 + k * 0.38;
-      kid.rotation.z = Math.sin(k * Math.PI) * 0.14;
-      if (hopT >= dur) { hopPhase = "land"; hopT = 0; puffCloud(9); }
+      const loft = hang > 0.58 ? hang * 1.28 : hang;
+      kid.position.lerpVectors(hopFrom, hopTo, k).add(new THREE.Vector3(0, 0.95 + loft * 1.75, 0));
+      body.scale.set(0.72, 1.42, 0.7);
+      hips.forEach((h) => { h.rotation.x = -1.65; h.position.y = -0.02; });
+      head.rotation.x = -0.35;
+      kid.rotation.x = -0.35 + k * 0.55;
+      kid.rotation.z = Math.sin(k * Math.PI) * 0.22;
+      if (hopT >= dur) { hopPhase = "land"; hopT = 0; puffCloud(10); }
     } else if (hopPhase === "land") {
       hopT += dt;
-      const k = Math.min(1, hopT / 0.2);
-      const dip = k < 0.4 ? 0.18 * (1 - k / 0.4) : 0;
+      const k = Math.min(1, hopT / 0.22);
+      const dip = k < 0.45 ? 0.22 * (1 - k / 0.45) : 0;
       kid.position.copy(hopTo).add(new THREE.Vector3(0, 0.9 - dip, 0));
-      body.scale.set(1.25, 0.68 + k * 0.47, 0.95);
-      hips.forEach((h) => { h.rotation.x = 0.55 * (1 - k); });
-      head.rotation.x = k < 0.45 ? 0.42 : 0.42 - (k - 0.45) * 0.76;
+      body.scale.set(1.4, 0.55 + k * 0.6, 1.05);
+      hips.forEach((h) => { h.rotation.x = 0.85 * (1 - k); h.position.y = -0.18; });
+      head.rotation.x = k < 0.4 ? 0.55 : 0.55 - (k - 0.4) * 0.9;
       kid.rotation.x = 0;
       kid.rotation.z = 0;
-      if (hopT >= 0.2) { hopPhase = "idle"; body.scale.set(1, 1.15, 0.8); }
+      if (hopT >= 0.22) { hopPhase = "idle"; body.scale.set(1, 1.15, 0.8); }
     } else if (hopping > 0) {
       hopping -= dt;
       const k = 1 - hopping / 0.4;
@@ -261,7 +262,7 @@
       kid.position.x = clouds[on].g.position.x;
       kid.position.z = clouds[on].g.position.z;
       kid.position.y = clouds[on].g.position.y + 0.9 + Math.sin(t * 3) * 0.06;
-      hips.forEach((h, i) => { h.rotation.x = Math.sin(t * 8 + i * 3) * 0.4; });
+      hips.forEach((h, i) => { h.rotation.x = Math.sin(t * 8 + i * 3) * 0.4; h.position.y = -0.18; });
       head.rotation.x = 0;
       body.scale.set(1, 1.15, 0.8);
     }
