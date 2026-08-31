@@ -6,444 +6,240 @@
   <title>Dino Stomp</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%; overflow: hidden;
-      font-family: Verdana, "Trebuchet MS", system-ui, sans-serif;
-      background: #14532d; color: #ecfccb;
-      touch-action: manipulation; user-select: none; -webkit-user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    .home {
-      position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 12;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 17px;
-      background: rgba(20, 40, 10, .45); padding: 8px 14px; border-radius: 12px;
-    }
-    #hud {
-      position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; left: 92px; z-index: 12;
-      display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; pointer-events: none;
-    }
-    #hud b {
-      font-weight: 800; font-size: 14px; background: #78350f; color: #fef3c7;
-      padding: 6px 10px; border-radius: 8px; border: 3px solid #b45309;
-      box-shadow: 0 3px 0 #451a03;
-    }
+    html, body { height: 100%; overflow: hidden; font-family: Verdana, system-ui, sans-serif; background: #14532d; color: #ecfccb; touch-action: none; user-select: none; }
+    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .home { position: fixed; top: 12px; left: 12px; z-index: 8; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.35); padding: 8px 14px; border-radius: 12px; touch-action: manipulation; }
     canvas { display: block; width: 100%; height: 100%; }
-    #dock {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 11;
-      display: none; gap: 10px; padding: 10px 12px max(12px, env(safe-area-inset-bottom));
-      background: linear-gradient(#3f2a14, #1c1008);
-      border-top: 6px solid #854d0e;
-    }
+    #dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: none; gap: 10px; padding: 10px 12px 16px; background: #3f2a14; border-top: 6px solid #854d0e; }
     #dock.on { display: flex; }
-    #dock button {
-      flex: 1; height: 92px; border-radius: 22px; font-weight: 800; font-size: 22px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-    }
-    #dock button span { font-size: 34px; line-height: 1; }
-    #hopBtn { background: #65a30d; color: #14532d; box-shadow: 0 8px 0 #3f6212; }
-    #stompBtn { background: #f59e0b; color: #451a03; box-shadow: 0 8px 0 #b45309; }
-    #hopBtn:active, #stompBtn:active { transform: translateY(5px); box-shadow: 0 3px 0 #3f6212; }
-    #stompBtn:active { box-shadow: 0 3px 0 #b45309; }
-    #hint {
-      position: fixed; left: 50%; transform: translateX(-50%);
-      bottom: 122px; z-index: 11; font-weight: 800; font-size: 18px;
-      text-shadow: 0 2px 0 #14532d; pointer-events: none; opacity: 0; transition: opacity .2s;
-      background: rgba(20,83,45,.55); padding: 6px 14px; border-radius: 999px;
-    }
-    #hint.show { opacity: 1; }
-    .cover {
-      position: fixed; inset: 0; z-index: 14; display: flex; align-items: center;
-      justify-content: center; flex-direction: column; text-align: center;
-      padding: 22px 16px; gap: 10px;
-      background: linear-gradient(180deg, #365314, #65a30d 55%, #a3e635);
-    }
+    #dock button { flex: 1; height: 88px; border-radius: 20px; font-weight: 800; font-size: 20px; }
+    #dock button span { display: block; font-size: 32px; }
+    #hop { background: #65a30d; color: #14532d; box-shadow: 0 7px 0 #3f6212; }
+    #stomp { background: #f59e0b; color: #451a03; box-shadow: 0 7px 0 #b45309; }
+    #hud { position: fixed; top: 12px; right: 12px; z-index: 7; font-weight: 800; text-align: right; pointer-events: none; }
+    #hud b { display: inline-block; background: #78350f; color: #fef3c7; padding: 6px 10px; border-radius: 8px; margin-left: 6px; }
+    #say { position: fixed; left: 50%; bottom: 118px; transform: translateX(-50%); z-index: 7; font-weight: 800; pointer-events: none; text-shadow: 0 2px 0 #14532d; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#365314, #84cc16); }
     .cover.off { display: none; }
-    .cover.rain { background: linear-gradient(180deg, #334155, #3f6212 60%, #166534); }
-    .cover.night { background: linear-gradient(180deg, #052e16, #14532d 60%, #365314); }
-    .cover h1 {
-      font-size: clamp(34px, 9vw, 52px); color: #fff; text-shadow: 0 5px 0 #14532d;
-    }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; color: #ecfccb; }
-    .cover .big { font-size: 76px; line-height: 1; }
-    .play {
-      font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 18px;
-      background: #fde047; color: #422006; box-shadow: 0 7px 0 #ca8a04;
-    }
-    .play:active { transform: translateY(4px); box-shadow: 0 3px 0 #ca8a04; }
-    .play.leaf { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
-    .winbtns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-    .chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-    .chips i { font-style: normal; font-weight: 800; font-size: 13px; background: rgba(0,0,0,.28); padding: 6px 10px; border-radius: 10px; }
+    h1 { font-size: clamp(34px, 9vw, 52px); color: #fff; text-shadow: 0 4px 0 #14532d; }
+    .btn { background: #fde047; color: #422006; font-weight: 800; font-size: 24px; padding: 14px 26px; border-radius: 18px; box-shadow: 0 7px 0 #ca8a04; }
+    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">
-    <b id="hopHud">Hops 0</b>
-    <b id="floHud">🌼 0 / 6</b>
-    <b id="valHud">Sunny</b>
-  </div>
   <canvas id="c"></canvas>
-  <div id="hint"></div>
+  <div id="hud"><b id="val">Valley 1</b><b id="fl">🌼 0</b><b id="st">⭐ 0</b></div>
+  <div id="say">Hop or STOMP!</div>
   <div id="dock">
-    <button id="hopBtn" type="button"><span>🦶</span>Hop</button>
-    <button id="stompBtn" type="button"><span>💥</span>Stomp</button>
+    <button id="hop"><span>⬆️</span>Hop</button>
+    <button id="stomp"><span>💥</span>Stomp</button>
   </div>
-
-  <div class="cover" id="start">
-    <div class="big">🦕</div>
+  <div class="cover" id="title">
+    <div style="font-size:80px">🦕</div>
     <h1>Dino Stomp</h1>
-    <p>Hop logs. Stomp logs into flowers. Baby dino helps!</p>
-    <div class="chips"><i>☀️ Sunny</i><i>🌧️ Rain</i><i>🌙 Night</i></div>
-    <button class="play" id="go">Play</button>
+    <p>Hop logs. Stomp to smash.<br>Save baby dinos!</p>
+    <button class="btn" id="go">Play</button>
   </div>
-
-  <div class="cover off" id="mid">
-    <div class="big" id="midEmoji">🌼</div>
-    <h1 id="midTitle">Valley done!</h1>
-    <p id="midLine">Six flowers. Soft hops.</p>
-    <div class="winbtns">
-      <button class="play" id="midAgain">Play again</button>
-      <button class="play leaf" id="midNext">Next valley</button>
-    </div>
-  </div>
-
-  <div class="cover off night" id="win">
-    <div class="big">🎉</div>
+  <div class="cover off" id="win">
+    <div style="font-size:80px">🌼</div>
     <h1>Dino did it!</h1>
-    <p id="winLine">Every valley. So many flowers.</p>
-    <div class="winbtns">
-      <button class="play" id="again">Play again</button>
-      <button class="play leaf" id="next">Next valley</button>
-    </div>
+    <p id="winP">Five valleys. Soft hops.</p>
+    <div class="row"><button class="btn g" id="again">Play again</button></div>
   </div>
-
   <script>
-    function beep(f, d, t) {
-      try {
-        var ctx = window._ac || (window._ac = new (window.AudioContext || window.webkitAudioContext)());
-        if (ctx.state === "suspended") ctx.resume();
-        var o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = t || "sine"; o.frequency.value = f; g.gain.value = 0.11;
-        o.connect(g); g.connect(ctx.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d);
-        o.stop(ctx.currentTime + d);
-      } catch (e) {}
-    }
-
-    var VALLEYS = [
-      { name: "Sunny", emoji: "☀️", sky: ["#7dd3fc", "#86efac", "#4ade80"], grass: "#15803d", path: "#65a30d", rain: false, dark: false, puddles: false, rocks: false, spd: 5.2 },
-      { name: "Rainy", emoji: "🌧️", sky: ["#64748b", "#94a3b8", "#3f6212"], grass: "#166534", path: "#365314", rain: true, dark: false, puddles: true, rocks: false, spd: 5.6 },
-      { name: "Night", emoji: "🌙", sky: ["#052e16", "#14532d", "#052e16"], grass: "#14532d", path: "#365314", rain: false, dark: true, puddles: false, rocks: true, spd: 6.0 }
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, last = 0, t = 0, play = false, cam = 0, shake = 0, stars = 0, flowers = 0, valley = 0, rainN = 0;
+    var ground, spd = 220;
+    var dino = { y: 0, vy: 0, on: true, stomp: 0, face: 0 };
+    var obs = [], flo = [], babies = [], dust = [], rain = [], fire = [];
+    var carry = 0, boss = null, saved = 0;
+    var VAL = [
+      { n: "Sunny path", rain: 0, night: 0, boss: 0, need: 5 },
+      { n: "Rolling logs", rain: 0, night: 0, boss: 0, need: 6 },
+      { n: "Rain woods", rain: 1, night: 0, boss: 0, need: 6 },
+      { n: "Firefly night", rain: 0, night: 1, boss: 0, need: 6 },
+      { n: "Big pal", rain: 0, night: 0, boss: 1, need: 3 }
     ];
 
-    var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W = 360, H = 640, dpr = 1;
-    var play = false, won = false, valley = 0, hops = 0, flowers = 0, combo = 0, t = 0;
-    var spd = 5.2, slowT = 0, spawnWait = 0, hintT = 0;
-    var dino = { y: 0, vy: 0, on: true, h: 70 };
-    var baby = { y: 0, vy: 0 };
-    var obs = [], flo = [], rain = [], flies = [], trees = [], parts = [];
-    var last = 0, ground = 400, scroll = 0;
-
-    function resize() {
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-      W = innerWidth; H = innerHeight;
-      cv.width = Math.floor(W * dpr); cv.height = Math.floor(H * dpr);
-      cv.style.width = W + "px"; cv.style.height = H + "px";
-      x.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ground = H * 0.60;
+    function beep(f, d, typ) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = typ || "square"; o.frequency.value = f; g.gain.value = 0.09;
+        o.connect(g); g.connect(ac.destination); o.start();
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    resize();
-    addEventListener("resize", resize);
+    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; ground = H * 0.68; }
+    addEventListener("resize", resize); resize();
 
-    function hint(m) {
-      var el = document.getElementById("hint");
-      el.textContent = m; el.className = "show"; hintT = 1.5;
+    function start() {
+      play = true; valley = 0; stars = 0; flowers = 0; saved = 0; carry = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      loadVal(); beep(500, 0.1);
     }
-
-    function hud() {
-      document.getElementById("hopHud").textContent = "Hops " + hops;
-      document.getElementById("floHud").textContent = "🌼 " + flowers + " / 6";
-      document.getElementById("valHud").textContent = VALLEYS[valley].emoji + " " + VALLEYS[valley].name;
+    function loadVal() {
+      var v = VAL[valley];
+      dino.y = ground - 70; dino.vy = 0; dino.on = true; dino.stomp = 0;
+      obs = []; flo = []; babies = []; dust = []; rain = []; fire = []; boss = null; cam = 0; spd = 200 + valley * 20;
+      flowers = 0; rainN = 0;
+      document.getElementById("val").textContent = v.n;
+      document.getElementById("fl").textContent = "🌼 " + flowers;
+      document.getElementById("say").textContent = v.boss ? "Stomp the big pal!" : "Hop or STOMP!";
+      if (v.boss) boss = { x: W + 200, hp: 3, bob: 0 };
     }
-
-    function resetValley(i) {
-      valley = i;
-      var v = VALLEYS[valley];
-      hops = 0; flowers = 0; combo = 0; t = 0; scroll = 0;
-      spd = v.spd; slowT = 0; spawnWait = 0.8;
-      obs = []; flo = []; rain = []; flies = []; parts = [];
-      dino.y = ground - dino.h; dino.vy = 0; dino.on = true;
-      baby.y = dino.y + 14; baby.vy = 0;
-      trees = [];
-      for (var n = 0; n < 8; n++) trees.push({ x: n * 180 + Math.random() * 40, h: 90 + Math.random() * 70, kind: n % 2 });
-      if (v.rain) {
-        for (var r = 0; r < 40; r++) rain.push({ x: Math.random() * W, y: Math.random() * H, l: 10 + Math.random() * 12 });
-      }
-      if (v.dark) {
-        for (var f = 0; f < 18; f++) flies.push({ x: Math.random() * W, y: 80 + Math.random() * (ground - 120), ph: Math.random() * 6 });
-      }
-      hud();
-    }
-
-    function addFlower(n) {
-      flowers += n;
-      if (flowers > 6) flowers = 6;
-      hud();
-      if (flowers >= 6) finishValley();
-    }
-
     function hop() {
-      if (!play || won) return;
-      if (dino.on) {
-        dino.vy = -14.2; dino.on = false;
-        baby.vy = -11;
-        hops++; hud();
-        beep(500, 0.07, "square");
-      }
+      if (!play) return;
+      if (dino.on) { dino.vy = -620; dino.on = false; beep(560, 0.07); }
     }
-
     function stomp() {
-      if (!play || won) return;
-      if (!dino.on) { hint("Land first"); beep(200, 0.06); return; }
-      var dx = W * 0.2, smashed = false;
-      obs.forEach(function (o) {
-        if (o.dead || o.kind === "rock" || o.kind === "puddle") return;
-        if (o.x < dx + 110 && o.x + o.w > dx - 10) {
-          o.dead = true; smashed = true;
-          flo.push({ x: o.x + 10, y: ground - 90, got: false, pop: true });
-          flo.push({ x: o.x + 36, y: ground - 120, got: false, pop: true });
-          parts.push({ x: o.x + 16, y: ground - 20, e: "🌸", life: 0.8, vy: -3 });
-          hops++; combo++;
-          addFlower(1);
-          beep(280, 0.08, "square");
-          beep(720, 0.1);
-          hint("Stomp flowers!");
-          if (play && combo >= 3) { addFlower(1); combo = 0; hint("Combo flower!"); }
-          hud();
-        }
-      });
-      if (!smashed) {
-        hint("Get closer");
-        beep(170, 0.08);
-      }
+      if (!play) return;
+      dino.stomp = 0.22; dino.vy = 900; shake = 14; beep(180, 0.1, "sawtooth");
+      for (var i = 0; i < 10; i++) dust.push({ x: 110 + Math.random() * 40, y: ground, vx: (Math.random() - 0.5) * 80, vy: -40 - Math.random() * 60, life: 1 });
     }
-
-    document.getElementById("hopBtn").addEventListener("pointerdown", function (e) { e.preventDefault(); hop(); });
-    document.getElementById("stompBtn").addEventListener("pointerdown", function (e) { e.preventDefault(); stomp(); });
+    document.getElementById("hop").onclick = hop;
+    document.getElementById("stomp").onclick = stomp;
+    addEventListener("keydown", function (e) {
+      if (e.code === "Space" || e.code === "ArrowUp") hop();
+      if (e.code === "ArrowDown") stomp();
+    });
 
     function spawn() {
-      var v = VALLEYS[valley];
-      var roll = Math.random();
-      var kind = "log";
-      if (v.puddles && roll < 0.28) kind = "puddle";
-      else if (v.rocks && roll < 0.34) kind = "rock";
-      var w = kind === "log" ? 72 : kind === "rock" ? 46 : 70;
-      var h = kind === "log" ? 28 : kind === "rock" ? 40 : 10;
-      obs.push({ x: W + 30, w: w, h: h, kind: kind, cleared: false, dead: false });
-      if (Math.random() < 0.62) {
-        flo.push({ x: W + 90 + Math.random() * 80, y: ground - 100 - Math.random() * 70, got: false, pop: false });
-      }
+      var v = VAL[valley];
+      if (v.boss) return;
+      var kind = Math.random() < 0.6 ? "log" : "rock";
+      obs.push({ x: cam + W + 20, kind: kind, rot: 0, smashed: 0 });
+      if (Math.random() < 0.45) flo.push({ x: cam + W + 140, y: ground - 90 - Math.random() * 50, got: 0 });
+      if (Math.random() < 0.22) babies.push({ x: cam + W + 90, y: ground - 24, got: 0 });
     }
 
-    function miss(why) {
-      slowT = 1.1; spd = Math.max(3.1, spd * 0.55); combo = 0;
-      hint(why || "Slow down");
-      beep(140, 0.15);
-    }
-
-    function finishValley() {
-      if (won || !play) return;
-      play = false;
-      beep(880, 0.12);
-      setTimeout(function () { beep(990, 0.2); }, 80);
-      if (valley < 2) {
-        document.getElementById("mid").className = "cover" + (valley === 0 ? "" : valley === 1 ? " rain" : " night");
-        document.getElementById("midEmoji").textContent = VALLEYS[valley].emoji;
-        document.getElementById("midTitle").textContent = VALLEYS[valley].name + " done!";
-        document.getElementById("midLine").textContent = "Hops " + hops + " · flowers 6";
-        document.getElementById("mid").classList.remove("off");
-      } else {
-        document.getElementById("winLine").textContent = "Hops " + hops + ". Baby is proud!";
-        document.getElementById("win").classList.remove("off");
-        won = true;
-      }
-    }
-
-    function loop(ts) {
-      if (!last) last = ts;
-      var dt = Math.min(0.035, (ts - last) / 1000);
-      last = ts;
-      if (hintT > 0) { hintT -= dt; if (hintT <= 0) document.getElementById("hint").className = ""; }
-      if (play && !won) {
-        t += dt;
-        var v = VALLEYS[valley];
-        if (slowT > 0) { slowT -= dt; if (slowT <= 0) spd = v.spd; }
-        else spd = Math.min(v.spd + 1.6, spd + dt * 0.15);
-
-        spawnWait -= dt;
-        if (spawnWait <= 0) {
-          spawn();
-          spawnWait = 1.15 + Math.random() * 0.55;
+    function update(dt) {
+      t += dt;
+      if (shake > 0) shake *= 0.88;
+      var v = VAL[valley];
+      if (!play) return;
+      if (!v.boss && t * 100 % 70 < dt * 100) spawn();
+      if (v.rain && Math.random() < dt * 40) rain.push({ x: Math.random() * W, y: -10, vy: 400 });
+      if (v.night && Math.random() < dt * 8) fire.push({ x: cam + Math.random() * W, y: 40 + Math.random() * 180, life: 1 });
+      dino.vy += 1800 * dt;
+      dino.y += dino.vy * dt;
+      if (dino.y >= ground - 70) { dino.y = ground - 70; dino.vy = 0; dino.on = true; }
+      if (dino.stomp > 0) dino.stomp -= dt;
+      cam += spd * dt;
+      dino.face += dt * 8;
+      obs.forEach(function (o) {
+        o.rot += dt * 4;
+        var ox = o.x - cam;
+        var hit = ox < 150 && ox > 50 && dino.y > ground - 110;
+        if (hit && !o.smashed) {
+          if (dino.stomp > 0 && o.kind === "log") {
+            o.smashed = 1; flowers++; stars++; shake = 10;
+            document.getElementById("fl").textContent = "🌼 " + flowers;
+            document.getElementById("st").textContent = "⭐ " + stars;
+            beep(720, 0.08);
+            flo.push({ x: o.x, y: ground - 40, got: 0 });
+          } else if (!dino.on && dino.vy > 0) {
+            o.smashed = 1; stars++; beep(640, 0.06);
+          } else {
+            spd = Math.max(140, spd - 40); shake = 6; beep(140, 0.1);
+            o.x = cam + W + 80;
+          }
         }
-
-        dino.vy += 0.64; dino.y += dino.vy;
-        if (dino.y >= ground - dino.h) { dino.y = ground - dino.h; dino.vy = 0; dino.on = true; }
-        baby.vy += 0.64; baby.y += baby.vy;
-        if (baby.y >= ground - 52) { baby.y = ground - 52; baby.vy = 0; }
-
-        scroll += spd;
-        trees.forEach(function (tr) {
-          tr.x -= spd * 0.45;
-          if (tr.x < -80) { tr.x += 8 * 180; tr.h = 90 + Math.random() * 70; }
-        });
-
-        var dx = W * 0.2, dw = 56, dh = dino.h;
-        obs.forEach(function (o) {
-          if (o.dead) return;
-          o.x -= spd;
-          var hit = dx < o.x + o.w - 6 && dx + dw > o.x + 6 && dino.y + dh > ground - o.h + 8;
-          if (hit && dino.on) {
-            o.dead = true;
-            miss(o.kind === "puddle" ? "Splash!" : "Oops hop");
-          } else if (!o.cleared && !o.dead && o.x + o.w < dx) {
-            o.cleared = true;
-            if (o.kind !== "puddle") {
-              hops++; combo++;
-              beep(700, 0.06);
-              if (combo >= 3) { addFlower(1); combo = 0; hint("Combo flower!"); }
-              hud();
-            }
-          }
-        });
-        obs = obs.filter(function (o) { return o.x > -100 && !o.dead; });
-
-        flo.forEach(function (f) {
-          if (!f.pop) f.x -= spd;
-          else { f.y -= 0.8; f.x -= spd * 0.3; }
-          if (!f.got && Math.hypot(dx + 28 - f.x, dino.y + 24 - f.y) < 42) {
-            f.got = true; addFlower(1); beep(880, 0.1); hint("Flower!");
-          }
-        });
-        flo = flo.filter(function (f) { return f.x > -40 && !f.got; });
-
-        rain.forEach(function (r) {
-          r.y += 10; r.x -= 2;
-          if (r.y > ground) { r.y = -10; r.x = Math.random() * W; }
-        });
-        flies.forEach(function (f) {
-          f.x -= spd * 0.2;
-          f.y += Math.sin(t * 3 + f.ph) * 0.4;
-          if (f.x < -10) { f.x = W + 10; f.y = 80 + Math.random() * (ground - 120); }
-        });
-        parts.forEach(function (p) { p.y += p.vy; p.life -= dt; });
-        parts = parts.filter(function (p) { return p.life > 0; });
+      });
+      obs = obs.filter(function (o) { return o.x > cam - 80 && !o.smashed; });
+      flo.forEach(function (f) {
+        if (!f.got && Math.hypot((f.x - cam) - 110, (dino.y + 20) - f.y) < 40) {
+          f.got = 1; flowers++; stars++; document.getElementById("fl").textContent = "🌼 " + flowers;
+          document.getElementById("st").textContent = "⭐ " + stars; beep(880, 0.07);
+        }
+      });
+      babies.forEach(function (b) {
+        if (!b.got && Math.hypot((b.x - cam) - 110, dino.y - b.y) < 46) {
+          b.got = 1; carry++; saved++; stars += 2; document.getElementById("st").textContent = "⭐ " + stars;
+          document.getElementById("say").textContent = "Baby ride!"; beep(990, 0.1);
+        }
+      });
+      dust.forEach(function (d) { d.x += d.vx * dt; d.y += d.vy * dt; d.vy += 80 * dt; d.life -= dt * 2; });
+      dust = dust.filter(function (d) { return d.life > 0; });
+      rain.forEach(function (r) { r.y += r.vy * dt; });
+      rain = rain.filter(function (r) { return r.y < H; });
+      fire.forEach(function (f) { f.life -= dt * 0.4; });
+      fire = fire.filter(function (f) { return f.life > 0; });
+      if (boss) {
+        boss.x -= 80 * dt; boss.bob += dt * 3;
+        var bx = boss.x - cam;
+        if (bx < 160 && bx > 40 && dino.stomp > 0) {
+          boss.hp--; boss.x += 180; shake = 16; stars += 2; beep(200, 0.12, "sawtooth");
+          document.getElementById("say").textContent = "Boop! " + boss.hp + " left";
+          if (boss.hp <= 0) { flowers = VAL[valley].need; }
+        }
       }
-      draw();
-      requestAnimationFrame(loop);
+      if (flowers >= VAL[valley].need) {
+        valley++;
+        if (valley >= VAL.length) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("winP").textContent = "⭐ " + stars + "  Babies saved " + saved;
+          document.getElementById("win").classList.remove("off");
+        } else loadVal();
+      }
     }
 
     function draw() {
-      var v = VALLEYS[valley];
+      var v = VAL[valley] || VAL[0];
       var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, v.sky[0]); g.addColorStop(0.45, v.sky[1]); g.addColorStop(1, v.sky[2]);
+      if (v.night) { g.addColorStop(0, "#0f172a"); g.addColorStop(1, "#14532d"); }
+      else if (v.rain) { g.addColorStop(0, "#64748b"); g.addColorStop(1, "#166534"); }
+      else { g.addColorStop(0, "#7dd3fc"); g.addColorStop(0.55, "#86efac"); g.addColorStop(1, "#166534"); }
+      x.save();
+      x.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
       x.fillStyle = g; x.fillRect(0, 0, W, H);
-
-      if (v.dark) {
-        x.fillStyle = "#fde68a";
-        x.beginPath(); x.arc(W - 60, 70, 22, 0, Math.PI * 2); x.fill();
-        x.font = "28px serif"; x.fillText("🌙", W - 76, 82);
-      } else if (v.rain) {
-        x.fillStyle = "rgba(255,255,255,.35)";
-        x.beginPath(); x.ellipse(80, 70, 50, 18, 0, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.ellipse(130, 64, 40, 16, 0, 0, Math.PI * 2); x.fill();
-      } else {
-        x.fillStyle = "#fde047";
-        x.beginPath(); x.arc(W - 70, 64, 28, 0, Math.PI * 2); x.fill();
+      x.fillStyle = v.night ? "#1e3a2a" : "#22c55e";
+      for (var i = 0; i < 8; i++) {
+        var tx = ((i * 160 - cam * 0.3) % (W + 160));
+        x.beginPath(); x.moveTo(tx, ground - 40); x.lineTo(tx + 50, ground - 140); x.lineTo(tx + 100, ground - 40); x.fill();
       }
-
-      trees.forEach(function (tr) {
-        x.fillStyle = "#3f2a14";
-        x.fillRect(tr.x + 18, ground - tr.h, 14, tr.h);
-        x.fillStyle = v.dark ? "#166534" : "#16a34a";
-        x.beginPath();
-        x.arc(tr.x + 25, ground - tr.h + 8, 34, 0, Math.PI * 2);
-        x.fill();
-        x.font = "28px serif";
-        x.fillText(tr.kind ? "🌴" : "🌳", tr.x + 4, ground - tr.h + 18);
-      });
-
-      x.fillStyle = v.grass;
-      x.fillRect(0, ground, W, H - ground);
-      x.fillStyle = v.path;
-      x.fillRect(0, ground, W, 18);
+      x.fillStyle = "#15803d"; x.fillRect(0, ground, W, H - ground);
       x.fillStyle = "#4ade80";
-      for (var i = 0; i < 16; i++) {
-        var gx = ((i * 70 - scroll) % (W + 70));
-        x.fillRect(gx, ground - 7, 12, 7);
-      }
-
-      rain.forEach(function (r) {
-        x.strokeStyle = "rgba(186,230,253,.7)";
-        x.beginPath(); x.moveTo(r.x, r.y); x.lineTo(r.x - 3, r.y + r.l); x.stroke();
-      });
-      flies.forEach(function (f) {
-        x.globalAlpha = 0.45 + 0.55 * Math.sin(t * 5 + f.ph);
-        x.fillStyle = "#fde68a";
-        x.beginPath(); x.arc(f.x, f.y, 2.4, 0, Math.PI * 2); x.fill();
-        x.globalAlpha = 1;
-      });
-
+      for (var j = 0; j < 16; j++) x.fillRect(((j * 70 - cam) % (W + 70)), ground - 8, 18, 8);
       obs.forEach(function (o) {
-        if (o.kind === "puddle") {
-          x.fillStyle = "rgba(56,189,248,.7)";
-          x.beginPath(); x.ellipse(o.x + o.w / 2, ground + 4, o.w / 2, 8, 0, 0, Math.PI * 2); x.fill();
-        } else {
-          x.font = o.kind === "log" ? "42px serif" : "38px serif";
-          x.fillText(o.kind === "log" ? "🪵" : "🪨", o.x, ground - 2);
-        }
+        x.save(); x.translate(o.x - cam + 24, ground - 16); x.rotate(o.rot);
+        x.font = "40px serif"; x.fillText(o.kind === "log" ? "🪵" : "🪨", -20, 10);
+        x.restore();
       });
-      flo.forEach(function (f) { x.font = "28px serif"; x.fillText("🌼", f.x, f.y); });
-      parts.forEach(function (p) {
-        x.globalAlpha = Math.max(0, p.life);
-        x.font = "24px serif"; x.fillText(p.e, p.x, p.y); x.globalAlpha = 1;
-      });
-
-      var dx = W * 0.2;
-      x.font = "44px serif";
-      x.fillText("🦖", dx - 48, baby.y + 44);
-      x.font = "68px serif";
-      x.fillText("🦕", dx - 8, dino.y + 62);
+      flo.forEach(function (f) { if (!f.got) { x.font = "28px serif"; x.fillText("🌼", f.x - cam, f.y); } });
+      babies.forEach(function (b) { if (!b.got) { x.font = "28px serif"; x.fillText("🦖", b.x - cam, b.y); } });
+      if (boss) {
+        x.font = "84px serif";
+        x.fillText("🦕", boss.x - cam, ground - 20 + Math.sin(boss.bob) * 8);
+      }
+      rain.forEach(function (r) { x.strokeStyle = "rgba(200,230,255,.6)"; x.beginPath(); x.moveTo(r.x, r.y); x.lineTo(r.x - 4, r.y + 14); x.stroke(); });
+      fire.forEach(function (f) { x.globalAlpha = f.life; x.font = "16px serif"; x.fillText("✨", f.x - cam, f.y); });
+      x.globalAlpha = 1;
+      dust.forEach(function (d) { x.globalAlpha = d.life; x.fillStyle = "#854d0e"; x.fillRect(d.x, d.y, 6, 6); });
+      x.globalAlpha = 1;
+      var squish = dino.stomp > 0 ? 0.75 : 1;
+      x.save(); x.translate(100, dino.y + 70); x.scale(1, squish);
+      x.font = "64px serif"; x.fillText("🦕", 0, 0);
+      if (carry) { x.font = "28px serif"; x.fillText("🦖", 48, -20); }
+      x.restore();
+      x.restore();
     }
 
-    function hideCovers() {
-      document.getElementById("start").classList.add("off");
-      document.getElementById("mid").classList.add("off");
-      document.getElementById("win").classList.add("off");
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now;
+      update(dt); draw(); requestAnimationFrame(loop);
     }
-
-    function begin(i) {
-      hideCovers();
-      won = false; play = true;
-      resetValley(i);
-      document.getElementById("dock").classList.add("on");
-      hint("Hop or stomp");
-      beep(520, 0.1);
-    }
-
-    document.getElementById("go").onclick = function () { begin(0); };
-    document.getElementById("midAgain").onclick = function () { begin(0); };
-    document.getElementById("midNext").onclick = function () { begin(valley + 1); };
-    document.getElementById("again").onclick = function () { begin(0); };
-    document.getElementById("next").onclick = function () { begin(0); };
-
-    resetValley(0);
-    draw();
     requestAnimationFrame(loop);
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+  })();
   </script>
 </body>
 </html>
