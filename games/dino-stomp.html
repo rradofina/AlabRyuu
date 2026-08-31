@@ -249,47 +249,47 @@
       var pose = d.pose;
       var k;
       if (play && pose === "crouch") {
-        k = Math.min(1, d.poseT / 0.2);
-        d.y = -0.18 * k;
-        d.body.scale.set(1.85, 0.62, 1.05);
-        d.legs.forEach(function (hip) { hip.rotation.x = 0.95 * k; hip.position.y = d.baseHipY - 0.16 * k; });
-        d.tail.rotation.z = 0.55 * k; d.tail.rotation.y = 0;
-        d.head.rotation.x = 0.45 * k;
-        d.rig.rotation.x = 0.12 * k;
-        if (d.poseT >= 0.2) { d.pose = "takeoff"; d.poseT = 0; puffDust(8, 0); beep(560, 0.07); }
+        k = Math.min(1, d.poseT / 0.32);
+        d.y = -0.28 * k;
+        d.body.scale.set(2.05, 0.48, 1.15);
+        d.legs.forEach(function (hip) { hip.rotation.x = 1.15 * k; hip.position.y = d.baseHipY - 0.22 * k; });
+        d.tail.rotation.z = 0.7 * k; d.tail.rotation.y = 0;
+        d.head.rotation.x = 0.62 * k;
+        d.rig.rotation.x = 0.2 * k;
+        if (d.poseT >= 0.32) { d.pose = "takeoff"; d.poseT = 0; puffDust(10, 0); beep(560, 0.07); }
       } else if (play && pose === "takeoff") {
-        k = Math.min(1, d.poseT / 0.08);
-        d.y = 0.15 + k * 0.55;
-        d.vy = 8.2;
-        d.body.scale.set(1.55, 1.15, 0.85);
-        d.legs[0].rotation.x = -0.35; d.legs[1].rotation.x = -0.35;
-        d.legs[2].rotation.x = 0.75; d.legs[3].rotation.x = 0.75;
-        d.head.rotation.x = -0.35; d.rig.rotation.x = -0.2;
-        d.tail.rotation.z = -0.25;
-        if (d.poseT >= 0.08) { d.pose = "air"; d.poseT = 0; }
+        k = Math.min(1, d.poseT / 0.14);
+        d.y = 0.2 + k * 0.7;
+        d.vy = 7.2;
+        d.body.scale.set(1.4, 1.35, 0.78);
+        d.legs[0].rotation.x = -0.5; d.legs[1].rotation.x = -0.5;
+        d.legs[2].rotation.x = 0.9; d.legs[3].rotation.x = 0.9;
+        d.head.rotation.x = -0.45; d.rig.rotation.x = -0.28;
+        d.tail.rotation.z = -0.35;
+        if (d.poseT >= 0.14) { d.pose = "air"; d.poseT = 0; }
       } else if (play && pose === "air") {
-        var hang = d.vy > 0 && d.vy < 2.2 ? 9 : 16;
+        var hang = d.vy > -0.4 && d.vy < 2.8 ? 5.5 : 11;
         d.vy -= hang * dt;
         d.y += d.vy * dt;
-        d.body.scale.set(1.5, 1.08, 0.88);
-        d.legs.forEach(function (hip) { hip.rotation.x = -1.15; hip.position.y = d.baseHipY + 0.08; });
-        d.head.rotation.x = -0.28;
-        d.rig.rotation.x = -0.22 + Math.min(0.35, Math.max(0, -d.vy) * 0.04);
-        d.tail.rotation.z = -0.15 + Math.sin(t * 8) * 0.1;
-        d.rig.rotation.z = Math.sin(d.poseT * 6) * 0.06;
+        d.body.scale.set(1.35, 1.22, 0.8);
+        d.legs.forEach(function (hip) { hip.rotation.x = -1.45; hip.position.y = d.baseHipY + 0.14; });
+        d.head.rotation.x = -0.38;
+        d.rig.rotation.x = -0.28 + Math.min(0.45, Math.max(0, -d.vy) * 0.05);
+        d.tail.rotation.z = -0.2 + Math.sin(t * 8) * 0.12;
+        d.rig.rotation.z = Math.sin(d.poseT * 5) * 0.1;
         if (d.y <= 0 && d.vy <= 0) {
-          d.y = 0; d.vy = 0; d.pose = "land"; d.poseT = 0; puffDust(10, 1); beep(180, 0.1);
+          d.y = 0; d.vy = 0; d.pose = "land"; d.poseT = 0; puffDust(12, 1); beep(180, 0.1);
         }
       } else if (play && pose === "land") {
-        k = Math.min(1, d.poseT / 0.2);
-        var squash = k < 0.4 ? 0.58 + k * 0.3 : 0.7 + (k - 0.4) * 0.5;
-        d.body.scale.set(1.85 - k * 0.15, squash, 1);
-        d.y = k < 0.35 ? -0.12 * (1 - k / 0.35) : 0;
-        d.legs.forEach(function (hip) { hip.rotation.x = 0.55 * (1 - k); hip.position.y = d.baseHipY; });
-        d.head.rotation.x = (k < 0.5 ? 0.35 : 0.35 - (k - 0.5) * 0.7);
+        k = Math.min(1, d.poseT / 0.3);
+        var squash = k < 0.4 ? 0.42 + k * 0.35 : 0.56 + (k - 0.4) * 0.48;
+        d.body.scale.set(2.0 - k * 0.25, squash, 1.1);
+        d.y = k < 0.4 ? -0.18 * (1 - k / 0.4) : 0;
+        d.legs.forEach(function (hip) { hip.rotation.x = 0.75 * (1 - k); hip.position.y = d.baseHipY; });
+        d.head.rotation.x = (k < 0.45 ? 0.5 : 0.5 - (k - 0.45) * 0.9);
         d.rig.rotation.x = 0; d.rig.rotation.z = 0;
-        d.tail.rotation.z = 0.2 * (1 - k);
-        if (d.poseT >= 0.2) { d.pose = "walk"; d.poseT = 0; d.body.scale.set(1.7, 0.85, 0.95); }
+        d.tail.rotation.z = 0.28 * (1 - k);
+        if (d.poseT >= 0.3) { d.pose = "walk"; d.poseT = 0; d.body.scale.set(1.7, 0.85, 0.95); }
       } else if (play && pose === "stompWind") {
         k = Math.min(1, d.poseT / 0.28);
         d.y = -0.08 + k * 0.55;

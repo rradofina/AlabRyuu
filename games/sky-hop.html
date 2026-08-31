@@ -211,14 +211,14 @@
     wings.forEach((w, i) => { w.rotation.z = Math.sin(t * (hopPhase === "air" || hopping > 0 ? 18 : 14) + i) * 0.55 * (i ? -1 : 1); });
     if (hopPhase === "crouch") {
       hopT += dt;
-      const k = Math.min(1, hopT / 0.24);
-      body.scale.set(1.45, 0.52, 1.15);
-      kid.position.copy(hopFrom).add(new THREE.Vector3(0, 0.68 - 0.28 * k, 0));
+      const k = Math.min(1, hopT / 0.34);
+      body.scale.set(1.55, 0.45, 1.2);
+      kid.position.copy(hopFrom).add(new THREE.Vector3(0, 0.62 - 0.32 * k, 0));
       hips.forEach((h) => { h.rotation.x = 1.35 * k; h.position.y = -0.18 - 0.06 * k; });
       head.rotation.x = 0.55 * k;
       kid.rotation.x = 0.22 * k;
       wings.forEach((w, i) => { w.rotation.z = 0.7 * k * (i ? -1 : 1); });
-      if (hopT >= 0.24) { hopPhase = "takeoff"; hopT = 0; puffCloud(8); }
+      if (hopT >= 0.34) { hopPhase = "takeoff"; hopT = 0; puffCloud(8); }
     } else if (hopPhase === "takeoff") {
       hopT += dt;
       const k = Math.min(1, hopT / 0.1);
@@ -230,7 +230,7 @@
       if (hopT >= 0.1) { hopPhase = "air"; hopT = 0; on++; }
     } else if (hopPhase === "air") {
       hopT += dt;
-      const dur = 0.55;
+      const dur = 0.78;
       const k = Math.min(1, hopT / dur);
       const hang = Math.sin(k * Math.PI);
       const loft = hang > 0.58 ? hang * 1.28 : hang;
