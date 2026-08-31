@@ -41,6 +41,7 @@
     if (!window.THREE) return;
     var T = THREE, play = false, match = 0, goals = 0, misses = 0, stars = 0, t = 0;
     var holding = 0, power = 0, phase = "ready", kickT = 0;
+    var kickAim = new T.Vector3();
     var MATCH = [
       { n: "Friendly", verb: "kick", need: 2, dive: 0.6 },
       { n: "Windy", verb: "curve", need: 2, dive: 0.7, wind: 1 },
@@ -145,9 +146,9 @@
     function onDown() { if (play && phase === "ready") { holding = 1; phase = "power"; } }
     function onUp(ev) {
       if (!play || phase !== "power") return;
-      holding = 0; phase = "run";
+      holding = 0; phase = "run"; kickT = 0;
       var nx = (ev.clientX / innerWidth) * 2 - 1;
-      ballV.set(nx * 3.2 + (MATCH[match].wind ? Math.sin(t) * 1.2 : 0), 1.2 + power * 2.2, -10 - power * 8);
+      kickAim.set(nx * 3.2 + (MATCH[match].wind ? Math.sin(t) * 1.2 : 0), 1.2 + power * 2.2, -10 - power * 8);
       beep(240, 0.08);
     }
     renderer.domElement.addEventListener("pointerdown", onDown);
@@ -162,18 +163,35 @@
         power = (Math.sin(t * 4) * 0.5 + 0.5);
         document.getElementById("fill").style.width = (power * 100) + "%";
       }
-      if (phase === "run" || phase === "fly") {
+      if (phase === "run") {
         kickT += dt;
-        player.position.z += (3.4 - player.position.z) * 8 * dt;
-        player.userData.legs[1].rotation.x = kickT < 0.25 ? -1.2 : -0.2;
-        player.userData.legs[0].rotation.x = 0.3;
-        if (kickT > 0.18 && phase === "run") phase = "fly";
-      } else {
+        var runK = Math.min(1, kickT / 0.5);
+        player.position.z = 4.2 - runK * 0.95;
+        player.userData.body.rotation.x = 0.14;
+        var step = Math.sin(kickT * 24);
+        player.userData.legs[0].rotation.x = step * 0.9;
+        player.userData.legs[1].rotation.x = -step * 0.9;
+        if (kickT > 0.42) {
+          var swing = (kickT - 0.42) / 0.18;
+          player.userData.legs[0].rotation.x = 0.4;
+          player.userData.legs[1].rotation.x = swing < 0.4 ? -1.45 : -1.45 + (swing - 0.4) * 4.4;
+          player.userData.body.rotation.x = -0.22;
+        }
+        if (kickT >= 0.6) {
+          phase = "fly";
+          ballV.copy(kickAim);
+          beep(520, 0.06);
+        }
+      } else if (phase !== "fly") {
         player.userData.legs.forEach(function (hip, i) {
           hip.rotation.x = Math.sin(t * 5 + i * 3) * 0.15;
         });
+        player.userData.body.rotation.x = 0;
       }
       if (phase === "fly") {
+        player.userData.legs[0].rotation.x += (0.25 - player.userData.legs[0].rotation.x) * 8 * dt;
+        player.userData.legs[1].rotation.x += (-0.2 - player.userData.legs[1].rotation.x) * 6 * dt;
+        player.userData.body.rotation.x += (0 - player.userData.body.rotation.x) * 5 * dt;
         ballV.y -= 9 * dt;
         ball.position.addScaledVector(ballV, dt);
         ball.rotation.x += dt * 10; ball.rotation.y += dt * 6;

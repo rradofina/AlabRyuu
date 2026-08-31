@@ -88,6 +88,10 @@
   let stars = save.stars || 0;
   let mode = "hop";
   let hopping = 0;
+  let hopPhase = "idle";
+  let hopT = 0;
+  const hopFrom = new THREE.Vector3();
+  const hopTo = new THREE.Vector3();
   let decorations = 0;
 
   const kid = new THREE.Group();
@@ -108,14 +112,32 @@
     kid.add(w);
     wings.push(w);
   }
-  const legs = [];
+  const hips = [];
   for (const s of [-1, 1]) {
-    const l = new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.04, 0.14, 4, 6) : new THREE.CylinderGeometry(0.04, 0.04, 0.18, 6), new THREE.MeshLambertMaterial({ color: 0xffe0b0 }));
-    l.position.set(s * 0.08, -0.28, 0);
-    kid.add(l);
-    legs.push(l);
+    const hip = new THREE.Group();
+    hip.position.set(s * 0.09, -0.18, 0);
+    const thigh = new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.035, 0.12, 4, 6) : new THREE.CylinderGeometry(0.035, 0.04, 0.16, 6), new THREE.MeshLambertMaterial({ color: 0xffe0b0 }));
+    thigh.position.y = -0.1;
+    hip.add(thigh);
+    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), new THREE.MeshLambertMaterial({ color: 0x5a3a22 }));
+    foot.scale.set(1.15, 0.45, 1.45);
+    foot.position.set(0, -0.2, 0.03);
+    hip.add(foot);
+    kid.add(hip);
+    hips.push(hip);
   }
   scene.add(kid);
+  const dust = [];
+  function puffCloud(n) {
+    for (let i = 0; i < n; i++) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
+      m.position.copy(kid.position);
+      m.position.y -= 0.25;
+      m.userData = { vx: (Math.random() - 0.5) * 1.4, vy: 0.4 + Math.random(), vz: (Math.random() - 0.5) * 0.8, life: 0.4 };
+      scene.add(m);
+      dust.push(m);
+    }
+  }
 
   function build() {
     clouds.forEach((c) => scene.remove(c.g));
@@ -136,7 +158,7 @@
   document.getElementById("go").onclick = () => document.getElementById("title").classList.add("hidden");
   document.getElementById("again").onclick = () => { document.getElementById("win").classList.add("hidden"); wi = 0; build(); };
   document.getElementById("hop").onclick = () => { mode = "hop"; hop(); };
-  document.getElementById("flutter").onclick = () => { mode = "flutter"; hopping = 0.35; };
+  document.getElementById("flutter").onclick = () => { mode = "flutter"; hopping = 0.4; };
   document.getElementById("deco").onclick = () => {
     mode = "deco";
     const c = clouds[on];
@@ -151,7 +173,7 @@
   };
 
   function hop() {
-    if (hopping > 0) return;
+    if (hopPhase !== "idle") return;
     if (on >= clouds.length - 1) {
       stars += 3;
       persist();
@@ -162,8 +184,10 @@
       }
       return;
     }
-    hopping = 0.55;
-    on++;
+    hopPhase = "crouch";
+    hopT = 0;
+    hopFrom.copy(clouds[on].g.position);
+    hopTo.copy(clouds[on + 1].g.position);
   }
   canvas.addEventListener("pointerdown", hop);
 
@@ -184,16 +208,73 @@
     requestAnimationFrame(loop);
     const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.elapsedTime;
-    wings.forEach((w, i) => { w.rotation.z = Math.sin(t * 14 + i) * 0.55 * (i ? -1 : 1); });
-    legs.forEach((l, i) => { l.rotation.x = hopping > 0 ? -0.8 : Math.sin(t * 8 + i * 3) * 0.4; });
-    if (hopping > 0) {
+    wings.forEach((w, i) => { w.rotation.z = Math.sin(t * (hopPhase === "air" || hopping > 0 ? 18 : 14) + i) * 0.55 * (i ? -1 : 1); });
+    if (hopPhase === "crouch") {
+      hopT += dt;
+      const k = Math.min(1, hopT / 0.22);
+      body.scale.set(1.2, 0.72, 0.95);
+      kid.position.copy(hopFrom).add(new THREE.Vector3(0, 0.72 - 0.2 * k, 0));
+      hips.forEach((h) => { h.rotation.x = 1.05 * k; });
+      head.rotation.x = 0.4 * k;
+      kid.rotation.x = 0.12 * k;
+      if (hopT >= 0.22) { hopPhase = "takeoff"; hopT = 0; puffCloud(7); }
+    } else if (hopPhase === "takeoff") {
+      hopT += dt;
+      const k = Math.min(1, hopT / 0.09);
+      body.scale.set(0.88, 1.38, 0.72);
+      hips.forEach((h) => { h.rotation.x = -0.45; });
+      head.rotation.x = -0.28;
+      kid.rotation.x = -0.22;
+      kid.position.lerpVectors(hopFrom, hopTo, k * 0.14).add(new THREE.Vector3(0, 0.95 + k * 0.55, 0));
+      if (hopT >= 0.09) { hopPhase = "air"; hopT = 0; on++; }
+    } else if (hopPhase === "air") {
+      hopT += dt;
+      const dur = 0.52;
+      const k = Math.min(1, hopT / dur);
+      const hang = Math.sin(k * Math.PI);
+      const loft = hang > 0.62 ? hang * 1.22 : hang;
+      kid.position.lerpVectors(hopFrom, hopTo, k).add(new THREE.Vector3(0, 0.9 + loft * 1.6, 0));
+      body.scale.set(0.92, 1.22, 0.78);
+      hips.forEach((h) => { h.rotation.x = -1.2; });
+      head.rotation.x = -0.22;
+      kid.rotation.x = -0.18 + k * 0.38;
+      kid.rotation.z = Math.sin(k * Math.PI) * 0.14;
+      if (hopT >= dur) { hopPhase = "land"; hopT = 0; puffCloud(9); }
+    } else if (hopPhase === "land") {
+      hopT += dt;
+      const k = Math.min(1, hopT / 0.2);
+      const dip = k < 0.4 ? 0.18 * (1 - k / 0.4) : 0;
+      kid.position.copy(hopTo).add(new THREE.Vector3(0, 0.9 - dip, 0));
+      body.scale.set(1.25, 0.68 + k * 0.47, 0.95);
+      hips.forEach((h) => { h.rotation.x = 0.55 * (1 - k); });
+      head.rotation.x = k < 0.45 ? 0.42 : 0.42 - (k - 0.45) * 0.76;
+      kid.rotation.x = 0;
+      kid.rotation.z = 0;
+      if (hopT >= 0.2) { hopPhase = "idle"; body.scale.set(1, 1.15, 0.8); }
+    } else if (hopping > 0) {
       hopping -= dt;
-      const from = clouds[Math.max(0, on - 1)].g.position;
-      const to = clouds[on].g.position;
-      const k = 1 - hopping / 0.55;
-      kid.position.lerpVectors(from, to, k).add(new THREE.Vector3(0, 0.9 + Math.sin(k * Math.PI) * 1.4, 0));
+      const k = 1 - hopping / 0.4;
+      kid.position.y = clouds[on].g.position.y + 0.9 + Math.sin(k * Math.PI) * 0.55;
+      hips.forEach((h) => { h.rotation.x = -0.7; });
+      body.scale.set(0.95, 1.2, 0.8);
     } else {
+      kid.position.x = clouds[on].g.position.x;
+      kid.position.z = clouds[on].g.position.z;
       kid.position.y = clouds[on].g.position.y + 0.9 + Math.sin(t * 3) * 0.06;
+      hips.forEach((h, i) => { h.rotation.x = Math.sin(t * 8 + i * 3) * 0.4; });
+      head.rotation.x = 0;
+      body.scale.set(1, 1.15, 0.8);
+    }
+    dust.forEach((m) => {
+      m.userData.life -= dt;
+      m.position.x += m.userData.vx * dt;
+      m.position.y += m.userData.vy * dt;
+      m.position.z += m.userData.vz * dt;
+      m.material.opacity = Math.max(0, m.userData.life * 2);
+      m.scale.addScalar(dt * 1.6);
+    });
+    for (let di = dust.length - 1; di >= 0; di--) {
+      if (dust[di].userData.life <= 0) { scene.remove(dust[di]); dust.splice(di, 1); }
     }
     clouds.forEach((c, i) => { c.g.position.y += Math.sin(t * 1.4 + i) * 0.002; });
     if (wi === 3) rain.forEach((d) => { d.position.y -= 8 * dt; if (d.position.y < 0) d.position.y = 9; });

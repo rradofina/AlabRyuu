@@ -150,21 +150,46 @@
     }
 
     var train = new T.Group();
-    var engine = new T.Mesh(new T.BoxGeometry(0.7, 0.38, 1.1), new T.MeshLambertMaterial({ color: 0xdc2626 }));
-    engine.position.y = 0.38; train.add(engine);
-    var cab = new T.Mesh(new T.BoxGeometry(0.5, 0.32, 0.4), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
-    cab.position.set(0, 0.62, -0.25); train.add(cab);
-    var stack = new T.Mesh(new T.CylinderGeometry(0.08, 0.1, 0.28, 8), new T.MeshLambertMaterial({ color: 0x1c1917 }));
-    stack.position.set(0, 0.7, 0.28); train.add(stack);
+    var boiler = new T.Mesh(new T.CylinderGeometry(0.22, 0.22, 0.98, 12), new T.MeshLambertMaterial({ color: 0xdc2626 }));
+    boiler.rotation.x = Math.PI / 2; boiler.position.set(0, 0.44, 0.14); train.add(boiler);
+    var band = new T.Mesh(new T.TorusGeometry(0.23, 0.028, 6, 14), new T.MeshLambertMaterial({ color: 0xfde047 }));
+    band.position.set(0, 0.44, 0.14); train.add(band);
+    var cab = new T.Mesh(new T.BoxGeometry(0.5, 0.44, 0.42), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
+    cab.position.set(0, 0.54, -0.5); train.add(cab);
+    var roof = new T.Mesh(new T.BoxGeometry(0.56, 0.06, 0.48), new T.MeshLambertMaterial({ color: 0x1e3a8a }));
+    roof.position.set(0, 0.78, -0.5); train.add(roof);
+    for (var s = -1; s <= 1; s += 2) {
+      var win = new T.Mesh(new T.BoxGeometry(0.02, 0.16, 0.16), new T.MeshLambertMaterial({ color: 0x7dd3fc }));
+      win.position.set(s * 0.26, 0.6, -0.5); train.add(win);
+    }
+    var winF = new T.Mesh(new T.BoxGeometry(0.22, 0.16, 0.02), new T.MeshLambertMaterial({ color: 0x7dd3fc }));
+    winF.position.set(0, 0.6, -0.28); train.add(winF);
+    var stack = new T.Mesh(new T.CylinderGeometry(0.07, 0.1, 0.34, 8), new T.MeshLambertMaterial({ color: 0x1c1917 }));
+    stack.position.set(0, 0.76, 0.4); train.add(stack);
+    var lip = new T.Mesh(new T.CylinderGeometry(0.13, 0.1, 0.07, 8), new T.MeshLambertMaterial({ color: 0x44403c }));
+    lip.position.set(0, 0.95, 0.4); train.add(lip);
+    var dome = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshLambertMaterial({ color: 0xf59e0b }));
+    dome.position.set(0, 0.68, 0.06); train.add(dome);
+    var lamp = new T.Mesh(new T.SphereGeometry(0.07, 8, 6), new T.MeshBasicMaterial({ color: 0xfde047 }));
+    lamp.position.set(0, 0.44, 0.66); train.add(lamp);
+    var cow = new T.Mesh(new T.ConeGeometry(0.26, 0.34, 4), new T.MeshLambertMaterial({ color: 0xa8a29e }));
+    cow.rotation.x = Math.PI / 2; cow.position.set(0, 0.16, 0.66); train.add(cow);
+    var tender = new T.Mesh(new T.BoxGeometry(0.44, 0.28, 0.4), new T.MeshLambertMaterial({ color: 0x44403c }));
+    tender.position.set(0, 0.32, -0.98); train.add(tender);
     var wheels = [];
-    [[0.28, 0.28], [0.28, -0.28], [-0.28, 0.28], [-0.28, -0.28]].forEach(function (p) {
-      var w = new T.Mesh(new T.CylinderGeometry(0.14, 0.14, 0.1, 10), new T.MeshLambertMaterial({ color: 0x1c1917 }));
-      w.rotation.z = Math.PI / 2; w.position.set(p[0], 0.14, p[1]); train.add(w); wheels.push(w);
+    [[0.26, 0.34, 0.16], [0.26, -0.08, 0.16], [-0.26, 0.34, 0.16], [-0.26, -0.08, 0.16], [0.26, -0.5, 0.12], [-0.26, -0.5, 0.12]].forEach(function (p) {
+      var hub = new T.Group();
+      hub.position.set(p[0], p[2], p[1]);
+      var tire = new T.Mesh(new T.TorusGeometry(p[2] * 0.92, 0.035, 6, 10), new T.MeshLambertMaterial({ color: 0x1c1917 }));
+      tire.rotation.y = Math.PI / 2; hub.add(tire);
+      var cap = new T.Mesh(new T.CylinderGeometry(0.04, 0.04, 0.06, 8), new T.MeshLambertMaterial({ color: 0xfde047 }));
+      cap.rotation.z = Math.PI / 2; hub.add(cap);
+      train.add(hub); wheels.push(hub);
     });
     var steam = [];
     for (var si = 0; si < 8; si++) {
       var puff = new T.Mesh(new T.SphereGeometry(0.08, 6, 6), new T.MeshLambertMaterial({ color: 0xf8fafc, transparent: true, opacity: 0.5 }));
-      puff.position.set(0, 0.9, 0.28); train.add(puff); steam.push(puff);
+      puff.position.set(0, 0.98, 0.4); train.add(puff); steam.push(puff);
     }
     scene.add(train);
     var path = [];
@@ -251,7 +276,7 @@
       t += dt;
       wheels.forEach(function (w) { if (running) w.rotation.x += dt * 8; });
       steam.forEach(function (p, i) {
-        p.position.y = 0.9 + ((t * 0.6 + i * 0.12) % 0.8);
+        p.position.y = 0.98 + ((t * 0.6 + i * 0.12) % 0.8);
         p.material.opacity = running ? 0.45 : 0.12;
         p.scale.setScalar(0.6 + ((t + i) % 1));
       });

@@ -76,9 +76,37 @@
       x.fillStyle="#cbd5e1";round(W*0.08,H*0.62,W*0.5,H*0.16,20,"#cbd5e1");
       spin+=0.02;
     }
+    function drawWho(who,cx,cy,s){
+      if(who==="🦊"){
+        ellipse(cx,cy,s,s*0.9,"#fb923c");
+        x.beginPath();x.moveTo(cx-s*0.7,cy-s*0.2);x.lineTo(cx-s*0.55,cy-s*1.15);x.lineTo(cx-s*0.15,cy-s*0.45);x.fillStyle="#ea580c";x.fill();
+        x.beginPath();x.moveTo(cx+s*0.7,cy-s*0.2);x.lineTo(cx+s*0.55,cy-s*1.15);x.lineTo(cx+s*0.15,cy-s*0.45);x.fill();
+        ellipse(cx,cy+s*0.15,s*0.45,s*0.28,"#fed7aa");
+        ellipse(cx-s*0.28,cy-s*0.08,s*0.1,s*0.12,"#1c1917");ellipse(cx+s*0.28,cy-s*0.08,s*0.1,s*0.12,"#1c1917");
+      }else if(who==="🐧"){
+        ellipse(cx,cy,s*0.85,s,"#1e293b");ellipse(cx,cy+s*0.15,s*0.5,s*0.55,"#fff7ed");
+        x.fillStyle="#f59e0b";x.beginPath();x.moveTo(cx-s*0.18,cy+s*0.05);x.lineTo(cx+s*0.18,cy+s*0.05);x.lineTo(cx,cy+s*0.32);x.fill();
+        ellipse(cx-s*0.22,cy-s*0.2,s*0.1,s*0.12,"#f8fafc");ellipse(cx+s*0.22,cy-s*0.2,s*0.1,s*0.12,"#f8fafc");
+        ellipse(cx-s*0.22,cy-s*0.2,s*0.05,s*0.06,"#0f172a");ellipse(cx+s*0.22,cy-s*0.2,s*0.05,s*0.06,"#0f172a");
+      }else if(who==="🐱"){
+        ellipse(cx,cy,s,s*0.9,"#fb7185");
+        x.beginPath();x.moveTo(cx-s*0.7,cy-s*0.15);x.lineTo(cx-s*0.45,cy-s*1.1);x.lineTo(cx-s*0.1,cy-s*0.4);x.fillStyle="#f472b6";x.fill();
+        x.beginPath();x.moveTo(cx+s*0.7,cy-s*0.15);x.lineTo(cx+s*0.45,cy-s*1.1);x.lineTo(cx+s*0.15,cy-s*0.4);x.fill();
+        ellipse(cx-s*0.28,cy-s*0.05,s*0.12,s*0.14,"#1c1917");ellipse(cx+s*0.28,cy-s*0.05,s*0.12,s*0.14,"#1c1917");
+      }else if(who==="🦄"){
+        ellipse(cx,cy,s,s*0.9,"#f5d0fe");
+        x.fillStyle="#a78bfa";x.beginPath();x.moveTo(cx-s*0.1,cy-s*0.7);x.lineTo(cx+s*0.08,cy-s*1.35);x.lineTo(cx+s*0.22,cy-s*0.55);x.fill();
+        ellipse(cx-s*0.28,cy-s*0.05,s*0.1,s*0.12,"#1c1917");ellipse(cx+s*0.28,cy-s*0.05,s*0.1,s*0.12,"#1c1917");
+      }else{
+        ellipse(cx,cy,s*0.85,s*0.9,"#ffe0b0");
+        ellipse(cx,cy-s*0.55,s*0.9,s*0.4,"#5a3a22");
+        ellipse(cx-s*0.25,cy-s*0.05,s*0.1,s*0.12,"#1c1917");ellipse(cx+s*0.25,cy-s*0.05,s*0.1,s*0.12,"#1c1917");
+        x.strokeStyle="#9a3412";x.lineWidth=2;x.beginPath();x.arc(cx,cy+s*0.18,s*0.22,0.2,2.9);x.stroke();
+      }
+    }
     function drawGuest(){
       var o=ORDERS[order],gx=W*0.22,gy=H*0.28+Math.sin(T*3)*4;
-      x.font="52px serif";x.textAlign="center";x.textBaseline="middle";x.fillText(o.who,gx,gy);
+      drawWho(o.who,gx,gy,22);
       var bx=gx+50,by=gy-36,bw=Math.min(240,W*0.5);
       x.fillStyle="#fff";round(bx,by,bw,64,16,"#fff");
       x.beginPath();x.moveTo(bx,by+22);x.lineTo(bx-12,by+30);x.lineTo(bx,by+38);x.fill();

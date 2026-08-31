@@ -89,8 +89,14 @@
     var lid = new T.Mesh(new T.BoxGeometry(0.72, 0.12, 0.46), new T.MeshLambertMaterial({ color: 0xf59e0b }));
     lid.position.set(0, 0.5, 0); chest.add(lid);
     chest.position.set(2.4, 0, -1.6); scene.add(chest);
-    var boat = new T.Mesh(new T.BoxGeometry(1.4, 0.28, 0.5), new T.MeshLambertMaterial({ color: 0x92400e }));
-    boat.position.set(6.6, -0.5, 1.2); scene.add(boat);
+    var boat = new T.Group();
+    var hull = new T.Mesh(new T.CylinderGeometry(0.16, 0.28, 1.5, 8), new T.MeshLambertMaterial({ color: 0x92400e }));
+    hull.rotation.z = Math.PI / 2; boat.add(hull);
+    var prow = new T.Mesh(new T.ConeGeometry(0.18, 0.4, 7), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
+    prow.rotation.z = -Math.PI / 2; prow.position.x = 0.9; boat.add(prow);
+    var mast = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.7, 6), new T.MeshLambertMaterial({ color: 0xfde68a }));
+    mast.position.y = 0.4; boat.add(mast);
+    boat.position.set(6.6, -0.35, 1.2); scene.add(boat);
 
     function buddy(col) {
       var g = new T.Group();

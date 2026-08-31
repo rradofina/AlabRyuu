@@ -89,28 +89,40 @@
 
     function makeDino(scale, col) {
       var root = new T.Group();
-      var body = new T.Mesh(new T.BoxGeometry(1.6, 0.7, 0.7), new T.MeshLambertMaterial({ color: col }));
-      body.position.set(0, 0.95, 0); body.castShadow = true; root.add(body);
-      var neck = new T.Mesh(new T.BoxGeometry(0.28, 0.28, 0.5), new T.MeshLambertMaterial({ color: col }));
-      neck.position.set(0.85, 1.15, 0); root.add(neck);
-      var head = new T.Mesh(new T.BoxGeometry(0.5, 0.36, 0.36), new T.MeshLambertMaterial({ color: col }));
-      head.position.set(1.2, 1.25, 0); root.add(head);
-      var eye = new T.Mesh(new T.SphereGeometry(0.06, 8, 8), new T.MeshLambertMaterial({ color: 0x14532d }));
-      eye.position.set(1.35, 1.36, 0.16); root.add(eye);
-      var tail = new T.Mesh(new T.BoxGeometry(1.1, 0.16, 0.16), new T.MeshLambertMaterial({ color: col }));
-      tail.position.set(-1.15, 0.95, 0); tail.rotation.z = 0.2; root.add(tail);
+      var rig = new T.Group(); root.add(rig);
+      var body = new T.Mesh(new T.SphereGeometry(0.48, 12, 10), new T.MeshLambertMaterial({ color: col }));
+      body.scale.set(1.7, 0.85, 0.95); body.position.set(0, 0.95, 0); body.castShadow = true; rig.add(body);
+      var belly = new T.Mesh(new T.SphereGeometry(0.32, 10, 8), new T.MeshLambertMaterial({ color: 0xbbf7d0 }));
+      belly.scale.set(1.4, 0.7, 0.7); belly.position.set(0.08, 0.82, 0.12); rig.add(belly);
+      var neck = new T.Mesh(new T.CylinderGeometry(0.12, 0.16, 0.42, 8), new T.MeshLambertMaterial({ color: col }));
+      neck.position.set(0.72, 1.18, 0); neck.rotation.z = -0.7; rig.add(neck);
+      var head = new T.Group(); head.position.set(1.12, 1.38, 0); rig.add(head);
+      var skull = new T.Mesh(new T.SphereGeometry(0.2, 10, 8), new T.MeshLambertMaterial({ color: col }));
+      skull.scale.set(1.15, 0.9, 0.85); head.add(skull);
+      var snout = new T.Mesh(new T.ConeGeometry(0.12, 0.32, 8), new T.MeshLambertMaterial({ color: 0x4d7c0f }));
+      snout.rotation.z = -Math.PI / 2; snout.position.set(0.22, -0.02, 0); head.add(snout);
+      var eye = new T.Mesh(new T.SphereGeometry(0.055, 8, 8), new T.MeshLambertMaterial({ color: 0x14532d }));
+      eye.position.set(0.1, 0.1, 0.14); head.add(eye);
+      var tail = new T.Group(); tail.position.set(-0.7, 0.95, 0); rig.add(tail);
+      var tailA = new T.Mesh(new T.ConeGeometry(0.16, 1.15, 7), new T.MeshLambertMaterial({ color: col }));
+      tailA.rotation.z = Math.PI / 2; tailA.position.set(-0.45, 0.08, 0); tail.add(tailA);
       var legs = [];
-      var spots = [[0.45, 0.22], [0.45, -0.22], [-0.45, 0.22], [-0.45, -0.22]];
+      var spots = [[0.38, 0.22], [0.38, -0.22], [-0.38, 0.22], [-0.38, -0.22]];
       spots.forEach(function (s) {
-        var hip = new T.Group(); hip.position.set(s[0], 0.7, s[1]);
-        var thigh = new T.Mesh(new T.BoxGeometry(0.16, 0.42, 0.16), new T.MeshLambertMaterial({ color: 0x3f6212 }));
-        thigh.position.y = -0.2; hip.add(thigh);
-        var foot = new T.Mesh(new T.BoxGeometry(0.22, 0.08, 0.18), new T.MeshLambertMaterial({ color: 0x365314 }));
-        foot.position.y = -0.46; hip.add(foot);
-        root.add(hip); legs.push(hip);
+        var hip = new T.Group(); hip.position.set(s[0], 0.72, s[1]);
+        var thigh = new T.Mesh(new T.SphereGeometry(0.14, 8, 6), new T.MeshLambertMaterial({ color: 0x3f6212 }));
+        thigh.scale.set(0.7, 1.35, 0.7); thigh.position.y = -0.16; hip.add(thigh);
+        var shin = new T.Mesh(new T.CylinderGeometry(0.055, 0.07, 0.22, 6), new T.MeshLambertMaterial({ color: 0x4d7c0f }));
+        shin.position.y = -0.36; hip.add(shin);
+        var foot = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshLambertMaterial({ color: 0x365314 }));
+        foot.scale.set(1.3, 0.5, 0.9); foot.position.set(0.06, -0.48, 0); hip.add(foot);
+        rig.add(hip); legs.push(hip);
       });
       root.scale.setScalar(scale);
-      root.userData = { body: body, head: head, tail: tail, legs: legs, eye: eye, y: 0, vy: 0, on: true, hop: 0, stomp: 0, blink: 0 };
+      root.userData = {
+        rig: rig, body: body, head: head, tail: tail, legs: legs, eye: eye, neck: neck,
+        y: 0, vy: 0, pose: "walk", poseT: 0, blink: 0, baseHipY: 0.72
+      };
       return root;
     }
     var dino = makeDino(1, 0x65a30d);
@@ -122,7 +134,17 @@
     var logs = [];
     var flowersM = [];
     var rain = [];
+    var dust = [];
     var shock = null;
+
+    function puffDust(n, heavy) {
+      for (var i = 0; i < n; i++) {
+        var m = new T.Mesh(new T.SphereGeometry(heavy ? 0.12 : 0.08, 6, 5), new T.MeshLambertMaterial({ color: 0xca8a04, transparent: true, opacity: 0.85 }));
+        m.position.set((Math.random() - 0.5) * 1.2, 0.08, (Math.random() - 0.5) * 0.8);
+        m.userData = { vx: (Math.random() - 0.5) * 2.2, vy: 1.4 + Math.random() * 1.6, vz: (Math.random() - 0.5) * 1.4, life: 0.45 };
+        scene.add(m); dust.push(m);
+      }
+    }
 
     function makeLog() {
       var m = new T.Mesh(new T.CylinderGeometry(0.28, 0.28, 1.1, 10), new T.MeshLambertMaterial({ color: 0x92400e }));
@@ -131,17 +153,27 @@
       logs.push({ m: m, smash: 0 });
     }
     function makeFlower() {
-      var m = new T.Mesh(new T.SphereGeometry(0.16, 8, 8), new T.MeshLambertMaterial({ color: 0xfacc15 }));
-      m.position.set((Math.random() - 0.5) * 1.4, 0.5, 12 + Math.random() * 8);
-      scene.add(m);
-      flowersM.push({ m: m, got: 0 });
+      var g = new T.Group();
+      var stem = new T.Mesh(new T.CylinderGeometry(0.03, 0.04, 0.28, 6), new T.MeshLambertMaterial({ color: 0x16a34a }));
+      stem.position.y = 0.2; g.add(stem);
+      var bloom = new T.Mesh(new T.SphereGeometry(0.12, 8, 6), new T.MeshLambertMaterial({ color: 0xfacc15 }));
+      bloom.position.y = 0.38; g.add(bloom);
+      for (var i = 0; i < 5; i++) {
+        var pet = new T.Mesh(new T.SphereGeometry(0.07, 6, 5), new T.MeshLambertMaterial({ color: 0xfb7185 }));
+        var a = i / 5 * Math.PI * 2;
+        pet.position.set(Math.cos(a) * 0.1, 0.38, Math.sin(a) * 0.1);
+        pet.scale.set(1, 0.45, 1); g.add(pet);
+      }
+      g.position.set((Math.random() - 0.5) * 1.4, 0, 12 + Math.random() * 8);
+      scene.add(g);
+      flowersM.push({ m: g, got: 0 });
     }
 
     function loadVal() {
       logs.forEach(function (o) { scene.remove(o.m); });
       flowersM.forEach(function (f) { scene.remove(f.m); });
       logs = []; flowersM = []; flowers = 0;
-      dino.userData.y = 0; dino.userData.vy = 0; dino.userData.on = true;
+      dino.userData.y = 0; dino.userData.vy = 0; dino.userData.pose = "walk"; dino.userData.poseT = 0;
       document.getElementById("val").textContent = VAL[valley].n;
       document.getElementById("fl").textContent = "🌼 0";
       scene.background = new T.Color(VAL[valley].n.indexOf("Night") >= 0 ? 0x0f172a : VAL[valley].rain ? 0x64748b : 0x7dd3fc);
@@ -158,17 +190,23 @@
 
     function hop() {
       var d = dino.userData;
-      if (!play || !d.on) return;
-      d.vy = 7; d.on = false; d.hop = 1; beep(560, 0.07);
+      if (!play || d.pose !== "walk") return;
+      d.pose = "crouch"; d.poseT = 0; beep(420, 0.05);
     }
     function stompNow() {
       var d = dino.userData;
-      if (!play) return;
-      d.vy = -12; d.stomp = 1; shake = 0.35; beep(180, 0.12);
+      if (!play || (d.pose !== "walk" && d.pose !== "land")) return;
+      d.pose = "stompWind"; d.poseT = 0; beep(200, 0.08);
+    }
+    function slamWave() {
       if (shock) scene.remove(shock);
-      shock = new T.Mesh(new T.RingGeometry(0.3, 0.5, 20), new T.MeshBasicMaterial({ color: 0xfde047, side: T.DoubleSide, transparent: true, opacity: 0.8 }));
-      shock.rotation.x = -Math.PI / 2; shock.position.set(dino.position.x, 0.05, dino.position.z);
+      shock = new T.Mesh(new T.RingGeometry(0.25, 0.55, 22), new T.MeshBasicMaterial({ color: 0xfde047, side: T.DoubleSide, transparent: true, opacity: 0.9 }));
+      shock.rotation.x = -Math.PI / 2; shock.position.set(dino.position.x, 0.04, dino.position.z);
       scene.add(shock);
+      shake = 0.55;
+      logs.forEach(function (o) {
+        if (!o.boss && Math.abs(o.m.position.z) < 4) o.m.position.y = 0.7;
+      });
     }
     document.getElementById("hop").onclick = hop;
     document.getElementById("stomp").onclick = stompNow;
@@ -206,27 +244,105 @@
       var d = dino.userData;
       d.blink -= dt; if (d.blink < -2.3) d.blink = 0.12;
       d.eye.scale.y = d.blink > 0 ? 0.15 : 1;
-      if (d.hop > 0) d.hop -= dt;
-      if (d.stomp > 0) d.stomp -= dt;
-      if (shake > 0) shake *= 0.88;
-      if (play) {
-        d.vy -= 18 * dt;
+      if (shake > 0) shake *= 0.86;
+      d.poseT += dt;
+      var pose = d.pose;
+      var k;
+      if (play && pose === "crouch") {
+        k = Math.min(1, d.poseT / 0.2);
+        d.y = -0.18 * k;
+        d.body.scale.set(1.85, 0.62, 1.05);
+        d.legs.forEach(function (hip) { hip.rotation.x = 0.95 * k; hip.position.y = d.baseHipY - 0.16 * k; });
+        d.tail.rotation.z = 0.55 * k; d.tail.rotation.y = 0;
+        d.head.rotation.x = 0.45 * k;
+        d.rig.rotation.x = 0.12 * k;
+        if (d.poseT >= 0.2) { d.pose = "takeoff"; d.poseT = 0; puffDust(8, 0); beep(560, 0.07); }
+      } else if (play && pose === "takeoff") {
+        k = Math.min(1, d.poseT / 0.08);
+        d.y = 0.15 + k * 0.55;
+        d.vy = 8.2;
+        d.body.scale.set(1.55, 1.15, 0.85);
+        d.legs[0].rotation.x = -0.35; d.legs[1].rotation.x = -0.35;
+        d.legs[2].rotation.x = 0.75; d.legs[3].rotation.x = 0.75;
+        d.head.rotation.x = -0.35; d.rig.rotation.x = -0.2;
+        d.tail.rotation.z = -0.25;
+        if (d.poseT >= 0.08) { d.pose = "air"; d.poseT = 0; }
+      } else if (play && pose === "air") {
+        var hang = d.vy > 0 && d.vy < 2.2 ? 9 : 16;
+        d.vy -= hang * dt;
         d.y += d.vy * dt;
-        if (d.y <= 0) {
-          if (!d.on && d.vy < -2) { d.body.scale.y = 0.75; }
-          d.y = 0; d.vy = 0; d.on = true;
+        d.body.scale.set(1.5, 1.08, 0.88);
+        d.legs.forEach(function (hip) { hip.rotation.x = -1.15; hip.position.y = d.baseHipY + 0.08; });
+        d.head.rotation.x = -0.28;
+        d.rig.rotation.x = -0.22 + Math.min(0.35, Math.max(0, -d.vy) * 0.04);
+        d.tail.rotation.z = -0.15 + Math.sin(t * 8) * 0.1;
+        d.rig.rotation.z = Math.sin(d.poseT * 6) * 0.06;
+        if (d.y <= 0 && d.vy <= 0) {
+          d.y = 0; d.vy = 0; d.pose = "land"; d.poseT = 0; puffDust(10, 1); beep(180, 0.1);
         }
-        d.body.scale.y += (1 - d.body.scale.y) * 8 * dt;
-        dino.position.y = d.y;
-        var walk = d.on && d.stomp <= 0 && d.hop <= 0;
-        var phase = t * 9;
-        var tuck = d.hop > 0 ? 0.9 : (d.stomp > 0 ? -0.5 : 0);
+      } else if (play && pose === "land") {
+        k = Math.min(1, d.poseT / 0.2);
+        var squash = k < 0.4 ? 0.58 + k * 0.3 : 0.7 + (k - 0.4) * 0.5;
+        d.body.scale.set(1.85 - k * 0.15, squash, 1);
+        d.y = k < 0.35 ? -0.12 * (1 - k / 0.35) : 0;
+        d.legs.forEach(function (hip) { hip.rotation.x = 0.55 * (1 - k); hip.position.y = d.baseHipY; });
+        d.head.rotation.x = (k < 0.5 ? 0.35 : 0.35 - (k - 0.5) * 0.7);
+        d.rig.rotation.x = 0; d.rig.rotation.z = 0;
+        d.tail.rotation.z = 0.2 * (1 - k);
+        if (d.poseT >= 0.2) { d.pose = "walk"; d.poseT = 0; d.body.scale.set(1.7, 0.85, 0.95); }
+      } else if (play && pose === "stompWind") {
+        k = Math.min(1, d.poseT / 0.28);
+        d.y = -0.08 + k * 0.55;
+        d.body.scale.set(1.5, 1.2, 0.85);
+        d.legs.forEach(function (hip) { hip.rotation.x = -0.85 * k; hip.position.y = d.baseHipY + 0.12 * k; });
+        d.head.rotation.x = -0.4; d.rig.rotation.x = -0.35;
+        d.tail.rotation.z = -0.4;
+        if (d.poseT >= 0.28) { d.pose = "stompSlam"; d.poseT = 0; d.y = 0; slamWave(); puffDust(14, 1); beep(140, 0.14); }
+      } else if (play && pose === "stompSlam") {
+        k = Math.min(1, d.poseT / 0.16);
+        d.body.scale.set(1.95, 0.55, 1.1);
+        d.y = -0.14;
+        d.legs.forEach(function (hip) { hip.rotation.x = 0.85; hip.position.y = d.baseHipY - 0.12; });
+        d.head.rotation.x = 0.5; d.rig.rotation.x = 0.2;
+        d.tail.rotation.z = 0.7;
+        if (d.poseT >= 0.16) { d.pose = "stompSettle"; d.poseT = 0; }
+      } else if (play && pose === "stompSettle") {
+        k = Math.min(1, d.poseT / 0.18);
+        d.y = -0.14 * (1 - k);
+        d.body.scale.set(1.7 + 0.15 * (1 - k), 0.55 + 0.3 * k, 1);
+        d.legs.forEach(function (hip) { hip.rotation.x = 0.4 * (1 - k); hip.position.y = d.baseHipY; });
+        d.head.rotation.x = 0.2 * (1 - k); d.rig.rotation.x = 0;
+        if (d.poseT >= 0.18) { d.pose = "walk"; d.body.scale.set(1.7, 0.85, 0.95); }
+      } else {
+        var phase = t * 8.5;
+        d.body.scale.set(1.7, 0.85, 0.95);
+        d.y = 0;
         d.legs.forEach(function (hip, i) {
           var opp = (i === 0 || i === 3) ? 1 : -1;
-          hip.rotation.x = walk ? Math.sin(phase) * 0.7 * opp : tuck * (d.hop > 0 ? -1 : 1);
+          var swing = Math.sin(phase) * opp;
+          hip.rotation.x = swing * 0.72;
+          var plant = Math.max(0, Math.abs(swing) - 0.55);
+          hip.position.y = d.baseHipY - plant * 0.1;
         });
-        d.tail.rotation.y = Math.sin(t * 5) * 0.45;
-        d.head.rotation.x = Math.sin(t * 4) * 0.12 + (d.stomp > 0 ? 0.25 : 0);
+        d.tail.rotation.y = Math.sin(t * 5) * 0.4;
+        d.tail.rotation.z = 0.12 + Math.sin(t * 3) * 0.08;
+        d.head.rotation.x = Math.sin(t * 4) * 0.1;
+        d.rig.rotation.x = 0; d.rig.rotation.z = 0;
+      }
+      dino.position.y = d.y;
+      dust.forEach(function (m) {
+        m.userData.life -= dt;
+        m.position.x += m.userData.vx * dt;
+        m.position.y += m.userData.vy * dt;
+        m.position.z += m.userData.vz * dt;
+        m.userData.vy -= 6 * dt;
+        m.material.opacity = Math.max(0, m.userData.life * 2);
+        m.scale.addScalar(dt * 1.4);
+      });
+      for (var di = dust.length - 1; di >= 0; di--) {
+        if (dust[di].userData.life <= 0) { scene.remove(dust[di]); dust.splice(di, 1); }
+      }
+      if (play) {
         logs.forEach(function (o) {
           if (o.boss) {
             o.m.position.z -= 2.2 * dt;
@@ -236,15 +352,16 @@
           } else {
             o.m.position.z -= (4.5 + valley) * dt;
             o.m.rotation.x += dt * 4;
+            o.m.position.y += (0.28 - o.m.position.y) * 6 * dt;
           }
-          if (!o.smash && o.m.position.z < 1.2 && o.m.position.z > -0.6 && d.y < 0.6) {
-            if (d.stomp > 0.15) {
+          if (!o.smash && o.m.position.z < 1.2 && o.m.position.z > -0.6 && d.y < 0.7) {
+            if (d.pose === "stompSlam" || d.pose === "stompSettle") {
               o.smash = 1; flowers++; stars++;
               document.getElementById("fl").textContent = "🌼 " + flowers;
               document.getElementById("st").textContent = "⭐ " + stars;
               o.m.visible = false; beep(720, 0.08); save();
               if (o.boss) { o.hp--; o.smash = o.hp <= 0 ? 1 : 0; o.m.visible = true; o.m.position.z = 10; }
-            } else if (!d.on && d.vy < 0) {
+            } else if (d.pose === "air" || d.pose === "land") {
               o.smash = 1; o.m.visible = false; stars++;
             } else {
               o.m.position.z = 12; beep(140, 0.08);
@@ -253,7 +370,7 @@
           if (o.m.position.z < -8 && !o.boss) { o.m.position.z = 16 + Math.random() * 6; o.smash = 0; o.m.visible = true; }
         });
         flowersM.forEach(function (f) {
-          f.m.position.y = 0.45 + Math.sin(t * 4 + f.m.position.z) * 0.08;
+          f.m.position.y = Math.sin(t * 4 + f.m.position.z) * 0.04;
           f.m.position.z -= (4.5 + valley) * dt;
           if (!f.got && Math.abs(f.m.position.z) < 0.8 && Math.abs(f.m.position.x - dino.position.x) < 1.2) {
             f.got = 1; f.m.visible = false; flowers++; stars++;
