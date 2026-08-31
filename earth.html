@@ -374,6 +374,7 @@
         var b = new T.Mesh(new T.ConeGeometry(0.1, 0.18, 5), new T.MeshLambertMaterial({ color: 0xa16207 }));
         b.position.set(0.08, 0.08, 0.02); m.add(b);
         stick(m, lonLat(i * 2.1, 0.15 + i * 0.1), 0.01, 0);
+        m.userData.kind = "mountain";
         life.add(m);
       }
     }
