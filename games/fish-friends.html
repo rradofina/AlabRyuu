@@ -78,6 +78,9 @@
     var lamp = 1, lampT = 0, fed = 0, need = 0;
     var fishes = [], flakes = [], bubbles = [], plants = [], rocks = [];
     var snails = [], gravel = [], glow = [], castle = { bob: 0 };
+    var chest = { open: 0 }, cat = { blink: 0 }, seahorse = { u: 0 };
+    var thermometer = { v: 0.6 }, filter = { t: 0 }, coins = [];
+    var clown = { u: 2 }, crab = { x: 0.3, dir: 1 };
     var TANKS = [
       { n: "Gold pals", night: 0, kinds: ["gold"], fishN: 4, need: 6, decor: "pot", say: "Tap the open mouth!" },
       { n: "Tetra school", night: 0, kinds: ["tetra", "tetra", "gold"], fishN: 6, need: 8, decor: "plant", say: "Many little fish." },
@@ -262,6 +265,87 @@
         g.fillStyle = "#d6d3d1";
         g.beginPath(); g.arc(sx - 2, H * 0.88, 3, 0, Math.PI * 2); g.fill();
       }
+      drawChest();
+      drawSeahorse();
+      drawClown();
+      drawCrab();
+      drawThermo();
+      drawCat();
+    }
+    function drawChest() {
+      var x = W * 0.38, y = H * 0.84;
+      chest.open = 0.15 + 0.1 * Math.sin(t * 1.4);
+      g.fillStyle = "#b45309";
+      g.fillRect(x - 16, y - 8, 32, 18);
+      g.fillStyle = "#fbbf24";
+      g.fillRect(x - 2, y - 2, 4, 8);
+      g.fillStyle = "#92400e";
+      g.save(); g.translate(x - 16, y - 8); g.rotate(-chest.open);
+      g.fillRect(0, -10, 32, 12);
+      g.restore();
+      if (chest.open > 0.2 && Math.random() < 0.05) coins.push({ x: x, y: y - 12, vy: -30, vx: (Math.random() - 0.5) * 20, life: 1 });
+    }
+    function drawSeahorse() {
+      seahorse.u += 0.015;
+      var x = W * 0.15 + Math.sin(seahorse.u) * 20;
+      var y = H * 0.55 + Math.cos(seahorse.u * 2) * 16;
+      g.strokeStyle = "#fb923c"; g.lineWidth = 4;
+      g.beginPath();
+      g.moveTo(x, y - 16);
+      g.quadraticCurveTo(x + 8, y - 4, x, y + 8);
+      g.quadraticCurveTo(x - 8, y + 16, x + 4, y + 20);
+      g.stroke();
+      g.fillStyle = "#fb923c";
+      g.beginPath(); g.arc(x + 2, y - 16, 5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#0f172a";
+      g.beginPath(); g.arc(x + 4, y - 17, 1.2, 0, Math.PI * 2); g.fill();
+    }
+    function drawClown() {
+      clown.u += 0.02;
+      var x = W * 0.7 + Math.cos(clown.u) * W * 0.16;
+      var y = H * 0.48 + Math.sin(clown.u * 2) * H * 0.1;
+      g.save(); g.translate(x, y); g.rotate(Math.sin(clown.u) * 0.3);
+      g.fillStyle = "#f97316";
+      g.beginPath(); g.ellipse(0, 0, 14, 8, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#fff";
+      g.fillRect(-4, -8, 5, 16);
+      g.fillStyle = "#0f172a";
+      g.fillRect(2, -8, 3, 16);
+      g.beginPath(); g.arc(8, -2, 1.5, 0, Math.PI * 2); g.fill();
+      g.restore();
+    }
+    function drawCrab() {
+      crab.x += crab.dir * 0.001;
+      if (crab.x > 0.85) crab.dir = -1;
+      if (crab.x < 0.15) crab.dir = 1;
+      var x = crab.x * W, y = H * 0.9;
+      g.fillStyle = "#ef4444";
+      g.beginPath(); g.ellipse(x, y, 9, 6, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#ef4444"; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(x - 8, y); g.lineTo(x - 13, y - 6); g.moveTo(x + 8, y); g.lineTo(x + 13, y - 6); g.stroke();
+    }
+    function drawThermo() {
+      var x = W - 22, y = H * 0.35;
+      thermometer.v = 0.5 + 0.15 * Math.sin(t * 0.4);
+      g.fillStyle = "#e2e8f0";
+      g.fillRect(x - 4, y, 8, 50);
+      g.fillStyle = "#ef4444";
+      g.fillRect(x - 3, y + 50 - thermometer.v * 50, 6, thermometer.v * 50);
+      g.beginPath(); g.arc(x, y + 52, 7, 0, Math.PI * 2); g.fill();
+    }
+    function drawCat() {
+      var x = 28, y = 36 + Math.sin(t * 1.5) * 2;
+      g.fillStyle = "#fdba74";
+      g.beginPath(); g.arc(x, y, 12, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.moveTo(x - 10, y - 4); g.lineTo(x - 8, y - 16); g.lineTo(x - 2, y - 8); g.fill();
+      g.beginPath(); g.moveTo(x + 10, y - 4); g.lineTo(x + 8, y - 16); g.lineTo(x + 2, y - 8); g.fill();
+      var blink = Math.sin(t * 2) > 0.88;
+      g.fillStyle = "#1c1917";
+      if (blink) { g.fillRect(x - 6, y - 2, 4, 1.2); g.fillRect(x + 2, y - 2, 4, 1.2); }
+      else {
+        g.beginPath(); g.arc(x - 4, y - 1, 1.5, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(x + 4, y - 1, 1.5, 0, Math.PI * 2); g.fill();
+      }
     }
     function drawLamp() {
       var lx = W * 0.5, ly = 18;
@@ -353,6 +437,10 @@
         bubbles[i].x += Math.sin(t * 2 + i) * 8 * dt;
         if (bubbles[i].y < 30) bubbles.splice(i, 1);
       }
+      for (i = coins.length - 1; i >= 0; i--) {
+        coins[i].y += coins[i].vy * dt; coins[i].x += coins[i].vx * dt; coins[i].vy += 80 * dt; coins[i].life -= dt;
+        if (coins[i].life <= 0) coins.splice(i, 1);
+      }
     }
     function tap(x, y) {
       var i, f, dx, dy;
@@ -388,11 +476,140 @@
         g.fillRect(-flakes[i].r, -2, flakes[i].r * 2, 4);
         g.restore();
       }
+      for (i = 0; i < coins.length; i++) {
+        g.fillStyle = "#facc15";
+        g.beginPath(); g.ellipse(coins[i].x, coins[i].y, 5, 5 * Math.max(0.2, coins[i].life), 0, 0, Math.PI * 2); g.fill();
+      }
       if (TANKS[Math.min(tank, 4)].night > 0.5 && lamp < 0.5) {
         g.fillStyle = "rgba(15,23,42," + (0.25) + ")";
         g.fillRect(0, 0, W, H);
       }
     }
+    function drawFilter() {
+      var x = 18, y = H * 0.2;
+      g.fillStyle = "#64748b";
+      g.fillRect(x, y, 14, 40);
+      g.fillStyle = "#38bdf8";
+      for (var i = 0; i < 3; i++) {
+        if (Math.random() < 0.4) bubbles.push({ x: x + 7, y: y + 40, r: 2 + Math.random() * 3, vy: -30 });
+      }
+      g.fillRect(x + 4, y + 36, 6, 4);
+    }
+    function drawFoodCan() {
+      var x = W - 36, y = 70;
+      g.fillStyle = "#f97316";
+      g.fillRect(x - 10, y, 20, 22);
+      g.fillStyle = "#fdba74";
+      g.fillRect(x - 10, y, 20, 6);
+      g.fillStyle = "#fff";
+      g.font = "bold 9px Trebuchet MS"; g.textAlign = "center";
+      g.fillText("yum", x, y + 16);
+    }
+    function drawAnemone() {
+      var x = W * 0.55, y = H * 0.86;
+      g.fillStyle = "#fb7185";
+      for (var i = 0; i < 7; i++) {
+        var a = -1.4 + i * 0.4 + Math.sin(t * 2 + i) * 0.2;
+        g.beginPath();
+        g.moveTo(x, y);
+        g.quadraticCurveTo(x + Math.cos(a) * 10, y - 16, x + Math.cos(a) * 8, y - 28);
+        g.strokeStyle = "#fb7185"; g.lineWidth = 3; g.stroke();
+      }
+    }
+    function drawNeedDots() {
+      for (var i = 0; i < need; i++) {
+        g.fillStyle = i < fed ? "#fde047" : "rgba(255,255,255,.3)";
+        g.beginPath(); g.arc(W * 0.5 - need * 6 + i * 12, H * 0.12, 4, 0, Math.PI * 2); g.fill();
+      }
+    }
+    function drawTitleHintF() {
+      if (mode === "play") return;
+      g.fillStyle = "rgba(254,243,199,.8)";
+      g.font = "bold 16px Trebuchet MS"; g.textAlign = "center";
+      g.fillText("tap hungry fish", W * 0.5, H * 0.2);
+    }
+    function drawFedHearts() {
+      for (var i = 0; i < fishes.length; i++) {
+        if (!fishes[i].fed || fishes[i].hungry) continue;
+        g.fillStyle = "rgba(251,113,133,.7)";
+        var x = fishes[i].x, y = fishes[i].y - 22 + Math.sin(t * 3 + i) * 3;
+        g.beginPath();
+        g.moveTo(x, y + 4);
+        g.bezierCurveTo(x - 6, y - 2, x - 4, y - 8, x, y - 4);
+        g.bezierCurveTo(x + 4, y - 8, x + 6, y - 2, x, y + 4);
+        g.fill();
+      }
+    }
+    function drawLampSwitchHint() {
+      g.fillStyle = "rgba(254,243,199,.7)";
+      g.font = "bold 12px Trebuchet MS"; g.textAlign = "center";
+      g.fillText(lamp > 0.5 ? "day" : "night", W * 0.5, 48);
+    }
+    function drawCoral() {
+      for (var i = 0; i < 5; i++) {
+        var x = W * (0.1 + i * 0.18), y = H * 0.88;
+        g.fillStyle = ["#fb7185", "#a78bfa", "#f472b6", "#22d3ee", "#fde047"][i];
+        g.beginPath();
+        g.moveTo(x, y);
+        g.lineTo(x - 8, y - 18 - Math.sin(t + i) * 3);
+        g.lineTo(x + 2, y - 8);
+        g.lineTo(x + 10, y - 22);
+        g.lineTo(x + 6, y);
+        g.fill();
+      }
+    }
+    function drawHungerHalos() {
+      for (var i = 0; i < fishes.length; i++) {
+        if (!fishes[i].hungry || !fishes[i].x) continue;
+        g.strokeStyle = "rgba(253,224,71,.55)"; g.lineWidth = 2;
+        g.beginPath(); g.arc(fishes[i].x, fishes[i].y, 26 + Math.sin(t * 6 + i) * 3, 0, Math.PI * 2); g.stroke();
+      }
+    }
+    function drawSandLine() {
+      g.fillStyle = "#d6d3d1";
+      g.beginPath(); g.moveTo(0, H * 0.9);
+      for (var i = 0; i <= W; i += 12) g.lineTo(i, H * 0.9 + Math.sin(i * 0.1 + t) * 3);
+      g.lineTo(W, H); g.lineTo(0, H); g.fill();
+    }
+    function drawTitleSchool() {
+      if (mode === "play") return;
+      for (var i = 0; i < 5; i++) {
+        var x = W * 0.3 + Math.cos(t + i) * 40 + i * 18;
+        var y = H * 0.5 + Math.sin(t * 1.4 + i) * 20;
+        g.fillStyle = FISHC ? "#f59e0b" : "#f59e0b";
+        g.fillStyle = ["#f59e0b", "#38bdf8", "#f472b6", "#4ade80", "#fde047"][i];
+        g.beginPath(); g.ellipse(x, y, 12, 6, t + i, 0, Math.PI * 2); g.fill();
+      }
+    }
+    function drawGlassShine() {
+      g.fillStyle = "rgba(255,255,255,.08)";
+      g.beginPath();
+      g.moveTo(20, 20); g.lineTo(W * 0.25, 20); g.lineTo(20, H * 0.45);
+      g.fill();
+    }
+    function drawBubbler() {
+      var x = W * 0.82, y = H * 0.86;
+      g.fillStyle = "#94a3b8";
+      g.fillRect(x - 6, y - 8, 12, 16);
+      if (Math.random() < 0.3) bubbles.push({ x: x, y: y - 10, r: 3, vy: -28 });
+    }
+    var oldDrawF = draw;
+    draw = function () {
+      oldDrawF();
+      drawFilter();
+      drawFoodCan();
+      drawAnemone();
+      drawTitleSchool();
+      drawGlassShine();
+      drawBubbler();
+      drawHungerHalos();
+      drawSandLine();
+      drawCoral();
+      drawLampSwitchHint();
+      drawFedHearts();
+      drawTitleHintF();
+      drawNeedDots();
+    };
     function loop(now) {
       requestAnimationFrame(loop);
       if (!last) last = now;

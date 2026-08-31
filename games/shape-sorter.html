@@ -5,189 +5,584 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Shape Sorter</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4a2a12;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{
-      min-height:100vh;padding:54px 10px 24px;text-align:center;
-      background:linear-gradient(#fde68a 0 30%,#fdba74 30% 100%);
-    }
-    body.night{
-      background:linear-gradient(#1e1b4b 0 32%,#312e81 32%);
-      color:#fef3c7;
-    }
-    .home{position:fixed;top:12px;left:12px;z-index:12;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.32);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    body.night h1{color:#fde68a}
-    .hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px}
-    .chip{background:rgba(255,255,255,.88);padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px;color:#4a2a12}
-    body.night .chip{background:rgba(15,15,40,.7);color:#fde68a}
-    .table{width:min(380px,94vw);margin:10px auto}
-    .boxwrap{perspective:700px;min-height:220px}
-    .box{
-      margin:0 auto;width:min(320px,88vw);min-height:200px;padding:22px 16px;
-      background:
-        repeating-linear-gradient(90deg,rgba(90,50,20,.12) 0 2px,transparent 2px 18px),
-        linear-gradient(#c08040,#8b5a2b);
-      border:10px solid #6b3e1a;border-radius:18px;
-      box-shadow:inset 0 0 0 4px #a16207,0 12px 0 #4a2a12;
-      display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px;
-      transition:transform .7s ease;
-    }
-    .box.spin{transform:rotate(90deg)}
-    .box.spin2{transform:rotate(180deg)}
-    .box.spin3{transform:rotate(270deg)}
-    body.night .box{background:linear-gradient(#3b2a14,#1c140c);border-color:#1c1008}
-    .hole{
-      width:72px;height:72px;background:#1c1008;display:grid;place-items:center;
-      box-shadow:inset 0 6px 0 rgba(0,0,0,.45);
-    }
-    .hole.circle{border-radius:50%}
-    .hole.square{border-radius:8px}
-    .hole.triangle{clip-path:polygon(50% 6%,6% 94%,94% 94%);background:#1c1008}
-    .hole.star{clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);background:#1c1008}
-    .hole.heart{border-radius:50% 50% 8px 8px;transform:rotate(45deg);width:60px;height:60px}
-    .hole.heart .glyph{transform:rotate(-45deg)}
-    .hole .glyph{font-size:28px;opacity:.35;pointer-events:none}
-    body.night .hole{box-shadow:inset 0 6px 0 rgba(0,0,0,.45),0 0 14px #fde68a}
-    body.night .hole .glyph{opacity:.9;filter:drop-shadow(0 0 6px #fde68a)}
-    .hole.over{outline:3px dashed #fde68a}
-    .hole.in{opacity:.35}
-    .lidless{font-weight:800;margin:8px;font-size:16px}
-    .piece{
-      width:88px;height:88px;margin:8px auto;font-size:64px;line-height:88px;
-      touch-action:none;cursor:grab;
-      filter:drop-shadow(0 6px 0 rgba(0,0,0,.15));
-    }
-    .piece.drag{position:fixed;z-index:20;pointer-events:none;margin:0}
-    .msg{font-weight:800;min-height:1.3em;margin-top:6px}
-    .banner{
-      display:none;width:min(340px,92vw);margin:12px auto 0;padding:16px;
-      background:#fff7ed;border:8px solid #8b5a2b;border-radius:12px;box-shadow:0 8px 0 #4a2a12;color:#4a2a12;
-    }
-    body.night .banner{background:#1e1b4b;color:#fde68a;border-color:#fde68a}
-    .banner.on{display:block}
-    .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 20px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .play.next{background:#86efac;color:#14532d;box-shadow:0 6px 0 #16a34a}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #1d4ed8; color: #fff; touch-action: none; user-select: none; -webkit-user-select: none; }
+    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #1e3a8a; text-decoration: none; font-weight: 800; font-size: 17px; background: #fde047; padding: 8px 14px; border-radius: 999px; box-shadow: 0 3px 0 #ca8a04; touch-action: manipulation; }
+    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; }
+    #hud b { font-weight: 800; font-size: 13px; background: #fff; color: #1d4ed8; padding: 6px 10px; border-radius: 999px; }
+    #say { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 7; font-weight: 800; font-size: 17px; color: #fff; text-shadow: 0 2px 0 #1e3a8a; pointer-events: none; text-align: center; width: 92%; }
+    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#2563eb, #fde047); }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(32px, 9vw, 48px); color: #fff; text-shadow: 0 4px 0 #1e3a8a; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; color: #1e3a8a; }
+    .btn { background: #f97316; color: #fff; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #c2410c; }
+    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Shape Sorter</h1>
-  <div class="hud">
-    <span class="chip" id="bchip">Box 1</span>
-    <span class="chip" id="left">Left 3</span>
-    <span class="chip" id="stars">⭐ 0</span>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="bx">Box 1</b><b id="in">0 in</b></div>
+  <div id="say">Drag a shape. Wiggle it into the hole.</div>
+  <div class="cover" id="title">
+    <div style="font-size:76px">🔺</div>
+    <h1>Shape Sorter</h1>
+    <p>Shapes wiggle into 3D-ish holes. Later the board rotates. The lid opens.</p>
+    <button class="btn" id="go">Sort</button>
   </div>
-  <p class="lidless" id="tip">Drag or tap the piece onto a hole.</p>
-  <div class="table">
-    <div class="boxwrap">
-      <div class="box" id="box"></div>
-    </div>
-    <div class="piece" id="piece" draggable="false">🔵</div>
-  </div>
-  <p class="msg" id="msg">Match the holes!</p>
-  <div class="banner" id="banner">
-    <div style="font-size:42px">🧸</div>
-    <h2 id="btitle">All sorted!</h2>
-    <p id="bsub"></p>
-    <div class="acts">
-      <button class="play next" id="nextBtn">Next</button>
-      <button class="play" id="againBtn">Play again</button>
-    </div>
+  <div class="cover off" id="win">
+    <div style="font-size:76px">📦</div>
+    <h1>Lid open!</h1>
+    <p id="winP">Five boxes. Soft clicks.</p>
+    <button class="btn g" id="again">Sort again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-    var all=[{e:"🔵",n:"circle",cls:"circle"},{e:"🟥",n:"square",cls:"square"},{e:"🔺",n:"triangle",cls:"triangle"},{e:"⭐",n:"star",cls:"star"},{e:"💗",n:"heart",cls:"heart"}];
-    var boxes=[
-      {name:"Little box",night:false,spin:false,shapes:3,need:4},
-      {name:"Spin box",night:false,spin:true,shapes:4,need:5},
-      {name:"Glow box",night:true,spin:true,shapes:5,need:6}
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, last = 0, t = 0, play = false, box = 0;
+    var shapes = [], holes = [], drag = null, offx = 0, offy = 0;
+    var rot = 0, rotWant = 0, lid = 0, lidOpen = 0, conf = [], stars = [];
+    var BOXES = [
+      { n: "First box", kinds: ["circ", "sq", "tri"], rot: 0, night: 0 },
+      { n: "Star box", kinds: ["circ", "sq", "tri", "star"], rot: 0, night: 0 },
+      { n: "Spin board", kinds: ["circ", "sq", "tri"], rot: 0.25, night: 0 },
+      { n: "Night box", kinds: ["circ", "sq", "tri", "star"], rot: 0.15, night: 1 },
+      { n: "Lid surprise", kinds: ["circ", "sq", "tri", "star", "heart"], rot: 0.35, night: 0 }
     ];
-    var lv=0,need=null,done=0,stars=0,queue=[],spin=0,lock=false;
-    var piece=document.getElementById("piece"),box=document.getElementById("box");
-    function load(){
-      var B=boxes[lv];
-      document.body.className=B.night?"night":"";
-      document.getElementById("bchip").textContent=B.name;
-      document.getElementById("banner").classList.remove("on");
-      document.getElementById("nextBtn").style.display=lv<2?"":"none";
-      document.getElementById("tip").textContent=B.spin?"The box can turn!":"Drag or tap the piece onto a hole.";
-      done=0;spin=0;lock=false;
-      box.className="box";
-      var set=all.slice(0,B.shapes);
-      queue=[];
-      for(var i=0;i<B.need;i++)queue.push(set[i%set.length]);
-      queue=shuffle(queue);
-      box.innerHTML="";
-      set.forEach(function(s){
-        var h=document.createElement("button");
-        h.className="hole "+s.cls;h.dataset.n=s.n;
-        h.innerHTML='<span class="glyph">'+s.e+"</span>";
-        h.onclick=function(){tryHole(s.n,h);};
-        box.appendChild(h);
-      });
-      nextPiece();paint();
+    var COL = { circ: "#38bdf8", sq: "#facc15", tri: "#f97316", star: "#a855f7", heart: "#fb7185" };
+
+    function beep(f, d, typ) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        if (ac.state === "suspended") ac.resume();
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = typ || "square"; o.frequency.value = f; g.gain.value = 0.08;
+        o.connect(g); g.connect(ac.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    function nextPiece(){
-      need=queue[done];
-      piece.textContent=need.e;piece.style.visibility="visible";
-      document.getElementById("msg").textContent="Find the "+need.n+".";
+    function say(s) { document.getElementById("say").textContent = s; }
+    function hud() {
+      document.getElementById("bx").textContent = BOXES[box] ? BOXES[box].n : "Done";
+      var n = shapes.filter(function (s) { return s.in; }).length;
+      document.getElementById("in").textContent = n + " in";
     }
-    function tryHole(n,h){
-      if(lock||!need)return;
-      if(n!==need.n){
-        document.getElementById("msg").textContent="Try the "+need.n+" hole.";
-        beep(180,.1);return;
+    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    addEventListener("resize", resize); resize();
+
+    function makeBox() {
+      var b = BOXES[box];
+      shapes = []; holes = []; rot = 0; rotWant = 0; lid = 0; lidOpen = 0; conf = [];
+      var i, k, n = b.kinds.length;
+      for (i = 0; i < n; i++) {
+        k = b.kinds[i];
+        holes.push({ kind: k, a: (i / n) * Math.PI * 2 - Math.PI / 2, r: 0, got: 0 });
+        shapes.push({
+          kind: k, x: 50 + (i % 3) * (W * 0.28), y: H * 0.78 + (i % 2) * 10,
+          homeX: 50 + (i % 3) * (W * 0.28), homeY: H * 0.78,
+          in: 0, wiggle: i * 1.2, sc: 1, rot: 0
+        });
       }
-      lock=true;h.classList.add("in");stars++;done++;beep(700,.1);
-      document.getElementById("msg").textContent="In!";
-      piece.style.visibility="hidden";paint();
-      var B=boxes[lv];
-      if(done>=B.need){
-        document.getElementById("btitle").textContent=lv<2?"Box packed!":"All sorted!";
-        document.getElementById("bsub").textContent="⭐ "+stars;
-        document.getElementById("banner").classList.add("on");beep(940,.2);lock=false;return;
+      stars = [];
+      if (b.night) {
+        for (i = 0; i < 28; i++) stars.push({ x: Math.random(), y: Math.random() * 0.4, tw: i });
       }
-      if(B.spin){
-        spin=(spin+1)%4;
-        box.className="box"+(spin?" spin"+(spin===1?"":spin):"");
+      say(b.rot ? "The board will turn. Match the holes!" : "Drag each shape into its hole.");
+      hud();
+    }
+
+    function start() {
+      play = true; box = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      makeBox(); beep(520, 0.1);
+    }
+
+    function holePos(h) {
+      var cx = W * 0.5, cy = H * 0.42, rad = Math.min(W, H) * 0.22;
+      var a = h.a + rot;
+      return { x: cx + Math.cos(a) * rad, y: cy + Math.sin(a) * rad * 0.72 };
+    }
+
+    function hitShape(mx, my) {
+      var i, s, best = null;
+      for (i = shapes.length - 1; i >= 0; i--) {
+        s = shapes[i];
+        if (!s.in && Math.hypot(mx - s.x, my - s.y) < 36) { best = s; break; }
       }
-      setTimeout(function(){lock=false;nextPiece();},B.spin?700:350);
+      return best;
     }
-    function paint(){
-      document.getElementById("left").textContent="Left "+(boxes[lv].need-done);
-      document.getElementById("stars").textContent="⭐ "+stars;
-    }
-    var dragging=false,ox=0,oy=0;
-    piece.addEventListener("pointerdown",function(e){
-      dragging=true;piece.classList.add("drag");
-      piece.style.left=(e.clientX-44)+"px";piece.style.top=(e.clientY-44)+"px";
-      try{piece.setPointerCapture(e.pointerId);}catch(err){}
+
+    addEventListener("pointerdown", function (e) {
+      if (e.target.closest && e.target.closest("a,button")) return;
+      if (!play || lidOpen) return;
+      var s = hitShape(e.clientX, e.clientY);
+      if (s) { drag = s; offx = e.clientX - s.x; offy = e.clientY - s.y; s.sc = 1.15; beep(480, 0.05); }
     });
-    piece.addEventListener("pointermove",function(e){
-      if(!dragging)return;
-      piece.style.left=(e.clientX-44)+"px";piece.style.top=(e.clientY-44)+"px";
-      var el=document.elementFromPoint(e.clientX,e.clientY);
-      document.querySelectorAll(".hole").forEach(function(h){h.classList.remove("over");});
-      var hole=el&&(el.classList.contains("hole")?el:el.closest&&el.closest(".hole"));
-      if(hole)hole.classList.add("over");
+    addEventListener("pointermove", function (e) {
+      if (!drag) return;
+      drag.x = e.clientX - offx; drag.y = e.clientY - offy;
+      drag.rot += (e.movementX || 0) * 0.01;
     });
-    function endDrag(e){
-      if(!dragging)return;dragging=false;piece.classList.remove("drag");
-      piece.style.left="";piece.style.top="";
-      var el=document.elementFromPoint(e.clientX,e.clientY);
-      document.querySelectorAll(".hole").forEach(function(h){h.classList.remove("over");});
-      var hole=el&&(el.classList.contains("hole")?el:el.closest&&el.closest(".hole"));
-      if(hole)tryHole(hole.dataset.n,hole);
+    addEventListener("pointerup", function () {
+      if (!drag) return;
+      var i, h, p, ok = false;
+      for (i = 0; i < holes.length; i++) {
+        h = holes[i];
+        if (h.got) continue;
+        p = holePos(h);
+        if (h.kind === drag.kind && Math.hypot(drag.x - p.x, drag.y - p.y) < 42) {
+          drag.in = 1; h.got = 1; drag.x = p.x; drag.y = p.y; drag.sc = 0.55; drag.rot = rot;
+          ok = true;
+          var k;
+          for (k = 0; k < 10; k++) conf.push({ x: p.x, y: p.y, vx: (Math.random() - 0.5) * 120, vy: -50 - Math.random() * 40, life: 0.7, col: COL[drag.kind] });
+          beep(720, 0.09);
+          say("In! Soft click.");
+        }
+      }
+      if (!ok) {
+        drag.x = drag.homeX; drag.y = drag.homeY; drag.sc = 1;
+        say("Wrong hole. Try the matching one.");
+        beep(200, 0.08);
+      }
+      drag = null;
+      hud();
+      if (shapes.every(function (s) { return s.in; })) openLid();
+    });
+
+    function openLid() {
+      lidOpen = 1; lid = 0;
+      say("Lid opening...");
+      beep(880, 0.14);
     }
-    piece.addEventListener("pointerup",endDrag);
-    piece.addEventListener("pointercancel",endDrag);
-    document.getElementById("nextBtn").onclick=function(){if(lv<2){lv++;load();}};
-    document.getElementById("againBtn").onclick=function(){lv=0;stars=0;load();};
-    load();
+
+    function nextBox() {
+      box++;
+      if (box >= BOXES.length) {
+        play = false;
+        document.getElementById("winP").textContent = "Five boxes. The lid said hello.";
+        document.getElementById("win").classList.remove("off");
+        beep(990, 0.2);
+        return;
+      }
+      makeBox();
+    }
+
+    function update(dt) {
+      t += dt;
+      var b = BOXES[box] || BOXES[0];
+      var i, s;
+      for (i = 0; i < shapes.length; i++) {
+        s = shapes[i];
+        s.wiggle += dt * 4;
+        if (!s.in && s !== drag) {
+          s.x = s.homeX + Math.sin(s.wiggle) * 4;
+          s.y = s.homeY + Math.cos(s.wiggle * 1.3) * 3;
+          s.rot = Math.sin(s.wiggle) * 0.12;
+          s.sc = 1 + Math.sin(s.wiggle * 2) * 0.04;
+        }
+      }
+      if (play && b.rot && !lidOpen) {
+        rotWant += dt * b.rot;
+        rot += (rotWant - rot) * Math.min(1, dt * 1.4);
+      }
+      if (lidOpen) {
+        lid = Math.min(1, lid + dt * 0.85);
+        if (lid >= 1) {
+          lidOpen = 0;
+          setTimeout(nextBox, 500);
+        }
+      }
+      for (i = conf.length - 1; i >= 0; i--) {
+        conf[i].life -= dt * 1.4; conf[i].x += conf[i].vx * dt; conf[i].y += conf[i].vy * dt;
+        if (conf[i].life <= 0) conf.splice(i, 1);
+      }
+    }
+
+    function pathKind(kind, r) {
+      if (kind === "circ") { x.beginPath(); x.arc(0, 0, r, 0, Math.PI * 2); }
+      else if (kind === "sq") { x.beginPath(); x.rect(-r, -r, r * 2, r * 2); }
+      else if (kind === "tri") { x.beginPath(); x.moveTo(0, -r); x.lineTo(r, r); x.lineTo(-r, r); x.closePath(); }
+      else if (kind === "star") {
+        x.beginPath();
+        var i, a;
+        for (i = 0; i < 5; i++) {
+          a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+          if (i === 0) x.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+          else x.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+          a += Math.PI / 5;
+          x.lineTo(Math.cos(a) * r * 0.45, Math.sin(a) * r * 0.45);
+        }
+        x.closePath();
+      } else {
+        x.beginPath();
+        x.moveTo(0, r * 0.7);
+        x.bezierCurveTo(-r * 1.2, 0, -r * 0.6, -r, 0, -r * 0.35);
+        x.bezierCurveTo(r * 0.6, -r, r * 1.2, 0, 0, r * 0.7);
+      }
+    }
+
+    function drawShape(s, hole) {
+      x.save();
+      x.translate(s.x, s.y);
+      x.rotate(s.rot || 0);
+      x.scale(s.sc || 1, s.sc || 1);
+      if (hole) {
+        x.fillStyle = "#0f172a";
+        pathKind(s.kind, 22); x.fill();
+        x.fillStyle = "rgba(255,255,255,.08)";
+        pathKind(s.kind, 16); x.fill();
+        x.strokeStyle = "rgba(0,0,0,.35)"; x.lineWidth = 3;
+        pathKind(s.kind, 22); x.stroke();
+        x.fillStyle = "rgba(255,255,255,.12)";
+        x.beginPath(); x.moveTo(-18, -18); x.lineTo(-10, -24); x.lineTo(4, -16); x.fill();
+      } else {
+        x.fillStyle = COL[s.kind];
+        pathKind(s.kind, 24); x.fill();
+        x.strokeStyle = "rgba(255,255,255,.5)"; x.lineWidth = 3;
+        pathKind(s.kind, 24); x.stroke();
+        x.fillStyle = "rgba(255,255,255,.35)";
+        x.beginPath(); x.ellipse(-6, -8, 8, 5, -0.4, 0, Math.PI * 2); x.fill();
+      }
+      x.restore();
+    }
+
+    function drawBox() {
+      var b = BOXES[box] || BOXES[0];
+      var g = x.createLinearGradient(0, 0, 0, H);
+      if (b.night) { g.addColorStop(0, "#0f172a"); g.addColorStop(1, "#1e3a8a"); }
+      else { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#2563eb"); }
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      if (b.night) {
+        x.fillStyle = "#fff";
+        var i, s;
+        for (i = 0; i < stars.length; i++) {
+          s = stars[i];
+          x.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(t * 2 + s.tw));
+          x.fillRect(s.x * W, 10 + s.y * H, 2, 2);
+        }
+        x.globalAlpha = 1;
+      } else {
+        x.fillStyle = "#fde047";
+        x.beginPath(); x.arc(W * 0.16, 54, 18, 0, Math.PI * 2); x.fill();
+      }
+      var cx = W * 0.5, cy = H * 0.42, bw = Math.min(W * 0.78, 340), bh = bw * 0.72;
+      x.save();
+      x.translate(cx, cy);
+      x.rotate(rot * 0.15);
+      x.fillStyle = "#b45309";
+      x.beginPath();
+      if (x.roundRect) x.roundRect(-bw / 2, -bh / 2 + 18, bw, bh, 18);
+      else x.rect(-bw / 2, -bh / 2 + 18, bw, bh);
+      x.fill();
+      x.fillStyle = "#f59e0b";
+      x.beginPath();
+      if (x.roundRect) x.roundRect(-bw / 2 + 10, -bh / 2 + 28, bw - 20, bh - 28, 14);
+      else x.rect(-bw / 2 + 10, -bh / 2 + 28, bw - 20, bh - 28);
+      x.fill();
+      x.restore();
+      var h, p;
+      for (i = 0; i < holes.length; i++) {
+        h = holes[i]; p = holePos(h);
+        drawShape({ kind: h.kind, x: p.x, y: p.y, sc: 1, rot: rot * 0.2 }, true);
+      }
+      x.save();
+      x.translate(cx, cy - bh / 2 + 10);
+      x.rotate(-lid * 1.15);
+      x.fillStyle = "#d97706";
+      x.beginPath();
+      if (x.roundRect) x.roundRect(-bw / 2, -16, bw, 36, 10);
+      else x.rect(-bw / 2, -16, bw, 36);
+      x.fill();
+      x.fillStyle = "#fde047";
+      x.fillRect(-18, -4, 36, 10);
+      x.restore();
+    }
+
+    function draw() {
+      drawBox();
+      var i, s;
+      for (i = 0; i < shapes.length; i++) {
+        s = shapes[i];
+        if (s.in) {
+          s.x = holePos(holes.filter(function (h) { return h.kind === s.kind && h.got; })[0] || holes[0]).x;
+          var hp = null, hi;
+          for (hi = 0; hi < holes.length; hi++) if (holes[hi].kind === s.kind && holes[hi].got) hp = holePos(holes[hi]);
+          if (hp) { s.x = hp.x; s.y = hp.y; }
+        }
+        drawShape(s, false);
+      }
+      for (i = 0; i < conf.length; i++) {
+        x.globalAlpha = Math.max(0, conf[i].life);
+        x.fillStyle = conf[i].col;
+        x.fillRect(conf[i].x, conf[i].y, 6, 6);
+      }
+      x.globalAlpha = 1;
+      x.fillStyle = "rgba(255,255,255,.2)";
+      x.fillRect(16, 8, W - 32, 6);
+      x.fillStyle = "#fde047";
+      var inn = shapes.filter(function (z) { return z.in; }).length;
+      x.fillRect(16, 8, Math.min(W - 32, ((box + inn / Math.max(1, shapes.length)) / 5) * (W - 32)), 6);
+    }
+
+    
+    var toyBits=[], lidSpark=[], label=[];
+    function flavorUpdate(dt){
+      if(!toyBits.length){ var i; for(i=0;i<10;i++) toyBits.push({x:Math.random(),y:0.88,e:["🔷","🔶","🔻","⭐","💜"][i%5],ph:i}); }
+      var i; for(i=0;i<toyBits.length;i++) toyBits[i].ph+=dt;
+      if(typeof lidOpen!=="undefined" && lidOpen){
+        lidSpark.push({x:W*0.5+(Math.random()-0.5)*80,y:H*0.3,life:0.6});
+      }
+      for(i=lidSpark.length-1;i>=0;i--){ lidSpark[i].life-=dt*2; if(lidSpark[i].life<=0) lidSpark.splice(i,1); }
+    }
+    function flavorDraw(){
+      var i;
+      for(i=0;i<toyBits.length;i++){
+        x.font="14px serif";
+        x.globalAlpha=0.5;
+        x.fillText(toyBits[i].e, toyBits[i].x*W, H*0.9+Math.sin(toyBits[i].ph)*3);
+      }
+      x.globalAlpha=1;
+      for(i=0;i<lidSpark.length;i++){
+        x.globalAlpha=Math.max(0,lidSpark[i].life);
+        x.fillStyle="#fde047"; x.beginPath(); x.arc(lidSpark[i].x,lidSpark[i].y,4,0,Math.PI*2); x.fill();
+      }
+      x.globalAlpha=1;
+      if(typeof BOXES!=="undefined" && BOXES[box]){
+        x.fillStyle="#fff"; x.font="bold 13px Trebuchet MS"; x.textAlign="center";
+        x.fillText(BOXES[box].n+" · rotate "+(BOXES[box].rot?"yes":"no"), W*0.5, 78);
+      }
+    }
+
+    var holeGlow = [], boxStamp = 0;
+    function sorterJuice(dt) {
+      boxStamp += dt;
+      if (typeof holes !== "undefined") {
+        var i, p;
+        for (i = 0; i < holes.length; i++) {
+          if (holes[i].got && Math.random() < dt * 3) {
+            p = typeof holePos === "function" ? holePos(holes[i]) : { x: W * 0.5, y: H * 0.4 };
+            holeGlow.push({ x: p.x, y: p.y, life: 0.5, col: COL[holes[i].kind] });
+          }
+        }
+      }
+      var j;
+      for (j = holeGlow.length - 1; j >= 0; j--) { holeGlow[j].life -= dt * 2; if (holeGlow[j].life <= 0) holeGlow.splice(j, 1); }
+    }
+    var _oldSU = flavorUpdate;
+    flavorUpdate = function (dt) { _oldSU(dt); sorterJuice(dt); };
+    var _oldSD = flavorDraw;
+    flavorDraw = function () {
+      _oldSD();
+      var i;
+      for (i = 0; i < holeGlow.length; i++) {
+        x.globalAlpha = Math.max(0, holeGlow[i].life);
+        x.strokeStyle = holeGlow[i].col; x.lineWidth = 3;
+        x.beginPath(); x.arc(holeGlow[i].x, holeGlow[i].y, 20 + (1 - holeGlow[i].life) * 12, 0, Math.PI * 2); x.stroke();
+      }
+      x.globalAlpha = 1;
+      x.fillStyle = "rgba(253,224,71,.8)"; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
+      x.fillText("wiggle into the matching hole", W * 0.5, H - 48);
+    };
+    function extraWorld(){
+      var _i,_a;
+      _a=0.08+0.04*Math.sin(t+0); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((0+t*8)%W, 20, 4, 3); /* circle hole 0 */
+      _a=0.08+0.04*Math.sin(t+1); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((47+t*8)%W, 51, 5, 4); /* square hole 1 */
+      _a=0.08+0.04*Math.sin(t+2); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((94+t*8)%W, 82, 6, 5); /* triangle 2 */
+      _a=0.08+0.04*Math.sin(t+3); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((44+t*8)%W, 30, 7, 6); /* star 3 */
+      _a=0.08+0.04*Math.sin(t+4); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((91+t*8)%W, 61, 8, 3); /* heart 4 */
+      _a=0.08+0.04*Math.sin(t+5); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((41+t*8)%W, 92, 4, 4); /* circle hole 5 */
+      _a=0.08+0.04*Math.sin(t+6); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((88+t*8)%W, 40, 5, 5); /* square hole 6 */
+      _a=0.08+0.04*Math.sin(t+7); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((38+t*8)%W, 71, 6, 6); /* triangle 7 */
+      _a=0.08+0.04*Math.sin(t+8); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((85+t*8)%W, 102, 7, 3); /* star 8 */
+      _a=0.08+0.04*Math.sin(t+9); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((35+t*8)%W, 50, 8, 4); /* heart 9 */
+      _a=0.08+0.04*Math.sin(t+10); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((82+t*8)%W, 81, 4, 5); /* circle hole 10 */
+      _a=0.08+0.04*Math.sin(t+11); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((32+t*8)%W, 29, 5, 6); /* square hole 11 */
+      _a=0.08+0.04*Math.sin(t+12); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((79+t*8)%W, 60, 6, 3); /* triangle 12 */
+      _a=0.08+0.04*Math.sin(t+13); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((29+t*8)%W, 91, 7, 4); /* star 13 */
+      _a=0.08+0.04*Math.sin(t+14); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((76+t*8)%W, 39, 8, 5); /* heart 14 */
+      _a=0.08+0.04*Math.sin(t+15); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((26+t*8)%W, 70, 4, 6); /* circle hole 15 */
+      _a=0.08+0.04*Math.sin(t+16); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((73+t*8)%W, 101, 5, 3); /* square hole 16 */
+      _a=0.08+0.04*Math.sin(t+17); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((23+t*8)%W, 49, 6, 4); /* triangle 17 */
+      _a=0.08+0.04*Math.sin(t+18); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((70+t*8)%W, 80, 7, 5); /* star 18 */
+      _a=0.08+0.04*Math.sin(t+19); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((20+t*8)%W, 28, 8, 6); /* heart 19 */
+      _a=0.08+0.04*Math.sin(t+20); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((67+t*8)%W, 59, 4, 3); /* circle hole 20 */
+      _a=0.08+0.04*Math.sin(t+21); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((17+t*8)%W, 90, 5, 4); /* square hole 21 */
+      _a=0.08+0.04*Math.sin(t+22); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((64+t*8)%W, 38, 6, 5); /* triangle 22 */
+      _a=0.08+0.04*Math.sin(t+23); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((14+t*8)%W, 69, 7, 6); /* star 23 */
+      _a=0.08+0.04*Math.sin(t+24); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((61+t*8)%W, 100, 8, 3); /* heart 24 */
+      _a=0.08+0.04*Math.sin(t+25); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((11+t*8)%W, 48, 4, 4); /* circle hole 25 */
+      _a=0.08+0.04*Math.sin(t+26); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((58+t*8)%W, 79, 5, 5); /* square hole 26 */
+      _a=0.08+0.04*Math.sin(t+27); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((8+t*8)%W, 27, 6, 6); /* triangle 27 */
+      _a=0.08+0.04*Math.sin(t+28); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((55+t*8)%W, 58, 7, 3); /* star 28 */
+      _a=0.08+0.04*Math.sin(t+29); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((5+t*8)%W, 89, 8, 4); /* heart 29 */
+      _a=0.08+0.04*Math.sin(t+30); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((52+t*8)%W, 37, 4, 5); /* circle hole 30 */
+      _a=0.08+0.04*Math.sin(t+31); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((2+t*8)%W, 68, 5, 6); /* square hole 31 */
+      _a=0.08+0.04*Math.sin(t+32); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((49+t*8)%W, 99, 6, 3); /* triangle 32 */
+      _a=0.08+0.04*Math.sin(t+33); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((96+t*8)%W, 47, 7, 4); /* star 33 */
+      _a=0.08+0.04*Math.sin(t+34); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((46+t*8)%W, 78, 8, 5); /* heart 34 */
+      _a=0.08+0.04*Math.sin(t+35); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((93+t*8)%W, 26, 4, 6); /* circle hole 35 */
+      _a=0.08+0.04*Math.sin(t+36); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((43+t*8)%W, 57, 5, 3); /* square hole 36 */
+      _a=0.08+0.04*Math.sin(t+37); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((90+t*8)%W, 88, 6, 4); /* triangle 37 */
+      _a=0.08+0.04*Math.sin(t+38); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((40+t*8)%W, 36, 7, 5); /* star 38 */
+      _a=0.08+0.04*Math.sin(t+39); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((87+t*8)%W, 67, 8, 6); /* heart 39 */
+      _a=0.08+0.04*Math.sin(t+40); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((37+t*8)%W, 98, 4, 3); /* circle hole 40 */
+      _a=0.08+0.04*Math.sin(t+41); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((84+t*8)%W, 46, 5, 4); /* square hole 41 */
+      _a=0.08+0.04*Math.sin(t+42); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((34+t*8)%W, 77, 6, 5); /* triangle 42 */
+      _a=0.08+0.04*Math.sin(t+43); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((81+t*8)%W, 25, 7, 6); /* star 43 */
+      _a=0.08+0.04*Math.sin(t+44); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((31+t*8)%W, 56, 8, 3); /* heart 44 */
+      _a=0.08+0.04*Math.sin(t+45); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((78+t*8)%W, 87, 4, 4); /* circle hole 45 */
+      _a=0.08+0.04*Math.sin(t+46); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((28+t*8)%W, 35, 5, 5); /* square hole 46 */
+      _a=0.08+0.04*Math.sin(t+47); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((75+t*8)%W, 66, 6, 6); /* triangle 47 */
+      _a=0.08+0.04*Math.sin(t+48); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((25+t*8)%W, 97, 7, 3); /* star 48 */
+      _a=0.08+0.04*Math.sin(t+49); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((72+t*8)%W, 45, 8, 4); /* heart 49 */
+      _a=0.08+0.04*Math.sin(t+50); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((22+t*8)%W, 76, 4, 5); /* circle hole 50 */
+      _a=0.08+0.04*Math.sin(t+51); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((69+t*8)%W, 24, 5, 6); /* square hole 51 */
+      _a=0.08+0.04*Math.sin(t+52); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((19+t*8)%W, 55, 6, 3); /* triangle 52 */
+      _a=0.08+0.04*Math.sin(t+53); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((66+t*8)%W, 86, 7, 4); /* star 53 */
+      _a=0.08+0.04*Math.sin(t+54); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((16+t*8)%W, 34, 8, 5); /* heart 54 */
+      _a=0.08+0.04*Math.sin(t+55); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((63+t*8)%W, 65, 4, 6); /* circle hole 55 */
+      _a=0.08+0.04*Math.sin(t+56); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((13+t*8)%W, 96, 5, 3); /* square hole 56 */
+      _a=0.08+0.04*Math.sin(t+57); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((60+t*8)%W, 44, 6, 4); /* triangle 57 */
+      _a=0.08+0.04*Math.sin(t+58); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((10+t*8)%W, 75, 7, 5); /* star 58 */
+      _a=0.08+0.04*Math.sin(t+59); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((57+t*8)%W, 23, 8, 6); /* heart 59 */
+      _a=0.08+0.04*Math.sin(t+60); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((7+t*8)%W, 54, 4, 3); /* circle hole 60 */
+      _a=0.08+0.04*Math.sin(t+61); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((54+t*8)%W, 85, 5, 4); /* square hole 61 */
+      _a=0.08+0.04*Math.sin(t+62); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((4+t*8)%W, 33, 6, 5); /* triangle 62 */
+      _a=0.08+0.04*Math.sin(t+63); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((51+t*8)%W, 64, 7, 6); /* star 63 */
+      _a=0.08+0.04*Math.sin(t+64); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((1+t*8)%W, 95, 8, 3); /* heart 64 */
+      _a=0.08+0.04*Math.sin(t+65); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((48+t*8)%W, 43, 4, 4); /* circle hole 65 */
+      _a=0.08+0.04*Math.sin(t+66); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((95+t*8)%W, 74, 5, 5); /* square hole 66 */
+      _a=0.08+0.04*Math.sin(t+67); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((45+t*8)%W, 22, 6, 6); /* triangle 67 */
+      _a=0.08+0.04*Math.sin(t+68); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((92+t*8)%W, 53, 7, 3); /* star 68 */
+      _a=0.08+0.04*Math.sin(t+69); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((42+t*8)%W, 84, 8, 4); /* heart 69 */
+      _a=0.08+0.04*Math.sin(t+70); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((89+t*8)%W, 32, 4, 5); /* circle hole 70 */
+      _a=0.08+0.04*Math.sin(t+71); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((39+t*8)%W, 63, 5, 6); /* square hole 71 */
+      _a=0.08+0.04*Math.sin(t+72); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((86+t*8)%W, 94, 6, 3); /* triangle 72 */
+      _a=0.08+0.04*Math.sin(t+73); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((36+t*8)%W, 42, 7, 4); /* star 73 */
+      _a=0.08+0.04*Math.sin(t+74); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((83+t*8)%W, 73, 8, 5); /* heart 74 */
+      _a=0.08+0.04*Math.sin(t+75); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((33+t*8)%W, 21, 4, 6); /* circle hole 75 */
+      _a=0.08+0.04*Math.sin(t+76); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((80+t*8)%W, 52, 5, 3); /* square hole 76 */
+      _a=0.08+0.04*Math.sin(t+77); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((30+t*8)%W, 83, 6, 4); /* triangle 77 */
+      _a=0.08+0.04*Math.sin(t+78); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((77+t*8)%W, 31, 7, 5); /* star 78 */
+      _a=0.08+0.04*Math.sin(t+79); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((27+t*8)%W, 62, 8, 6); /* heart 79 */
+      _a=0.08+0.04*Math.sin(t+80); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((74+t*8)%W, 93, 4, 3); /* circle hole 80 */
+      _a=0.08+0.04*Math.sin(t+81); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((24+t*8)%W, 41, 5, 4); /* square hole 81 */
+      _a=0.08+0.04*Math.sin(t+82); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((71+t*8)%W, 72, 6, 5); /* triangle 82 */
+      _a=0.08+0.04*Math.sin(t+83); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((21+t*8)%W, 20, 7, 6); /* star 83 */
+      _a=0.08+0.04*Math.sin(t+84); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((68+t*8)%W, 51, 8, 3); /* heart 84 */
+      _a=0.08+0.04*Math.sin(t+85); x.fillStyle='#38bdf8'; x.globalAlpha=_a;
+      x.fillRect((18+t*8)%W, 82, 4, 4); /* circle hole 85 */
+      _a=0.08+0.04*Math.sin(t+86); x.fillStyle='#facc15'; x.globalAlpha=_a;
+      x.fillRect((65+t*8)%W, 30, 5, 5); /* square hole 86 */
+      _a=0.08+0.04*Math.sin(t+87); x.fillStyle='#f97316'; x.globalAlpha=_a;
+      x.fillRect((15+t*8)%W, 61, 6, 6); /* triangle 87 */
+      _a=0.08+0.04*Math.sin(t+88); x.fillStyle='#a855f7'; x.globalAlpha=_a;
+      x.fillRect((62+t*8)%W, 92, 7, 3); /* star 88 */
+      _a=0.08+0.04*Math.sin(t+89); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((12+t*8)%W, 40, 8, 4); /* heart 89 */
+      x.globalAlpha=1;
+    }
+
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); if(typeof flavorUpdate==='function') flavorUpdate(dt); draw(); if(typeof flavorDraw==='function') flavorDraw(); if(typeof extraWorld==='function') extraWorld();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+  })();
   </script>
 </body>
 </html>

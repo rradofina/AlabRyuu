@@ -50,6 +50,7 @@
     }
     .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
     .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
+    #got { min-width: 88px; text-align: center; }
   </style>
 </head>
 <body>
@@ -244,6 +245,22 @@
       g.beginPath(); g.arc(x - 4, y - 5, 2, 0, Math.PI * 2); g.fill();
       g.beginPath(); g.arc(x + 4, y - 5, 2, 0, Math.PI * 2); g.fill();
     }
+    function drawNest() {
+      var x = W * 0.08, y = H * 0.42;
+      g.fillStyle = "#78350f";
+      g.beginPath(); g.ellipse(x, y, 16, 8, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#fde68a";
+      g.beginPath(); g.ellipse(x - 4, y - 2, 4, 5, 0.2, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(x + 4, y - 1, 4, 5, -0.2, 0, Math.PI * 2); g.fill();
+    }
+    function drawCloudRefl() {
+      for (var i = 0; i < 3; i++) {
+        var x = ((0.2 + i * 0.3 + t * 0.02) % 1.2) * W;
+        var y = H * 0.48 + Math.sin(t + i) * 4;
+        g.fillStyle = "rgba(255,255,255,.12)";
+        g.beginPath(); g.ellipse(x, y, 40, 8, 0, 0, Math.PI * 2); g.fill();
+      }
+    }
     function drawDragon(d) {
       var x = ((d.x + t * 0.03) % 1.2) * W;
       var y = d.y * H + Math.sin(t * 4 + d.ph) * 8;
@@ -316,6 +333,8 @@
       for (i = 0; i < logs.length; i++) drawLog(logs[i]);
       drawTurtle();
       drawHeron();
+      drawNest();
+      drawCloudRefl();
       for (i = 0; i < frogs.length; i++) drawMiniFrog(frogs[i]);
       for (i = 0; i < dragon.length; i++) drawDragon(dragon[i]);
       if (p.night > 0.7) {
@@ -470,6 +489,75 @@
         g.beginPath(); g.arc(bx, by, PONDS[Math.min(pond, 4)].night > 0.7 ? 2.4 : 1.4, 0, Math.PI * 2); g.fill();
       }
     }
+    function drawBridge() {
+      var y = H * 0.4;
+      g.fillStyle = "#92400e";
+      g.fillRect(W * 0.35, y, W * 0.3, 8);
+      g.fillRect(W * 0.36, y + 8, 6, 20);
+      g.fillRect(W * 0.62, y + 8, 6, 20);
+      g.strokeStyle = "#78350f"; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(W * 0.35, y); g.quadraticCurveTo(W * 0.5, y - 16, W * 0.65, y); g.stroke();
+    }
+    function drawCattails() {
+      for (var i = 0; i < 6; i++) {
+        var x = (i < 3 ? 0.04 : 0.9) * W + (i % 3) * 14;
+        var sway = Math.sin(t * 1.6 + i) * 6;
+        g.strokeStyle = "#365314"; g.lineWidth = 3;
+        g.beginPath(); g.moveTo(x, H * 0.82); g.lineTo(x + sway, H * 0.62); g.stroke();
+        g.fillStyle = "#78350f";
+        g.beginPath(); g.ellipse(x + sway, H * 0.6, 4, 9, 0, 0, Math.PI * 2); g.fill();
+      }
+    }
+    function drawSunGlint() {
+      for (var i = 0; i < 12; i++) {
+        var x = (i * 97 + t * 30) % W;
+        var y = H * 0.5 + (i * 43) % (H * 0.2);
+        g.fillStyle = "rgba(254,243,199," + (0.2 + 0.3 * Math.sin(t * 5 + i)) + ")";
+        g.beginPath(); g.arc(x, y, 2, 0, Math.PI * 2); g.fill();
+      }
+    }
+    function drawQuack() {
+      if (mode !== "play") return;
+      g.fillStyle = "rgba(255,255,255,.7)";
+      g.font = "bold 13px Trebuchet MS"; g.textAlign = "center";
+      g.fillText("quack", mama.x, mama.y - 28 + Math.sin(t * 3) * 2);
+    }
+    function drawHeldLine() {
+      if (holding == null || !babies[holding]) return;
+      g.strokeStyle = "rgba(253,230,138,.4)"; g.lineWidth = 2;
+      g.setLineDash([6, 6]);
+      g.beginPath(); g.moveTo(babies[holding].x, babies[holding].y); g.lineTo(mama.x, mama.y); g.stroke();
+      g.setLineDash([]);
+    }
+    function drawBreadHint() {
+      if (mode !== "play" || crumbs.length) return;
+      g.fillStyle = "rgba(253,230,138,.55)";
+      g.font = "bold 14px Trebuchet MS"; g.textAlign = "center";
+      g.fillText("tap water = crumbs", W * 0.5, H * 0.92);
+    }
+    function drawMamaGlow() {
+      if (mode !== "play") return;
+      g.fillStyle = "rgba(253,224,71,.12)";
+      g.beginPath(); g.arc(mama.x, mama.y, 48 + Math.sin(t * 3) * 6, 0, Math.PI * 2); g.fill();
+    }
+    function drawTitleSwim() {
+      if (mode === "play") return;
+      drawDuck(W * 0.4 + Math.sin(t) * 30, H * 0.55, t * 0.2, true, false);
+      drawDuck(W * 0.55 + Math.cos(t) * 20, H * 0.58, t * 0.2, false, true);
+      drawDuck(W * 0.62 + Math.sin(t * 1.2) * 16, H * 0.6, t * 0.2, false, true);
+    }
+    var oldDrawD = draw;
+    draw = function () {
+      oldDrawD();
+      drawBridge();
+      drawCattails();
+      drawSunGlint();
+      drawMamaGlow();
+      drawTitleSwim();
+      drawBreadHint();
+      drawHeldLine();
+      drawQuack();
+    };
     function loop(now) {
       requestAnimationFrame(loop);
       if (!last) last = now;

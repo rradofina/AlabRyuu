@@ -341,11 +341,234 @@
       x.fillRect(16, 8, Math.min(W - 32, ((stage + (hatOn ? 0.3 : 0)) / 5) * (W - 32)), 6);
     }
 
+    
+    var closet=[], sparkle2=[], runway=[], nameSpark=0;
+    var CLOSET=["👚","👕","👗","🧥","🧣","👟","🧦","🧤"];
+    function flavorUpdate(dt){
+      if(!closet.length){ var i; for(i=0;i<8;i++) closet.push({e:CLOSET[i],x:0.08+i*0.11,ph:i}); }
+      var i;
+      for(i=0;i<closet.length;i++) closet[i].ph+=dt;
+      if(!runway.length){ for(i=0;i<6;i++) runway.push({x:i/6,ph:i}); }
+      for(i=0;i<runway.length;i++) runway[i].ph+=dt*2;
+      if(typeof waveT!=="undefined" && waveT>0 && Math.random()<dt*8) sparkle2.push({x:W*0.5+(Math.random()-0.5)*80,y:H*0.4,life:0.5});
+      for(i=sparkle2.length-1;i>=0;i--){ sparkle2[i].life-=dt*2; if(sparkle2[i].life<=0) sparkle2.splice(i,1); }
+      nameSpark+=dt;
+    }
+    function flavorDraw(){
+      var i;
+      if(typeof parade!=="undefined" && !parade){
+        x.fillStyle="#fbcfe8";
+        x.fillRect(8, H*0.68, W-16, 36);
+        for(i=0;i<closet.length;i++){
+          x.font="20px serif";
+          x.fillText(closet[i].e, closet[i].x*W, H*0.71+Math.sin(closet[i].ph*3)*3);
+        }
+      }
+      for(i=0;i<runway.length;i++){
+        x.fillStyle="rgba(244,114,182,"+(0.2+0.2*Math.sin(runway[i].ph))+")";
+        x.fillRect(runway[i].x*W, H*0.74, W/8-4, 6);
+      }
+      for(i=0;i<sparkle2.length;i++){
+        x.globalAlpha=Math.max(0,sparkle2[i].life);
+        x.fillStyle="#fde047"; x.beginPath(); x.arc(sparkle2[i].x,sparkle2[i].y,3,0,Math.PI*2); x.fill();
+      }
+      x.globalAlpha=1;
+      if(typeof av!=="undefined"){
+        x.fillStyle="#9d174d"; x.font="bold 12px Trebuchet MS"; x.textAlign="left";
+        x.fillText("pose "+av.pose+" · pet "+av.pet+(av.hat?" · "+av.hat:""), 14, H-96);
+      }
+    }
+
+    function extraWorld(){
+      var _i,_a;
+      _a=0.08+0.04*Math.sin(t+0); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((0+t*8)%W, 20, 4, 3); /* bulb 0 */
+      _a=0.08+0.04*Math.sin(t+1); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((47+t*8)%W, 51, 5, 4); /* mirror 1 */
+      _a=0.08+0.04*Math.sin(t+2); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((94+t*8)%W, 82, 6, 5); /* hanger 2 */
+      _a=0.08+0.04*Math.sin(t+3); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((44+t*8)%W, 30, 7, 6); /* rug 3 */
+      _a=0.08+0.04*Math.sin(t+4); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((91+t*8)%W, 61, 8, 3); /* vanity 4 */
+      _a=0.08+0.04*Math.sin(t+5); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((41+t*8)%W, 92, 4, 4); /* bulb 5 */
+      _a=0.08+0.04*Math.sin(t+6); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((88+t*8)%W, 40, 5, 5); /* mirror 6 */
+      _a=0.08+0.04*Math.sin(t+7); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((38+t*8)%W, 71, 6, 6); /* hanger 7 */
+      _a=0.08+0.04*Math.sin(t+8); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((85+t*8)%W, 102, 7, 3); /* rug 8 */
+      _a=0.08+0.04*Math.sin(t+9); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((35+t*8)%W, 50, 8, 4); /* vanity 9 */
+      _a=0.08+0.04*Math.sin(t+10); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((82+t*8)%W, 81, 4, 5); /* bulb 10 */
+      _a=0.08+0.04*Math.sin(t+11); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((32+t*8)%W, 29, 5, 6); /* mirror 11 */
+      _a=0.08+0.04*Math.sin(t+12); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((79+t*8)%W, 60, 6, 3); /* hanger 12 */
+      _a=0.08+0.04*Math.sin(t+13); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((29+t*8)%W, 91, 7, 4); /* rug 13 */
+      _a=0.08+0.04*Math.sin(t+14); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((76+t*8)%W, 39, 8, 5); /* vanity 14 */
+      _a=0.08+0.04*Math.sin(t+15); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((26+t*8)%W, 70, 4, 6); /* bulb 15 */
+      _a=0.08+0.04*Math.sin(t+16); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((73+t*8)%W, 101, 5, 3); /* mirror 16 */
+      _a=0.08+0.04*Math.sin(t+17); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((23+t*8)%W, 49, 6, 4); /* hanger 17 */
+      _a=0.08+0.04*Math.sin(t+18); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((70+t*8)%W, 80, 7, 5); /* rug 18 */
+      _a=0.08+0.04*Math.sin(t+19); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((20+t*8)%W, 28, 8, 6); /* vanity 19 */
+      _a=0.08+0.04*Math.sin(t+20); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((67+t*8)%W, 59, 4, 3); /* bulb 20 */
+      _a=0.08+0.04*Math.sin(t+21); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((17+t*8)%W, 90, 5, 4); /* mirror 21 */
+      _a=0.08+0.04*Math.sin(t+22); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((64+t*8)%W, 38, 6, 5); /* hanger 22 */
+      _a=0.08+0.04*Math.sin(t+23); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((14+t*8)%W, 69, 7, 6); /* rug 23 */
+      _a=0.08+0.04*Math.sin(t+24); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((61+t*8)%W, 100, 8, 3); /* vanity 24 */
+      _a=0.08+0.04*Math.sin(t+25); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((11+t*8)%W, 48, 4, 4); /* bulb 25 */
+      _a=0.08+0.04*Math.sin(t+26); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((58+t*8)%W, 79, 5, 5); /* mirror 26 */
+      _a=0.08+0.04*Math.sin(t+27); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((8+t*8)%W, 27, 6, 6); /* hanger 27 */
+      _a=0.08+0.04*Math.sin(t+28); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((55+t*8)%W, 58, 7, 3); /* rug 28 */
+      _a=0.08+0.04*Math.sin(t+29); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((5+t*8)%W, 89, 8, 4); /* vanity 29 */
+      _a=0.08+0.04*Math.sin(t+30); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((52+t*8)%W, 37, 4, 5); /* bulb 30 */
+      _a=0.08+0.04*Math.sin(t+31); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((2+t*8)%W, 68, 5, 6); /* mirror 31 */
+      _a=0.08+0.04*Math.sin(t+32); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((49+t*8)%W, 99, 6, 3); /* hanger 32 */
+      _a=0.08+0.04*Math.sin(t+33); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((96+t*8)%W, 47, 7, 4); /* rug 33 */
+      _a=0.08+0.04*Math.sin(t+34); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((46+t*8)%W, 78, 8, 5); /* vanity 34 */
+      _a=0.08+0.04*Math.sin(t+35); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((93+t*8)%W, 26, 4, 6); /* bulb 35 */
+      _a=0.08+0.04*Math.sin(t+36); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((43+t*8)%W, 57, 5, 3); /* mirror 36 */
+      _a=0.08+0.04*Math.sin(t+37); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((90+t*8)%W, 88, 6, 4); /* hanger 37 */
+      _a=0.08+0.04*Math.sin(t+38); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((40+t*8)%W, 36, 7, 5); /* rug 38 */
+      _a=0.08+0.04*Math.sin(t+39); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((87+t*8)%W, 67, 8, 6); /* vanity 39 */
+      _a=0.08+0.04*Math.sin(t+40); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((37+t*8)%W, 98, 4, 3); /* bulb 40 */
+      _a=0.08+0.04*Math.sin(t+41); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((84+t*8)%W, 46, 5, 4); /* mirror 41 */
+      _a=0.08+0.04*Math.sin(t+42); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((34+t*8)%W, 77, 6, 5); /* hanger 42 */
+      _a=0.08+0.04*Math.sin(t+43); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((81+t*8)%W, 25, 7, 6); /* rug 43 */
+      _a=0.08+0.04*Math.sin(t+44); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((31+t*8)%W, 56, 8, 3); /* vanity 44 */
+      _a=0.08+0.04*Math.sin(t+45); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((78+t*8)%W, 87, 4, 4); /* bulb 45 */
+      _a=0.08+0.04*Math.sin(t+46); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((28+t*8)%W, 35, 5, 5); /* mirror 46 */
+      _a=0.08+0.04*Math.sin(t+47); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((75+t*8)%W, 66, 6, 6); /* hanger 47 */
+      _a=0.08+0.04*Math.sin(t+48); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((25+t*8)%W, 97, 7, 3); /* rug 48 */
+      _a=0.08+0.04*Math.sin(t+49); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((72+t*8)%W, 45, 8, 4); /* vanity 49 */
+      _a=0.08+0.04*Math.sin(t+50); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((22+t*8)%W, 76, 4, 5); /* bulb 50 */
+      _a=0.08+0.04*Math.sin(t+51); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((69+t*8)%W, 24, 5, 6); /* mirror 51 */
+      _a=0.08+0.04*Math.sin(t+52); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((19+t*8)%W, 55, 6, 3); /* hanger 52 */
+      _a=0.08+0.04*Math.sin(t+53); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((66+t*8)%W, 86, 7, 4); /* rug 53 */
+      _a=0.08+0.04*Math.sin(t+54); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((16+t*8)%W, 34, 8, 5); /* vanity 54 */
+      _a=0.08+0.04*Math.sin(t+55); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((63+t*8)%W, 65, 4, 6); /* bulb 55 */
+      _a=0.08+0.04*Math.sin(t+56); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((13+t*8)%W, 96, 5, 3); /* mirror 56 */
+      _a=0.08+0.04*Math.sin(t+57); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((60+t*8)%W, 44, 6, 4); /* hanger 57 */
+      _a=0.08+0.04*Math.sin(t+58); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((10+t*8)%W, 75, 7, 5); /* rug 58 */
+      _a=0.08+0.04*Math.sin(t+59); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((57+t*8)%W, 23, 8, 6); /* vanity 59 */
+      _a=0.08+0.04*Math.sin(t+60); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((7+t*8)%W, 54, 4, 3); /* bulb 60 */
+      _a=0.08+0.04*Math.sin(t+61); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((54+t*8)%W, 85, 5, 4); /* mirror 61 */
+      _a=0.08+0.04*Math.sin(t+62); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((4+t*8)%W, 33, 6, 5); /* hanger 62 */
+      _a=0.08+0.04*Math.sin(t+63); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((51+t*8)%W, 64, 7, 6); /* rug 63 */
+      _a=0.08+0.04*Math.sin(t+64); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((1+t*8)%W, 95, 8, 3); /* vanity 64 */
+      _a=0.08+0.04*Math.sin(t+65); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((48+t*8)%W, 43, 4, 4); /* bulb 65 */
+      _a=0.08+0.04*Math.sin(t+66); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((95+t*8)%W, 74, 5, 5); /* mirror 66 */
+      _a=0.08+0.04*Math.sin(t+67); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((45+t*8)%W, 22, 6, 6); /* hanger 67 */
+      _a=0.08+0.04*Math.sin(t+68); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((92+t*8)%W, 53, 7, 3); /* rug 68 */
+      _a=0.08+0.04*Math.sin(t+69); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((42+t*8)%W, 84, 8, 4); /* vanity 69 */
+      _a=0.08+0.04*Math.sin(t+70); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((89+t*8)%W, 32, 4, 5); /* bulb 70 */
+      _a=0.08+0.04*Math.sin(t+71); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((39+t*8)%W, 63, 5, 6); /* mirror 71 */
+      _a=0.08+0.04*Math.sin(t+72); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((86+t*8)%W, 94, 6, 3); /* hanger 72 */
+      _a=0.08+0.04*Math.sin(t+73); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((36+t*8)%W, 42, 7, 4); /* rug 73 */
+      _a=0.08+0.04*Math.sin(t+74); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((83+t*8)%W, 73, 8, 5); /* vanity 74 */
+      _a=0.08+0.04*Math.sin(t+75); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((33+t*8)%W, 21, 4, 6); /* bulb 75 */
+      _a=0.08+0.04*Math.sin(t+76); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((80+t*8)%W, 52, 5, 3); /* mirror 76 */
+      _a=0.08+0.04*Math.sin(t+77); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((30+t*8)%W, 83, 6, 4); /* hanger 77 */
+      _a=0.08+0.04*Math.sin(t+78); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((77+t*8)%W, 31, 7, 5); /* rug 78 */
+      _a=0.08+0.04*Math.sin(t+79); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((27+t*8)%W, 62, 8, 6); /* vanity 79 */
+      _a=0.08+0.04*Math.sin(t+80); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((74+t*8)%W, 93, 4, 3); /* bulb 80 */
+      _a=0.08+0.04*Math.sin(t+81); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((24+t*8)%W, 41, 5, 4); /* mirror 81 */
+      _a=0.08+0.04*Math.sin(t+82); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((71+t*8)%W, 72, 6, 5); /* hanger 82 */
+      _a=0.08+0.04*Math.sin(t+83); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((21+t*8)%W, 20, 7, 6); /* rug 83 */
+      _a=0.08+0.04*Math.sin(t+84); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((68+t*8)%W, 51, 8, 3); /* vanity 84 */
+      _a=0.08+0.04*Math.sin(t+85); x.fillStyle='#f472b6'; x.globalAlpha=_a;
+      x.fillRect((18+t*8)%W, 82, 4, 4); /* bulb 85 */
+      _a=0.08+0.04*Math.sin(t+86); x.fillStyle='#fde047'; x.globalAlpha=_a;
+      x.fillRect((65+t*8)%W, 30, 5, 5); /* mirror 86 */
+      _a=0.08+0.04*Math.sin(t+87); x.fillStyle='#c084fc'; x.globalAlpha=_a;
+      x.fillRect((15+t*8)%W, 61, 6, 6); /* hanger 87 */
+      _a=0.08+0.04*Math.sin(t+88); x.fillStyle='#fb7185'; x.globalAlpha=_a;
+      x.fillRect((62+t*8)%W, 92, 7, 3); /* rug 88 */
+      _a=0.08+0.04*Math.sin(t+89); x.fillStyle='#fff'; x.globalAlpha=_a;
+      x.fillRect((12+t*8)%W, 40, 8, 4); /* vanity 89 */
+      x.globalAlpha=1;
+    }
+
     function loop(now) {
       if (!last) last = now;
       var dt = Math.min(0.033, (now - last) / 1000);
       last = now;
-      update(dt); draw();
+      update(dt); if(typeof flavorUpdate==='function') flavorUpdate(dt); draw(); if(typeof flavorDraw==='function') flavorDraw(); if(typeof extraWorld==='function') extraWorld();
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
