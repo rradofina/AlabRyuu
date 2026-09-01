@@ -88,7 +88,7 @@
       nums.sort(function () { return Math.random() - 0.5; });
       for (i = 0; i < maxN; i++) {
         cars.push({
-          n: nums[i], x: W + 80 + i * 96, y: railY(), tx: 0, coupled: 0,
+          n: nums[i], x: W * 0.62 + i * 92, y: railY(), tx: 0, coupled: 0,
           roll: rnd(0, 6), col: CAR_COLS[(nums[i] - 1) % 10], cargo: "", bounce: 0
         });
       }
@@ -98,7 +98,7 @@
     }
 
     function railY() { return H * 0.6; }
-    function engineX() { return 92; }
+    function engineX() { return 128; }
 
     function tapCar(mx, my) {
       if (mode !== "play") return;
@@ -134,7 +134,7 @@
           }
         }
       });
-      if (Math.hypot(mx - 36, my - (H * 0.5)) < 40) {
+      if (Math.hypot(mx - 36, my - (railY() - 10)) < 40) {
         wave = 1;
         document.getElementById("say").textContent = "Hi " + av.name + "!";
         beep(720, 0.08);
@@ -253,30 +253,42 @@
       g.translate(ex, ey);
       g.fillStyle = "#0f172a";
       g.beginPath();
-      g.moveTo(-62, 18); g.lineTo(-86, 28); g.lineTo(-52, 28); g.closePath(); g.fill();
-      g.fillStyle = "#1d4ed8";
-      roundFill(-58, -18, 92, 36, 8);
-      g.fillStyle = "#2563eb";
-      roundFill(-20, -18, 54, 20, 6);
+      g.moveTo(-78, 10); g.lineTo(-108, 30); g.lineTo(-62, 30); g.closePath(); g.fill();
       g.fillStyle = "#1e3a8a";
-      roundFill(22, -34, 38, 40, 6);
+      roundFill(-74, -8, 118, 18, 6);
+      g.fillStyle = "#2563eb";
+      roundFill(-70, -28, 86, 32, 14);
+      g.fillStyle = "#1d4ed8";
+      g.fillRect(-66, -16, 78, 8);
+      g.fillStyle = "#93c5fd";
+      g.fillRect(-58, -22, 10, 6);
+      g.fillRect(-40, -22, 10, 6);
+      g.fillRect(-22, -22, 10, 6);
+      g.fillStyle = "#1e3a8a";
+      roundFill(18, -48, 46, 52, 8);
       g.fillStyle = "#7dd3fc";
-      roundFill(28, -26, 16, 14, 3);
+      roundFill(26, -38, 18, 16, 3);
       g.fillStyle = "#fff";
-      g.fillRect(32, -22, 5, 6);
-      g.fillStyle = "#0f172a";
-      g.fillRect(-40, -40, 12, 24);
-      g.fillStyle = "#334155";
-      g.fillRect(-44, -46, 20, 8);
-      g.fillStyle = "#ef4444";
-      g.beginPath(); g.arc(-4, -22, 8, 0, Math.PI * 2); g.fill();
+      g.fillRect(30, -32, 6, 7);
       g.fillStyle = "#fbbf24";
-      g.beginPath(); g.arc(-70, 2, 5, 0, Math.PI * 2); g.fill();
+      g.fillRect(20, -50, 42, 5);
       g.fillStyle = "#0f172a";
-      g.fillRect(56, 6, 10, 6);
-      drawWheel(-28, 26, 12, rot);
-      drawWheel(6, 26, 12, rot);
-      drawWheel(40, 26, 11, rot);
+      g.fillRect(-48, -54, 14, 28);
+      g.fillStyle = "#334155";
+      g.beginPath(); g.moveTo(-54, -54); g.lineTo(-28, -54); g.lineTo(-32, -62); g.lineTo(-50, -62); g.closePath(); g.fill();
+      g.fillStyle = "#ef4444";
+      g.beginPath(); g.arc(-8, -32, 9, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#fecaca";
+      g.beginPath(); g.arc(-8, -34, 4, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#fbbf24";
+      g.beginPath(); g.arc(-88, 0, 6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#0f172a";
+      g.fillRect(60, 4, 14, 8);
+      g.strokeStyle = "#0f172a"; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(-28, 18); g.lineTo(40, 18); g.stroke();
+      drawWheel(-36, 28, 14, rot);
+      drawWheel(2, 28, 14, rot);
+      drawWheel(42, 28, 12, rot);
       g.restore();
     }
 
@@ -368,7 +380,11 @@
 
     function drawTitleTrain() {
       drawSky();
-      drawPerson(36, H * 0.5, { wave: true, coat: "#1d4ed8" });
+      g.fillStyle = "#92400e";
+      g.fillRect(10, railY() + 6, 54, 8);
+      g.fillRect(16, railY() + 14, 8, 18);
+      g.fillRect(48, railY() + 14, 8, 18);
+      drawPerson(36, railY() - 10, { wave: true, coat: "#1d4ed8" });
       var x = W - ((t * 80) % (W + 280));
       drawEngine(x, railY(), true);
       var i;
@@ -423,7 +439,11 @@
         return;
       }
       drawSky();
-      drawPerson(36, H * 0.5, { wave: wave > 0, coat: "#1d4ed8" });
+      g.fillStyle = "#92400e";
+      g.fillRect(10, railY() + 6, 54, 8);
+      g.fillRect(16, railY() + 14, 8, 18);
+      g.fillRect(48, railY() + 14, 8, 18);
+      drawPerson(36, railY() - 10, { wave: wave > 0, coat: "#1d4ed8" });
       drawEngine(engineX(), railY(), true);
       drawCars();
       drawSmoke();

@@ -53,10 +53,12 @@
     #matchBtn.on { display: block; }
     .cover {
       position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; text-align: center; gap: 10px; padding: 20px;
-      background: linear-gradient(#fdba74, #0f766e);
+      justify-content: flex-end; text-align: center; gap: 10px; padding: 20px 20px 48px;
+      background: linear-gradient(180deg, rgba(15,118,110,.15), rgba(63,42,20,.55));
+      pointer-events: none;
     }
     .cover.off { display: none; }
+    .cover .btn { pointer-events: auto; }
     h1 { font-size: clamp(36px, 9vw, 54px); color: #fff7ed; text-shadow: 0 4px 0 #7c2d12; }
     .cover p { font-weight: 800; }
     .btn { background: #ffd166; color: #3b2100; font-weight: 800; font-size: 26px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
