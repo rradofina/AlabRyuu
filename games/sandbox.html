@@ -398,6 +398,17 @@
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
+    if (/\bgo=1\b/.test(location.search)) {
+      setTimeout(function () {
+        start();
+        [["tree", -1.8, 0.8], ["water", 0.2, 1.2], ["house", 1.9, 0.4], ["wood", -0.8, -1.1], ["stone", 1.1, -1.4], ["flower", -2.2, -0.6]].forEach(function (p) {
+          var piece = MAKERS[p[0]]();
+          piece.position.set(p[1], 0, p[2]);
+          scene.add(piece); pieces.push(piece); placed++;
+        });
+        hud();
+      }, 160);
+    }
 
     var clock = new T.Clock();
     function tick() {

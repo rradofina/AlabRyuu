@@ -316,6 +316,7 @@
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
+    if (/\bgo=1\b/.test(location.search)) setTimeout(start, 160);
 
     var clock = new T.Clock();
     function tick() {

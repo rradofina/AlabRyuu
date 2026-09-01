@@ -231,6 +231,7 @@
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
+    if (/\bgo=1\b/.test(location.search)) setTimeout(function () { start(); setTimeout(hop, 400); }, 160);
 
     addEventListener("resize", function () {
       cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
