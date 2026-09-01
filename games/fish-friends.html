@@ -347,11 +347,11 @@
           }
         }
         if (best) {
-          f.vx += (best.x - f.x) * dt * 2.2;
-          f.vy += (best.y - f.y) * dt * 2.2;
+          f.vx += (best.x - f.x) * dt * 3.4;
+          f.vy += (best.y - f.y) * dt * 3.4;
           var sp = Math.hypot(f.vx, f.vy) || 1;
-          if (sp > 90) { f.vx *= 90 / sp; f.vy *= 90 / sp; }
-          if (bd < 26) {
+          if (sp > 120) { f.vx *= 120 / sp; f.vy *= 120 / sp; }
+          if (bd < 32) {
             best.sink = 99;
             f.hungry = false; f.mouth = 1;
             fed++;

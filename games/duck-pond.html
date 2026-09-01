@@ -171,7 +171,7 @@
       ripples.push({ x: x, y: y, r: 4, life: 0.5 });
     }
     function drawDuck(x, y, a, big, baby, foot) {
-      var s = big ? 1 : 0.62;
+      var s = big ? 1.15 : 0.78;
       var pad = Math.sin(foot) * (big ? 5 : 4);
       g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s);
       g.strokeStyle = "#b45309"; g.lineWidth = 2.4; g.lineCap = "round";
@@ -270,14 +270,14 @@
           c = trail[Math.min(b.ti, trail.length - 1)];
           tx = c.x; ty = c.y;
           d = Math.hypot(tx - b.x, ty - b.y);
-          b.vx += (tx - b.x) * dt * 2.6;
-          b.vy += (ty - b.y) * dt * 2.6;
-          if (d < 18) b.ti++;
+          b.vx += (tx - b.x) * dt * 3.4;
+          b.vy += (ty - b.y) * dt * 3.4;
+          if (d < 22) b.ti++;
         } else {
           b.vx += Math.sin(t + b.ph) * 16 * dt;
           b.vy += Math.cos(t * 0.8 + b.ph) * 10 * dt;
         }
-        if (Math.hypot(mama.x - b.x, mama.y - b.y) < 36 && (b.ti > 2 || trail.length > 3)) {
+        if (Math.hypot(mama.x - b.x, mama.y - b.y) < 52 && (b.ti > 1 || trail.length > 2)) {
           b.home = 1; saved++;
           beep(600, 0.09);
           say("Home!");

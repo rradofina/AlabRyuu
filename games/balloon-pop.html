@@ -196,17 +196,26 @@
     function pinTip() {
       return { x: kidX + Math.cos(aim) * pinLen, y: kidY - 28 + Math.sin(aim) * pinLen };
     }
+    function pokeReach() {
+      return Math.max(pinLen + 40, Math.min(W, H) * 0.7);
+    }
     function poke() {
-      var tip = pinTip(), i, b, dx, dy, hit = -1, sway, bob;
+      var tip = pinTip(), i, b, dx, dy, hit = -1, sway, bob, k, px, py;
       pokeFlash = 0.18;
       beep(880, 0.05, "triangle");
+      var reach = pokeReach();
       for (i = 0; i < balloons.length; i++) {
         b = balloons[i];
         if (b.gone) continue;
         bob = Math.sin(t * 2.2 + b.ph) * 8;
         sway = Math.sin(t * 1.4 + b.ph) * 6;
-        dx = tip.x - (b.x + sway); dy = tip.y - (b.y + bob);
-        if (dx * dx + dy * dy < (b.r + 28) * (b.r + 28)) { hit = i; break; }
+        for (k = 0.2; k <= 1.05; k += 0.05) {
+          px = kidX + Math.cos(aim) * reach * k;
+          py = kidY - 28 + Math.sin(aim) * reach * k;
+          dx = px - (b.x + sway); dy = py - (b.y + bob);
+          if (dx * dx + dy * dy < (b.r + 40) * (b.r + 40)) { hit = i; k = 99; }
+        }
+        if (hit >= 0) break;
       }
       if (hit < 0) { say("Aim again!"); return; }
       b = balloons[hit];
@@ -251,24 +260,46 @@
     }
     function drawKid() {
       var tip = pinTip();
-      var shx = kidX + 8, shy = kidY - 46;
-      g.strokeStyle = "#422006"; g.lineWidth = 5; g.lineCap = "round";
+      var shx = kidX + 10, shy = kidY - 48;
       var hop = hold ? 0 : Math.abs(Math.sin(t * 3)) * 3;
-      g.beginPath(); g.moveTo(kidX - 8, kidY - 18 - hop); g.lineTo(kidX - 10, kidY + 4); g.stroke();
-      g.beginPath(); g.moveTo(kidX + 8, kidY - 18 - hop); g.lineTo(kidX + 12, kidY + 4); g.stroke();
+      var elx = shx + Math.cos(aim) * 22, ely = shy - hop + Math.sin(aim) * 22;
+      var hnx = shx + Math.cos(aim) * 40, hny = shy - hop + Math.sin(aim) * 40;
+      g.fillStyle = "#7c2d12";
+      g.beginPath(); g.ellipse(kidX - 12, kidY + 6, 8, 4, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(kidX + 14, kidY + 6, 8, 4, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#fdba74"; g.lineWidth = 7; g.lineCap = "round";
+      g.beginPath(); g.moveTo(kidX - 8, kidY - 20 - hop); g.lineTo(kidX - 12, kidY + 2); g.stroke();
+      g.beginPath(); g.moveTo(kidX + 8, kidY - 20 - hop); g.lineTo(kidX + 14, kidY + 2); g.stroke();
       g.fillStyle = "#7c3aed";
-      g.beginPath(); g.roundRect ? (g.roundRect(kidX - 14, kidY - 50 - hop, 28, 34, 8), g.fill()) : g.fillRect(kidX - 14, kidY - 50 - hop, 28, 34);
+      g.beginPath(); g.roundRect ? (g.roundRect(kidX - 16, kidY - 54 - hop, 32, 38, 10), g.fill()) : g.fillRect(kidX - 16, kidY - 54 - hop, 32, 38);
+      g.fillStyle = "#fde047";
+      g.fillRect(kidX - 16, kidY - 28 - hop, 32, 6);
       g.fillStyle = "#fdba74";
-      g.beginPath(); g.arc(kidX, kidY - 62 - hop, 13, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(kidX, kidY - 66 - hop, 15, 0, Math.PI * 2); g.fill();
       g.fillStyle = "#422006";
-      g.beginPath(); g.ellipse(kidX, kidY - 70 - hop, 13, 6, 0, Math.PI, 0); g.fill();
+      g.beginPath(); g.ellipse(kidX - 2, kidY - 76 - hop, 15, 7, -0.2, Math.PI, 0.2); g.fill();
       g.fillStyle = "#1e1b4b";
-      g.beginPath(); g.arc(kidX - 4, kidY - 64 - hop, 1.8, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(kidX + 5, kidY - 64 - hop, 1.8, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#fdba74"; g.lineWidth = 6;
-      g.beginPath(); g.moveTo(shx, shy - hop); g.lineTo(shx + Math.cos(aim) * 36, shy - hop + Math.sin(aim) * 36); g.stroke();
-      g.strokeStyle = "#92400e"; g.lineWidth = 5;
-      g.beginPath(); g.moveTo(shx, shy - hop); g.lineTo(tip.x, tip.y); g.stroke();
+      g.beginPath(); g.arc(kidX - 5, kidY - 68 - hop, 2.1, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(kidX + 6, kidY - 68 - hop, 2.1, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#e2e8f0";
+      g.beginPath(); g.arc(kidX, kidY - 62 - hop, 5, 0.2, Math.PI - 0.2); g.stroke();
+      g.strokeStyle = "#fdba74"; g.lineWidth = 7;
+      g.beginPath(); g.moveTo(kidX - 12, shy - hop); g.lineTo(kidX - 28, shy + 10 - hop); g.stroke();
+      g.beginPath(); g.moveTo(shx, shy - hop); g.lineTo(elx, ely); g.lineTo(hnx, hny); g.stroke();
+      g.fillStyle = "#fdba74";
+      g.beginPath(); g.arc(hnx, hny, 6, 0, Math.PI * 2); g.fill();
+      if (hold) {
+        var reach = pokeReach();
+        g.strokeStyle = "rgba(253,224,71,.45)"; g.lineWidth = 3;
+        g.setLineDash([8, 8]);
+        g.beginPath();
+        g.moveTo(tip.x, tip.y);
+        g.lineTo(kidX + Math.cos(aim) * reach, kidY - 28 + Math.sin(aim) * reach);
+        g.stroke();
+        g.setLineDash([]);
+      }
+      g.strokeStyle = "#92400e"; g.lineWidth = 6;
+      g.beginPath(); g.moveTo(hnx, hny); g.lineTo(tip.x, tip.y); g.stroke();
       g.fillStyle = pokeFlash > 0 ? "#fde047" : "#e2e8f0";
       g.beginPath();
       g.moveTo(tip.x, tip.y);
