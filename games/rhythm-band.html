@@ -143,10 +143,10 @@
       var w = Math.min(118, (W - 28) / n - 4);
       for (i = 0; i < pads.length; i++) {
         pads[i].x = W / 2 - ((n - 1) * (w + gap)) / 2 + i * (w + gap);
-        pads[i].y = H * 0.60;
+        pads[i].y = H * 0.58;
         pads[i].s = w;
         pads[i].mx = pads[i].x;
-        pads[i].my = H * 0.40;
+        pads[i].my = H * 0.38;
       }
     }
 
@@ -155,7 +155,7 @@
       for (i = 0; i < n; i++) {
         list.push({
           x: (i + 0.5) / n * (W || 360),
-          y: (H || 640) * 0.86 + (i % 2) * 10,
+          y: (H || 640) * 0.80 + (i % 2) * 8,
           ph: rnd(0, 6.28),
           skin: SKIN[i % SKIN.length],
           shirt: ["#f472b6", "#60a5fa", "#facc15", "#fb7185", "#a78bfa", "#34d399"][i % 6],
@@ -417,23 +417,26 @@
       var i, lx, ly, r, grd, topX;
       for (i = 0; i < 4; i++) {
         lx = W * (0.18 + i * 0.21) + Math.sin(t * 0.75 + i * 1.7) * W * 0.09;
-        ly = H * 0.48 + Math.cos(t * 0.55 + i) * 18;
-        r = 78 + Math.sin(t * 1.2 + i) * 8;
+        ly = H * 0.46 + Math.cos(t * 0.55 + i) * 18;
+        r = 70 + Math.sin(t * 1.2 + i) * 8;
         topX = W * (0.2 + i * 0.2);
-        g.fillStyle = hexA(cols[i], 0.07);
+        g.fillStyle = hexA(cols[i], 0.12);
         g.beginPath();
-        g.moveTo(topX - 8, 44);
-        g.lineTo(topX + 8, 44);
-        g.lineTo(lx + r * 0.85, ly);
-        g.lineTo(lx - r * 0.85, ly);
+        g.moveTo(topX - 10, 44);
+        g.lineTo(topX + 10, 44);
+        g.lineTo(lx + r * 0.9, ly);
+        g.lineTo(lx - r * 0.9, ly);
         g.closePath();
         g.fill();
-        grd = g.createRadialGradient(lx, ly, 6, lx, ly, r);
-        grd.addColorStop(0, hexA(cols[i], 0.42));
-        grd.addColorStop(0.55, hexA(cols[i], 0.16));
+        grd = g.createRadialGradient(lx, ly, 4, lx, ly, r);
+        grd.addColorStop(0, hexA(cols[i], 0.55));
+        grd.addColorStop(0.45, hexA(cols[i], 0.22));
         grd.addColorStop(1, hexA(cols[i], 0));
         g.fillStyle = grd;
         g.beginPath(); g.arc(lx, ly, r, 0, 6.28); g.fill();
+        g.strokeStyle = hexA(cols[i], 0.35);
+        g.lineWidth = 3;
+        g.beginPath(); g.arc(lx, ly, r * 0.55, 0, 6.28); g.stroke();
       }
     }
 
@@ -499,7 +502,7 @@
     }
 
     function drawDrummer(p) {
-      var play = p.play, sc = p.s * 0.012;
+      var play = p.play, sc = p.s * 0.0155;
       g.save();
       g.translate(p.mx, p.my);
       g.scale(sc, sc);
@@ -519,14 +522,14 @@
       kidBody(SKIN[0], HAIR[0], SHIRTS[0]);
       g.save();
       g.translate(-12, 2);
-      g.rotate(-1.05 + play * 1.35);
+      g.rotate(-1.15 + play * 1.7);
       g.strokeStyle = SKIN[0]; g.lineWidth = 6; g.lineCap = "round";
       g.beginPath(); g.moveTo(0, 0); g.lineTo(16, 0); g.stroke();
       g.translate(16, 0); stick(18);
       g.restore();
       g.save();
       g.translate(12, 2);
-      g.rotate(-0.15 - play * 1.15);
+      g.rotate(-0.05 - play * 1.45);
       g.strokeStyle = SKIN[0]; g.lineWidth = 6; g.lineCap = "round";
       g.beginPath(); g.moveTo(0, 0); g.lineTo(16, 0); g.stroke();
       g.translate(16, 0); stick(18);
@@ -535,7 +538,7 @@
     }
 
     function drawXyloKid(p) {
-      var play = p.play, sc = p.s * 0.012;
+      var play = p.play, sc = p.s * 0.0155;
       g.save();
       g.translate(p.mx, p.my);
       g.scale(sc, sc);
@@ -553,7 +556,7 @@
       kidBody(SKIN[1], HAIR[1], SHIRTS[1]);
       g.save();
       g.translate(10, 0);
-      g.rotate(-1.15 + play * 1.45);
+      g.rotate(-1.25 + play * 1.75);
       g.strokeStyle = SKIN[1]; g.lineWidth = 6; g.lineCap = "round";
       g.beginPath(); g.moveTo(0, 0); g.lineTo(15, 0); g.stroke();
       g.strokeStyle = "#b45309";
@@ -572,7 +575,7 @@
     }
 
     function drawGuitarKid(p) {
-      var play = p.play, sc = p.s * 0.012;
+      var play = p.play, sc = p.s * 0.0155;
       g.save();
       g.translate(p.mx, p.my);
       g.scale(sc, sc);
@@ -597,7 +600,7 @@
       g.restore();
       g.save();
       g.translate(-6, 4);
-      g.rotate(0.35 + play * 1.1);
+      g.rotate(0.2 + play * 1.45);
       g.strokeStyle = SKIN[2]; g.lineWidth = 6; g.lineCap = "round";
       g.beginPath(); g.moveTo(0, 0); g.lineTo(18, 6); g.stroke();
       g.restore();
@@ -611,21 +614,21 @@
     }
 
     function drawHornKid(p) {
-      var play = p.play, sc = p.s * 0.012;
+      var play = p.play, sc = p.s * 0.0155;
       g.save();
       g.translate(p.mx, p.my);
       g.scale(sc, sc);
       kidBase(play * 2);
       kidBody(SKIN[3], HAIR[3], SHIRTS[3]);
       g.fillStyle = SKIN[3];
-      g.beginPath(); g.arc(-8, -14, 3.2 + play * 4.2, 0, 6.28); g.fill();
-      g.beginPath(); g.arc(8, -14, 3.2 + play * 4.2, 0, 6.28); g.fill();
+      g.beginPath(); g.arc(-8, -14, 3.2 + play * 5.5, 0, 6.28); g.fill();
+      g.beginPath(); g.arc(8, -14, 3.2 + play * 5.5, 0, 6.28); g.fill();
       g.fillStyle = "#1a1a1a";
       g.beginPath(); g.arc(-4.5, -16, 1.7, 0, 6.28); g.fill();
       g.beginPath(); g.arc(4.5, -16, 1.7, 0, 6.28); g.fill();
       g.save();
       g.translate(8, -6);
-      g.rotate(-0.12 + play * 0.32);
+      g.rotate(-0.18 + play * 0.48);
       g.fillStyle = "#4ade80";
       g.fillRect(0, -3, 22, 6);
       g.beginPath();
@@ -840,11 +843,21 @@
       else if (p.kind === "xylo") drawXyloPad(p);
       else if (p.kind === "guitar") drawGuitarPad(p);
       else drawHornPad(p);
+      var ly = p.y + p.s * 0.44, tx = p.x - 28, tw = 56, th = 18;
+      g.fillStyle = "rgba(40, 10, 16, 0.72)";
+      g.beginPath();
+      g.moveTo(tx + 9, ly - 2);
+      g.arcTo(tx + tw, ly - 2, tx + tw, ly - 2 + th, 9);
+      g.arcTo(tx + tw, ly - 2 + th, tx, ly - 2 + th, 9);
+      g.arcTo(tx, ly - 2 + th, tx, ly - 2, 9);
+      g.arcTo(tx, ly - 2, tx + tw, ly - 2, 9);
+      g.closePath();
+      g.fill();
       g.fillStyle = "#fff3c4";
       g.font = "800 13px Trebuchet MS";
       g.textAlign = "center";
-      g.textBaseline = "top";
-      g.fillText(TAGS[p.i], p.x, p.y + p.s * 0.42);
+      g.textBaseline = "middle";
+      g.fillText(TAGS[p.i], p.x, ly + 7);
     }
 
     function drawCrowd() {
@@ -908,7 +921,7 @@
       pads.forEach(function (p) {
         p.squash = Math.max(0, p.squash - dt * 4);
         p.glow = Math.max(0, p.glow - dt * 2.2);
-        p.play = Math.max(0, p.play - dt * 3.2);
+        p.play = Math.max(0, p.play - dt * 1.8);
       });
       notes.forEach(function (n) {
         n.x += n.vx * dt; n.y += n.vy * dt; n.vy += 30 * dt; n.life -= dt * 0.85;
