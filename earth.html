@@ -39,7 +39,7 @@
   </div>
   <div class="cover" id="title">
     <h1>Little Earth</h1>
-    <p>Spin the blue world.<br>Sun. Rain. Trees.</p>
+    <p>A spinning water world.<br>Sun. Rain. Friends.</p>
     <button class="btn" id="go">Play</button>
   </div>
   <div class="cover off" id="cut">
@@ -65,7 +65,7 @@
       { t: "Trees!", p: "Forests stand tall." },
       { t: "Dinos!", p: "Big pals walk." },
       { t: "Birds!", p: "Wings in sky." },
-      { t: "Pals!", p: "Animals on land." },
+      { t: "Pals!", p: "Friends on waves." },
       { t: "Home!", p: "Kids come home." }
     ];
     var ERAS = [
@@ -76,8 +76,8 @@
       { n: "Trees", say: "Grow a forest!", need: 5 },
       { n: "Dinos", say: "Boop big pals!", need: 5 },
       { n: "Birds", say: "Sun for wings!", need: 5 },
-      { n: "Animals", say: "Tap walking pals!", need: 5 },
-      { n: "People", say: "Plant a town!", need: 5 }
+      { n: "Animals", say: "Tap swimming pals!", need: 5 },
+      { n: "People", say: "Friends on waves!", need: 5 }
     ];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-earth") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
 
@@ -149,50 +149,27 @@
         }
         return;
       }
-      tx.fillStyle = "#1d4ed8";
+      tx.fillStyle = "#0c4a6e";
       tx.fillRect(0, 0, TEX_W, TEX_H);
-      blob(280, 210, 260, 90, "#3b82f6", 0.15);
-      blob(760, 300, 220, 80, "#2563eb", -0.1);
-      blob(120, 360, 140, 50, "#38bdf8", 0.2);
-      var land = kind === "early" ? "#4ade80" : "#22c55e";
-      var dark = "#15803d";
-      function continent(cx, cy, pieces) {
-        for (var i = 0; i < pieces.length; i++) {
-          var p = pieces[i];
-          blob(cx + p[0], cy + p[1], p[2], p[3], p[4] || land, p[5] || 0);
-        }
-      }
-      continent(210, 210, [
-        [0, -70, 70, 62, land, 0.2],
-        [18, 20, 52, 88, land, 0.4],
-        [28, 120, 44, 78, land, -0.15],
-        [-8, -40, 28, 30, dark, 0.3]
-      ]);
-      continent(520, 250, [
-        [0, 0, 88, 118, land, 0.05],
-        [30, -55, 48, 50, land, -0.25],
-        [-20, 70, 36, 42, dark, 0.2],
-        [10, -10, 30, 24, dark, 0]
-      ]);
-      continent(720, 155, [
-        [0, 0, 175, 68, land, 0.04],
-        [110, 28, 88, 50, land, -0.12],
-        [-40, 20, 50, 34, dark, 0.25],
-        [60, -8, 40, 22, dark, 0]
-      ]);
-      blob(870, 325, 55, 34, land, 0.35);
-      blob(330, 68, 46, 24, land, 0.1);
-      blob(40, 230, 24, 20, land, 0.2);
-      blob(980, 200, 30, 28, land, 0);
-      blob(512, 18, 540, 78, "#f8fafc", 0);
-      blob(512, 500, 560, 82, "#f8fafc", 0);
-      blob(200, 40, 80, 28, "#e2e8f0", 0);
-      blob(800, 48, 70, 24, "#e2e8f0", 0);
+      var og = tx.createLinearGradient(0, 0, 0, TEX_H);
+      og.addColorStop(0, "#38bdf8");
+      og.addColorStop(0.18, "#0ea5e9");
+      og.addColorStop(0.5, "#0369a1");
+      og.addColorStop(0.82, "#0ea5e9");
+      og.addColorStop(1, "#7dd3fc");
+      tx.fillStyle = og;
+      tx.fillRect(0, 0, TEX_W, TEX_H);
+      blob(260, 200, 280, 70, "rgba(125,211,252,0.28)", 0.12);
+      blob(720, 300, 240, 60, "rgba(56,189,248,0.22)", -0.08);
+      blob(480, 140, 160, 40, "rgba(224,242,254,0.18)", 0.2);
+      blob(140, 360, 180, 50, "rgba(3,105,161,0.35)", 0.15);
+      blob(880, 220, 140, 45, "rgba(14,165,233,0.25)", -0.1);
+      blob(512, 16, 560, 70, "#f8fafc", 0);
+      blob(512, 498, 580, 74, "#f1f5f9", 0);
     }
     function paintForEra() {
       if (era === 0) paintEarth("rock");
-      else if (era <= 3) paintEarth("early");
-      else paintEarth("lush");
+      else paintEarth("ocean");
       globeTex.needsUpdate = true;
     }
     function stampWater(u, v) {
@@ -366,19 +343,6 @@
         pops.push(tr);
       }
     }
-    function addMountains() {
-      for (var i = 0; i < 3; i++) {
-        var m = new T.Group();
-        var a = new T.Mesh(new T.ConeGeometry(0.16, 0.28, 6), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
-        a.position.y = 0.12; m.add(a);
-        var b = new T.Mesh(new T.ConeGeometry(0.1, 0.18, 5), new T.MeshLambertMaterial({ color: 0xa16207 }));
-        b.position.set(0.08, 0.08, 0.02); m.add(b);
-        stick(m, lonLat(i * 2.1, 0.15 + i * 0.1), 0.01, 0);
-        m.userData.kind = "mountain";
-        life.add(m);
-      }
-    }
-
     function clearLife() {
       while (life.children.length) life.remove(life.children[0]);
       walkers = []; pops = [];
@@ -386,7 +350,6 @@
     function applyEraAdds() {
       atmos.visible = era >= 1;
       clouds.visible = era >= 1;
-      if (era === 0) addMountains();
       if (era === 2) addTrees(4, 0.55);
       if (era === 3) addWalker("fish", 5);
       if (era === 4) addTrees(5, 1);
@@ -565,7 +528,7 @@
 
     addEventListener("resize", frameCam);
     frameCam();
-    paintEarth("early");
+    paintEarth("ocean");
     globeTex.needsUpdate = true;
     atmos.visible = true;
     clouds.visible = true;
