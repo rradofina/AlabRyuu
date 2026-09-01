@@ -99,6 +99,7 @@
     }
 
     function petPose(){
+      if(stage==="title"||stage==="win") return "bounce";
       if(napT>0||sleep<0.3) return "sleep";
       if(stage==="feed") return "eat";
       return "bounce";
@@ -122,8 +123,15 @@
       var headX=eating?22:18;
 
       function legs(){
-        if(sleeping) return;
         x.strokeStyle=c.dark;x.lineWidth=5;x.lineCap="round";
+        if(sleeping){
+          x.beginPath();
+          x.moveTo(-16,12);x.quadraticCurveTo(-22,20,-10,18);
+          x.moveTo(-4,14);x.quadraticCurveTo(-2,22,6,18);
+          x.moveTo(8,14);x.quadraticCurveTo(10,20,16,16);
+          x.stroke();
+          return;
+        }
         var a=walk*6,b=-walk*6;
         x.beginPath();
         x.moveTo(-14,10);x.lineTo(-16+a,24);
@@ -135,7 +143,7 @@
       function tail(){
         x.strokeStyle=c.dark;x.lineWidth=5;x.lineCap="round";
         x.beginPath();
-        if(sleeping){x.moveTo(-22,4);x.quadraticCurveTo(-30,12,-18,14);}
+        if(sleeping){x.moveTo(-26,2);x.quadraticCurveTo(-34,8,-22,12);}
         else {x.moveTo(-22,0);x.quadraticCurveTo(-34,-16+wag,-20,-8+wag*0.3);}
         x.stroke();
       }
@@ -212,7 +220,7 @@
       ellipse(cx,cy+36,24,8,"rgba(0,0,0,.15)");
       x.save();
       x.translate(cx,cy+bounce);
-      if(asleep) x.rotate(-1.15);
+      if(asleep) x.rotate(-0.2);
       if(eating) x.rotate(0.35);
       var walk=pose==="bounce"?Math.sin(T*8):0;
       var wag=pose==="sleep"?2:Math.sin(T*9)*10;
