@@ -31,7 +31,7 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="mz">Patch 1</b><b id="cr">🥕 0</b><b id="st">⭐ 0</b></div>
+  <div id="hud"><b id="mz">Patch 1</b><b id="cr">Carrots 0</b><b id="st">Stars 0</b></div>
   <div id="say">Hop the bunny. Pick carrots!</div>
   <div id="pads">
     <button class="n" data-d="0,-1">▲</button>
@@ -136,6 +136,14 @@
     function ease(p) { return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
     function rnd(a, b) { return a + Math.random() * (b - a); }
+    function oval(cx, cy, rx, ry, col) {
+      g.fillStyle = col;
+      g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, 6.28); g.fill();
+    }
+    function dot(cx, cy, r, col) {
+      g.fillStyle = col;
+      g.beginPath(); g.arc(cx, cy, r, 0, 6.28); g.fill();
+    }
 
     function resize() {
       W = cv.width = innerWidth * (devicePixelRatio || 1);
@@ -174,7 +182,7 @@
           if (ch === "C") carrots.push({ gx: i, gy: j, got: 0, bob: rnd(0, 6) });
           if (ch === "E") exit = { x: i, y: j };
           if (ch === "F") { fox.gx = i; fox.gy = j; }
-          if (ch === "#" && Math.random() < 0.35) flowers.push({ gx: i, gy: j, e: ["🌼", "🌸", "🌺", "🌷"][(i + j) % 4], ph: rnd(0, 6) });
+          if (ch === "#" && Math.random() < 0.35) flowers.push({ gx: i, gy: j, col: ["#fde047", "#fb7185", "#f472b6", "#fb923c"][(i + j) % 4], ph: rnd(0, 6) });
         }
       }
       need = carrots.length;
@@ -195,13 +203,13 @@
         }
         fox.pi = 0;
       }
-      for (i = 0; i < 8; i++) butterflies.push({ x: rnd(ox, ox + cols * cell), y: rnd(oy, oy + rows * cell), ph: rnd(0, 6), e: i % 2 ? "🦋" : "🐝" });
+      for (i = 0; i < 8; i++) butterflies.push({ x: rnd(ox, ox + cols * cell), y: rnd(oy, oy + rows * cell), ph: rnd(0, 6), kind: i % 2 ? "fly" : "bee" });
       rain = [];
       if (wet) for (i = 0; i < 70; i++) rain.push({ x: rnd(0, W), y: rnd(-H, H), v: rnd(220, 420), len: rnd(10, 18) });
       hops.p = 1; hops.squash = 0;
       bunny.x = worldX(bunny.gx); bunny.y = worldY(bunny.gy);
       document.getElementById("mz").textContent = S.n;
-      document.getElementById("cr").textContent = "🥕 " + collected + "/" + need;
+      document.getElementById("cr").textContent = "Carrots " + collected + "/" + need;
       document.getElementById("say").textContent = wet ? "Puddle hops! Soft rain." : (fox.on ? "Fox patrols. A gentle boop!" : "Hop to carrots, then the gate!");
     }
 
@@ -210,7 +218,7 @@
       var nx = bunny.gx + dx, ny = bunny.gy + dy;
       if (!walkable(nx, ny)) {
         hops.squash = 0.35; beep(180, 0.06);
-        splashes.push({ x: bunny.x, y: bunny.y, life: 1, e: "💨" });
+        splashes.push({ x: bunny.x, y: bunny.y, life: 1, kind: "puff" });
         return;
       }
       hops.fromX = bunny.gx; hops.fromY = bunny.gy;
@@ -223,17 +231,17 @@
       carrots.forEach(function (c) {
         if (!c.got && c.gx === bunny.gx && c.gy === bunny.gy && hops.p > 0.7) {
           c.got = 1; collected++;
-          document.getElementById("cr").textContent = "🥕 " + collected + "/" + need;
+          document.getElementById("cr").textContent = "Carrots " + collected + "/" + need;
           beep(720, 0.1); stars += 1;
-          document.getElementById("st").textContent = "⭐ " + stars;
-          splashes.push({ x: worldX(c.gx), y: worldY(c.gy), life: 1, e: "✨" });
+          document.getElementById("st").textContent = "Stars " + stars;
+          splashes.push({ x: worldX(c.gx), y: worldY(c.gy), life: 1, kind: "spark" });
         }
       });
     }
 
     function checkExit() {
       if (collected >= need && bunny.gx === exit.x && bunny.gy === exit.y && hops.p >= 1) {
-        stars += 3; document.getElementById("st").textContent = "⭐ " + stars;
+        stars += 3; document.getElementById("st").textContent = "Stars " + stars;
         beep(660, 0.12); setTimeout(function () { beep(880, 0.16); }, 90);
         if (stage < STAGES.length - 1) {
           stage++;
@@ -289,7 +297,7 @@
         bunny.y = lerp(worldY(hops.fromY), worldY(hops.toY), e);
         var air = Math.sin(hops.p * Math.PI);
         hops.squash = air * 0.28;
-        if (wet && hops.p > 0.92 && hops.p < 0.98) splashes.push({ x: bunny.x, y: bunny.y + 10, life: 0.7, e: "💧" });
+        if (wet && hops.p > 0.92 && hops.p < 0.98) splashes.push({ x: bunny.x, y: bunny.y + 10, life: 0.7, kind: "drop" });
       } else {
         bunny.x = worldX(bunny.gx); bunny.y = worldY(bunny.gy);
         hops.squash *= Math.max(0, 1 - dt * 8);
@@ -317,12 +325,13 @@
       g.translate(x + cell / 2, y + cell / 2);
       g.rotate(s * 0.015);
       var r = cell * 0.46;
-      g.fillStyle = "#14532d";
-      g.beginPath(); g.arc(-r * 0.25, 4, r * 0.62, 0, 6.28); g.arc(r * 0.28, 2, r * 0.58, 0, 6.28); g.arc(0, -r * 0.2 + s * 0.3, r * 0.55, 0, 6.28); g.fill();
-      g.fillStyle = "#22c55e";
-      g.beginPath(); g.arc(-r * 0.18, -2, r * 0.38, 0, 6.28); g.arc(r * 0.2, 0, r * 0.32, 0, 6.28); g.fill();
-      g.fillStyle = "#4ade80";
-      g.beginPath(); g.arc(-r * 0.1, -r * 0.15, r * 0.18, 0, 6.28); g.fill();
+      oval(-r * 0.25, 4, r * 0.62, r * 0.5, "#14532d");
+      oval(r * 0.28, 2, r * 0.58, r * 0.48, "#166534");
+      oval(0, -r * 0.2 + s * 0.3, r * 0.55, r * 0.48, "#15803d");
+      oval(-r * 0.18, -2, r * 0.38, r * 0.3, "#22c55e");
+      oval(r * 0.2, 0, r * 0.32, r * 0.26, "#16a34a");
+      oval(-r * 0.1, -r * 0.15, r * 0.18, r * 0.14, "#4ade80");
+      oval(r * 0.08, -r * 0.28, r * 0.12, r * 0.16, "#22c55e");
       g.restore();
     }
 
@@ -339,59 +348,153 @@
       }
     }
 
-    function drawBunny(x, y, squash, dir) {
+    function drawBunny(x, y, squash, dir, sc) {
+      sc = sc || Math.max(0.7, cell / 48);
       g.save();
       g.translate(x, y - squash * 16);
-      g.scale(dir < 0 ? -1 : 1, 1);
-      g.scale(1 + squash * 0.15, 1 - squash * 0.35);
-      g.font = (cell * 0.78) + "px serif";
-      g.textAlign = "center"; g.textBaseline = "middle";
-      g.fillText("🐰", 0, 0);
+      g.scale((dir < 0 ? -1 : 1) * sc, (1 - squash * 0.35) * sc);
+      g.scale(1 + squash * 0.15, 1);
+      var hop = squash * 8;
+      g.strokeStyle = "#d6d3d1"; g.lineWidth = 3.2; g.lineCap = "round";
+      g.beginPath(); g.moveTo(-8, 8); g.lineTo(-10, 16 - hop);
+      g.moveTo(6, 8); g.lineTo(10, 16 + hop * 0.4); g.stroke();
+      oval(0, 4, 13, 10, "#fff7ed");
+      oval(-10, -14, 4.2, 11, "#fff7ed");
+      oval(2, -15, 4.2, 12, "#fff7ed");
+      oval(-10, -14, 2, 7, "#fda4af");
+      oval(2, -15, 2, 8, "#fda4af");
+      oval(8, -4, 8, 7.5, "#fff7ed");
+      oval(-11, 6, 4, 3.5, "#fff");
+      oval(10, -2, 3.2, 2.6, "#fda4af");
+      dot(10, -5, 1.6, "#1c1917");
+      dot(10.5, -5.5, 0.5, "#fff");
+      g.strokeStyle = "#1c1917"; g.lineWidth = 1.2;
+      g.beginPath(); g.arc(12, -1, 3, 0.2, 1.2); g.stroke();
       g.restore();
     }
 
-    function drawFox(x, y) {
+    function drawFox(x, y, sc) {
+      sc = sc || Math.max(0.68, cell / 50);
       g.save();
       g.translate(x, y + Math.sin(t * 4) * 2);
-      g.font = (cell * 0.72) + "px serif";
-      g.textAlign = "center"; g.textBaseline = "middle";
-      g.fillText("🦊", 0, 0);
+      g.scale(sc, sc);
+      g.fillStyle = "#ea580c";
+      g.beginPath(); g.moveTo(-16, 2); g.quadraticCurveTo(-28, -6, -22, 10); g.quadraticCurveTo(-10, 8, -8, 4); g.fill();
+      oval(-18, 6, 4, 3, "#fff7ed");
+      oval(0, 4, 14, 9, "#f97316");
+      oval(12, -2, 9, 7.5, "#f97316");
+      g.fillStyle = "#f97316";
+      g.beginPath(); g.moveTo(6, -8); g.lineTo(8, -18); g.lineTo(14, -6); g.fill();
+      g.beginPath(); g.moveTo(12, -8); g.lineTo(18, -18); g.lineTo(20, -5); g.fill();
+      oval(8, -10, 2, 4, "#fda4af");
+      oval(16, -10, 2, 4, "#fda4af");
+      oval(16, 2, 6, 4, "#fff7ed");
+      oval(20, 1, 4, 3, "#fdba74");
+      dot(22, 0, 1.4, "#1c1917");
+      dot(16, -4, 1.6, "#1c1917");
+      dot(16.5, -4.5, 0.5, "#fff");
+      oval(-2, 6, 5, 3.5, "#fff7ed");
+      g.strokeStyle = "#7c2d12"; g.lineWidth = 2.6; g.lineCap = "round";
+      g.beginPath(); g.moveTo(-6, 10); g.lineTo(-8, 16);
+      g.moveTo(4, 10); g.lineTo(6, 16); g.stroke();
       if (fox.smile > 0) {
-        g.font = "bold 14px Trebuchet MS";
-        g.fillStyle = "#fff";
-        g.fillText("boop!", 0, -cell * 0.55);
+        g.font = "bold 13px Trebuchet MS";
+        g.fillStyle = "#fff"; g.textAlign = "center";
+        g.fillText("boop!", 0, -22);
+      }
+      g.restore();
+    }
+
+    function drawCarrot(x, y, sc) {
+      sc = sc || Math.max(0.7, cell / 52);
+      g.save();
+      g.translate(x, y);
+      g.scale(sc, sc);
+      g.fillStyle = "#16a34a";
+      g.beginPath(); g.ellipse(-4, -12, 3, 8, -0.4, 0, 6.28); g.fill();
+      g.beginPath(); g.ellipse(0, -14, 3, 9, 0, 0, 6.28); g.fill();
+      g.beginPath(); g.ellipse(4, -12, 3, 8, 0.4, 0, 6.28); g.fill();
+      g.fillStyle = "#fb923c";
+      g.beginPath(); g.moveTo(0, -8); g.lineTo(8, 4); g.lineTo(0, 16); g.lineTo(-8, 4); g.closePath(); g.fill();
+      g.strokeStyle = "#ea580c"; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(-3, 0); g.lineTo(2, 2); g.moveTo(-2, 6); g.lineTo(3, 8); g.stroke();
+      g.restore();
+    }
+
+    function drawFlower(x, y, col) {
+      var i;
+      for (i = 0; i < 5; i++) {
+        var a = i * 1.256;
+        oval(x + Math.cos(a) * 5, y + Math.sin(a) * 5, 3.4, 3.4, col);
+      }
+      oval(x, y, 2.6, 2.6, "#fde047");
+    }
+
+    function drawFly(x, y, kind) {
+      g.save();
+      g.translate(x, y);
+      var flap = 0.55 + Math.sin(t * 12) * 0.35;
+      if (kind === "bee") {
+        oval(-6, -2, 5 * flap, 4, "rgba(254,240,138,.85)");
+        oval(6, -2, 5 * flap, 4, "rgba(254,240,138,.85)");
+        oval(0, 0, 7, 5, "#facc15");
+        g.fillStyle = "#1c1917";
+        g.fillRect(-4, -3, 2.2, 6); g.fillRect(1, -3, 2.2, 6);
+        dot(5, -1, 1.1, "#1c1917");
+      } else {
+        oval(-8, -2, 8 * flap, 6, "#a78bfa");
+        oval(8, -2, 8 * flap, 6, "#c4b5fd");
+        oval(-8, 3, 5 * flap, 4, "#f9a8d4");
+        oval(8, 3, 5 * flap, 4, "#fbcfe8");
+        oval(0, 0, 2.2, 7, "#3f2a14");
+        dot(0, -6, 1.4, "#3f2a14");
       }
       g.restore();
     }
 
     function drawGate(gx, gy) {
-      var x = worldX(gx), y = worldY(gy);
+      var x = worldX(gx), y = worldY(gy), open = collected >= need;
       g.save();
       g.translate(x, y);
-      g.fillStyle = collected >= need ? "#86efac" : "#a3e635";
-      g.fillRect(-cell * 0.32, -cell * 0.4, cell * 0.64, cell * 0.7);
       g.fillStyle = "#854d0e";
-      g.fillRect(-cell * 0.36, -cell * 0.44, 6, cell * 0.78);
-      g.fillRect(cell * 0.3, -cell * 0.44, 6, cell * 0.78);
-      g.font = "16px serif"; g.textAlign = "center";
-      g.fillText(collected >= need ? "🚪" : "🔒", 0, 4);
+      g.fillRect(-cell * 0.36, -cell * 0.44, 7, cell * 0.78);
+      g.fillRect(cell * 0.29, -cell * 0.44, 7, cell * 0.78);
+      g.fillRect(-cell * 0.36, -cell * 0.48, cell * 0.72, 8);
+      if (open) {
+        g.fillStyle = "#86efac";
+        g.fillRect(-cell * 0.22, -cell * 0.28, cell * 0.44, cell * 0.55);
+        g.fillStyle = "#14532d";
+        g.beginPath();
+        g.moveTo(-4, -4); g.lineTo(0, 6); g.lineTo(10, -10);
+        g.lineWidth = 3; g.strokeStyle = "#14532d"; g.stroke();
+      } else {
+        g.fillStyle = "#a3e635";
+        g.fillRect(-cell * 0.22, -cell * 0.28, cell * 0.44, cell * 0.55);
+        g.fillStyle = "#ca8a04";
+        g.fillRect(-8, -6, 16, 12);
+        g.strokeStyle = "#854d0e"; g.lineWidth = 2.5;
+        g.beginPath(); g.arc(0, -8, 5, Math.PI, 0); g.stroke();
+      }
       g.restore();
     }
 
     function drawTitleGarden() {
       var i, hx, hy;
-      for (i = 0; i < 14; i++) {
-        hx = (i * 73 + 20) % W; hy = H * 0.55 + Math.sin(t + i) * 8;
+      for (i = 0; i < 10; i++) {
+        hx = (i * 73 + 20) % W; hy = H * 0.58 + Math.sin(t + i) * 8;
         g.save(); g.translate(hx, hy); g.rotate(Math.sin(t * 1.6 + i) * 0.08);
-        g.font = "42px serif"; g.fillText("🌿", 0, 0); g.restore();
+        oval(0, 4, 22, 14, "#14532d");
+        oval(-8, -4, 14, 12, "#166534");
+        oval(10, -2, 13, 11, "#22c55e");
+        g.restore();
       }
-      drawBunny(W * 0.5 + Math.sin(t * 2) * 8, H * 0.48 - Math.abs(Math.sin(t * 3)) * 22, Math.abs(Math.sin(t * 3)) * 0.25, 1);
-      g.font = "36px serif"; g.textAlign = "center";
-      g.fillText("🥕", W * 0.32, H * 0.5 + Math.sin(t * 2.2) * 6);
-      g.fillText("🦊", W * 0.7, H * 0.52 + Math.sin(t * 1.4) * 4);
+      drawBunny(W * 0.5 + Math.sin(t * 2) * 8, H * 0.48 - Math.abs(Math.sin(t * 3)) * 22, Math.abs(Math.sin(t * 3)) * 0.25, 1, 1.8);
+      g.save(); g.translate(W * 0.3, H * 0.5 + Math.sin(t * 2.2) * 6); g.rotate(Math.sin(t * 2) * 0.12);
+      drawCarrot(0, 0, 1.5); g.restore();
+      drawFox(W * 0.72, H * 0.52 + Math.sin(t * 1.4) * 4, 1.5);
       petals.forEach(function (p) {
         g.save(); g.globalAlpha = p.life; g.translate(p.x, p.y); g.rotate(p.r);
-        g.font = "18px serif"; g.fillText(p.e, 0, 0); g.restore();
+        oval(0, 0, 6, 3.5, p.col); g.restore();
       });
     }
 
@@ -409,10 +512,7 @@
         }
       }
       flowers.forEach(function (f) {
-        g.save();
-        g.translate(worldX(f.gx), worldY(f.gy) - cell * 0.42 + Math.sin(t * 2 + f.ph) * 3);
-        g.font = "16px serif"; g.textAlign = "center"; g.fillText(f.e, 0, 0);
-        g.restore();
+        drawFlower(worldX(f.gx), worldY(f.gy) - cell * 0.42 + Math.sin(t * 2 + f.ph) * 3, f.col);
       });
       drawGate(exit.x, exit.y);
       carrots.forEach(function (c) {
@@ -420,14 +520,12 @@
         g.save();
         g.translate(worldX(c.gx), worldY(c.gy) + Math.sin(t * 3 + c.bob) * 4);
         g.rotate(Math.sin(t * 2 + c.bob) * 0.15);
-        g.font = (cell * 0.55) + "px serif"; g.textAlign = "center"; g.textBaseline = "middle";
-        g.fillText("🥕", 0, 0);
+        drawCarrot(0, 0, Math.max(0.85, cell / 44));
         g.restore();
       });
       butterflies.forEach(function (b) {
         b.x += Math.sin(t + b.ph) * 0.4; b.y += Math.cos(t * 0.8 + b.ph) * 0.3;
-        g.save(); g.translate(b.x, b.y + Math.sin(t * 5 + b.ph) * 4);
-        g.font = "16px serif"; g.fillText(b.e, 0, 0); g.restore();
+        drawFly(b.x, b.y + Math.sin(t * 5 + b.ph) * 4, b.kind);
       });
       if (fox.on) drawFox(fox.x || worldX(fox.gx), fox.y || worldY(fox.gy));
       drawBunny(bunny.x, bunny.y, hops.squash, hops.dir);
@@ -440,8 +538,16 @@
         g.beginPath(); g.moveTo(r.x, r.y); g.lineTo(r.x - 2, r.y + r.len); g.stroke();
       });
       splashes.forEach(function (s) {
-        g.globalAlpha = s.life; g.font = "18px serif"; g.textAlign = "center";
-        g.fillText(s.e, s.x, s.y - (1 - s.life) * 20); g.globalAlpha = 1;
+        g.globalAlpha = s.life;
+        if (s.kind === "drop") {
+          oval(s.x, s.y - (1 - s.life) * 20, 3, 5, "#7dd3fc");
+        } else if (s.kind === "spark") {
+          dot(s.x, s.y - (1 - s.life) * 20, 4, "#fde047");
+          dot(s.x + 8, s.y - 10, 2.5, "#fff");
+        } else {
+          oval(s.x, s.y, 10, 5, "rgba(255,255,255,.5)");
+        }
+        g.globalAlpha = 1;
       });
     }
 
@@ -450,334 +556,10 @@
       g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r);
     }
 
-    
-    var mgAmb = { t: 0, bits: [], ok: 0, motes: [], walk: 0, sayI: 0 };
-    var mgAmbE = ["🌿", "🌸", "🌼", "🍄", "🦋", "🐝", "🍃", "🌻"];
-    var mgAmbC = ["#86efac", "#166534", "#14532d", "#fde047", "#4ade80"];
-    var mgAmbL = ["Hedges sway on a sine.", "Bunny squash is the hop.", "Fox says excuse me.", "Rain garden puddles wink.", "Carrot greens wiggle first.", "Gate opens after snacks.", "Swipe or tap the pad.", "Petals count the wind."];
-    function mgAmbBoot() {
-      var i;
-      mgAmb.bits = [];
-      mgAmb.motes = [];
-      mgAmb.ok = 1;
-      for (i = 0; i < 28; i++) {
-        mgAmb.bits.push({
-          e: mgAmbE[i % mgAmbE.length],
-          x: Math.random() * (W || 360),
-          y: 70 + Math.random() * ((H || 640) * 0.22),
-          vx: -12 + Math.random() * 24,
-          ph: Math.random() * 6.28,
-          s: 0.7 + Math.random() * 0.7
-        });
-      }
-      for (i = 0; i < 40; i++) {
-        mgAmb.motes.push({
-          x: Math.random() * (W || 360),
-          y: Math.random() * (H || 640),
-          r: 1 + Math.random() * 2,
-          ph: Math.random() * 6,
-          c: mgAmbC[i % mgAmbC.length]
-        });
-      }
-    }
-    function mgAmbStep(dt) {
-      if (!mgAmb.ok) mgAmbBoot();
-      mgAmb.t += dt;
-      mgAmb.walk += dt;
-      mgAmb.bits.forEach(function (b) {
-        b.x += b.vx * dt;
-        b.ph += dt;
-        if (b.x < -20) b.x = (W || 360) + 20;
-        if (b.x > (W || 360) + 20) b.x = -20;
-      });
-      mgAmb.motes.forEach(function (m) { m.ph += dt * 1.4; });
-      if (Math.floor(mgAmb.t * 0.35) !== mgAmb.sayI) mgAmb.sayI = Math.floor(mgAmb.t * 0.35);
-    }
-    function mgAmbFrame() {
-      g.strokeStyle = mgAmbC[2];
-      g.lineWidth = 7;
-      g.strokeRect(3, 3, (W || 360) - 6, (H || 640) - 6);
-      g.strokeStyle = "rgba(255,255,255,.18)";
-      g.lineWidth = 2;
-      g.strokeRect(9, 9, (W || 360) - 18, (H || 640) - 18);
-    }
-    function mgAmbMotes() {
-      mgAmb.motes.forEach(function (m) {
-        g.globalAlpha = 0.12 + 0.1 * Math.sin(m.ph);
-        g.fillStyle = m.c;
-        g.beginPath();
-        g.arc(m.x, m.y, m.r, 0, 6.28);
-        g.fill();
-        g.globalAlpha = 1;
-      });
-    }
-    function mgAmbFloaters() {
-      mgAmb.bits.forEach(function (b) {
-        g.save();
-        g.globalAlpha = 0.55;
-        g.translate(b.x, b.y + Math.sin(b.ph * 2) * 4);
-        g.rotate(Math.sin(b.ph) * 0.2);
-        g.font = (15 * b.s) + "px serif";
-        g.textAlign = "center";
-        g.fillText(b.e, 0, 0);
-        g.restore();
-        g.globalAlpha = 1;
-      });
-    }
-    function mgAmbLanterns() {
-      var i, x, y;
-      for (i = 0; i < 7; i++) {
-        x = 18 + i * (((W || 360) - 36) / 6);
-        y = 22 + Math.sin(mgAmb.t * 3 + i) * 3;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath();
-        g.arc(x, y, 4.5, 0, 6.28);
-        g.fill();
-        g.strokeStyle = "rgba(255,255,255,.35)";
-        g.beginPath();
-        g.moveTo(x, y + 4);
-        g.lineTo(x, y + 12);
-        g.stroke();
-      }
-    }
-    function mgAmbWalkers() {
-      var i, x;
-      for (i = 0; i < 3; i++) {
-        x = ((mgAmb.walk * 28 + i * 150) % ((W || 360) + 50)) - 25;
-        g.save();
-        g.translate(x, (H || 640) * 0.92);
-        g.scale(1, 1 + Math.sin(mgAmb.walk * 8 + i) * 0.07);
-        g.font = "18px serif";
-        g.textAlign = "center";
-        g.fillText(mgAmbE[i % mgAmbE.length], 0, 0);
-        g.restore();
-      }
-    }
-    function mgAmbCaption() {
-      var msg = mgAmbL[mgAmb.sayI % mgAmbL.length];
-      g.globalAlpha = 0.55;
-      g.fillStyle = "#fff";
-      g.font = "bold 11px Trebuchet MS";
-      g.textAlign = "left";
-      g.fillText(msg, 14, (H || 640) - 8);
-      g.globalAlpha = 1;
-    }
-    function mgAmbRibbon() {
-      g.save();
-      g.translate((W || 360) / 2, 34);
-      g.rotate(Math.sin(mgAmb.t * 2) * 0.03);
-      g.fillStyle = mgAmbC[2];
-      g.beginPath();
-      g.moveTo(-74, -7);
-      g.lineTo(74, -7);
-      g.lineTo(82, 11);
-      g.lineTo(-82, 11);
-      g.closePath();
-      g.fill();
-      g.fillStyle = "#fff";
-      g.font = "bold 11px Trebuchet MS";
-      g.textAlign = "center";
-      g.fillText(mgAmbL[(mgAmb.sayI + 1) % mgAmbL.length], 0, 6);
-      g.restore();
-    }
-    function mgAmbHorizon() {
-      var x;
-      g.strokeStyle = mgAmbC[1];
-      g.lineWidth = 2;
-      g.globalAlpha = 0.2;
-      g.beginPath();
-      g.moveTo(0, (H || 640) * 0.8);
-      for (x = 0; x <= (W || 360); x += 8) {
-        g.lineTo(x, (H || 640) * 0.8 + Math.sin(x * 0.05 + mgAmb.t) * 4);
-      }
-      g.stroke();
-      g.globalAlpha = 1;
-    }
-    function mgAmbVignette() {
-      var grd = g.createRadialGradient((W||360)/2, (H||640)/2, (W||360)*0.35, (W||360)/2, (H||640)/2, (W||360)*0.75);
-      grd.addColorStop(0, "rgba(0,0,0,0)");
-      grd.addColorStop(1, "rgba(0,0,0,0.12)");
-      g.fillStyle = grd;
-      g.fillRect(0, 0, W || 360, H || 640);
-    }
-    function mgAmbPaint() {
-      if (!mgAmb.ok) mgAmbBoot();
-      mgAmbMotes();
-      mgAmbFloaters();
-      mgAmbLanterns();
-      mgAmbHorizon();
-      mgAmbWalkers();
-      mgAmbRibbon();
-      mgAmbCaption();
-      mgAmbFrame();
-      mgAmbVignette();
-    }
-
-    function mgAmbExtra1() {
-      var i, a, x, y;
-      for (i = 0; i < 16; i++) {
-        a = i / 16 * 6.28 + mgAmb.t * 0.3 + 1;
-        x = (W || 360) * 0.5 + Math.cos(a) * (30 + i * 3 + 4);
-        y = 46 + Math.sin(a * 2) * (6 + 1);
-        g.globalAlpha = 0.22;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, 6.28); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.strokeStyle = mgAmbC[1 % mgAmbC.length];
-      g.globalAlpha = 0.15; g.lineWidth = 2; g.beginPath();
-      for (i = 0; i <= 20; i++) {
-        x = i / 20 * (W || 360);
-        y = (H || 640) * (0.14 + 0.03 * 1) + Math.sin(i * 0.5 + mgAmb.t + 1) * 8;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke(); g.globalAlpha = 1;
-    }
-    function mgAmbExtra2() {
-      var i, a, x, y;
-      for (i = 0; i < 16; i++) {
-        a = i / 16 * 6.28 + mgAmb.t * 0.4 + 2;
-        x = (W || 360) * 0.5 + Math.cos(a) * (30 + i * 3 + 8);
-        y = 46 + Math.sin(a * 2) * (6 + 2);
-        g.globalAlpha = 0.22;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, 6.28); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.strokeStyle = mgAmbC[2 % mgAmbC.length];
-      g.globalAlpha = 0.15; g.lineWidth = 2; g.beginPath();
-      for (i = 0; i <= 20; i++) {
-        x = i / 20 * (W || 360);
-        y = (H || 640) * (0.14 + 0.03 * 2) + Math.sin(i * 0.5 + mgAmb.t + 2) * 8;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke(); g.globalAlpha = 1;
-    }
-    function mgAmbExtra3() {
-      var i, a, x, y;
-      for (i = 0; i < 16; i++) {
-        a = i / 16 * 6.28 + mgAmb.t * 0.5 + 3;
-        x = (W || 360) * 0.5 + Math.cos(a) * (30 + i * 3 + 12);
-        y = 46 + Math.sin(a * 2) * (6 + 3);
-        g.globalAlpha = 0.22;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, 6.28); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.strokeStyle = mgAmbC[3 % mgAmbC.length];
-      g.globalAlpha = 0.15; g.lineWidth = 2; g.beginPath();
-      for (i = 0; i <= 20; i++) {
-        x = i / 20 * (W || 360);
-        y = (H || 640) * (0.14 + 0.03 * 3) + Math.sin(i * 0.5 + mgAmb.t + 3) * 8;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke(); g.globalAlpha = 1;
-    }
-    function mgAmbExtra4() {
-      var i, a, x, y;
-      for (i = 0; i < 16; i++) {
-        a = i / 16 * 6.28 + mgAmb.t * 0.6 + 4;
-        x = (W || 360) * 0.5 + Math.cos(a) * (30 + i * 3 + 16);
-        y = 46 + Math.sin(a * 2) * (6 + 4);
-        g.globalAlpha = 0.22;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, 6.28); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.strokeStyle = mgAmbC[4 % mgAmbC.length];
-      g.globalAlpha = 0.15; g.lineWidth = 2; g.beginPath();
-      for (i = 0; i <= 20; i++) {
-        x = i / 20 * (W || 360);
-        y = (H || 640) * (0.14 + 0.03 * 4) + Math.sin(i * 0.5 + mgAmb.t + 4) * 8;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke(); g.globalAlpha = 1;
-    }
-    function mgAmbExtra5() {
-      var i, a, x, y;
-      for (i = 0; i < 16; i++) {
-        a = i / 16 * 6.28 + mgAmb.t * 0.7 + 5;
-        x = (W || 360) * 0.5 + Math.cos(a) * (30 + i * 3 + 20);
-        y = 46 + Math.sin(a * 2) * (6 + 5);
-        g.globalAlpha = 0.22;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, 6.28); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.strokeStyle = mgAmbC[5 % mgAmbC.length];
-      g.globalAlpha = 0.15; g.lineWidth = 2; g.beginPath();
-      for (i = 0; i <= 20; i++) {
-        x = i / 20 * (W || 360);
-        y = (H || 640) * (0.14 + 0.03 * 5) + Math.sin(i * 0.5 + mgAmb.t + 5) * 8;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke(); g.globalAlpha = 1;
-    }
-    function mgAmbExtra6() {
-      var i, a, x, y;
-      for (i = 0; i < 16; i++) {
-        a = i / 16 * 6.28 + mgAmb.t * 0.8 + 6;
-        x = (W || 360) * 0.5 + Math.cos(a) * (30 + i * 3 + 24);
-        y = 46 + Math.sin(a * 2) * (6 + 6);
-        g.globalAlpha = 0.22;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, 6.28); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.strokeStyle = mgAmbC[6 % mgAmbC.length];
-      g.globalAlpha = 0.15; g.lineWidth = 2; g.beginPath();
-      for (i = 0; i <= 20; i++) {
-        x = i / 20 * (W || 360);
-        y = (H || 640) * (0.14 + 0.03 * 6) + Math.sin(i * 0.5 + mgAmb.t + 6) * 8;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke(); g.globalAlpha = 1;
-    }
-    function mgAmbExtra7() {
-      var i, a, x, y;
-      for (i = 0; i < 16; i++) {
-        a = i / 16 * 6.28 + mgAmb.t * 0.9 + 7;
-        x = (W || 360) * 0.5 + Math.cos(a) * (30 + i * 3 + 28);
-        y = 46 + Math.sin(a * 2) * (6 + 7);
-        g.globalAlpha = 0.22;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, 6.28); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.strokeStyle = mgAmbC[7 % mgAmbC.length];
-      g.globalAlpha = 0.15; g.lineWidth = 2; g.beginPath();
-      for (i = 0; i <= 20; i++) {
-        x = i / 20 * (W || 360);
-        y = (H || 640) * (0.14 + 0.03 * 7) + Math.sin(i * 0.5 + mgAmb.t + 7) * 8;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke(); g.globalAlpha = 1;
-    }
-    function mgAmbExtra8() {
-      var i, a, x, y;
-      for (i = 0; i < 16; i++) {
-        a = i / 16 * 6.28 + mgAmb.t * 0.10 + 8;
-        x = (W || 360) * 0.5 + Math.cos(a) * (30 + i * 3 + 32);
-        y = 46 + Math.sin(a * 2) * (6 + 8);
-        g.globalAlpha = 0.22;
-        g.fillStyle = mgAmbC[i % mgAmbC.length];
-        g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, 6.28); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.strokeStyle = mgAmbC[8 % mgAmbC.length];
-      g.globalAlpha = 0.15; g.lineWidth = 2; g.beginPath();
-      for (i = 0; i <= 20; i++) {
-        x = i / 20 * (W || 360);
-        y = (H || 640) * (0.14 + 0.03 * 8) + Math.sin(i * 0.5 + mgAmb.t + 8) * 8;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke(); g.globalAlpha = 1;
-    }
     function update(dt) {
-      mgAmbStep(typeof dt === 'number' ? dt : 0.016);
       t += dt;
       if (mode === "title") {
-        if (petals.length < 18 && Math.random() < 0.2) petals.push({ x: rnd(0, W), y: -10, v: rnd(20, 50), r: rnd(0, 6), life: 1, e: ["🌸", "🌼", "🍃"][Math.floor(rnd(0, 3))] });
+        if (petals.length < 18 && Math.random() < 0.2) petals.push({ x: rnd(0, W), y: -10, v: rnd(20, 50), r: rnd(0, 6), life: 1, col: ["#fb7185", "#fde047", "#86efac"][Math.floor(rnd(0, 3))] });
         petals.forEach(function (p) { p.y += p.v * dt; p.x += Math.sin(t + p.r) * 12 * dt; p.r += dt; p.life -= dt * 0.08; });
         petals = petals.filter(function (p) { return p.life > 0 && p.y < H + 20; });
         return;
@@ -795,16 +577,6 @@
       drawSky();
       if (mode === "title" || mode === "win") drawTitleGarden();
       else drawPlay();
-      mgAmbPaint();
-      mgAmbExtra1();
-      mgAmbExtra2();
-      mgAmbExtra3();
-      mgAmbExtra4();
-      mgAmbExtra5();
-      mgAmbExtra6();
-      mgAmbExtra7();
-      mgAmbExtra8();
-
     }
 
     function loop(now) {
@@ -819,7 +591,7 @@
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("pads").classList.add("on");
-      document.getElementById("st").textContent = "⭐ 0";
+      document.getElementById("st").textContent = "Stars 0";
       loadStage(); beep(520, 0.1);
     }
     document.getElementById("go").onclick = start;
