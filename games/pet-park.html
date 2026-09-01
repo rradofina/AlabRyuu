@@ -204,10 +204,15 @@
 
       tail();
       legs();
-      ellipse(0,4,26,16,c.body);
-      ellipse(4,8,14,8,c.belly);
-      if(kind==="dog"){ellipse(-8,0,6,5,c.dark);ellipse(10,2,5,4,c.dark);}
-      if(kind==="panda"){ellipse(-10,2,7,6,c.dark);ellipse(12,4,7,6,c.dark);}
+      if(sleeping){
+        ellipse(2,12,28,11,c.body);
+        ellipse(6,15,14,6,c.belly);
+      } else {
+        ellipse(0,4,26,16,c.body);
+        ellipse(4,8,14,8,c.belly);
+      }
+      if(kind==="dog"){ellipse(-8,sleeping?10:0,6,5,c.dark);ellipse(10,sleeping?12:2,5,4,c.dark);}
+      if(kind==="panda"){ellipse(-10,sleeping?10:2,7,6,c.dark);ellipse(12,sleeping?12:4,7,6,c.dark);}
       face();
     }
 
@@ -232,8 +237,9 @@
         ellipse(cx+34,cy+20,8,3,"#fb7185");
       }
       if(asleep){
-        if(Math.random()<0.08)zzz.push({x:cx+20,y:cy-20,life:1.4,s:10});
-        for(var i=0;i<zzz.length;i++){x.fillStyle="rgba(30,27,75,"+zzz[i].life+")";x.font="800 16px Trebuchet MS";x.fillText("z",zzz[i].x,zzz[i].y);}
+        if(zzz.length<3)zzz.push({x:cx+18+zzz.length*10,y:cy-16-zzz.length*8,life:1.4,s:10});
+        if(Math.random()<0.1)zzz.push({x:cx+20,y:cy-20,life:1.4,s:10});
+        for(var i=0;i<zzz.length;i++){x.fillStyle="rgba(30,27,75,"+zzz[i].life+")";x.font="800 18px Trebuchet MS";x.fillText("z",zzz[i].x,zzz[i].y);}
       }
     }
     function meter(label,val,mx0,my0,col){
