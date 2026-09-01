@@ -6,78 +6,150 @@
   <title>Monster Smile</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #5b21b6; color: #ede9fe; touch-action: none; user-select: none; -webkit-user-select: none; }
-    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
-    canvas { display: block; width: 100%; height: 100%; }
-    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.3); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
-    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; }
-    #hud b { font-weight: 800; font-size: 13px; background: #ddd6fe; color: #5b21b6; padding: 6px 10px; border-radius: 999px; }
-    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 7; font-weight: 800; font-size: 16px; color: #fde68a; pointer-events: none; text-align: center; width: 92%; }
-    #dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: none; flex-direction: column; gap: 8px; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); background: #4c1d95; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      background: #2e1065; color: #ede9fe;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none; -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    canvas#c { display: block; width: 100%; height: 100%; }
+    .home {
+      position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8;
+      color: #fff; text-decoration: none; font-weight: 800; font-size: 17px;
+      background: #1e1b4b; padding: 8px 14px; border-radius: 8px 16px 8px 16px;
+      touch-action: manipulation; box-shadow: 0 4px 0 #0f172a;
+    }
+    #clap {
+      position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 8;
+      background: #111827; color: #fde047; padding: 7px 12px 8px;
+      border-radius: 6px; font-weight: 800; pointer-events: none;
+      box-shadow: 0 4px 0 #fde047; min-width: 88px; text-align: center;
+    }
+    #clap small { display: block; font-size: 10px; letter-spacing: 1px; color: #c4b5fd; }
+    #clap b { font-size: 16px; }
+    #cardWrap {
+      position: fixed; left: 50%; top: 52px; transform: translateX(-50%); z-index: 7;
+      display: none; flex-direction: column; align-items: center; pointer-events: none;
+    }
+    #cardWrap.on { display: flex; }
+    #cardWrap canvas { width: 92px; height: 104px; background: #fff; border-radius: 4px 4px 8px 8px; box-shadow: 0 6px 0 #1e1b4b; }
+    #cardWrap em {
+      font-style: normal; font-weight: 800; font-size: 12px; color: #fde68a;
+      margin-top: 4px; text-shadow: 0 2px 0 #1e1b4b;
+    }
+    #say {
+      position: fixed; left: 50%; top: 166px; transform: translateX(-50%); z-index: 7;
+      font-weight: 800; font-size: 17px; color: #fde68a; pointer-events: none;
+      text-align: center; width: 92%; text-shadow: 0 2px 0 #1e1b4b;
+    }
+    @media (max-height: 640px) {
+      #tabs button { width: 56px; min-height: 64px; }
+      #opts button { width: 62px; min-height: 68px; }
+      #cardWrap canvas { width: 72px; height: 82px; }
+      #say { top: 148px; font-size: 15px; }
+    }
+    #dock {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 7;
+      display: none; flex-direction: column; gap: 8px;
+      padding: 10px 8px max(12px, env(safe-area-inset-bottom));
+      background: #1e1b4b;
+      border-top: 8px dashed #fde047;
+    }
     #dock.on { display: flex; }
-    #row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-    #row button { min-width: 70px; height: 52px; border-radius: 14px; background: #c4b5fd; color: #4c1d95; font-weight: 800; font-size: 14px; box-shadow: 0 4px 0 #2e1065; }
-    #acts { display: flex; gap: 8px; justify-content: center; }
-    #acts button { flex: 1; height: 56px; border-radius: 16px; font-weight: 800; font-size: 16px; }
+    #tabs, #opts, #acts { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+    #tabs button {
+      width: 64px; min-height: 78px; border-radius: 14px; background: #5b21b6; color: #ede9fe;
+      font-weight: 800; font-size: 11px; box-shadow: 0 4px 0 #3b0764;
+      display: flex; flex-direction: column; align-items: center; padding: 4px 2px 6px;
+    }
+    #tabs button.on { background: #c4b5fd; color: #4c1d95; outline: 3px solid #fde047; }
+    #tabs canvas, #opts canvas { width: 48px; height: 40px; pointer-events: none; }
+    #opts button {
+      width: 72px; min-height: 80px; border-radius: 16px; background: #ddd6fe; color: #4c1d95;
+      font-weight: 800; font-size: 12px; box-shadow: 0 4px 0 #5b21b6;
+      display: flex; flex-direction: column; align-items: center; padding: 4px 2px 6px;
+    }
+    #opts button.on { outline: 4px solid #fde047; background: #fff; }
+    #acts button { flex: 1; height: 56px; border-radius: 16px; font-weight: 800; font-size: 18px; max-width: 200px; }
     #like { background: #fb7185; color: #fff; box-shadow: 0 5px 0 #9d174d; }
     #shot { background: #fde047; color: #422006; box-shadow: 0 5px 0 #ca8a04; }
-    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#7c3aed, #86efac); }
+    .cover {
+      position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; gap: 10px;
+      padding: 20px; background: linear-gradient(#5b21b6, #1e1b4b);
+    }
     .cover.off { display: none; }
-    h1 { font-size: clamp(32px, 9vw, 48px); color: #fff; text-shadow: 0 4px 0 #5b21b6; }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; color: #fff; }
-    .btn { background: #fde047; color: #422006; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #ca8a04; }
+    .cover canvas { width: 160px; height: 170px; }
+    h1 { font-size: clamp(32px, 9vw, 48px); color: #fff; text-shadow: 0 4px 0 #3b0764; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; color: #fde68a; }
+    .btn {
+      background: #fde047; color: #422006; font-weight: 800; font-size: 22px;
+      padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #ca8a04;
+    }
     .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="ms">Happy face</b><b id="lk">♡ 0</b></div>
-  <div id="say">Tap parts. Mix a silly pal. Never scary.</div>
+  <div id="clap"><small>CARD</small><b id="ms">1 / 5</b></div>
+  <div id="cardWrap"><canvas id="card" width="92" height="104"></canvas><em>Copy this pal</em></div>
+  <div id="say">Match the card. Tap Photo.</div>
   <div id="dock">
-    <div id="row">
-      <button id="p0" type="button">👀 Eyes</button>
-      <button id="p1" type="button">👄 Mouth</button>
-      <button id="p2" type="button">🎀 Horns</button>
-      <button id="p3" type="button">🎨 Color</button>
-      <button id="p4" type="button">👂 Ears</button>
-    </div>
+    <div id="tabs"></div>
+    <div id="opts"></div>
     <div id="acts">
-      <button id="like" type="button">♡ I like it</button>
-      <button id="shot" type="button">📸 Photo</button>
+      <button id="like" type="button">I like it</button>
+      <button id="shot" type="button">Photo</button>
     </div>
   </div>
   <div class="cover" id="title">
-    <div style="font-size:76px">👾</div>
+    <canvas id="titleArt" width="160" height="170"></canvas>
     <h1>Monster Smile</h1>
-    <p>Bounce the parts. Mix-match. Dance when you like it. Photo flash. Five soft poses.</p>
+    <p>Soft pal. Match the photo. Dance!</p>
     <button class="btn" id="go">Make a pal</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:76px">📸</div>
+    <canvas id="winArt" width="160" height="170"></canvas>
     <h1>Smile studio!</h1>
-    <p id="winP">Five poses. Soft giggles.</p>
+    <p id="winP">Five photos.</p>
     <button class="btn g" id="again">Play again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, last = 0, t = 0, play = false, miss = 0, likes = 0;
-    var dance = 0, flash = 0, bounce = [0, 0, 0, 0, 0];
+    var W = 0, H = 0, last = 0, t = 0, play = false, cardI = 0, stars = 0;
+    var dance = 0, flash = 0, tab = "eyes";
     var m = { eyes: 0, mouth: 0, horn: 0, col: 0, ear: 0 };
-    var conf = [], hearts = [];
+    var conf = [], hearts = [], pops = [];
     var COLS = ["#86efac", "#67e8f9", "#fde047", "#f9a8d4", "#c4b5fd", "#fdba74"];
-    var EYES = ["uu", "oo", "^^", "--", "><"];
-    var MOUTH = ["smile", "grin", "o", "cat", "tiny"];
-    var HORNS = ["none", "bow", "nubs", "flower", "hat"];
+    var COL_NAME = ["Mint", "Aqua", "Gold", "Pink", "Lilac", "Peach"];
+    var EYES = ["dots", "big", "happy", "sleepy"];
+    var MOUTH = ["smile", "grin", "o", "cat"];
+    var HORNS = ["bow", "nubs", "flower", "hat"];
     var EARS = ["round", "flop", "tiny", "side"];
-    var MISSIONS = [
-      { n: "Happy face", hint: "Tap mouth until it smiles big.", ok: function () { return m.mouth === 0 || m.mouth === 1; } },
-      { n: "Soft horns", hint: "Add a bow or flower on top.", ok: function () { return m.horn === 1 || m.horn === 3; } },
-      { n: "Silly eyes", hint: "Find the winky or happy eyes.", ok: function () { return m.eyes === 2 || m.eyes === 4; } },
-      { n: "Dance party", hint: "Tap I like it so the pal dances.", ok: function () { return dance > 0.2; } },
-      { n: "Photo booth", hint: "Take a photo flash!", ok: function () { return flash > 0; } }
+    var TABS = [
+      { k: "eyes", n: "Eyes" },
+      { k: "mouth", n: "Mouth" },
+      { k: "horn", n: "Top" },
+      { k: "col", n: "Color" },
+      { k: "ear", n: "Ears" }
     ];
+    var CARDS = [
+      { eyes: 0, mouth: 0, horn: 0, col: 0, ear: 0 },
+      { eyes: 1, mouth: 1, horn: 1, col: 2, ear: 1 },
+      { eyes: 2, mouth: 3, horn: 2, col: 3, ear: 2 },
+      { eyes: 0, mouth: 2, horn: 3, col: 1, ear: 3 },
+      { eyes: 1, mouth: 0, horn: 0, col: 4, ear: 0 }
+    ];
+    try {
+      var sv = JSON.parse(localStorage.getItem("alabryuu-monster") || "null");
+      if (sv && typeof sv.stars === "number") stars = sv.stars;
+    } catch (e) {}
 
     function beep(f, d, typ) {
       try {
@@ -91,438 +163,488 @@
       } catch (e) {}
     }
     function say(s) { document.getElementById("say").textContent = s; }
-    function hud() {
-      document.getElementById("ms").textContent = MISSIONS[miss] ? MISSIONS[miss].n : "Done";
-      document.getElementById("lk").textContent = "♡ " + likes;
+    function saveStars() {
+      try { localStorage.setItem("alabryuu-monster", JSON.stringify({ stars: stars })); } catch (e) {}
     }
-    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    function hud() {
+      document.getElementById("ms").textContent = Math.min(cardI + 1, 5) + " / 5";
+    }
+    function resize() {
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
     addEventListener("resize", resize); resize();
 
+    function oval(ctx, cx, cy, rx, ry, col) {
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    function disc(ctx, cx, cy, r, col) {
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    }
+    function rr(ctx, a, b, w, h, r) {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(a, b, w, h, r);
+      else ctx.rect(a, b, w, h);
+      ctx.fill();
+    }
+    function drawHeart(ctx, hx, hy, s, col) {
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.moveTo(hx, hy + s * 0.3);
+      ctx.bezierCurveTo(hx, hy - s * 0.25, hx - s, hy - s * 0.25, hx - s, hy + s * 0.2);
+      ctx.bezierCurveTo(hx - s, hy + s * 0.75, hx, hy + s, hx, hy + s);
+      ctx.bezierCurveTo(hx, hy + s, hx + s, hy + s * 0.75, hx + s, hy + s * 0.2);
+      ctx.bezierCurveTo(hx + s, hy - s * 0.25, hx, hy - s * 0.25, hx, hy + s * 0.3);
+      ctx.fill();
+    }
+    function drawStar(ctx, cx, cy, r, col) {
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      var i;
+      for (i = 0; i < 5; i++) {
+        var a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+        var b = a + Math.PI / 5;
+        ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+        ctx.lineTo(cx + Math.cos(b) * r * 0.45, cy + Math.sin(b) * r * 0.45);
+      }
+      ctx.closePath(); ctx.fill();
+    }
+
+    function drawEyes(ctx, kind, y) {
+      oval(ctx, -20, y, 14, 16, "#fff");
+      oval(ctx, 20, y, 14, 16, "#fff");
+      ctx.fillStyle = "#1e1b4b";
+      ctx.strokeStyle = "#1e1b4b";
+      ctx.lineWidth = 3.5;
+      ctx.lineCap = "round";
+      if (kind === 0) {
+        disc(ctx, -20, y, 5, "#1e1b4b");
+        disc(ctx, 20, y, 5, "#1e1b4b");
+        disc(ctx, -18, y - 2, 1.6, "#fff");
+        disc(ctx, 22, y - 2, 1.6, "#fff");
+      } else if (kind === 1) {
+        disc(ctx, -20, y + 1, 8, "#1e1b4b");
+        disc(ctx, 20, y + 1, 8, "#1e1b4b");
+        disc(ctx, -16, y - 2, 2.4, "#fff");
+        disc(ctx, 24, y - 2, 2.4, "#fff");
+      } else if (kind === 2) {
+        ctx.beginPath(); ctx.arc(-20, y + 4, 8, Math.PI, 0); ctx.stroke();
+        ctx.beginPath(); ctx.arc(20, y + 4, 8, Math.PI, 0); ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.arc(-20, y - 2, 8, 0.15, Math.PI - 0.15); ctx.stroke();
+        ctx.beginPath(); ctx.arc(20, y - 2, 8, 0.15, Math.PI - 0.15); ctx.stroke();
+      }
+    }
+
+    function drawMouth(ctx, kind, y) {
+      ctx.strokeStyle = "#9d174d";
+      ctx.fillStyle = "#fb7185";
+      ctx.lineWidth = 4.5;
+      ctx.lineCap = "round";
+      if (kind === 0) {
+        ctx.beginPath(); ctx.arc(0, y, 18, 0.15, Math.PI - 0.15); ctx.stroke();
+      } else if (kind === 1) {
+        ctx.beginPath(); ctx.ellipse(0, y + 4, 20, 12, 0, 0, Math.PI); ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(-9, y - 1, 6, 8);
+        ctx.fillRect(3, y - 1, 6, 8);
+      } else if (kind === 2) {
+        ctx.beginPath(); ctx.arc(0, y + 2, 9, 0, Math.PI * 2); ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.moveTo(-14, y); ctx.quadraticCurveTo(0, y + 14, 14, y); ctx.stroke();
+        ctx.fillStyle = "#1e1b4b";
+        ctx.fillRect(-2.5, y + 2, 5, 4);
+      }
+    }
+
+    function drawHorn(ctx, kind, y) {
+      if (kind === 0) {
+        ctx.fillStyle = "#fb7185";
+        ctx.beginPath(); ctx.ellipse(-14, y, 12, 9, -0.35, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(14, y, 12, 9, 0.35, 0, Math.PI * 2); ctx.fill();
+        disc(ctx, 0, y, 6, "#be185d");
+        ctx.strokeStyle = "#fb7185"; ctx.lineWidth = 3; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(-4, y + 5); ctx.lineTo(-10, y + 16); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(4, y + 5); ctx.lineTo(10, y + 16); ctx.stroke();
+      } else if (kind === 1) {
+        oval(ctx, -22, y, 9, 13, "#f9a8d4");
+        oval(ctx, 22, y, 9, 13, "#f9a8d4");
+        disc(ctx, -22, y - 4, 3, "#fff");
+        disc(ctx, 22, y - 4, 3, "#fff");
+      } else if (kind === 2) {
+        var i;
+        for (i = 0; i < 6; i++) {
+          var a = i * Math.PI / 3;
+          disc(ctx, Math.cos(a) * 11, y + Math.sin(a) * 11, 7, "#f9a8d4");
+        }
+        disc(ctx, 0, y, 7, "#fde047");
+      } else {
+        ctx.fillStyle = "#7c3aed";
+        ctx.beginPath();
+        ctx.moveTo(-16, y + 10);
+        ctx.lineTo(-14, y - 6);
+        ctx.quadraticCurveTo(0, y - 12, 14, y - 6);
+        ctx.lineTo(16, y + 10);
+        ctx.closePath();
+        ctx.fill();
+        oval(ctx, 0, y + 10, 20, 6, "#5b21b6");
+        disc(ctx, 0, y, 4, "#fde047");
+      }
+    }
+
+    function drawEars(ctx, kind, col) {
+      if (kind === 0) {
+        oval(ctx, -62, -8, 20, 18, col);
+        oval(ctx, 62, -8, 20, 18, col);
+        oval(ctx, -62, -8, 10, 9, "#fbcfe8");
+        oval(ctx, 62, -8, 10, 9, "#fbcfe8");
+      } else if (kind === 1) {
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.ellipse(-58, 6, 14, 26, -0.55, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(58, 6, 14, 26, 0.55, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fbcfe8";
+        ctx.beginPath(); ctx.ellipse(-58, 8, 7, 14, -0.55, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(58, 8, 7, 14, 0.55, 0, Math.PI * 2); ctx.fill();
+      } else if (kind === 2) {
+        disc(ctx, -54, -26, 9, col);
+        disc(ctx, 54, -26, 9, col);
+        disc(ctx, -54, -26, 4, "#fbcfe8");
+        disc(ctx, 54, -26, 4, "#fbcfe8");
+      } else {
+        oval(ctx, -70, 12, 16, 11, col);
+        oval(ctx, 70, 12, 16, 11, col);
+        oval(ctx, -70, 12, 8, 5, "#fbcfe8");
+        oval(ctx, 70, 12, 8, 5, "#fbcfe8");
+      }
+    }
+
+    function drawPal(ctx, look, px, py, sc, time, dancing, still) {
+      var col = COLS[look.col];
+      var hop = dancing ? Math.abs(Math.sin(time * 10)) * 10 : (still ? 0 : Math.sin(time * 3) * 4);
+      var sqx = dancing ? 1 + Math.sin(time * 12) * 0.1 : 1;
+      var sqy = dancing ? 1 - Math.sin(time * 12) * 0.1 : 1;
+      ctx.save();
+      ctx.translate(px, py + hop);
+      ctx.scale(sc * sqx, sc * sqy);
+
+      drawEars(ctx, look.ear, col);
+      drawHorn(ctx, look.horn, -78);
+      oval(ctx, 0, 8, 70, 62, col);
+      oval(ctx, -16, -14, 20, 11, "rgba(255,255,255,.28)");
+      disc(ctx, -28, 18, 8, "rgba(251,113,133,.35)");
+      disc(ctx, 28, 18, 8, "rgba(251,113,133,.35)");
+
+      var lPhase = dancing ? Math.sin(time * 10) : Math.sin(time * 3) * 0.25;
+      var rPhase = dancing ? -Math.sin(time * 10) : -Math.sin(time * 3) * 0.25;
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 14;
+      ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-16, 58); ctx.lineTo(-20 + lPhase * 8, 92 + Math.max(0, -lPhase) * 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(16, 58); ctx.lineTo(20 + rPhase * 8, 92 + Math.max(0, -rPhase) * 8); ctx.stroke();
+      disc(ctx, -20 + lPhase * 8, 96 + Math.max(0, -lPhase) * 8, 10, "#fde68a");
+      disc(ctx, 20 + rPhase * 8, 96 + Math.max(0, -rPhase) * 8, 10, "#fde68a");
+
+      var lArm = dancing ? -2.2 + Math.sin(time * 10) * 0.7 : -1.15 + Math.sin(time * 3) * 0.2;
+      var rArm = dancing ? 2.2 - Math.cos(time * 10) * 0.7 : 1.15 + Math.cos(time * 3) * 0.2;
+      ctx.save(); ctx.translate(-60, 6); ctx.rotate(lArm);
+      ctx.strokeStyle = col; ctx.lineWidth = 13; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 34); ctx.stroke();
+      disc(ctx, 0, 38, 9, col);
+      disc(ctx, -3, 36, 3, "rgba(255,255,255,.4)");
+      ctx.restore();
+      ctx.save(); ctx.translate(60, 6); ctx.rotate(rArm);
+      ctx.strokeStyle = col; ctx.lineWidth = 13; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 34); ctx.stroke();
+      disc(ctx, 0, 38, 9, col);
+      disc(ctx, 3, 36, 3, "rgba(255,255,255,.4)");
+      ctx.restore();
+
+      drawEyes(ctx, look.eyes, -6);
+      drawMouth(ctx, look.mouth, 32);
+      ctx.restore();
+    }
+
+    function drawStudio() {
+      var g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#4c1d95"); g.addColorStop(0.55, "#5b21b6"); g.addColorStop(1, "#1e1b4b");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      var i;
+      x.fillStyle = "#3b0764";
+      for (i = 0; i < 8; i++) {
+        x.beginPath();
+        x.moveTo(i * 18, 0);
+        x.quadraticCurveTo(i * 18 + 10, H * 0.25, i * 18, H * 0.5);
+        x.lineTo(i * 18 + 16, H * 0.5);
+        x.quadraticCurveTo(i * 18 + 26, H * 0.25, i * 18 + 16, 0);
+        x.fill();
+      }
+      for (i = 0; i < 8; i++) {
+        var rx = W - i * 18;
+        x.beginPath();
+        x.moveTo(rx, 0);
+        x.quadraticCurveTo(rx - 10, H * 0.25, rx, H * 0.5);
+        x.lineTo(rx - 16, H * 0.5);
+        x.quadraticCurveTo(rx - 26, H * 0.25, rx - 16, 0);
+        x.fill();
+      }
+      x.fillStyle = "rgba(253,224,71,.12)";
+      x.beginPath();
+      x.moveTo(W * 0.5, 40);
+      x.lineTo(W * 0.18, H * 0.72);
+      x.lineTo(W * 0.82, H * 0.72);
+      x.closePath();
+      x.fill();
+      disc(x, W * 0.5, 36, 16, "#fde047");
+      disc(x, W * 0.5, 36, 8, "#fff");
+      x.fillStyle = "#312e81";
+      x.fillRect(0, H * 0.7, W, H * 0.3);
+      x.fillStyle = "#4c1d95";
+      for (i = 0; i < 8; i++) {
+        for (var j = 0; j < 3; j++) {
+          if ((i + j) % 2 === 0) x.fillRect(i * (W / 8), H * 0.7 + j * 28, W / 8, 28);
+        }
+      }
+      x.fillStyle = "#111827";
+      rr(x, W - 78, H * 0.52, 36, 22, 4);
+      x.fillStyle = "#fde047";
+      disc(x, W - 60, H * 0.545, 7, "#fde047");
+      x.strokeStyle = "#111827"; x.lineWidth = 4;
+      x.beginPath(); x.moveTo(W - 60, H * 0.57); x.lineTo(W - 60, H * 0.7); x.stroke();
+      x.beginPath(); x.moveTo(W - 60, H * 0.7); x.lineTo(W - 74, H * 0.76); x.stroke();
+      x.beginPath(); x.moveTo(W - 60, H * 0.7); x.lineTo(W - 46, H * 0.76); x.stroke();
+    }
+
+    function colorClose(a, b) {
+      if (a === b) return true;
+      return Math.abs(a - b) === 1;
+    }
+    function matches() {
+      var c = CARDS[cardI];
+      if (!c) return false;
+      return m.eyes === c.eyes && m.mouth === c.mouth && m.horn === c.horn &&
+        colorClose(m.col, c.col) && m.ear === c.ear;
+    }
+
+    function iconCanvas(w, h, drawFn) {
+      var c = document.createElement("canvas");
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      c.width = w * dpr; c.height = h * dpr;
+      c.style.width = w + "px"; c.style.height = h + "px";
+      var ctx = c.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawFn(ctx, w, h);
+      return c;
+    }
+
+    function paintCard() {
+      var c = document.getElementById("card");
+      var ctx = c.getContext("2d");
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, c.width, c.height);
+      var look = CARDS[cardI] || m;
+      drawPal(ctx, look, 46, 48, 0.42, 0.2, false, true);
+      ctx.fillStyle = "#4c1d95";
+      ctx.font = "bold 10px Trebuchet MS";
+      ctx.textAlign = "center";
+      ctx.fillText("card " + (cardI + 1), 46, 98);
+    }
+
+    function fillTabs() {
+      var box = document.getElementById("tabs");
+      box.innerHTML = "";
+      TABS.forEach(function (tb) {
+        var b = document.createElement("button");
+        b.type = "button";
+        if (tb.k === tab) b.className = "on";
+        b.appendChild(iconCanvas(48, 40, function (ctx, w, h) {
+          ctx.translate(w / 2, h / 2 + 4);
+          if (tb.k === "ear") ctx.scale(0.26, 0.26);
+          else ctx.scale(0.38, 0.38);
+          if (tb.k === "eyes") drawEyes(ctx, m.eyes, 0);
+          else if (tb.k === "mouth") drawMouth(ctx, m.mouth, 0);
+          else if (tb.k === "horn") drawHorn(ctx, m.horn, 0);
+          else if (tb.k === "col") disc(ctx, 0, 0, 28, COLS[m.col]);
+          else drawEars(ctx, m.ear, COLS[m.col]);
+        }));
+        var lab = document.createElement("span");
+        lab.textContent = tb.n;
+        b.appendChild(lab);
+        b.onclick = function () { tab = tb.k; fillTabs(); fillOpts(); beep(480, 0.05); };
+        box.appendChild(b);
+      });
+    }
+
+    function fillOpts() {
+      var box = document.getElementById("opts");
+      box.innerHTML = "";
+      var list, key = tab;
+      if (key === "eyes") list = EYES;
+      else if (key === "mouth") list = MOUTH;
+      else if (key === "horn") list = HORNS;
+      else if (key === "col") list = COL_NAME;
+      else list = EARS;
+      list.forEach(function (name, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        if (m[key] === i) b.className = "on";
+        b.appendChild(iconCanvas(48, 40, function (ctx, w, h) {
+          ctx.translate(w / 2, h / 2 + 2);
+          if (key === "ear") ctx.scale(0.26, 0.26);
+          else ctx.scale(0.42, 0.42);
+          if (key === "eyes") drawEyes(ctx, i, 0);
+          else if (key === "mouth") drawMouth(ctx, i, 0);
+          else if (key === "horn") drawHorn(ctx, i, 0);
+          else if (key === "col") disc(ctx, 0, 0, 26, COLS[i]);
+          else drawEars(ctx, i, COLS[m.col]);
+        }));
+        var lab = document.createElement("span");
+        lab.textContent = name[0].toUpperCase() + name.slice(1);
+        b.appendChild(lab);
+        b.onclick = function () {
+          m[key] = i;
+          fillTabs(); fillOpts();
+          beep(520 + i * 30, 0.06);
+        };
+        box.appendChild(b);
+      });
+    }
+
     function start() {
-      play = true; miss = 0; likes = 0; dance = 0; flash = 0;
+      play = true; cardI = 0; dance = 0; flash = 0; tab = "eyes";
       m = { eyes: 0, mouth: 0, horn: 0, col: 0, ear: 0 };
-      conf = []; hearts = [];
+      conf = []; hearts = []; pops = [];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
-      say(MISSIONS[0].hint); hud(); beep(520, 0.1);
+      document.getElementById("cardWrap").classList.add("on");
+      say("Match the card. Tap Photo.");
+      fillTabs(); fillOpts(); paintCard(); hud(); beep(520, 0.1);
     }
-
-    function cycle(key, arr, idx) {
-      m[key] = (m[key] + 1) % arr.length;
-      bounce[idx] = 1;
-      beep(500 + idx * 40, 0.06);
-      maybe();
-    }
-    document.getElementById("p0").onclick = function () { cycle("eyes", EYES, 0); };
-    document.getElementById("p1").onclick = function () { cycle("mouth", MOUTH, 1); };
-    document.getElementById("p2").onclick = function () { cycle("horn", HORNS, 2); };
-    document.getElementById("p3").onclick = function () { cycle("col", COLS, 3); };
-    document.getElementById("p4").onclick = function () { cycle("ear", EARS, 4); };
 
     document.getElementById("like").onclick = function () {
-      dance = 1.8; likes++;
+      dance = 2;
       var i;
-      for (i = 0; i < 10; i++) hearts.push({ x: W * 0.5 + (Math.random() - 0.5) * 80, y: H * 0.4, vy: -40 - Math.random() * 40, life: 1 });
-      say("Dance! SQUISH squash.");
-      beep(880, 0.1); hud(); maybe();
+      for (i = 0; i < 10; i++) {
+        hearts.push({
+          x: W * 0.5 + (Math.random() - 0.5) * 90,
+          y: H * 0.38, vy: -50 - Math.random() * 40, life: 1
+        });
+      }
+      say("Dance!");
+      beep(880, 0.1);
     };
     document.getElementById("shot").onclick = function () {
-      flash = 0.45;
+      flash = 0.4;
       var i;
-      for (i = 0; i < 18; i++) conf.push({ x: W * 0.5, y: H * 0.35, vx: (Math.random() - 0.5) * 220, vy: -80 - Math.random() * 80, life: 1, col: COLS[i % COLS.length] });
-      say("Flash! What a pal.");
-      beep(990, 0.08); maybe();
-    };
-
-    function maybe() {
-      if (!MISSIONS[miss]) return;
-      if (MISSIONS[miss].ok()) {
-        miss++;
-        beep(760, 0.1);
-        if (miss >= MISSIONS.length) {
+      for (i = 0; i < 16; i++) {
+        conf.push({
+          x: W * 0.5, y: H * 0.36,
+          vx: (Math.random() - 0.5) * 220, vy: -80 - Math.random() * 80,
+          life: 1, r: 4 + Math.random() * 4,
+          col: COLS[i % COLS.length]
+        });
+      }
+      if (!play) return;
+      if (matches()) {
+        stars++;
+        saveStars();
+        pops.push({ x: W * 0.5, y: H * 0.3, life: 0.8 });
+        cardI++;
+        beep(990, 0.12);
+        if (cardI >= 5) {
           play = false;
           document.getElementById("dock").classList.remove("on");
-          document.getElementById("winP").textContent = "♡ " + likes + "  Five soft poses.";
+          document.getElementById("cardWrap").classList.remove("on");
+          document.getElementById("winP").textContent = "Stars " + stars + ". Five photos!";
           document.getElementById("win").classList.remove("off");
+          paintPreview(document.getElementById("winArt"), true);
         } else {
-          say("Cute! Next: " + MISSIONS[miss].hint);
-          hud();
+          m = { eyes: 0, mouth: 0, horn: 0, col: 0, ear: 0 };
+          say("Yes! Card " + (cardI + 1) + ".");
+          fillTabs(); fillOpts(); paintCard(); hud();
         }
+      } else {
+        say("Almost! Look at the card.");
+        beep(240, 0.08);
       }
-    }
+    };
 
     function update(dt) {
       t += dt;
       if (dance > 0) dance -= dt;
       if (flash > 0) flash -= dt;
       var i;
-      for (i = 0; i < 5; i++) bounce[i] = Math.max(0, bounce[i] - dt * 2.2);
       for (i = hearts.length - 1; i >= 0; i--) {
-        hearts[i].life -= dt; hearts[i].y += hearts[i].vy * dt;
+        hearts[i].life -= dt;
+        hearts[i].y += hearts[i].vy * dt;
         if (hearts[i].life <= 0) hearts.splice(i, 1);
       }
       for (i = conf.length - 1; i >= 0; i--) {
-        conf[i].life -= dt; conf[i].x += conf[i].vx * dt; conf[i].y += conf[i].vy * dt; conf[i].vy += 160 * dt;
+        conf[i].life -= dt;
+        conf[i].x += conf[i].vx * dt;
+        conf[i].y += conf[i].vy * dt;
+        conf[i].vy += 160 * dt;
         if (conf[i].life <= 0) conf.splice(i, 1);
       }
-    }
-
-    function drawRoom() {
-      var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, "#6d28d9"); g.addColorStop(1, "#86efac");
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      x.fillStyle = "rgba(255,255,255,.12)";
-      var i;
-      for (i = 0; i < 8; i++) {
-        x.beginPath(); x.arc((i * 90 + t * 10) % W, 40 + (i % 3) * 20, 16, 0, Math.PI * 2); x.fill();
+      for (i = pops.length - 1; i >= 0; i--) {
+        pops[i].life -= dt;
+        if (pops[i].life <= 0) pops.splice(i, 1);
       }
-      x.fillStyle = "#fde68a";
-      for (i = 0; i < 6; i++) {
-        x.beginPath(); x.arc(20 + i * (W - 40) / 5, 18, 5, 0, Math.PI * 2); x.fill();
-      }
-    }
-
-    function drawMonster() {
-      var cx = W * 0.5, cy = H * 0.42;
-      var sq = dance > 0 ? 1 + Math.sin(t * 10) * 0.08 : 1;
-      var sy = dance > 0 ? 1 - Math.sin(t * 10) * 0.08 : 1;
-      var bob = Math.sin(t * 3) * 6;
-      x.save();
-      x.translate(cx, cy + bob);
-      x.scale(sq, sy);
-      var col = COLS[m.col];
-      if (m.ear === 0 || m.ear === 1) {
-        x.fillStyle = col;
-        x.beginPath(); x.ellipse(-70, -10, m.ear === 1 ? 16 : 22, m.ear === 1 ? 28 : 20, -0.4, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.ellipse(70, -10, m.ear === 1 ? 16 : 22, m.ear === 1 ? 28 : 20, 0.4, 0, Math.PI * 2); x.fill();
-        x.fillStyle = "#fbcfe8";
-        x.beginPath(); x.ellipse(-70, -10, 10, 10, 0, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.ellipse(70, -10, 10, 10, 0, 0, Math.PI * 2); x.fill();
-      } else if (m.ear === 2) {
-        x.fillStyle = col;
-        x.beginPath(); x.arc(-62, -28, 10, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.arc(62, -28, 10, 0, Math.PI * 2); x.fill();
-      } else {
-        x.fillStyle = col;
-        x.beginPath(); x.ellipse(-78, 10, 18, 12, 0, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.ellipse(78, 10, 18, 12, 0, 0, Math.PI * 2); x.fill();
-      }
-      if (m.horn === 1) {
-        x.font = "40px serif"; x.textAlign = "center";
-        x.fillText("🎀", 0, -78 + bounce[2] * -8);
-      } else if (m.horn === 2) {
-        x.fillStyle = "#f9a8d4";
-        x.beginPath(); x.ellipse(-28, -78, 10, 16, -0.2, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.ellipse(28, -78, 10, 16, 0.2, 0, Math.PI * 2); x.fill();
-      } else if (m.horn === 3) {
-        x.font = "36px serif"; x.textAlign = "center";
-        x.fillText("🌸", 0, -78 + bounce[2] * -8);
-      } else if (m.horn === 4) {
-        x.font = "36px serif"; x.textAlign = "center";
-        x.fillText("🎩", 0, -78);
-      }
-      x.fillStyle = col;
-      x.beginPath(); x.ellipse(0, 8, 78, 70, 0, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "rgba(255,255,255,.25)";
-      x.beginPath(); x.ellipse(-18, -16, 22, 12, -0.3, 0, Math.PI * 2); x.fill();
-      var ey = -8 + bounce[0] * -10;
-      x.fillStyle = "#fff";
-      x.beginPath(); x.ellipse(-22, ey, 16, 18, 0, 0, Math.PI * 2); x.fill();
-      x.beginPath(); x.ellipse(22, ey, 16, 18, 0, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#1e1b4b";
-      if (m.eyes === 0) {
-        x.beginPath(); x.arc(-22, ey, 6, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.arc(22, ey, 6, 0, Math.PI * 2); x.fill();
-      } else if (m.eyes === 1) {
-        x.beginPath(); x.arc(-22, ey + 2, 8, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.arc(22, ey + 2, 8, 0, Math.PI * 2); x.fill();
-        x.fillStyle = "#fff";
-        x.beginPath(); x.arc(-19, ey - 1, 3, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.arc(25, ey - 1, 3, 0, Math.PI * 2); x.fill();
-      } else if (m.eyes === 2) {
-        x.strokeStyle = "#1e1b4b"; x.lineWidth = 4;
-        x.beginPath(); x.arc(-22, ey + 4, 8, Math.PI, 0); x.stroke();
-        x.beginPath(); x.arc(22, ey + 4, 8, Math.PI, 0); x.stroke();
-      } else if (m.eyes === 3) {
-        x.fillRect(-30, ey, 16, 4); x.fillRect(14, ey, 16, 4);
-      } else {
-        x.strokeStyle = "#1e1b4b"; x.lineWidth = 4;
-        x.beginPath(); x.moveTo(-30, ey - 6); x.lineTo(-14, ey + 6); x.moveTo(-30, ey + 6); x.lineTo(-14, ey - 6); x.stroke();
-        x.beginPath(); x.arc(22, ey, 6, 0, Math.PI * 2); x.stroke();
-      }
-      var my = 36 + bounce[1] * -8;
-      x.strokeStyle = "#9d174d"; x.fillStyle = "#fb7185"; x.lineWidth = 5; x.lineCap = "round";
-      if (m.mouth === 0) {
-        x.beginPath(); x.arc(0, my, 22, 0.15, Math.PI - 0.15); x.stroke();
-      } else if (m.mouth === 1) {
-        x.beginPath(); x.ellipse(0, my + 4, 24, 14, 0, 0, Math.PI); x.fill();
-        x.fillStyle = "#fff";
-        x.fillRect(-10, my - 2, 6, 8); x.fillRect(4, my - 2, 6, 8);
-      } else if (m.mouth === 2) {
-        x.beginPath(); x.arc(0, my, 10, 0, Math.PI * 2); x.stroke();
-      } else if (m.mouth === 3) {
-        x.beginPath(); x.moveTo(-16, my); x.quadraticCurveTo(0, my + 16, 16, my); x.stroke();
-        x.fillStyle = "#1e1b4b";
-        x.fillRect(-3, my + 2, 6, 5);
-      } else {
-        x.beginPath(); x.arc(0, my, 6, 0.2, Math.PI - 0.2); x.stroke();
-      }
-      x.restore();
-      x.fillStyle = "#4c1d95"; x.font = "bold 18px Trebuchet MS"; x.textAlign = "center";
-      x.fillText("soft pal", cx, cy + 110 + Math.sin(t * 2) * 2);
     }
 
     function draw() {
-      drawRoom();
-      drawMonster();
+      drawStudio();
+      drawPal(x, m, W * 0.5, Math.min(H * 0.42, H - 268), 1.05, t, dance > 0, false);
       var i;
       for (i = 0; i < hearts.length; i++) {
         x.globalAlpha = Math.max(0, hearts[i].life);
-        x.font = "22px serif"; x.fillText("💗", hearts[i].x, hearts[i].y);
+        drawHeart(x, hearts[i].x, hearts[i].y, 10, "#fb7185");
       }
       for (i = 0; i < conf.length; i++) {
         x.globalAlpha = Math.max(0, conf[i].life);
-        x.fillStyle = conf[i].col;
-        x.fillRect(conf[i].x, conf[i].y, 7, 5);
+        disc(x, conf[i].x, conf[i].y, conf[i].r, conf[i].col);
+      }
+      for (i = 0; i < pops.length; i++) {
+        x.globalAlpha = Math.max(0, pops[i].life);
+        drawStar(x, pops[i].x, pops[i].y, 16, "#fde047");
       }
       x.globalAlpha = 1;
       if (flash > 0) {
         x.fillStyle = "rgba(255,255,255," + (flash * 0.85) + ")";
         x.fillRect(0, 0, W, H);
       }
-      x.fillStyle = "rgba(255,255,255,.2)";
-      x.fillRect(16, 8, W - 32, 6);
-      x.fillStyle = "#fde047";
-      x.fillRect(16, 8, Math.min(W - 32, (miss / 5) * (W - 32)), 6);
     }
 
-    
-    var studio=[], stickers=[], giggle=[];
-    var STICK=["⭐","🌈","🎵","🌼","💜","✨"];
-    function flavorUpdate(dt){
-      if(!studio.length){ var i; for(i=0;i<8;i++) studio.push({x:0.08+i*0.11,e:STICK[i%STICK.length],ph:i}); }
-      var i; for(i=0;i<studio.length;i++) studio[i].ph+=dt;
-      if(typeof dance!=="undefined" && dance>0 && Math.random()<dt*10) giggle.push({x:W*0.5+(Math.random()-0.5)*100,y:H*0.3,life:0.6,e:"ha"});
-      for(i=giggle.length-1;i>=0;i--){ giggle[i].life-=dt; giggle[i].y-=20*dt; if(giggle[i].life<=0) giggle.splice(i,1); }
-      if(typeof bounce!=="undefined"){ /* parts already bounce */ }
-    }
-    function flavorDraw(){
-      var i;
-      x.fillStyle="rgba(255,255,255,.12)";
-      x.fillRect(10, H*0.62, W-20, 28);
-      for(i=0;i<studio.length;i++){
-        x.font="18px serif";
-        x.fillText(studio[i].e, studio[i].x*W, H*0.64+Math.sin(studio[i].ph*3)*3);
-      }
-      for(i=0;i<giggle.length;i++){
-        x.globalAlpha=Math.max(0,giggle[i].life);
-        x.fillStyle="#fde68a"; x.font="bold 16px Trebuchet MS"; x.textAlign="center";
-        x.fillText(giggle[i].e, giggle[i].x, giggle[i].y);
-      }
-      x.globalAlpha=1;
-      if(typeof m!=="undefined"){
-        x.fillStyle="#ddd6fe"; x.font="11px Trebuchet MS"; x.textAlign="left";
-        x.fillText("eyes "+EYES[m.eyes]+"  mouth "+MOUTH[m.mouth]+"  horn "+HORNS[m.horn], 14, H-92);
-      }
-    }
-
-    function extraWorld(){
-      var _i,_a;
-      _a=0.08+0.04*Math.sin(t+0); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((0+t*8)%W, 20, 4, 3); /* cheek 0 */
-      _a=0.08+0.04*Math.sin(t+1); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((47+t*8)%W, 51, 5, 4); /* studio 1 */
-      _a=0.08+0.04*Math.sin(t+2); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((94+t*8)%W, 82, 6, 5); /* bulb 2 */
-      _a=0.08+0.04*Math.sin(t+3); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((44+t*8)%W, 30, 7, 6); /* heart 3 */
-      _a=0.08+0.04*Math.sin(t+4); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((91+t*8)%W, 61, 8, 3); /* curtain 4 */
-      _a=0.08+0.04*Math.sin(t+5); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((41+t*8)%W, 92, 4, 4); /* cheek 5 */
-      _a=0.08+0.04*Math.sin(t+6); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((88+t*8)%W, 40, 5, 5); /* studio 6 */
-      _a=0.08+0.04*Math.sin(t+7); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((38+t*8)%W, 71, 6, 6); /* bulb 7 */
-      _a=0.08+0.04*Math.sin(t+8); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((85+t*8)%W, 102, 7, 3); /* heart 8 */
-      _a=0.08+0.04*Math.sin(t+9); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((35+t*8)%W, 50, 8, 4); /* curtain 9 */
-      _a=0.08+0.04*Math.sin(t+10); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((82+t*8)%W, 81, 4, 5); /* cheek 10 */
-      _a=0.08+0.04*Math.sin(t+11); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((32+t*8)%W, 29, 5, 6); /* studio 11 */
-      _a=0.08+0.04*Math.sin(t+12); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((79+t*8)%W, 60, 6, 3); /* bulb 12 */
-      _a=0.08+0.04*Math.sin(t+13); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((29+t*8)%W, 91, 7, 4); /* heart 13 */
-      _a=0.08+0.04*Math.sin(t+14); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((76+t*8)%W, 39, 8, 5); /* curtain 14 */
-      _a=0.08+0.04*Math.sin(t+15); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((26+t*8)%W, 70, 4, 6); /* cheek 15 */
-      _a=0.08+0.04*Math.sin(t+16); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((73+t*8)%W, 101, 5, 3); /* studio 16 */
-      _a=0.08+0.04*Math.sin(t+17); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((23+t*8)%W, 49, 6, 4); /* bulb 17 */
-      _a=0.08+0.04*Math.sin(t+18); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((70+t*8)%W, 80, 7, 5); /* heart 18 */
-      _a=0.08+0.04*Math.sin(t+19); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((20+t*8)%W, 28, 8, 6); /* curtain 19 */
-      _a=0.08+0.04*Math.sin(t+20); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((67+t*8)%W, 59, 4, 3); /* cheek 20 */
-      _a=0.08+0.04*Math.sin(t+21); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((17+t*8)%W, 90, 5, 4); /* studio 21 */
-      _a=0.08+0.04*Math.sin(t+22); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((64+t*8)%W, 38, 6, 5); /* bulb 22 */
-      _a=0.08+0.04*Math.sin(t+23); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((14+t*8)%W, 69, 7, 6); /* heart 23 */
-      _a=0.08+0.04*Math.sin(t+24); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((61+t*8)%W, 100, 8, 3); /* curtain 24 */
-      _a=0.08+0.04*Math.sin(t+25); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((11+t*8)%W, 48, 4, 4); /* cheek 25 */
-      _a=0.08+0.04*Math.sin(t+26); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((58+t*8)%W, 79, 5, 5); /* studio 26 */
-      _a=0.08+0.04*Math.sin(t+27); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((8+t*8)%W, 27, 6, 6); /* bulb 27 */
-      _a=0.08+0.04*Math.sin(t+28); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((55+t*8)%W, 58, 7, 3); /* heart 28 */
-      _a=0.08+0.04*Math.sin(t+29); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((5+t*8)%W, 89, 8, 4); /* curtain 29 */
-      _a=0.08+0.04*Math.sin(t+30); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((52+t*8)%W, 37, 4, 5); /* cheek 30 */
-      _a=0.08+0.04*Math.sin(t+31); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((2+t*8)%W, 68, 5, 6); /* studio 31 */
-      _a=0.08+0.04*Math.sin(t+32); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((49+t*8)%W, 99, 6, 3); /* bulb 32 */
-      _a=0.08+0.04*Math.sin(t+33); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((96+t*8)%W, 47, 7, 4); /* heart 33 */
-      _a=0.08+0.04*Math.sin(t+34); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((46+t*8)%W, 78, 8, 5); /* curtain 34 */
-      _a=0.08+0.04*Math.sin(t+35); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((93+t*8)%W, 26, 4, 6); /* cheek 35 */
-      _a=0.08+0.04*Math.sin(t+36); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((43+t*8)%W, 57, 5, 3); /* studio 36 */
-      _a=0.08+0.04*Math.sin(t+37); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((90+t*8)%W, 88, 6, 4); /* bulb 37 */
-      _a=0.08+0.04*Math.sin(t+38); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((40+t*8)%W, 36, 7, 5); /* heart 38 */
-      _a=0.08+0.04*Math.sin(t+39); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((87+t*8)%W, 67, 8, 6); /* curtain 39 */
-      _a=0.08+0.04*Math.sin(t+40); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((37+t*8)%W, 98, 4, 3); /* cheek 40 */
-      _a=0.08+0.04*Math.sin(t+41); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((84+t*8)%W, 46, 5, 4); /* studio 41 */
-      _a=0.08+0.04*Math.sin(t+42); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((34+t*8)%W, 77, 6, 5); /* bulb 42 */
-      _a=0.08+0.04*Math.sin(t+43); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((81+t*8)%W, 25, 7, 6); /* heart 43 */
-      _a=0.08+0.04*Math.sin(t+44); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((31+t*8)%W, 56, 8, 3); /* curtain 44 */
-      _a=0.08+0.04*Math.sin(t+45); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((78+t*8)%W, 87, 4, 4); /* cheek 45 */
-      _a=0.08+0.04*Math.sin(t+46); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((28+t*8)%W, 35, 5, 5); /* studio 46 */
-      _a=0.08+0.04*Math.sin(t+47); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((75+t*8)%W, 66, 6, 6); /* bulb 47 */
-      _a=0.08+0.04*Math.sin(t+48); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((25+t*8)%W, 97, 7, 3); /* heart 48 */
-      _a=0.08+0.04*Math.sin(t+49); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((72+t*8)%W, 45, 8, 4); /* curtain 49 */
-      _a=0.08+0.04*Math.sin(t+50); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((22+t*8)%W, 76, 4, 5); /* cheek 50 */
-      _a=0.08+0.04*Math.sin(t+51); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((69+t*8)%W, 24, 5, 6); /* studio 51 */
-      _a=0.08+0.04*Math.sin(t+52); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((19+t*8)%W, 55, 6, 3); /* bulb 52 */
-      _a=0.08+0.04*Math.sin(t+53); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((66+t*8)%W, 86, 7, 4); /* heart 53 */
-      _a=0.08+0.04*Math.sin(t+54); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((16+t*8)%W, 34, 8, 5); /* curtain 54 */
-      _a=0.08+0.04*Math.sin(t+55); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((63+t*8)%W, 65, 4, 6); /* cheek 55 */
-      _a=0.08+0.04*Math.sin(t+56); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((13+t*8)%W, 96, 5, 3); /* studio 56 */
-      _a=0.08+0.04*Math.sin(t+57); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((60+t*8)%W, 44, 6, 4); /* bulb 57 */
-      _a=0.08+0.04*Math.sin(t+58); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((10+t*8)%W, 75, 7, 5); /* heart 58 */
-      _a=0.08+0.04*Math.sin(t+59); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((57+t*8)%W, 23, 8, 6); /* curtain 59 */
-      _a=0.08+0.04*Math.sin(t+60); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((7+t*8)%W, 54, 4, 3); /* cheek 60 */
-      _a=0.08+0.04*Math.sin(t+61); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((54+t*8)%W, 85, 5, 4); /* studio 61 */
-      _a=0.08+0.04*Math.sin(t+62); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((4+t*8)%W, 33, 6, 5); /* bulb 62 */
-      _a=0.08+0.04*Math.sin(t+63); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((51+t*8)%W, 64, 7, 6); /* heart 63 */
-      _a=0.08+0.04*Math.sin(t+64); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((1+t*8)%W, 95, 8, 3); /* curtain 64 */
-      _a=0.08+0.04*Math.sin(t+65); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((48+t*8)%W, 43, 4, 4); /* cheek 65 */
-      _a=0.08+0.04*Math.sin(t+66); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((95+t*8)%W, 74, 5, 5); /* studio 66 */
-      _a=0.08+0.04*Math.sin(t+67); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((45+t*8)%W, 22, 6, 6); /* bulb 67 */
-      _a=0.08+0.04*Math.sin(t+68); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((92+t*8)%W, 53, 7, 3); /* heart 68 */
-      _a=0.08+0.04*Math.sin(t+69); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((42+t*8)%W, 84, 8, 4); /* curtain 69 */
-      _a=0.08+0.04*Math.sin(t+70); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((89+t*8)%W, 32, 4, 5); /* cheek 70 */
-      _a=0.08+0.04*Math.sin(t+71); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((39+t*8)%W, 63, 5, 6); /* studio 71 */
-      _a=0.08+0.04*Math.sin(t+72); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((86+t*8)%W, 94, 6, 3); /* bulb 72 */
-      _a=0.08+0.04*Math.sin(t+73); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((36+t*8)%W, 42, 7, 4); /* heart 73 */
-      _a=0.08+0.04*Math.sin(t+74); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((83+t*8)%W, 73, 8, 5); /* curtain 74 */
-      _a=0.08+0.04*Math.sin(t+75); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((33+t*8)%W, 21, 4, 6); /* cheek 75 */
-      _a=0.08+0.04*Math.sin(t+76); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((80+t*8)%W, 52, 5, 3); /* studio 76 */
-      _a=0.08+0.04*Math.sin(t+77); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((30+t*8)%W, 83, 6, 4); /* bulb 77 */
-      _a=0.08+0.04*Math.sin(t+78); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((77+t*8)%W, 31, 7, 5); /* heart 78 */
-      _a=0.08+0.04*Math.sin(t+79); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((27+t*8)%W, 62, 8, 6); /* curtain 79 */
-      _a=0.08+0.04*Math.sin(t+80); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((74+t*8)%W, 93, 4, 3); /* cheek 80 */
-      _a=0.08+0.04*Math.sin(t+81); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((24+t*8)%W, 41, 5, 4); /* studio 81 */
-      _a=0.08+0.04*Math.sin(t+82); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((71+t*8)%W, 72, 6, 5); /* bulb 82 */
-      _a=0.08+0.04*Math.sin(t+83); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((21+t*8)%W, 20, 7, 6); /* heart 83 */
-      _a=0.08+0.04*Math.sin(t+84); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((68+t*8)%W, 51, 8, 3); /* curtain 84 */
-      _a=0.08+0.04*Math.sin(t+85); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((18+t*8)%W, 82, 4, 4); /* cheek 85 */
-      _a=0.08+0.04*Math.sin(t+86); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((65+t*8)%W, 30, 5, 5); /* studio 86 */
-      _a=0.08+0.04*Math.sin(t+87); x.fillStyle='#fde68a'; x.globalAlpha=_a;
-      x.fillRect((15+t*8)%W, 61, 6, 6); /* bulb 87 */
-      _a=0.08+0.04*Math.sin(t+88); x.fillStyle='#fb7185'; x.globalAlpha=_a;
-      x.fillRect((62+t*8)%W, 92, 7, 3); /* heart 88 */
-      _a=0.08+0.04*Math.sin(t+89); x.fillStyle='#7c3aed'; x.globalAlpha=_a;
-      x.fillRect((12+t*8)%W, 40, 8, 4); /* curtain 89 */
-      x.globalAlpha=1;
+    function paintPreview(c, dancing) {
+      var ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+      var g = ctx.createLinearGradient(0, 0, 0, c.height);
+      g.addColorStop(0, "#5b21b6"); g.addColorStop(1, "#1e1b4b");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
+      drawPal(ctx, m, 80, 78, 0.7, 0.4, !!dancing, !dancing);
     }
 
     function loop(now) {
       if (!last) last = now;
       var dt = Math.min(0.033, (now - last) / 1000);
       last = now;
-      update(dt); if(typeof flavorUpdate==='function') flavorUpdate(dt); draw(); if(typeof flavorDraw==='function') flavorDraw(); if(typeof extraWorld==='function') extraWorld();
+      update(dt);
+      draw();
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
+    paintPreview(document.getElementById("titleArt"), true);
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
   })();
   </script>
 </body>
 </html>
+<!-- 0 -->

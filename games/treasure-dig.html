@@ -15,8 +15,8 @@
     #say{position:fixed;left:10px;right:10px;bottom:110px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
     #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:8px;padding:10px 12px 16px;background:#431407}
     #dock.on{display:flex}
-    #dock button{flex:1;height:76px;border-radius:16px;background:#fde047;color:#422006;font-weight:800;font-size:18px}
-    #dock button.on{outline:3px solid #fff}
+    #dock button{flex:1;height:80px;border-radius:16px;background:#fde047;color:#422006;font-weight:800;font-size:18px}
+    #dock button.on{outline:4px solid #fff}
     .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#b45309,#1c1917)}
     .cover.off{display:none}
     h1{font-size:clamp(32px,8vw,50px)}
@@ -25,8 +25,8 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="cv">Beach cave</b><b id="fd">💎 0</b><b id="st">⭐ 0</b></div>
-  <div id="say">Tap a mound. Lantern finds gold!</div>
+  <div id="hud"><b id="cv">Beach cave</b><b id="fd">Find 0</b><b id="st">⭐ 0</b></div>
+  <div id="say">Tap a dirt pile. Dig, brush, glow!</div>
   <div id="dock">
     <button id="dig" class="on">Dig</button>
     <button id="lamp">Lantern</button>
@@ -34,7 +34,7 @@
   </div>
   <div class="cover" id="title">
     <h1>Treasure Dig</h1>
-    <p>3D cave. Soft lantern.<br>Dig, brush, open the chest.</p>
+    <p>Walk. Crouch. Scoop.<br>Brush bones. Open the chest.</p>
     <button class="btn" id="go">Dig</button>
   </div>
   <div class="cover off" id="win">
@@ -47,83 +47,226 @@
     if (!window.THREE) return;
     var T = THREE, play = false, caveI = 0, found = 0, stars = 0, tool = "dig", t = 0, lampOn = 0;
     var CAVES = [
-      { n: "Beach cave", need: 4, verb: "dig" },
-      { n: "Crystal hall", need: 5, verb: "glow" },
-      { n: "Night dig", need: 5, verb: "lamp", night: 1 },
-      { n: "Brush room", need: 6, verb: "brush" },
-      { n: "Home vault", need: 4, verb: "chest" }
+      { n: "Beach cave", need: 4, night: 0, floor: 0xc4a35a, wall: 0x78716c },
+      { n: "Crystal hall", need: 5, night: 0, floor: 0x64748b, wall: 0x334155 },
+      { n: "Night dig", need: 5, night: 1, floor: 0x44403c, wall: 0x1c1917 },
+      { n: "Brush room", need: 5, night: 0, floor: 0xa16207, wall: 0x57534e },
+      { n: "Home vault", need: 4, night: 0, floor: 0xb45309, wall: 0x7c2d12 }
     ];
+    var KINDS = ["coin", "shell", "crystal", "chest", "fossil"];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dig") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
 
     var scene = new T.Scene();
-    var cam = new T.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 60);
-    cam.position.set(0, 3.2, 7.2);
+    var cam = new T.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 60);
+    cam.position.set(0, 4.4, 8.2);
     var renderer = new T.WebGLRenderer({ antialias: true });
     renderer.setSize(innerWidth, innerHeight);
     renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
     document.body.appendChild(renderer.domElement);
-    var amb = new T.AmbientLight(0x3f2a14, 0.45); scene.add(amb);
-    var sun = new T.DirectionalLight(0xffe8b0, 0.55); sun.position.set(3, 8, 4); scene.add(sun);
-    var lantern = new T.PointLight(0xfde047, 0.4, 7); lantern.position.set(0, 2, 2); scene.add(lantern);
+    var amb = new T.AmbientLight(0x3f2a14, 0.5); scene.add(amb);
+    var sun = new T.DirectionalLight(0xffe8b0, 0.7); sun.position.set(3, 8, 4); scene.add(sun);
+    var lantern = new T.PointLight(0xfde047, 0.35, 8); lantern.position.set(0, 2, 2); scene.add(lantern);
 
-    var floor = new T.Mesh(new T.PlaneGeometry(16, 16), new T.MeshLambertMaterial({ color: 0xa16207 }));
+    var floor = new T.Mesh(new T.CircleGeometry(7.4, 28), new T.MeshLambertMaterial({ color: 0xc4a35a }));
     floor.rotation.x = -Math.PI / 2; scene.add(floor);
-    var walls = new T.Mesh(new T.CylinderGeometry(7, 7, 5, 16, 1, true), new T.MeshLambertMaterial({ color: 0x44403c, side: T.BackSide }));
-    walls.position.y = 2.4; scene.add(walls);
+    var walls = new T.Mesh(new T.CylinderGeometry(7.4, 7.4, 5.2, 20, 1, true), new T.MeshLambertMaterial({ color: 0x78716c, side: T.BackSide }));
+    walls.position.y = 2.5; scene.add(walls);
+    var rim = new T.Mesh(new T.TorusGeometry(7.35, 0.18, 6, 24), new T.MeshLambertMaterial({ color: 0x44403c }));
+    rim.rotation.x = Math.PI / 2; rim.position.y = 0.04; scene.add(rim);
 
-    var kid = new T.Group();
-    var body = new T.Mesh(new T.SphereGeometry(0.2, 10, 8), new T.MeshLambertMaterial({ color: 0xf97316 }));
-    body.position.y = 0.7; kid.add(body);
-    var head = new T.Mesh(new T.SphereGeometry(0.14, 8, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-    head.position.y = 1.02; kid.add(head);
-    var lampMesh = new T.Mesh(new T.SphereGeometry(0.09, 8, 8), new T.MeshBasicMaterial({ color: 0xfde047 }));
-    lampMesh.position.set(0.28, 0.72, 0.1); kid.add(lampMesh);
-    var legs = [];
-    for (var s = -1; s <= 1; s += 2) {
-      var hip = new T.Group(); hip.position.set(s * 0.08, 0.42, 0);
-      var th = new T.Mesh(new T.BoxGeometry(0.08, 0.26, 0.08), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
-      th.position.y = -0.12; hip.add(th);
-      kid.add(hip); legs.push(hip);
+    function mat(c, e) { return new T.MeshLambertMaterial({ color: c, emissive: e || 0x000000 }); }
+
+    function makeKid() {
+      var g = new T.Group();
+      var shirt = new T.Mesh(new T.SphereGeometry(0.2, 10, 8), mat(0xf97316));
+      shirt.scale.set(1, 1.2, 0.85); shirt.position.y = 0.72; g.add(shirt);
+      var head = new T.Group(); head.position.y = 1.08; g.add(head);
+      var skull = new T.Mesh(new T.SphereGeometry(0.15, 10, 8), mat(0xffe0b0)); head.add(skull);
+      var hair = new T.Mesh(new T.SphereGeometry(0.16, 8, 6), mat(0x5a3a22));
+      hair.position.set(0, 0.08, -0.02); head.add(hair);
+      var bang = new T.Mesh(new T.SphereGeometry(0.07, 6, 5), mat(0x7c4a2a));
+      bang.position.set(0.04, 0.1, 0.1); head.add(bang);
+      var eyeL = new T.Mesh(new T.SphereGeometry(0.022, 6, 5), mat(0x1e293b));
+      eyeL.position.set(0.05, 0.02, 0.13); head.add(eyeL);
+      var eyeR = eyeL.clone(); eyeR.position.x = -0.05; head.add(eyeR);
+      var arms = [];
+      for (var s = -1; s <= 1; s += 2) {
+        var sh = new T.Group(); sh.position.set(s * 0.2, 0.82, 0);
+        var arm = new T.Mesh(new T.CylinderGeometry(0.035, 0.04, 0.28, 7), mat(0xffe0b0));
+        arm.position.y = -0.12; sh.add(arm);
+        var hand = new T.Mesh(new T.SphereGeometry(0.045, 6, 5), mat(0xffe0b0));
+        hand.position.y = -0.26; sh.add(hand);
+        g.add(sh); arms.push(sh);
+      }
+      var shovel = new T.Group();
+      var shaft = new T.Mesh(new T.CylinderGeometry(0.02, 0.022, 0.55, 6), mat(0x92400e));
+      shaft.position.y = 0.12; shovel.add(shaft);
+      var blade = new T.Mesh(new T.BoxGeometry(0.16, 0.04, 0.18), mat(0x94a3b8));
+      blade.position.set(0, -0.16, 0.04); shovel.add(blade);
+      shovel.position.set(0, -0.18, 0.04);
+      arms[1].add(shovel);
+      var brush = new T.Group();
+      var hdl = new T.Mesh(new T.CylinderGeometry(0.018, 0.02, 0.28, 6), mat(0xb45309));
+      brush.add(hdl);
+      var bris = new T.Mesh(new T.BoxGeometry(0.1, 0.08, 0.06), mat(0xfde68a));
+      bris.position.y = -0.16; brush.add(bris);
+      brush.visible = false; brush.position.set(0, -0.2, 0.02);
+      arms[1].add(brush);
+      var lampH = new T.Group();
+      var cage = new T.Mesh(new T.CylinderGeometry(0.05, 0.06, 0.12, 8), mat(0xb45309));
+      lampH.add(cage);
+      var glow = new T.Mesh(new T.SphereGeometry(0.055, 8, 6), new T.MeshBasicMaterial({ color: 0xfde047 }));
+      glow.position.y = 0.02; lampH.add(glow);
+      lampH.position.set(0, -0.28, 0.02); lampH.visible = false;
+      arms[0].add(lampH);
+      var legs = [];
+      for (s = -1; s <= 1; s += 2) {
+        var hip = new T.Group(); hip.position.set(s * 0.08, 0.48, 0);
+        var thigh = new T.Mesh(new T.BoxGeometry(0.09, 0.26, 0.09), mat(0x1d4ed8));
+        thigh.position.y = -0.12; hip.add(thigh);
+        var foot = new T.Mesh(new T.BoxGeometry(0.1, 0.06, 0.16), mat(0x7c2d12));
+        foot.position.set(0, -0.28, 0.03); hip.add(foot);
+        g.add(hip); legs.push(hip);
+      }
+      g.userData = { shirt: shirt, head: head, arms: arms, legs: legs, shovel: shovel, brush: brush, lampH: lampH, pose: "idle", poseT: 0, target: null };
+      return g;
     }
-    kid.position.set(0, 0, 2.4); scene.add(kid);
+    var kid = makeKid();
+    kid.position.set(0, 0, 3.1);
+    scene.add(kid);
+
+    function makeTreasure(kind) {
+      var g = new T.Group();
+      if (kind === "coin") {
+        for (var i = 0; i < 3; i++) {
+          var c = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 0.03, 12), mat(0xfacc15, 0x4a3b00));
+          c.rotation.x = Math.PI / 2; c.position.set((i - 1) * 0.04, 0.08 + i * 0.03, i * 0.02); g.add(c);
+        }
+      } else if (kind === "shell") {
+        var sh = new T.Mesh(new T.SphereGeometry(0.14, 8, 6), mat(0xfdba74));
+        sh.scale.set(1.2, 0.55, 1); sh.position.y = 0.08; g.add(sh);
+        var lip = new T.Mesh(new T.TorusGeometry(0.1, 0.025, 6, 10, 2.4), mat(0xfef3c7));
+        lip.position.set(0.02, 0.1, 0.04); g.add(lip);
+      } else if (kind === "crystal") {
+        var cols = [0x38bdf8, 0xa78bfa, 0xf0abfc];
+        for (i = 0; i < 3; i++) {
+          var cr = new T.Mesh(new T.ConeGeometry(0.06, 0.28 + i * 0.04, 5), mat(cols[i], 0x1e3a5f));
+          cr.position.set((i - 1) * 0.07, 0.16, (i % 2) * 0.04); g.add(cr);
+        }
+      } else if (kind === "chest") {
+        var box = new T.Mesh(new T.BoxGeometry(0.28, 0.16, 0.2), mat(0xb45309));
+        box.position.y = 0.1; g.add(box);
+        var lid = new T.Mesh(new T.BoxGeometry(0.3, 0.06, 0.22), mat(0xf59e0b));
+        lid.position.y = 0.2; g.add(lid);
+        var lock = new T.Mesh(new T.SphereGeometry(0.03, 6, 5), mat(0xfde047));
+        lock.position.set(0, 0.14, 0.11); g.add(lock);
+      } else {
+        var bone = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.28, 6), mat(0xf5f5f4));
+        bone.rotation.z = 0.7; bone.position.y = 0.1; g.add(bone);
+        var kn1 = new T.Mesh(new T.SphereGeometry(0.05, 6, 5), mat(0xe7e5e4));
+        kn1.position.set(0.12, 0.18, 0); g.add(kn1);
+        var kn2 = kn1.clone(); kn2.position.set(-0.12, 0.02, 0); g.add(kn2);
+      }
+      g.visible = false;
+      return g;
+    }
+
+    function makeMound(kind) {
+      var g = new T.Group();
+      var dirt = new T.Group();
+      var browns = [0x92400e, 0x7c2d12, 0xb45309, 0x78350f];
+      for (var i = 0; i < 7; i++) {
+        var cl = new T.Mesh(new T.SphereGeometry(0.16 + (i % 3) * 0.04, 8, 6), mat(browns[i % 4]));
+        cl.position.set((i % 3 - 1) * 0.16, 0.12 + (i % 2) * 0.08, (Math.floor(i / 3) - 0.6) * 0.14);
+        cl.scale.set(1.15, 0.7, 1.05); dirt.add(cl);
+      }
+      var peb = new T.Mesh(new T.IcosahedronGeometry(0.07, 0), mat(0x78716c));
+      peb.position.set(0.18, 0.22, 0.08); dirt.add(peb);
+      g.add(dirt);
+      var loot = makeTreasure(kind);
+      loot.position.y = 0.08; g.add(loot);
+      var hit = new T.Mesh(new T.SphereGeometry(0.42, 8, 6), new T.MeshBasicMaterial({ visible: false }));
+      hit.position.y = 0.2; hit.userData.hit = 1; g.add(hit);
+      g.userData = { dirt: dirt, loot: loot, kind: kind, hits: 0, done: 0, dust: 1 };
+      return g;
+    }
 
     var mounds = [];
-    var chest = new T.Group();
-    var cbox = new T.Mesh(new T.BoxGeometry(0.8, 0.45, 0.5), new T.MeshLambertMaterial({ color: 0xb45309 }));
-    cbox.position.y = 0.25; chest.add(cbox);
-    var lid = new T.Mesh(new T.BoxGeometry(0.82, 0.14, 0.52), new T.MeshLambertMaterial({ color: 0xf59e0b }));
-    lid.position.set(0, 0.52, 0); chest.add(lid);
-    chest.position.set(0, 0, -2.2); chest.visible = false; scene.add(chest);
+    var vault = new T.Group();
+    var vbox = new T.Mesh(new T.BoxGeometry(0.95, 0.55, 0.62), mat(0xb45309));
+    vbox.position.y = 0.28; vault.add(vbox);
+    var vlid = new T.Mesh(new T.BoxGeometry(0.98, 0.16, 0.66), mat(0xf59e0b));
+    vlid.position.set(0, 0.6, 0); vault.add(vlid);
+    var band = new T.Mesh(new T.BoxGeometry(1, 0.08, 0.08), mat(0xfde047));
+    band.position.set(0, 0.28, 0.32); vault.add(band);
+    vault.position.set(0, 0, -2.4); vault.visible = false; scene.add(vault);
+
+    var dust = [];
+    function puff(x, z, n) {
+      for (var i = 0; i < n; i++) {
+        var m = new T.Mesh(new T.SphereGeometry(0.05, 5, 4), mat(0xa16207));
+        m.position.set(x + (Math.random() - 0.5) * 0.3, 0.12, z + (Math.random() - 0.5) * 0.3);
+        m.userData = { vx: (Math.random() - 0.5) * 1.4, vy: 1.2 + Math.random(), vz: (Math.random() - 0.5) * 1.2, life: 0.4 };
+        scene.add(m); dust.push(m);
+      }
+    }
 
     function beep(f, d) {
       try {
         var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.frequency.value = f; g.gain.value = 0.09; o.connect(g); g.connect(ac.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
+        var o = ac.createOscillator(), gn = ac.createGain();
+        o.frequency.value = f; gn.gain.value = 0.09; o.connect(gn); gn.connect(ac.destination);
+        o.start(); gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
       } catch (e) {}
     }
     function save() { try { localStorage.setItem("alabryuu-dig", JSON.stringify({ stars: stars })); } catch (e) {} }
 
     function spawn() {
       mounds.forEach(function (m) { scene.remove(m); });
-      mounds = []; found = 0; chest.visible = false; lid.rotation.x = 0;
+      mounds = []; found = 0; vault.visible = false; vlid.rotation.x = 0;
       var cv = CAVES[caveI];
       scene.background = new T.Color(cv.night ? 0x0b1020 : 0x44403c);
-      amb.intensity = cv.night ? 0.15 : 0.5;
+      amb.intensity = cv.night ? 0.12 : 0.55;
+      sun.intensity = cv.night ? 0.15 : 0.7;
+      floor.material.color.setHex(cv.floor);
+      walls.material.color.setHex(cv.wall);
+      var spots = [[-1.8, 0.2], [0, 0.6], [1.8, 0.1], [-1.1, -1.3], [1.2, -1.2], [0.1, -2.0], [-0.2, 1.8]];
       for (var i = 0; i < cv.need + 2; i++) {
-        var g = new T.Group();
-        var dirt = new T.Mesh(new T.SphereGeometry(0.38, 10, 8), new T.MeshLambertMaterial({ color: 0x92400e }));
-        dirt.scale.set(1.2, 0.7, 1.1); dirt.position.y = 0.18; g.add(dirt);
-        var gem = new T.Mesh(new T.OctahedronGeometry(0.12, 0), new T.MeshLambertMaterial({ color: [0x38bdf8, 0xf472b6, 0xfde047][i % 3] }));
-        gem.position.y = 0.16; gem.visible = false; g.add(gem);
-        g.position.set((i % 3 - 1) * 1.8, 0, (Math.floor(i / 3) - 1) * 1.6);
-        g.userData = { hits: 0, gem: gem, dirt: dirt, done: 0 };
-        scene.add(g); mounds.push(g);
+        var m = makeMound(KINDS[i % KINDS.length]);
+        var sp = spots[i % spots.length];
+        m.position.set(sp[0] + (i > 6 ? 0.4 : 0), 0, sp[1]);
+        scene.add(m); mounds.push(m);
       }
+      kid.position.set(0, 0, 3.1);
+      kid.userData.pose = "idle"; kid.userData.target = null;
       document.getElementById("cv").textContent = cv.n;
-      document.getElementById("fd").textContent = "Gems 0/" + cv.need;
-      document.getElementById("say").textContent = ["Tap to dig!", "Crystals wink!", "Hold the lamp!", "Brush the last dirt!", "Open the chest!"][caveI];
+      document.getElementById("fd").textContent = "Find 0/" + cv.need;
+      document.getElementById("st").textContent = "⭐ " + stars;
+      document.getElementById("say").textContent = ["Tap dirt. Scoop!", "Crystals wink!", "Hold the lamp!", "Brush the bone!", "Open the big chest!"][caveI];
+    }
+
+    function startDig(mound) {
+      if (!play || mound.userData.done) return;
+      var u = kid.userData;
+      if (u.pose !== "idle" && u.pose !== "walk") return;
+      u.target = mound;
+      u.pose = "walk";
+      u.poseT = 0;
+      kid.lookAt(mound.position.x, kid.position.y, mound.position.z);
+    }
+
+    function finishMound(m) {
+      m.userData.done = 1;
+      m.userData.dirt.visible = false;
+      m.userData.loot.visible = true;
+      found++; stars++; save();
+      beep(720, 0.08);
+      document.getElementById("fd").textContent = "Find " + found + "/" + CAVES[caveI].need;
+      document.getElementById("st").textContent = "⭐ " + stars;
+      if (found >= CAVES[caveI].need) {
+        vault.visible = true;
+        document.getElementById("say").textContent = "Tap the big chest!";
+      }
     }
 
     var ray = new T.Raycaster(), mouse = new T.Vector2();
@@ -132,8 +275,8 @@
       mouse.x = (ev.clientX / innerWidth) * 2 - 1;
       mouse.y = -(ev.clientY / innerHeight) * 2 + 1;
       ray.setFromCamera(mouse, cam);
-      if (chest.visible && ray.intersectObject(cbox, false).length) {
-        lid.rotation.x = -1.1; stars += 2; save(); beep(880, 0.12);
+      if (vault.visible && ray.intersectObject(vbox, false).length) {
+        vlid.rotation.x = -1.15; stars += 2; save(); beep(880, 0.12);
         caveI++;
         if (caveI >= CAVES.length) {
           play = false;
@@ -145,25 +288,9 @@
       }
       var hits = ray.intersectObjects(mounds, true);
       if (!hits.length) return;
-      var g = hits[0].object.parent;
-      if (!g.userData || g.userData.done) return;
-      var needHits = tool === "brush" ? 1 : 2;
-      g.userData.hits++;
-      g.userData.dirt.scale.y *= 0.75;
-      kid.position.x += (g.position.x - kid.position.x) * 0.6;
-      kid.position.z += (g.position.z + 1.1 - kid.position.z) * 0.6;
-      beep(420, 0.05);
-      if (g.userData.hits >= needHits) {
-        g.userData.done = 1;
-        g.userData.dirt.visible = false;
-        g.userData.gem.visible = true;
-        found++; stars++; save();
-        document.getElementById("fd").textContent = "Gems " + found + "/" + CAVES[caveI].need;
-        if (found >= CAVES[caveI].need) {
-          chest.visible = true;
-          document.getElementById("say").textContent = "Tap the chest!";
-        }
-      }
+      var obj = hits[0].object;
+      while (obj && !obj.userData.dirt) obj = obj.parent;
+      if (obj) startDig(obj);
     });
 
     function setTool(n) {
@@ -171,7 +298,10 @@
       document.getElementById("dig").classList.toggle("on", n === "dig");
       document.getElementById("lamp").classList.toggle("on", n === "lamp");
       document.getElementById("brush").classList.toggle("on", n === "brush");
-      if (n === "lamp") { lampOn = 1; lantern.intensity = 1.6; }
+      kid.userData.shovel.visible = n === "dig";
+      kid.userData.brush.visible = n === "brush";
+      kid.userData.lampH.visible = n === "lamp" || !!(CAVES[caveI] && CAVES[caveI].night);
+      if (n === "lamp") lampOn = 1;
     }
     document.getElementById("dig").onclick = function () { setTool("dig"); };
     document.getElementById("lamp").onclick = function () { setTool("lamp"); };
@@ -191,15 +321,91 @@
     function tick() {
       var dt = Math.min(0.033, clock.getDelta());
       t += dt;
-      legs.forEach(function (hip, i) { hip.rotation.x = Math.sin(t * 7 + i * 3) * 0.55; });
-      lampMesh.visible = lampOn || !!CAVES[caveI].night;
-      lantern.position.copy(kid.position); lantern.position.y = 1.1;
-      lantern.intensity += ((lampOn || CAVES[caveI].night ? 1.4 : 0.35) - lantern.intensity) * 0.08;
+      var u = kid.userData;
+      var night = CAVES[caveI] && CAVES[caveI].night;
+      u.lampH.visible = lampOn || night;
+      lantern.position.copy(kid.position); lantern.position.y = 1.15;
+      lantern.intensity += (((lampOn || night) ? 1.7 : 0.28) - lantern.intensity) * 0.1;
+
+      if (u.pose === "walk" && u.target) {
+        var tx = u.target.position.x, tz = u.target.position.z + 0.95;
+        var dx = tx - kid.position.x, dz = tz - kid.position.z;
+        var dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist > 0.08) {
+          kid.position.x += dx / dist * dt * 2.4;
+          kid.position.z += dz / dist * dt * 2.4;
+          kid.rotation.y = Math.atan2(dx, dz);
+          var step = Math.sin(t * 14);
+          u.legs[0].rotation.x = step * 0.85;
+          u.legs[1].rotation.x = -step * 0.85;
+          u.arms[0].rotation.x = -step * 0.5;
+          u.arms[1].rotation.x = step * 0.5;
+        } else {
+          u.pose = tool === "brush" ? "brush" : "crouch";
+          u.poseT = 0;
+        }
+      } else if (u.pose === "crouch") {
+        u.poseT += dt;
+        var k = Math.min(1, u.poseT / 0.22);
+        u.shirt.scale.y = 1.2 - k * 0.28;
+        u.shirt.position.y = 0.72 - k * 0.12;
+        u.head.position.y = 1.08 - k * 0.14;
+        u.legs[0].rotation.x = k * 0.7; u.legs[1].rotation.x = k * 0.55;
+        u.arms[1].rotation.x = -0.2 - k * 0.9;
+        if (u.poseT > 0.22) { u.pose = "scoop"; u.poseT = 0; }
+      } else if (u.pose === "scoop") {
+        u.poseT += dt;
+        var s = Math.sin(Math.min(1, u.poseT / 0.28) * Math.PI);
+        u.arms[1].rotation.x = -1.1 + s * 1.3;
+        u.arms[1].rotation.z = -s * 0.4;
+        if (u.poseT > 0.14 && u.poseT < 0.18 && u.target) puff(u.target.position.x, u.target.position.z, 5);
+        if (u.poseT > 0.32) { u.pose = "stand"; u.poseT = 0; }
+      } else if (u.pose === "brush") {
+        u.poseT += dt;
+        u.arms[1].rotation.z = Math.sin(u.poseT * 18) * 0.7;
+        u.arms[1].rotation.x = -0.5;
+        u.shirt.scale.y = 1.05;
+        if (u.poseT > 0.45) { u.pose = "stand"; u.poseT = 0; }
+      } else if (u.pose === "stand") {
+        u.poseT += dt;
+        var up = Math.min(1, u.poseT / 0.18);
+        u.shirt.scale.y = 0.92 + up * 0.28;
+        u.shirt.position.y = 0.6 + up * 0.12;
+        u.head.position.y = 0.94 + up * 0.14;
+        u.legs[0].rotation.x *= 0.7; u.legs[1].rotation.x *= 0.7;
+        u.arms[1].rotation.x *= 0.7; u.arms[1].rotation.z *= 0.7;
+        if (u.poseT > 0.18) {
+          if (u.target && !u.target.userData.done) {
+            u.target.userData.hits++;
+            u.target.userData.dirt.scale.y *= 0.62;
+            u.target.userData.dirt.position.y -= 0.04;
+            var need = tool === "brush" || tool === "lamp" ? 1 : 2;
+            if (u.target.userData.hits >= need) finishMound(u.target);
+          }
+          u.pose = "idle"; u.target = null;
+          u.shirt.scale.y = 1.2; u.shirt.position.y = 0.72; u.head.position.y = 1.08;
+        }
+      } else {
+        u.legs[0].rotation.x = Math.sin(t * 3) * 0.08;
+        u.legs[1].rotation.x = -Math.sin(t * 3) * 0.08;
+        u.arms[0].rotation.x = Math.sin(t * 2) * 0.12;
+        u.arms[1].rotation.x = 0.15;
+      }
+
       mounds.forEach(function (m) {
-        if (m.userData.gem.visible) m.userData.gem.rotation.y += dt * 2;
+        if (m.userData.loot.visible) m.userData.loot.rotation.y += dt * 1.6;
       });
-      cam.position.x = Math.sin(t * 0.2) * 0.4;
-      cam.lookAt(0, 0.4, 0);
+      for (var i = dust.length - 1; i >= 0; i--) {
+        var d = dust[i];
+        d.userData.life -= dt;
+        d.position.x += d.userData.vx * dt;
+        d.position.y += d.userData.vy * dt;
+        d.position.z += d.userData.vz * dt;
+        d.userData.vy -= 4 * dt;
+        if (d.userData.life <= 0) { scene.remove(d); dust.splice(i, 1); }
+      }
+      cam.position.x = Math.sin(t * 0.18) * 0.35;
+      cam.lookAt(0, 0.5, 0);
       renderer.render(scene, cam);
       requestAnimationFrame(tick);
     }

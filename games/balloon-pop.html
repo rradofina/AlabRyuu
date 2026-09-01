@@ -8,455 +8,362 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%; overflow: hidden;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: #7c3aed; color: #fff; touch-action: none; user-select: none;
+      font-family: "Trebuchet MS", system-ui, sans-serif;
+      background: #5b21b6; color: #fff7ed;
+      touch-action: none; user-select: none;
     }
     button {
       background: transparent; border: 0; appearance: none;
       -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
     }
     .home {
-      position: fixed; top: 12px; left: 12px; z-index: 12;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.25); padding: 8px 14px; border-radius: 999px;
+      position: fixed; top: 10px; left: 10px; z-index: 20;
+      color: #3b0764; text-decoration: none; font-weight: 800; font-size: 16px;
+      background: #fde047; padding: 8px 14px; border-radius: 999px;
+      box-shadow: 0 4px 0 #ca8a04;
     }
     canvas { display: block; width: 100%; height: 100%; }
-    #hud {
-      position: fixed; top: 12px; right: 12px; z-index: 12;
-      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
-      pointer-events: none;
+    .banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+      display: flex; justify-content: center; pointer-events: none;
     }
-    #hud span {
-      font-weight: 800; background: rgba(76,29,149,.72); padding: 6px 12px;
-      border-radius: 16px; font-size: 15px; border: 2px solid #fde68a;
+    .banner .inner {
+      margin-top: 8px; background: #7c3aed; border: 4px solid #fde047;
+      border-radius: 0 0 22px 22px; padding: 8px 22px 10px;
+      box-shadow: 0 6px 0 #4c1d95; text-align: center; min-width: 200px;
     }
-    #ask {
-      position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
-      z-index: 8; font-weight: 800; font-size: 22px;
-      background: #fff; color: #3b0764; padding: 10px 22px; border-radius: 999px;
-      box-shadow: 0 6px 0 #c4b5fd; pointer-events: none; min-width: 180px; text-align: center;
+    .banner .wave { font-weight: 800; font-size: 18px; color: #fde047; }
+    .banner .pops { font-weight: 800; font-size: 14px; color: #fff; }
+    .ask {
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+      z-index: 12; display: flex; align-items: center; gap: 10px;
+      background: #fff; color: #3b0764; padding: 10px 18px; border-radius: 999px;
+      box-shadow: 0 6px 0 #c4b5fd; pointer-events: none; font-weight: 800; font-size: 22px;
     }
-    #say {
-      position: fixed; left: 50%; top: 70px; transform: translateX(-50%);
-      z-index: 8; font-weight: 800; font-size: 20px; text-shadow: 0 3px 0 #5b21b6;
-      pointer-events: none; width: 90%; text-align: center;
+    .ask .dot { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #3b0764; flex-shrink: 0; }
+    .starrow { position: fixed; top: 58px; right: 10px; z-index: 12; display: flex; gap: 4px; pointer-events: none; }
+    .starrow b { width: 16px; height: 16px; background: #4c1d95; clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
+    .starrow b.on { background: #fde047; }
+    .hint {
+      position: fixed; left: 10px; right: 10px; top: 70px; z-index: 8;
+      text-align: center; font-weight: 800; font-size: 18px;
+      text-shadow: 0 3px 0 #5b21b6; pointer-events: none;
     }
     .cover {
-      position: fixed; inset: 0; z-index: 10;
+      position: fixed; inset: 0; z-index: 18;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       text-align: center; gap: 12px; padding: 24px;
-      background: linear-gradient(180deg, rgba(124,58,237,.32), rgba(91,33,182,.5));
+      background: linear-gradient(180deg, rgba(124,58,237,.4), rgba(91,33,182,.62));
     }
     .cover.off { display: none; }
-    h1 { font-size: clamp(34px, 9vw, 52px); text-shadow: 0 5px 0 #5b21b6; }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
+    h1 { font-size: clamp(34px, 9vw, 52px); color: #fde047; text-shadow: 0 5px 0 #4c1d95; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 300px; }
     .btn {
-      background: #fde68a; color: #422006; font-weight: 800; font-size: 26px;
+      background: #fde047; color: #422006; font-weight: 800; font-size: 26px;
       padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #ca8a04;
     }
     .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
     .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
-    #ask b { display: inline-block; width: 18px; height: 18px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
-    #hud span em { font-style: normal; color: #fde68a; }
   </style>
 </head>
 <body>
-  <a class="home" href="../index.html">← Home</a>
+  <a class="home" href="../index.html">Home</a>
   <canvas id="c"></canvas>
-  <div id="hud">
-    <span id="wave">Wave 1</span>
-    <span id="got">🎈 0</span>
-    <span id="lives">💛💛💛💛💛💛</span>
-  </div>
-  <div id="say">Pop the color!</div>
-  <div id="ask">Pop RED</div>
+  <div class="banner"><div class="inner"><div class="wave" id="waveName">Parade</div><div class="pops" id="pops">Pops 0</div></div></div>
+  <div class="starrow" id="stars"></div>
+  <div class="hint" id="say">Hold. Aim the pin. Let go!</div>
+  <div class="ask"><span class="dot" id="askDot"></span><span id="askWord">RED</span></div>
   <div class="cover" id="title">
     <h1>Balloon Pop</h1>
-    <p>Tap the color we ask. Balloons bob and sway. Rainbow is always a yes!</p>
-    <button class="btn" id="go">Play</button>
+    <p>Hold to aim the pin. Let go to poke the color we ask!</p>
+    <button class="btn" id="go" type="button">Play</button>
   </div>
   <div class="cover off" id="win">
     <h1>Party yes!</h1>
     <p id="winP">Five waves. Big pops.</p>
-    <button class="btn g" id="again">Play again</button>
+    <button class="btn g" id="again" type="button">Play again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), g = cv.getContext("2d");
-    var W, H, t = 0, last = 0, mode = "title", wave = 0, score = 0, lives = 6;
-    var ask = "red", combo = 0, askT = 0;
-    var balloons = [], bits = [], conf = [], flags = [], stalls = [], birds = [];
-    var clouds = [], kids = [], lanterns = [];
-    var wheel = { a: 0 }, carts = [], dogs = [], notes = [], stars = [];
-    var banner = { x: 0 }, popcorn = [], streamers = [];
+    var W, H, t = 0, last = 0, mode = "title", wave = 0, pops = 0, stars = 0, need = 6;
+    var ask = "red", hold = 0, aim = -1.2, kidX = 0, kidY = 0, pinLen = 170;
+    var balloons = [], bits = [], clouds = [], flags = [];
+    var pokeFlash = 0;
     var COLORS = [
       { k: "red", c: "#ef4444", n: "RED" },
       { k: "blue", c: "#3b82f6", n: "BLUE" },
       { k: "yellow", c: "#facc15", n: "YELLOW" },
       { k: "green", c: "#22c55e", n: "GREEN" },
-      { k: "pink", c: "#f472b6", n: "PINK" },
-      { k: "orange", c: "#fb923c", n: "ORANGE" }
+      { k: "pink", c: "#f472b6", n: "PINK" }
     ];
     var WAVES = [
-      { n: "Parade", wind: 0, rise: 18, mix: 0, rain: 0, need: 7, say: "Tap the asked color." },
-      { n: "Breeze", wind: 28, rise: 22, mix: 0, rain: 0, need: 8, say: "Wind slides them." },
-      { n: "Mix-up", wind: 10, rise: 24, mix: 1, rain: 0, need: 8, say: "Colors swap. Look!" },
-      { n: "Gust", wind: 55, rise: 26, mix: 0, rain: 0, need: 9, say: "Big wind. Hold on!" },
-      { n: "Rainbow", wind: 16, rise: 20, mix: 0, rain: 1, need: 10, say: "Rainbows count too!" }
+      { n: "Parade", wind: 8, rise: 16, need: 6, rain: 0, say: "Hold. Aim. Poke RED." },
+      { n: "Breeze", wind: 28, rise: 20, need: 7, rain: 0, say: "Wind slides them." },
+      { n: "Mix-up", wind: 12, rise: 22, need: 7, rain: 0, say: "Look at the color!" },
+      { n: "Gust", wind: 48, rise: 24, need: 8, rain: 0, say: "Big wind. Aim well." },
+      { n: "Rainbow", wind: 18, rise: 18, need: 8, rain: 1, say: "Rainbow always counts!" }
     ];
 
-    function beep(f, d, typ, vol) {
+    function beep(f, d, typ) {
       try {
         var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
         var o = ac.createOscillator(), a = ac.createGain();
-        o.type = typ || "sine"; o.frequency.value = f; a.gain.value = vol || 0.08;
+        o.type = typ || "square"; o.frequency.value = f; a.gain.value = 0.06;
         o.connect(a); a.connect(ac.destination); o.start();
         a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
         o.stop(ac.currentTime + d);
       } catch (e) {}
     }
-    function chord(ns, d) { for (var i = 0; i < ns.length; i++) beep(ns[i], d, "triangle", 0.045); }
     function say(s) { document.getElementById("say").textContent = s; }
+    function paintStars() {
+      var el = document.getElementById("stars"), html = "", i;
+      for (i = 0; i < 5; i++) html += "<b" + (i < stars ? " class=\"on\"" : "") + "></b>";
+      el.innerHTML = html;
+    }
+    function setAsk(k) {
+      ask = k;
+      var col = COLORS.filter(function (c) { return c.k === k; })[0] || COLORS[0];
+      document.getElementById("askDot").style.background = col.c;
+      document.getElementById("askWord").textContent = col.n;
+    }
     function hud() {
-      document.getElementById("wave").textContent = WAVES[Math.min(wave, 4)].n;
-      document.getElementById("got").textContent = "🎈 " + score;
-      var h = ""; for (var i = 0; i < lives; i++) h += "💛";
-      document.getElementById("lives").textContent = h || "…";
-      var col = COLORS.filter(function (c) { return c.k === ask; })[0];
-      document.getElementById("ask").textContent = "Pop " + (col ? col.n : "RAINBOW");
-      document.getElementById("ask").style.color = col ? col.c : "#7c3aed";
+      document.getElementById("waveName").textContent = WAVES[Math.min(wave, 4)].n;
+      document.getElementById("pops").textContent = "Pops " + pops + " / " + need;
+      paintStars();
     }
     function resize() {
       W = cv.width = innerWidth; H = cv.height = innerHeight;
+      kidX = W * 0.5; kidY = H * 0.86;
+      pinLen = Math.min(210, Math.max(140, H * 0.28));
       if (!flags.length) seed();
     }
     function seed() {
-      flags = []; clouds = []; stalls = []; kids = []; lanterns = []; birds = [];
+      flags = []; clouds = [];
       var i;
-      for (i = 0; i < 14; i++) flags.push({ x: i / 13, c: COLORS[i % COLORS.length].c, ph: i * 0.5 });
-      for (i = 0; i < 5; i++) clouds.push({ x: Math.random(), y: 0.08 + Math.random() * 0.14, w: 70 + Math.random() * 70, s: 6 + Math.random() * 8 });
-      for (i = 0; i < 3; i++) stalls.push({ x: 0.15 + i * 0.34, c: COLORS[(i + 2) % COLORS.length].c, name: ["Jam", "Hats", "Pies"][i] });
-      for (i = 0; i < 4; i++) kids.push({ x: 0.1 + i * 0.22, ph: i, shirt: COLORS[i % COLORS.length].c });
-      for (i = 0; i < 6; i++) lanterns.push({ x: 0.1 + i * 0.15, y: 0.22, ph: i * 0.7, c: COLORS[i % COLORS.length].c });
-      for (i = 0; i < 2; i++) birds.push({ x: Math.random(), y: 0.16, s: 28 + Math.random() * 16, ph: i });
-      carts = [
-        { x: 0.22, kind: "candy", bob: 0 },
-        { x: 0.78, kind: "pop", bob: 1 }
-      ];
-      dogs = [{ x: 0.4, ph: 0 }, { x: 0.62, ph: 2 }];
-      streamers = [];
-      for (i = 0; i < 10; i++) streamers.push({ x: Math.random(), y: Math.random() * 0.2, c: COLORS[i % COLORS.length].c, ph: i });
-    }
-    function newAsk() {
-      ask = COLORS[(Math.random() * COLORS.length) | 0].k;
-      askT = 0;
-      hud();
-    }
-    function resetWave() {
-      balloons = []; bits = [];
-      say(WAVES[wave].say);
-      newAsk();
-      for (var i = 0; i < 6; i++) spawnBal(true);
-    }
-    function startGame() {
-      mode = "play"; wave = 0; score = 0; lives = 6; combo = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
-      resetWave();
-      chord([392, 494, 587], 0.16);
-    }
-    function winGame() {
-      mode = "win";
-      document.getElementById("winP").textContent = "You popped " + score + " balloons!";
-      document.getElementById("win").classList.remove("off");
-      for (var i = 0; i < 50; i++) spray(W * 0.5, H * 0.4, COLORS[i % COLORS.length].c);
-      chord([523, 659, 784, 988], 0.3);
-    }
-    function nextWave() {
-      wave++;
-      if (wave >= 5) { winGame(); return; }
-      resetWave();
-      beep(720, 0.12, "triangle", 0.1);
+      for (i = 0; i < 12; i++) flags.push({ x: i / 11, c: COLORS[i % COLORS.length].c, ph: i });
+      for (i = 0; i < 4; i++) clouds.push({ x: Math.random(), y: 0.12 + Math.random() * 0.1, w: 60 + Math.random() * 50, s: 8 });
     }
     function spawnBal(anywhere) {
       var col = COLORS[(Math.random() * COLORS.length) | 0];
-      var rain = WAVES[Math.min(wave, 4)].rain && Math.random() < 0.18;
+      var rain = WAVES[Math.min(wave, 4)].rain && Math.random() < 0.2;
       balloons.push({
-        x: anywhere ? 40 + Math.random() * (W - 80) : 30 + Math.random() * (W - 60),
-        y: anywhere ? 80 + Math.random() * (H * 0.55) : H + 30,
-        r: 26 + Math.random() * 10,
-        col: col.k, hex: col.c,
-        rain: rain,
-        ph: Math.random() * 6,
-        str: 48 + Math.random() * 28,
-        face: (Math.random() * 3) | 0
+        x: anywhere ? 50 + Math.random() * (W - 100) : 40 + Math.random() * (W - 80),
+        y: anywhere ? 90 + Math.random() * (H * 0.4) : H * 0.72,
+        r: 24 + Math.random() * 10, col: col.k, hex: col.c, rain: rain,
+        ph: Math.random() * 6, drift: 0, gone: 0
       });
     }
+    function resetWave() {
+      var w = WAVES[wave];
+      balloons = []; bits = []; pops = 0; need = w.need;
+      setAsk(COLORS[(Math.random() * COLORS.length) | 0].k);
+      say(w.say);
+      var i;
+      for (i = 0; i < 5; i++) spawnBal(true);
+      hud();
+    }
+    function startGame() {
+      mode = "play"; wave = 0; stars = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      resetWave();
+      beep(392, 0.1); beep(523, 0.12);
+    }
+    function nextWave() {
+      stars++;
+      wave++;
+      if (wave >= 5) {
+        mode = "win";
+        document.getElementById("winP").textContent = "You poked the party colors!";
+        document.getElementById("win").classList.remove("off");
+        beep(659, 0.16); beep(784, 0.2);
+        hud();
+        return;
+      }
+      beep(700, 0.1);
+      resetWave();
+    }
     function spray(x, y, c) {
-      for (var i = 0; i < 16; i++) {
+      var i;
+      for (i = 0; i < 14; i++) {
         bits.push({
-          x: x, y: y, vx: (Math.random() - 0.5) * 260, vy: (Math.random() - 0.5) * 260 - 40,
-          life: 0.5 + Math.random() * 0.45, c: c, s: 3 + Math.random() * 5
+          x: x, y: y, vx: (Math.random() - 0.5) * 240, vy: (Math.random() - 0.5) * 220 - 30,
+          life: 0.45 + Math.random() * 0.4, c: c, s: 3 + Math.random() * 4
         });
       }
     }
-    function popBal(b, good) {
-      spray(b.x, b.y, b.rain ? "#a78bfa" : b.hex);
-      if (good) {
-        score += b.rain ? 3 : 1;
-        combo++;
-        beep(520 + combo * 30, 0.08, "triangle", 0.08);
-        if (b.rain) { say("Rainbow yes!"); chord([659, 784, 988], 0.14); }
-        if (combo >= 3 && combo % 3 === 0) say("Nice streak!");
-        if (WAVES[wave].mix) newAsk();
-        else if (Math.random() < 0.45) newAsk();
+    function pinTip() {
+      return { x: kidX + Math.cos(aim) * pinLen, y: kidY - 28 + Math.sin(aim) * pinLen };
+    }
+    function pokeReach() {
+      return Math.max(pinLen + 40, Math.min(W, H) * 0.7);
+    }
+    function poke() {
+      var tip = pinTip(), i, b, dx, dy, hit = -1, sway, bob, k, px, py;
+      pokeFlash = 0.18;
+      beep(880, 0.05, "triangle");
+      var reach = pokeReach();
+      for (i = 0; i < balloons.length; i++) {
+        b = balloons[i];
+        if (b.gone) continue;
+        bob = Math.sin(t * 2.2 + b.ph) * 8;
+        sway = Math.sin(t * 1.4 + b.ph) * 6;
+        for (k = 0.2; k <= 1.05; k += 0.05) {
+          px = kidX + Math.cos(aim) * reach * k;
+          py = kidY - 28 + Math.sin(aim) * reach * k;
+          dx = px - (b.x + sway); dy = py - (b.y + bob);
+          if (dx * dx + dy * dy < (b.r + 40) * (b.r + 40)) { hit = i; k = 99; }
+        }
+        if (hit >= 0) break;
+      }
+      if (hit < 0) { say("Aim again!"); return; }
+      b = balloons[hit];
+      if (b.col === ask || b.rain) {
+        spray(b.x, b.y, b.rain ? "#a78bfa" : b.hex);
+        balloons.splice(hit, 1);
+        pops += b.rain ? 2 : 1;
+        beep(520, 0.08); beep(660, 0.1);
+        say(b.rain ? "Rainbow yes!" : "Pop!");
+        if (Math.random() < 0.5) setAsk(COLORS[(Math.random() * COLORS.length) | 0].k);
         hud();
-        if (score >= WAVES[wave].need) nextWave();
+        if (pops >= need) nextWave();
       } else {
-        combo = 0;
-        lives = Math.max(0, lives - 1);
-        say("Oops. Try " + (COLORS.filter(function (c) { return c.k === ask; })[0] || { n: "that" }).n + "!");
-        beep(180, 0.08, "sine", 0.05);
-        hud();
-        if (lives <= 0) { lives = 6; hud(); say("New hearts!"); }
+        b.gone = 1;
+        b.drift = (b.x < kidX ? -80 : 80);
+        say("It floats away. Try " + (COLORS.filter(function (c) { return c.k === ask; })[0] || { n: "that" }).n + "!");
+        beep(200, 0.08, "sine");
       }
     }
     function drawBalloon(b) {
-      var bob = Math.sin(t * 2.2 + b.ph) * 10;
-      var sway = Math.sin(t * 1.5 + b.ph) * 8 + WAVES[Math.min(wave, 4)].wind * 0.12 * Math.sin(t + b.ph);
+      var bob = Math.sin(t * 2.2 + b.ph) * 8;
+      var sway = Math.sin(t * 1.4 + b.ph) * 6;
       var x = b.x + sway, y = b.y + bob;
-      g.save();
-      g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.5;
-      g.beginPath(); g.moveTo(x, y + b.r);
-      g.quadraticCurveTo(x + Math.sin(t * 2 + b.ph) * 10, y + b.r + b.str * 0.5, x + Math.sin(t + b.ph) * 6, y + b.r + b.str);
+      g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.6;
+      g.beginPath(); g.moveTo(x, y + b.r * 1.12);
+      g.quadraticCurveTo(x + Math.sin(t * 2 + b.ph) * 10, y + b.r + 28, x + Math.sin(t + b.ph) * 6, y + b.r + 46);
       g.stroke();
       if (b.rain) {
-        var rg = ["#ef4444", "#fb923c", "#facc15", "#22c55e", "#3b82f6", "#a78bfa"];
-        for (var i = 0; i < 6; i++) {
+        var rg = ["#ef4444", "#fb923c", "#facc15", "#22c55e", "#3b82f6", "#a78bfa"], i;
+        for (i = 0; i < 6; i++) {
           g.fillStyle = rg[i];
-          g.beginPath(); g.ellipse(x, y, b.r - i * 2.2, b.r * 1.15 - i * 2, 0, 0, Math.PI * 2); g.fill();
+          g.beginPath(); g.ellipse(x, y, b.r - i * 2, b.r * 1.16 - i * 2, 0, 0, Math.PI * 2); g.fill();
         }
       } else {
         g.fillStyle = b.hex;
-        g.beginPath(); g.ellipse(x, y, b.r, b.r * 1.18, 0, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "rgba(255,255,255,.45)";
-        g.beginPath(); g.ellipse(x - b.r * 0.3, y - b.r * 0.35, b.r * 0.22, b.r * 0.32, -0.4, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.ellipse(x, y, b.r, b.r * 1.16, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "rgba(255,255,255,.5)";
+        g.beginPath(); g.ellipse(x - b.r * 0.32, y - b.r * 0.34, b.r * 0.2, b.r * 0.3, -0.4, 0, Math.PI * 2); g.fill();
       }
-      g.fillStyle = b.rain ? "#7c3aed" : b.hex;
-      g.beginPath(); g.moveTo(x - 4, y + b.r * 1.1); g.lineTo(x + 4, y + b.r * 1.1); g.lineTo(x, y + b.r * 1.28); g.fill();
-      var blink = Math.sin(t * 3 + b.ph) > 0.9;
-      g.fillStyle = "#1e1b4b";
-      if (blink) { g.fillRect(x - 8, y - 4, 6, 1.5); g.fillRect(x + 2, y - 4, 6, 1.5); }
-      else {
-        g.beginPath(); g.arc(x - 6, y - 3, 2.2, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.arc(x + 6, y - 3, 2.2, 0, Math.PI * 2); g.fill();
-      }
-      if (b.face === 1) {
-        g.strokeStyle = "#1e1b4b"; g.lineWidth = 1.5;
-        g.beginPath(); g.arc(x, y + 6, 5, 0.15, Math.PI - 0.15); g.stroke();
-      } else if (b.face === 2) {
-        g.fillStyle = "#1e1b4b";
-        g.beginPath(); g.arc(x, y + 7, 3, 0, Math.PI * 2); g.fill();
-      }
-      g.restore();
+      g.fillStyle = b.rain ? "#6d28d9" : b.hex;
+      g.beginPath(); g.moveTo(x - 5, y + b.r * 1.08); g.lineTo(x + 5, y + b.r * 1.08); g.lineTo(x, y + b.r * 1.28); g.fill();
     }
-    function drawBunting() {
-      g.beginPath();
-      g.moveTo(0, 28);
-      var i, f, x, y;
-      g.strokeStyle = "#fde68a"; g.lineWidth = 3;
-      g.beginPath();
-      for (i = 0; i < flags.length; i++) {
-        f = flags[i];
-        x = f.x * W;
-        y = 34 + Math.sin(t * 2 + f.ph) * 6;
-        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-      }
-      g.stroke();
-      for (i = 0; i < flags.length; i++) {
-        f = flags[i];
-        x = f.x * W;
-        y = 34 + Math.sin(t * 2 + f.ph) * 6;
-        g.fillStyle = f.c;
-        g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x + 10, y); g.lineTo(x, y + 22 + Math.sin(t * 3 + f.ph) * 3); g.fill();
-      }
-    }
-    function drawStall(st) {
-      var x = st.x * W, y = H * 0.78;
-      g.fillStyle = "#b45309";
-      g.fillRect(x - 36, y, 72, 28);
-      g.fillStyle = st.c;
-      g.beginPath(); g.moveTo(x - 42, y); g.lineTo(x, y - 26); g.lineTo(x + 42, y); g.fill();
-      g.fillStyle = "#fff7ed";
-      g.font = "bold 11px Trebuchet MS"; g.textAlign = "center";
-      g.fillText(st.name, x, y + 18);
-    }
-    function drawFerris() {
-      var cx = W * 0.88, cy = H * 0.52, r = 52;
-      wheel.a += 0.008;
-      g.strokeStyle = "#fde68a"; g.lineWidth = 3;
-      g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
-      g.beginPath(); g.arc(cx, cy, r * 0.55, 0, Math.PI * 2); g.stroke();
-      var i, a, bx, by;
-      for (i = 0; i < 8; i++) {
-        a = wheel.a + i * Math.PI / 4;
-        bx = cx + Math.cos(a) * r; by = cy + Math.sin(a) * r;
-        g.beginPath(); g.moveTo(cx, cy); g.lineTo(bx, by); g.stroke();
-        g.fillStyle = COLORS[i % COLORS.length].c;
-        g.beginPath(); g.roundRect ? (g.beginPath(), g.arc(bx, by, 7, 0, Math.PI * 2), g.fill()) : (g.beginPath(), g.arc(bx, by, 7, 0, Math.PI * 2), g.fill());
-      }
+    function drawKid() {
+      var tip = pinTip();
+      var shx = kidX + 10, shy = kidY - 48;
+      var hop = hold ? 0 : Math.abs(Math.sin(t * 3)) * 3;
+      var elx = shx + Math.cos(aim) * 22, ely = shy - hop + Math.sin(aim) * 22;
+      var hnx = shx + Math.cos(aim) * 40, hny = shy - hop + Math.sin(aim) * 40;
+      g.fillStyle = "#7c2d12";
+      g.beginPath(); g.ellipse(kidX - 12, kidY + 6, 8, 4, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(kidX + 14, kidY + 6, 8, 4, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#fdba74"; g.lineWidth = 7; g.lineCap = "round";
+      g.beginPath(); g.moveTo(kidX - 8, kidY - 20 - hop); g.lineTo(kidX - 12, kidY + 2); g.stroke();
+      g.beginPath(); g.moveTo(kidX + 8, kidY - 20 - hop); g.lineTo(kidX + 14, kidY + 2); g.stroke();
       g.fillStyle = "#7c3aed";
-      g.beginPath(); g.moveTo(cx - 8, H * 0.76); g.lineTo(cx, cy + 8); g.lineTo(cx + 8, H * 0.76); g.fill();
-    }
-    function drawCart(c) {
-      var x = c.x * W, y = H * 0.74 + Math.sin(t * 2 + c.bob) * 2;
-      g.fillStyle = "#fff7ed";
-      g.fillRect(x - 22, y - 8, 44, 22);
-      g.fillStyle = c.kind === "candy" ? "#f472b6" : "#fde047";
-      g.beginPath(); g.moveTo(x - 26, y - 8); g.lineTo(x, y - 26); g.lineTo(x + 26, y - 8); g.fill();
-      g.fillStyle = "#1e1b4b";
-      g.beginPath(); g.arc(x - 12, y + 16, 6, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(x + 12, y + 16, 6, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#fff";
-      g.font = "bold 10px Trebuchet MS"; g.textAlign = "center";
-      g.fillText(c.kind === "candy" ? "sweet" : "pop", x, y + 6);
-    }
-    function drawDog(d) {
-      var x = d.x * W + Math.sin(t * 1.2 + d.ph) * 20;
-      var y = H * 0.86;
-      g.fillStyle = "#fdba74";
-      g.beginPath(); g.ellipse(x, y, 14, 8, 0, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(x + 12, y - 4, 6, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#1c1917";
-      g.beginPath(); g.arc(x + 14, y - 5, 1.4, 0, Math.PI * 2); g.fill();
-      var wag = Math.sin(t * 10 + d.ph) * 8;
-      g.strokeStyle = "#fdba74"; g.lineWidth = 3;
-      g.beginPath(); g.moveTo(x - 14, y); g.quadraticCurveTo(x - 20, y - 10 + wag, x - 16, y - 4); g.stroke();
-    }
-    function drawTent() {
-      var x = W * 0.5, y = H * 0.68;
-      g.fillStyle = "#ef4444";
-      g.beginPath(); g.moveTo(x - 50, y + 20); g.lineTo(x, y - 40); g.lineTo(x + 50, y + 20); g.fill();
-      g.fillStyle = "#fff";
-      g.beginPath(); g.moveTo(x - 16, y + 20); g.lineTo(x, y - 40); g.lineTo(x + 16, y + 20); g.fill();
+      g.beginPath(); g.roundRect ? (g.roundRect(kidX - 16, kidY - 54 - hop, 32, 38, 10), g.fill()) : g.fillRect(kidX - 16, kidY - 54 - hop, 32, 38);
       g.fillStyle = "#fde047";
-      g.beginPath(); g.arc(x, y - 44, 6, 0, Math.PI * 2); g.fill();
-    }
-    function drawKite() {
-      var x = W * 0.3 + Math.sin(t * 0.6) * 40;
-      var y = H * 0.22 + Math.cos(t * 0.8) * 16;
-      g.strokeStyle = "rgba(255,255,255,.45)"; g.lineWidth = 1;
-      g.beginPath(); g.moveTo(x, y + 12); g.quadraticCurveTo(x + 10, y + 40, x - 6, y + 70); g.stroke();
-      g.fillStyle = "#22d3ee";
-      g.beginPath(); g.moveTo(x, y - 14); g.lineTo(x + 12, y); g.lineTo(x, y + 14); g.lineTo(x - 12, y); g.fill();
-    }
-    function drawBand() {
-      var x = W * 0.12, y = H * 0.7;
-      g.fillStyle = "#fde68a";
-      g.fillRect(x - 20, y, 40, 18);
-      g.fillStyle = "#c4b5fd";
-      g.beginPath(); g.moveTo(x - 24, y); g.lineTo(x, y - 20); g.lineTo(x + 24, y); g.fill();
-      if (Math.random() < 0.03) notes.push({ x: x, y: y - 24, vy: -20, life: 1, ch: Math.random() > 0.5 ? "♪" : "♫" });
-    }
-    function drawKid(k) {
-      var x = k.x * W + Math.sin(t * 1.5 + k.ph) * 14;
-      var y = H * 0.86 + Math.abs(Math.sin(t * 4 + k.ph)) * -6;
-      g.fillStyle = "#fde68a";
-      g.beginPath(); g.arc(x, y - 22, 8, 0, Math.PI * 2); g.fill();
-      g.fillStyle = k.shirt;
-      g.beginPath(); g.roundRect ? (g.roundRect(x - 8, y - 14, 16, 16, 4), g.fill()) : (g.fillRect(x - 8, y - 14, 16, 16));
-      g.strokeStyle = "#422006"; g.lineWidth = 2;
-      g.beginPath(); g.moveTo(x - 5, y + 2); g.lineTo(x - 6, y + 14); g.moveTo(x + 5, y + 2); g.lineTo(x + 7, y + 14); g.stroke();
+      g.fillRect(kidX - 16, kidY - 28 - hop, 32, 6);
+      g.fillStyle = "#fdba74";
+      g.beginPath(); g.arc(kidX, kidY - 66 - hop, 15, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#422006";
+      g.beginPath(); g.ellipse(kidX - 2, kidY - 76 - hop, 15, 7, -0.2, Math.PI, 0.2); g.fill();
+      g.fillStyle = "#1e1b4b";
+      g.beginPath(); g.arc(kidX - 5, kidY - 68 - hop, 2.1, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(kidX + 6, kidY - 68 - hop, 2.1, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#e2e8f0";
+      g.beginPath(); g.arc(kidX, kidY - 62 - hop, 5, 0.2, Math.PI - 0.2); g.stroke();
+      g.strokeStyle = "#fdba74"; g.lineWidth = 7;
+      g.beginPath(); g.moveTo(kidX - 12, shy - hop); g.lineTo(kidX - 28, shy + 10 - hop); g.stroke();
+      g.beginPath(); g.moveTo(shx, shy - hop); g.lineTo(elx, ely); g.lineTo(hnx, hny); g.stroke();
+      g.fillStyle = "#fdba74";
+      g.beginPath(); g.arc(hnx, hny, 6, 0, Math.PI * 2); g.fill();
+      if (hold) {
+        var reach = pokeReach();
+        g.strokeStyle = "rgba(253,224,71,.45)"; g.lineWidth = 3;
+        g.setLineDash([8, 8]);
+        g.beginPath();
+        g.moveTo(tip.x, tip.y);
+        g.lineTo(kidX + Math.cos(aim) * reach, kidY - 28 + Math.sin(aim) * reach);
+        g.stroke();
+        g.setLineDash([]);
+      }
+      g.strokeStyle = "#92400e"; g.lineWidth = 6;
+      g.beginPath(); g.moveTo(hnx, hny); g.lineTo(tip.x, tip.y); g.stroke();
+      g.fillStyle = pokeFlash > 0 ? "#fde047" : "#e2e8f0";
+      g.beginPath();
+      g.moveTo(tip.x, tip.y);
+      g.lineTo(tip.x - Math.cos(aim) * 14 - Math.sin(aim) * 5, tip.y - Math.sin(aim) * 14 + Math.cos(aim) * 5);
+      g.lineTo(tip.x - Math.cos(aim) * 14 + Math.sin(aim) * 5, tip.y - Math.sin(aim) * 14 - Math.cos(aim) * 5);
+      g.closePath(); g.fill();
     }
     function drawBg() {
       var grd = g.createLinearGradient(0, 0, 0, H);
       grd.addColorStop(0, wave === 4 ? "#4c1d95" : "#7dd3fc");
-      grd.addColorStop(0.45, wave === 4 ? "#7c3aed" : "#f9a8d4");
+      grd.addColorStop(0.5, wave === 4 ? "#7c3aed" : "#f9a8d4");
       grd.addColorStop(1, "#86efac");
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
       if (wave !== 4) {
         g.fillStyle = "#fde047";
-        g.beginPath(); g.arc(W * 0.82, H * 0.14, 26, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(W * 0.84, H * 0.16, 24, 0, Math.PI * 2); g.fill();
       }
-      var i;
+      var i, c, cx;
       for (i = 0; i < clouds.length; i++) {
-        var c = clouds[i];
-        var cx = ((c.x + t * c.s * 0.005) % 1.3) * W - 30;
-        g.fillStyle = "rgba(255,255,255,.82)";
-        g.beginPath(); g.ellipse(cx, c.y * H, c.w, 16, 0, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.ellipse(cx + 22, c.y * H - 8, c.w * 0.5, 14, 0, 0, Math.PI * 2); g.fill();
+        c = clouds[i];
+        cx = ((c.x + t * 0.03) % 1.3) * W - 20;
+        g.fillStyle = "rgba(255,255,255,.85)";
+        g.beginPath(); g.ellipse(cx, c.y * H, c.w, 14, 0, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.ellipse(cx + 20, c.y * H - 8, c.w * 0.45, 12, 0, 0, Math.PI * 2); g.fill();
       }
-      if (wave === 4) {
-        for (i = 0; i < lanterns.length; i++) {
-          var L = lanterns[i];
-          var lx = L.x * W, ly = L.y * H + Math.sin(t + L.ph) * 8;
-          g.strokeStyle = "rgba(253,230,138,.4)"; g.beginPath(); g.moveTo(lx, 40); g.lineTo(lx, ly - 10); g.stroke();
-          g.fillStyle = L.c;
-          g.beginPath(); g.ellipse(lx, ly, 8, 11, 0, 0, Math.PI * 2); g.fill();
-        }
+      g.strokeStyle = "#fde047"; g.lineWidth = 3;
+      g.beginPath();
+      for (i = 0; i < flags.length; i++) {
+        var fx = flags[i].x * W, fy = 36 + Math.sin(t * 2 + flags[i].ph) * 5;
+        if (i === 0) g.moveTo(fx, fy); else g.lineTo(fx, fy);
       }
-      g.fillStyle = "#4d7c0f";
-      g.fillRect(0, H * 0.76, W, H);
-      g.fillStyle = "#65a30d";
-      g.fillRect(0, H * 0.76, W, 10);
-      for (i = 0; i < stalls.length; i++) drawStall(stalls[i]);
-      for (i = 0; i < kids.length; i++) drawKid(kids[i]);
-      drawBunting();
-      drawFerris();
-      drawTent();
-      drawKite();
-      for (i = 0; i < carts.length; i++) drawCart(carts[i]);
-      for (i = 0; i < dogs.length; i++) drawDog(dogs[i]);
-      drawBand();
-      for (i = 0; i < streamers.length; i++) {
-        var st = streamers[i];
-        g.strokeStyle = st.c; g.lineWidth = 2;
-        g.beginPath();
-        g.moveTo(st.x * W, 40);
-        g.quadraticCurveTo(st.x * W + Math.sin(t * 2 + st.ph) * 16, 80, st.x * W + Math.sin(t + st.ph) * 10, 110);
-        g.stroke();
+      g.stroke();
+      for (i = 0; i < flags.length; i++) {
+        g.fillStyle = flags[i].c;
+        var x = flags[i].x * W, y = 36 + Math.sin(t * 2 + flags[i].ph) * 5;
+        g.beginPath(); g.moveTo(x - 9, y); g.lineTo(x + 9, y); g.lineTo(x, y + 20); g.fill();
       }
-      for (i = 0; i < birds.length; i++) {
-        var b = birds[i];
-        var bx = ((b.x + t * 0.05) % 1.2) * W;
-        var by = b.y * H + Math.sin(t * 4 + b.ph) * 5;
-        var fl = Math.sin(t * 9 + b.ph) * 7;
-        g.strokeStyle = "#3b0764"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(bx - 9, by - fl); g.quadraticCurveTo(bx, by, bx + 9, by - fl); g.stroke();
-      }
+      g.fillStyle = "#4d7c0f"; g.fillRect(0, H * 0.78, W, H);
+      g.fillStyle = "#65a30d"; g.fillRect(0, H * 0.78, W, 10);
     }
     function update(dt) {
       var w = WAVES[Math.min(wave, 4)];
       t += dt;
+      if (pokeFlash > 0) pokeFlash -= dt;
       var i, b;
       if (mode === "play") {
-        if (balloons.length < 7 + wave) spawnBal(false);
+        if (balloons.length < 6 + wave) spawnBal(false);
         for (i = balloons.length - 1; i >= 0; i--) {
           b = balloons[i];
-          b.y -= w.rise * dt;
-          b.x += Math.sin(t * 1.2 + b.ph) * 12 * dt + w.wind * dt * 0.35;
-          if (b.x < 24) b.x = 24;
-          if (b.x > W - 24) b.x = W - 24;
-          if (b.y < -50) {
-            balloons.splice(i, 1);
-            if (b.col === ask || b.rain) { /* floated away, no punish */ }
+          if (b.gone) {
+            b.x += b.drift * dt; b.y -= 10 * dt; b.drift *= 1.01;
+            if (b.x < -40 || b.x > W + 40) balloons.splice(i, 1);
+            continue;
           }
+          b.y -= w.rise * dt;
+          b.x += Math.sin(t * 1.1 + b.ph) * 10 * dt + w.wind * dt * 0.28;
+          if (b.x < 28) b.x = 28;
+          if (b.x > W - 28) b.x = W - 28;
+          if (b.y < 40) balloons.splice(i, 1);
         }
-      } else {
-        if (balloons.length < 8) spawnBal(true);
-        for (i = 0; i < balloons.length; i++) {
-          balloons[i].y += Math.sin(t + i) * 4 * dt;
-          balloons[i].x += Math.sin(t * 0.6 + i) * 10 * dt;
-        }
-      }
+      } else if (balloons.length < 6) spawnBal(true);
       for (i = bits.length - 1; i >= 0; i--) {
-        var p = bits[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 200 * dt; p.life -= dt;
-        if (p.life <= 0) bits.splice(i, 1);
-      }
-      if (mode === "win" && Math.random() < 0.12) spray(Math.random() * W, Math.random() * H * 0.5, COLORS[(Math.random() * 6) | 0].c);
-      for (i = notes.length - 1; i >= 0; i--) {
-        notes[i].y += notes[i].vy * dt; notes[i].life -= dt;
-        if (notes[i].life <= 0) notes.splice(i, 1);
+        bits[i].x += bits[i].vx * dt; bits[i].y += bits[i].vy * dt; bits[i].vy += 220 * dt; bits[i].life -= dt;
+        if (bits[i].life <= 0) bits.splice(i, 1);
       }
     }
     function draw() {
@@ -469,122 +376,8 @@
         g.beginPath(); g.arc(bits[i].x, bits[i].y, bits[i].s, 0, Math.PI * 2); g.fill();
         g.globalAlpha = 1;
       }
-      for (i = 0; i < notes.length; i++) {
-        g.globalAlpha = Math.max(0, notes[i].life);
-        g.fillStyle = "#fde68a";
-        g.font = "20px Trebuchet MS"; g.textAlign = "center";
-        g.fillText(notes[i].ch, notes[i].x, notes[i].y);
-        g.globalAlpha = 1;
-      }
+      drawKid();
     }
-    function hit(x, y) {
-      for (var i = balloons.length - 1; i >= 0; i--) {
-        var b = balloons[i];
-        var bob = Math.sin(t * 2.2 + b.ph) * 10;
-        var sway = Math.sin(t * 1.5 + b.ph) * 8;
-        var dx = x - (b.x + sway), dy = y - (b.y + bob);
-        if (dx * dx + dy * dy < (b.r + 18) * (b.r + 18)) {
-          var good = b.col === ask || b.rain;
-          popBal(b, good);
-          balloons.splice(i, 1);
-          return;
-        }
-      }
-    }
-    function drawCrowd() {
-      for (var i = 0; i < 9; i++) {
-        var x = 20 + i * (W - 40) / 8;
-        var y = H * 0.8 + Math.abs(Math.sin(t * 3 + i)) * -5;
-        g.fillStyle = COLORS[i % COLORS.length].c;
-        g.beginPath(); g.arc(x, y - 16, 7, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "#fdba74";
-        g.beginPath(); g.arc(x, y - 26, 6, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "#1e1b4b";
-        g.fillRect(x - 2, y - 28, 1.5, 1.2); g.fillRect(x + 1, y - 28, 1.5, 1.2);
-      }
-    }
-    function drawConfettiIdle() {
-      if (mode !== "play" && Math.random() < 0.08) {
-        bits.push({
-          x: Math.random() * W, y: -8,
-          vx: (Math.random() - 0.5) * 40, vy: 40 + Math.random() * 40,
-          life: 1.4, c: COLORS[(Math.random() * COLORS.length) | 0].c, s: 3 + Math.random() * 3
-        });
-      }
-    }
-    function drawLampPosts() {
-      for (var i = 0; i < 4; i++) {
-        var x = 40 + i * (W - 80) / 3;
-        g.fillStyle = "#4c1d95";
-        g.fillRect(x - 2, H * 0.62, 4, H * 0.16);
-        g.fillStyle = "rgba(253,224,71," + (0.35 + 0.25 * Math.sin(t * 2 + i)) + ")";
-        g.beginPath(); g.arc(x, H * 0.6, 8, 0, Math.PI * 2); g.fill();
-      }
-    }
-    function drawTitleFloat() {
-      if (mode === "play") return;
-      g.fillStyle = "rgba(255,255,255,.8)";
-      g.font = "bold 18px Trebuchet MS"; g.textAlign = "center";
-      g.fillText("balloons bob…", W * 0.5, H * 0.22);
-    }
-    function drawAskedHalo() {
-      if (mode !== "play") return;
-      for (var i = 0; i < balloons.length; i++) {
-        var b = balloons[i];
-        if (b.col !== ask && !b.rain) continue;
-        g.strokeStyle = "rgba(253,230,138,.45)"; g.lineWidth = 2;
-        g.beginPath(); g.arc(b.x, b.y, b.r + 8 + Math.sin(t * 5) * 2, 0, Math.PI * 2); g.stroke();
-      }
-    }
-    function drawWindSocks() {
-      var w = WAVES[Math.min(wave, 4)].wind;
-      for (var i = 0; i < 3; i++) {
-        var x = 30 + i * (W - 60) / 2, y = H * 0.5;
-        g.strokeStyle = "#5b21b6"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - 40); g.stroke();
-        g.fillStyle = COLORS[i + 1].c;
-        var flap = 16 + w * 0.2 + Math.sin(t * 5 + i) * 6;
-        g.beginPath(); g.moveTo(x, y - 40); g.lineTo(x + flap, y - 34); g.lineTo(x + flap, y - 26); g.lineTo(x, y - 30); g.fill();
-      }
-    }
-    function drawBoothSign() {
-      g.fillStyle = "#fde68a";
-      g.fillRect(W * 0.5 - 48, H * 0.58, 96, 18);
-      g.fillStyle = "#5b21b6";
-      g.font = "bold 12px Trebuchet MS"; g.textAlign = "center";
-      g.fillText(WAVES[Math.min(wave, 4)].n, W * 0.5, H * 0.593);
-    }
-    function drawIdleParade() {
-      if (mode === "play") return;
-      for (var i = 0; i < 4; i++) {
-        var x = ((t * 30 + i * 80) % (W + 60)) - 30;
-        var y = H * 0.72 + Math.sin(t * 4 + i) * 4;
-        g.fillStyle = COLORS[i].c;
-        g.beginPath(); g.ellipse(x, y - 20, 10, 12, 0, 0, Math.PI * 2); g.fill();
-        g.strokeStyle = "rgba(255,255,255,.5)";
-        g.beginPath(); g.moveTo(x, y - 8); g.lineTo(x, y + 10); g.stroke();
-      }
-    }
-    function drawShadowBalloons() {
-      for (var i = 0; i < balloons.length; i++) {
-        var b = balloons[i];
-        g.fillStyle = "rgba(76,29,149,.12)";
-        g.beginPath(); g.ellipse(b.x, H * 0.86, b.r * 0.5, 5, 0, 0, Math.PI * 2); g.fill();
-      }
-    }
-    var oldDraw = draw;
-    draw = function () {
-      oldDraw();
-      drawCrowd();
-      drawLampPosts();
-      drawConfettiIdle();
-      drawBoothSign();
-      drawIdleParade();
-      drawShadowBalloons();
-      drawWindSocks();
-      drawAskedHalo();
-      drawTitleFloat();
-    };
     function loop(now) {
       requestAnimationFrame(loop);
       if (!last) last = now;
@@ -593,7 +386,25 @@
       update(dt); draw();
     }
     function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
-    cv.addEventListener("pointerdown", function (e) { if (mode === "play") hit(pos(e).x, pos(e).y); });
+    cv.addEventListener("pointerdown", function (e) {
+      if (mode !== "play") return;
+      hold = 1;
+      var p = pos(e);
+      aim = Math.atan2(p.y - (kidY - 28), p.x - kidX);
+      try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    cv.addEventListener("pointermove", function (e) {
+      if (!hold || mode !== "play") return;
+      var p = pos(e);
+      aim = Math.atan2(p.y - (kidY - 28), p.x - kidX);
+    });
+    function release() {
+      if (!hold) return;
+      hold = 0;
+      if (mode === "play") poke();
+    }
+    cv.addEventListener("pointerup", release);
+    cv.addEventListener("pointercancel", release);
     document.getElementById("go").onclick = startGame;
     document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
     addEventListener("resize", resize);
