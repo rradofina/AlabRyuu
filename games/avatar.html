@@ -419,7 +419,7 @@
       ctx.save();
       ctx.translate(hx, hy);
       ctx.rotate(ang);
-      ctx.strokeStyle = skin; ctx.lineWidth = 8; ctx.lineCap = "round";
+      ctx.strokeStyle = skin; ctx.lineWidth = 11; ctx.lineCap = "round";
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, len1); ctx.stroke();
       ctx.translate(0, len1);
       ctx.rotate(Math.max(-0.35, ang * 0.25));
@@ -487,9 +487,9 @@
       if (av.hat) drawHatShape(ctx, av.hat, 0, -40, Math.sin(time * 3) * 2);
 
       ctx.fillStyle = "#831843";
-      ctx.font = "bold 14px Trebuchet MS";
+      ctx.font = "bold 16px Trebuchet MS";
       ctx.textAlign = "center";
-      ctx.fillText(av.name, 0, -68);
+      ctx.fillText(av.name, 0, -86);
       ctx.restore();
     }
 
@@ -614,6 +614,10 @@
       document.getElementById("pose").textContent = st.kind === "hat" ? "Smile" : "Wave";
       if (st.kind === "name") {
         document.getElementById("nameIn").value = av.name;
+        setTimeout(function () {
+          var inp = document.getElementById("nameIn");
+          inp.focus(); inp.select();
+        }, 80);
         return;
       }
       if (st.kind === "parade") return;
@@ -698,6 +702,7 @@
           document.getElementById("picks").innerHTML = "";
           document.getElementById("nameIn").classList.remove("on");
           document.getElementById("smile").classList.remove("on");
+          document.getElementById("dock").classList.remove("on");
           say("Parade! Tap for dots.");
         } else {
           fillPicks(); say(STAGES[stage].hint);
@@ -764,8 +769,8 @@
         document.getElementById("smileF").style.width = Math.round(smile * 100) + "%";
       }
       if (parade) {
-        walk += dt * 0.14;
-        if (walk > 1.15) {
+        walk += dt * 0.2;
+        if (walk > 1.12) {
           play = false;
           document.getElementById("dock").classList.remove("on");
           document.getElementById("winP").textContent = av.name + " is saved.";
