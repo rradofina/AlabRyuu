@@ -21,33 +21,46 @@
       background: rgba(255,255,255,.16); padding: 8px 14px; border-radius: 999px;
     }
     canvas { display: block; width: 100%; height: 100%; }
-    #hud {
-      position: fixed; top: 12px; right: 12px; z-index: 12;
-      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    #dock {
+      position: fixed; left: 10px; right: 10px; bottom: 10px; z-index: 12;
+      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
       pointer-events: none;
+      background: linear-gradient(180deg, rgba(30,27,75,.55), rgba(15,10,40,.82));
+      border: 2px solid rgba(253,230,138,.45);
+      border-radius: 28px;
+      padding: 8px 12px 10px;
+      box-shadow: 0 8px 0 rgba(0,0,0,.28);
     }
-    #hud span {
-      font-weight: 800; background: rgba(20,16,48,.72);
-      padding: 6px 12px; border-radius: 16px; font-size: 15px;
-      border: 2px solid rgba(253,230,138,.35);
+    #dock .night {
+      font-weight: 800; font-size: 13px; letter-spacing: .02em;
+      color: #fde68a; text-align: left;
+    }
+    #dock .pips { display: flex; gap: 7px; justify-content: center; align-items: center; }
+    #dock .pip {
+      width: 12px; height: 12px; transform: rotate(18deg);
+      background: rgba(255,255,255,.2); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    }
+    #dock .pip.on { background: #fde68a; box-shadow: 0 0 10px #fbbf24; }
+    #dock .tally {
+      font-weight: 800; font-size: 13px; text-align: right; color: #e0e7ff;
     }
     #say {
-      position: fixed; left: 50%; top: 72px; transform: translateX(-50%);
+      position: fixed; left: 50%; top: 18px; transform: translateX(-50%);
       z-index: 8; font-weight: 800; font-size: 20px; text-align: center;
-      text-shadow: 0 3px 0 #1e1b4b; pointer-events: none; width: 90%;
+      text-shadow: 0 3px 0 #1e1b4b; pointer-events: none; width: 72%;
     }
-    #combo {
-      position: fixed; left: 50%; top: 28%; transform: translate(-50%, -20px);
-      font-weight: 800; font-size: 36px; color: #fde68a;
-      text-shadow: 0 4px 0 #7c2d12, 0 0 18px #fbbf24;
+    #wow {
+      position: fixed; left: 50%; top: 26%; transform: translate(-50%, -20px);
+      font-weight: 800; font-size: 34px; color: #fde68a;
+      text-shadow: 0 4px 0 #312e81, 0 0 18px #fbbf24;
       opacity: 0; pointer-events: none; z-index: 8; transition: opacity .15s;
     }
-    #combo.on { opacity: 1; }
+    #wow.on { opacity: 1; }
     .cover {
       position: fixed; inset: 0; z-index: 10;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       text-align: center; gap: 12px; padding: 24px;
-      background: linear-gradient(180deg, rgba(7,6,26,.42), rgba(15,10,40,.55));
+      background: linear-gradient(180deg, rgba(7,6,26,.46), rgba(15,10,40,.62));
     }
     .cover.off { display: none; }
     h1 { font-size: clamp(36px, 10vw, 56px); text-shadow: 0 5px 0 #312e81, 0 0 24px #818cf8; }
@@ -63,16 +76,16 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud">
-    <span id="night">Night 1</span>
-    <span id="got">⭐ 0</span>
-    <span id="lives">💛💛💛💛💛</span>
+  <div id="say">Tap the twinkles!</div>
+  <div id="wow"></div>
+  <div id="dock">
+    <div class="night" id="night">Calm night</div>
+    <div class="pips" id="pips"></div>
+    <div class="tally" id="tally">0 caught · 8 moons</div>
   </div>
-  <div id="say">Catch stars!</div>
-  <div id="combo"></div>
   <div class="cover" id="title">
     <h1>Star Catch</h1>
-    <p>Drag the basket. Catch falling stars. Tap the moon to slow time. Connect the sky!</p>
+    <p>Tap stars so they fly into the picture. The moon can slow the sky. Five soft nights.</p>
     <button class="btn" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
@@ -83,20 +96,17 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), g = cv.getContext("2d");
-    var W, H, t = 0, last = 0, mode = "title", night = 0, score = 0, lives = 5;
-    var combo = 0, comboT = 0, moonSlow = 0, moonCool = 0, wish = 0;
-    var basket = { x: 0, w: 118, h: 42, bob: 0 };
-    var drag = false, pointerX = 0;
-    var far = [], mid = [], near = [], hills = [], sparks = [], trails = [];
-    var falling = [], shots = [], constel = [], lines = [];
-    var meteors = [], wishes = [], fire = [], clouds = [];
-    var shake = 0, flash = 0, sayT = 0;
+    var W, H, t = 0, last = 0, mode = "title", night = 0, score = 0, lives = 8;
+    var combo = 0, comboT = 0, moonSlow = 0, moonCool = 0, swing = 0;
+    var far = [], mid = [], near = [], hills = [], sparks = [], clouds = [];
+    var floaters = [], flyers = [], constel = [], lines = [], meteors = [];
+    var flash = 0, sayT = 0, kidX = 0;
     var NIGHTS = [
-      { n: "Calm night", wind: 0, fall: 0.55, shot: 0.002, moon: 1, need: 8, shape: "cup", say: "Soft stars. Catch!" },
-      { n: "Windy night", wind: 55, fall: 0.7, shot: 0.004, moon: 1, need: 10, shape: "kite", say: "Wind blows. Slide!" },
-      { n: "Meteor night", wind: 12, fall: 0.85, shot: 0.028, moon: 1, need: 12, shape: "fish", say: "Catch the streaks!" },
-      { n: "Moon close", wind: 8, fall: 0.5, shot: 0.006, moon: 1.7, need: 10, shape: "house", say: "Tap the big moon!" },
-      { n: "Wish night", wind: 18, fall: 0.62, shot: 0.012, moon: 1.2, need: 14, shape: "heart", say: "Catch gold wishes!" }
+      { n: "Calm night", wind: 8, spawn: 0.9, need: 7, shape: "cup", say: "Tap a star. Watch it fly!" },
+      { n: "Windy wink", wind: 42, spawn: 1.05, need: 8, shape: "kite", say: "Stars scoot. Tap them!" },
+      { n: "Meteor hush", wind: 14, spawn: 1.15, need: 9, shape: "fish", say: "Streaks too. Soft taps." },
+      { n: "Close moon", wind: 10, spawn: 0.85, need: 8, shape: "house", say: "Tap the big moon to slow." },
+      { n: "Wish night", wind: 16, spawn: 1.0, need: 10, shape: "heart", say: "Gold wishes love taps!" }
     ];
 
     function beep(f, d, typ, vol) {
@@ -116,19 +126,24 @@
     }
     function say(s) {
       document.getElementById("say").textContent = s;
-      sayT = 2.4;
+      sayT = 2.6;
     }
     function hud() {
-      document.getElementById("night").textContent = NIGHTS[Math.min(night, 4)].n;
-      document.getElementById("got").textContent = "⭐ " + score;
-      var h = "";
-      for (var i = 0; i < lives; i++) h += "💛";
-      document.getElementById("lives").textContent = h || "…";
+      var n = NIGHTS[Math.min(night, 4)];
+      document.getElementById("night").textContent = n.n;
+      document.getElementById("tally").textContent = score + " caught · " + lives + " moons";
+      var box = document.getElementById("pips");
+      var html = "", i, lit = 0;
+      for (i = 0; i < constel.length; i++) if (constel[i].lit) lit++;
+      for (i = 0; i < constel.length; i++) {
+        html += "<div class=\"pip" + (i < lit ? " on" : "") + "\"></div>";
+      }
+      box.innerHTML = html;
     }
-    function showCombo() {
-      var el = document.getElementById("combo");
+    function showWow() {
+      var el = document.getElementById("wow");
       if (combo >= 3) {
-        el.textContent = "Wow x" + combo + "!";
+        el.textContent = "Twinkle x" + combo + "!";
         el.classList.add("on");
         comboT = 0.9;
       }
@@ -136,17 +151,17 @@
     function resize() {
       W = cv.width = innerWidth;
       H = cv.height = innerHeight;
-      basket.x = W * 0.5;
+      kidX = W * 0.5;
       if (!far.length) seedSky();
     }
     function seedSky() {
       far = []; mid = []; near = []; hills = []; clouds = [];
       var i;
-      for (i = 0; i < 70; i++) far.push({ x: Math.random() * 1400, y: Math.random() * 900, s: 0.6 + Math.random() * 1.1, tw: Math.random() * 6, c: Math.random() > 0.85 ? "#fde68a" : "#e0e7ff" });
-      for (i = 0; i < 46; i++) mid.push({ x: Math.random() * 1400, y: Math.random() * 900, s: 1.1 + Math.random() * 1.6, tw: Math.random() * 6, c: Math.random() > 0.7 ? "#fbcfe8" : "#fff" });
-      for (i = 0; i < 22; i++) near.push({ x: Math.random() * 1400, y: Math.random() * 800, s: 1.8 + Math.random() * 2.2, tw: Math.random() * 6, c: "#fff" });
-      for (i = 0; i < 5; i++) hills.push({ x: i * 0.28 - 0.1, h: 0.16 + (i % 3) * 0.04, c: i % 2 ? "#0b1228" : "#111827" });
-      for (i = 0; i < 4; i++) clouds.push({ x: Math.random(), y: 0.12 + Math.random() * 0.22, w: 80 + Math.random() * 90, a: 0.08 + Math.random() * 0.08, s: 4 + Math.random() * 8 });
+      for (i = 0; i < 80; i++) far.push({ x: Math.random() * 1400, y: Math.random() * 900, s: 0.5 + Math.random() * 1.1, tw: Math.random() * 6, c: Math.random() > 0.85 ? "#fde68a" : "#c7d2fe" });
+      for (i = 0; i < 50; i++) mid.push({ x: Math.random() * 1400, y: Math.random() * 900, s: 1.0 + Math.random() * 1.5, tw: Math.random() * 6, c: Math.random() > 0.7 ? "#fbcfe8" : "#fff" });
+      for (i = 0; i < 24; i++) near.push({ x: Math.random() * 1400, y: Math.random() * 800, s: 1.6 + Math.random() * 2.2, tw: Math.random() * 6, c: "#fff" });
+      for (i = 0; i < 5; i++) hills.push({ x: i * 0.28 - 0.08, h: 0.17 + (i % 3) * 0.04, c: i % 2 ? "#0b1228" : "#111827" });
+      for (i = 0; i < 4; i++) clouds.push({ x: Math.random(), y: 0.1 + Math.random() * 0.18, w: 70 + Math.random() * 90, a: 0.07 + Math.random() * 0.08, s: 3 + Math.random() * 7 });
     }
     function shapes(name, cx, cy, sc) {
       var pts;
@@ -161,8 +176,8 @@
     }
     function resetNight() {
       var n = NIGHTS[night];
-      falling = []; shots = []; sparks = []; trails = []; meteors = []; wishes = [];
-      constel = shapes(n.shape, W * 0.5, H * 0.28, night === 4 ? 1.15 : 1);
+      floaters = []; flyers = []; sparks = []; meteors = [];
+      constel = shapes(n.shape, W * 0.5, H * 0.26, night === 4 ? 1.12 : 1);
       lines = [];
       for (var i = 0; i < constel.length - 1; i++) lines.push({ a: i, b: i + 1, on: false });
       if (n.shape === "heart" || n.shape === "house") lines.push({ a: constel.length - 1, b: 0, on: false });
@@ -171,7 +186,7 @@
       hud();
     }
     function startGame() {
-      mode = "play"; night = 0; score = 0; lives = 5; wish = 0; combo = 0;
+      mode = "play"; night = 0; score = 0; lives = 8; combo = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       resetNight();
@@ -179,9 +194,9 @@
     }
     function winGame() {
       mode = "win";
-      document.getElementById("winP").textContent = "You caught " + score + " stars on five nights!";
+      document.getElementById("winP").textContent = "You tapped " + score + " stars onto five night pictures!";
       document.getElementById("win").classList.remove("off");
-      for (var i = 0; i < 40; i++) burst(W * 0.5, H * 0.4, "#fde68a");
+      for (var i = 0; i < 40; i++) burst(W * 0.5, H * 0.36, "#fde68a");
       chord([523, 659, 784, 988], 0.35);
     }
     function nextNight() {
@@ -200,25 +215,114 @@
         });
       }
     }
-    function spawnFall() {
-      var n = NIGHTS[night];
-      var gold = night === 4 && Math.random() < 0.28;
-      falling.push({
-        x: 40 + Math.random() * (W - 80),
-        y: -20,
-        vy: 70 + Math.random() * 50 + night * 12,
-        vx: (Math.random() - 0.5) * 20,
-        rot: Math.random() * 6, spin: (Math.random() - 0.5) * 3,
-        r: gold ? 16 : 10 + Math.random() * 5,
-        gold: gold, blink: Math.random() * 4, caught: false
+    function spawnFloater() {
+      var gold = night === 4 && Math.random() < 0.3;
+      floaters.push({
+        x: 36 + Math.random() * (W - 72),
+        y: 70 + Math.random() * (H * 0.52),
+        vx: (Math.random() - 0.5) * 18,
+        vy: (Math.random() - 0.5) * 12,
+        rot: Math.random() * 6, spin: (Math.random() - 0.5) * 1.6,
+        r: gold ? 18 : 13 + Math.random() * 6,
+        gold: gold, blink: Math.random() * 4, life: 9 + Math.random() * 4
       });
     }
-    function spawnShot() {
-      shots.push({
-        x: Math.random() * W, y: -10,
-        vx: 180 + Math.random() * 160, vy: 220 + Math.random() * 120,
-        life: 1.4, tail: []
+    function nextEmpty() {
+      for (var i = 0; i < constel.length; i++) if (!constel[i].lit) return constel[i];
+      return constel[constel.length - 1];
+    }
+    function lightNode(node) {
+      if (!node || node.lit) return;
+      node.lit = true;
+      burst(node.x, node.y, "#fde68a");
+      var k;
+      for (k = 0; k < lines.length; k++) {
+        if (constel[lines[k].a].lit && constel[lines[k].b].lit) lines[k].on = true;
+      }
+      beep(520 + score * 8, 0.1, "sine", 0.09);
+      var all = true;
+      for (k = 0; k < constel.length; k++) if (!constel[k].lit) all = false;
+      if (all) {
+        say("Picture done!");
+        chord([523, 659, 784], 0.22);
+        for (k = 0; k < constel.length; k++) burst(constel[k].x, constel[k].y, "#fbcfe8");
+      }
+    }
+    function catchStar(s, i) {
+      var dest = nextEmpty();
+      flyers.push({
+        x: s.x, y: s.y, tx: dest.x, ty: dest.y, dest: dest,
+        r: s.r, rot: s.rot, gold: s.gold, p: 0
       });
+      floaters.splice(i, 1);
+      score += s.gold ? 3 : 1;
+      combo++;
+      showWow();
+      swing = 1;
+      kidX += (s.x - kidX) * 0.35;
+      burst(s.x, s.y, s.gold ? "#fbbf24" : "#e0e7ff");
+      if (s.gold) { say("A wish!"); chord([698, 880], 0.16); }
+      else beep(640 + combo * 20, 0.07, "triangle", 0.07);
+      hud();
+    }
+    function miss() {
+      combo = 0;
+      lives = Math.max(0, lives - 1);
+      hud();
+      beep(180, 0.08, "sine", 0.05);
+      if (lives <= 0) {
+        lives = 8;
+        say("New moons. Keep tapping!");
+        hud();
+      }
+    }
+    function moonPos() {
+      var n = NIGHTS[Math.min(night, 4)];
+      var r = (night === 3 ? 56 : 34) * (night === 3 ? 1.15 : 1);
+      return { x: W * 0.8 + Math.sin(t * 0.25) * 10, y: H * 0.15 + Math.cos(t * 0.3) * 7, r: r };
+    }
+    function tapMoon(px, py) {
+      var m = moonPos();
+      var dx = px - m.x, dy = py - m.y;
+      if (dx * dx + dy * dy < (m.r + 22) * (m.r + 22) && moonCool <= 0) {
+        moonSlow = night === 3 ? 3.2 : 1.8;
+        moonCool = 4.5;
+        say("Moon hug! Slow…");
+        beep(280, 0.25, "sine", 0.1);
+        burst(m.x, m.y, "#fef3c7");
+        return true;
+      }
+      return false;
+    }
+    function tryTap(px, py) {
+      if (mode !== "play") return;
+      if (tapMoon(px, py)) return;
+      var best = -1, bestD = 1e9, i, s, d;
+      for (i = 0; i < floaters.length; i++) {
+        s = floaters[i];
+        d = Math.hypot(px - s.x, py - s.y);
+        if (d < s.r + 36 && d < bestD) { bestD = d; best = i; }
+      }
+      if (best >= 0) { catchStar(floaters[best], best); return; }
+      for (i = meteors.length - 1; i >= 0; i--) {
+        s = meteors[i];
+        if (Math.hypot(px - s.x, py - s.y) < 40) {
+          score += 2; combo += 2; showWow();
+          lightNode(nextEmpty());
+          burst(s.x, s.y, "#c4b5fd");
+          hud();
+          chord([784, 988], 0.12);
+          meteors.splice(i, 1);
+          swing = 1;
+          return;
+        }
+      }
+    }
+    function maybeAdvance() {
+      if (mode !== "play") return;
+      var n = NIGHTS[night], lit = 0, i;
+      for (i = 0; i < constel.length; i++) if (constel[i].lit) lit++;
+      if ((score >= n.need && lit >= constel.length) || score >= n.need + 6) nextNight();
     }
     function drawStar(x, y, r, rot, col, glow) {
       g.save();
@@ -269,25 +373,57 @@
       }
       g.restore();
     }
-    function drawBasket(x, y) {
-      var bob = Math.sin(t * 3 + basket.bob) * 4;
-      g.save(); g.translate(x, y + bob);
-      g.fillStyle = "#92400e";
+    function drawKid(kx, ky) {
+      var bob = Math.sin(t * 3) * 3;
+      var sw = swing > 0 ? Math.sin(swing * Math.PI) * 0.9 : Math.sin(t * 2) * 0.12;
+      g.save();
+      g.translate(kx, ky + bob);
+      g.fillStyle = "rgba(0,0,0,.18)";
+      g.beginPath(); g.ellipse(0, 28, 22, 6, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#1e1b4b"; g.lineWidth = 5; g.lineCap = "round";
+      var step = Math.sin(t * 4) * 4;
+      g.beginPath(); g.moveTo(-7, 8); g.lineTo(-8 + step, 26); g.stroke();
+      g.beginPath(); g.moveTo(7, 8); g.lineTo(8 - step, 26); g.stroke();
+      g.fillStyle = "#7c3aed";
       g.beginPath();
-      g.moveTo(-basket.w * 0.5, -8);
-      g.lineTo(-basket.w * 0.38, basket.h);
-      g.lineTo(basket.w * 0.38, basket.h);
-      g.lineTo(basket.w * 0.5, -8);
-      g.closePath(); g.fill();
-      g.strokeStyle = "#78350f"; g.lineWidth = 3;
-      for (var i = -2; i <= 2; i++) {
-        g.beginPath(); g.moveTo(i * 16, -6); g.lineTo(i * 12, basket.h - 2); g.stroke();
-      }
-      g.strokeStyle = "#fbbf24"; g.lineWidth = 5;
-      g.beginPath(); g.arc(0, -8, basket.w * 0.42, Math.PI, 0); g.stroke();
+      if (g.roundRect) g.roundRect(-13, -10, 26, 22, 7);
+      else g.rect(-13, -10, 26, 22);
+      g.fill();
       g.fillStyle = "#fde68a";
-      g.beginPath(); g.ellipse(0, -6, basket.w * 0.36, 8, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(0, -22, 12, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#312e81";
+      g.beginPath(); g.ellipse(0, -28, 12, 6, 0, Math.PI, 0, true); g.fill();
+      g.fillStyle = "#1e1b4b";
+      g.beginPath(); g.arc(-4, -23, 1.6, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(4, -23, 1.6, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#b45309"; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(0, -19, 4, 0.2, Math.PI - 0.2); g.stroke();
+      g.save();
+      g.translate(12, -4);
+      g.rotate(-0.7 + sw);
+      g.strokeStyle = "#a16207"; g.lineWidth = 4;
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(38, -28); g.stroke();
+      g.strokeStyle = "#fde68a"; g.lineWidth = 2.5;
+      g.beginPath(); g.arc(48, -36, 14, 0, Math.PI * 2); g.stroke();
+      g.strokeStyle = "rgba(253,230,138,.45)"; g.lineWidth = 1;
+      var i;
+      for (i = 0; i < 5; i++) {
+        var a = i * Math.PI * 2 / 5;
+        g.beginPath(); g.moveTo(48, -36); g.lineTo(48 + Math.cos(a) * 13, -36 + Math.sin(a) * 13); g.stroke();
+      }
       g.restore();
+      g.restore();
+    }
+    function drawCabin() {
+      var cx = W * 0.16, cy = H * 0.8;
+      g.fillStyle = "#1e293b";
+      g.fillRect(cx - 28, cy - 22, 56, 28);
+      g.beginPath(); g.moveTo(cx - 34, cy - 22); g.lineTo(cx, cy - 46); g.lineTo(cx + 34, cy - 22); g.fill();
+      var glow = 0.35 + 0.25 * Math.sin(t * 3);
+      g.fillStyle = "rgba(253,224,71," + glow + ")";
+      g.fillRect(cx - 8, cy - 10, 12, 10);
+      g.fillStyle = "#0f172a";
+      g.fillRect(cx + 16, cy - 50, 7, 16);
     }
     function drawOwl(ox, oy) {
       var blink = Math.sin(t * 2.4 + ox) > 0.88;
@@ -308,19 +444,9 @@
       g.beginPath(); g.moveTo(0, 2); g.lineTo(-3, 6); g.lineTo(3, 6); g.fill();
       g.restore();
     }
-    function drawCabin() {
-      var cx = W * 0.18, cy = H * 0.86;
-      g.fillStyle = "#1e293b";
-      g.fillRect(cx - 28, cy - 22, 56, 28);
-      g.beginPath(); g.moveTo(cx - 34, cy - 22); g.lineTo(cx, cy - 46); g.lineTo(cx + 34, cy - 22); g.fill();
-      var glow = 0.35 + 0.25 * Math.sin(t * 3);
-      g.fillStyle = "rgba(253,224,71," + glow + ")";
-      g.fillRect(cx - 8, cy - 10, 12, 10);
-      g.fillStyle = "#0f172a";
-      g.fillRect(cx + 16, cy - 50, 7, 16);
-    }
     function drawHills() {
-      for (var i = 0; i < hills.length; i++) {
+      var i;
+      for (i = 0; i < hills.length; i++) {
         var h = hills[i];
         g.fillStyle = h.c;
         g.beginPath();
@@ -328,25 +454,25 @@
         g.fill();
       }
       g.fillStyle = "#020617";
-      g.fillRect(0, H * 0.92, W, H * 0.08);
-      for (var k = 0; k < 8; k++) {
-        var tx = (k * 160 + t * 6) % (W + 80) - 40;
+      g.fillRect(0, H * 0.88, W, H * 0.12);
+      for (i = 0; i < 8; i++) {
+        var tx = (i * 160 + t * 6) % (W + 80) - 40;
         g.fillStyle = "#0f172a";
         g.beginPath();
-        g.moveTo(tx, H * 0.92);
-        g.lineTo(tx + 10, H * 0.78 + Math.sin(t + k) * 3);
-        g.lineTo(tx + 20, H * 0.92);
+        g.moveTo(tx, H * 0.88);
+        g.lineTo(tx + 10, H * 0.74 + Math.sin(t + i) * 3);
+        g.lineTo(tx + 20, H * 0.88);
         g.fill();
       }
       drawCabin();
-      drawOwl(W * 0.22, H * 0.8);
-      drawOwl(W * 0.86, H * 0.83);
+      drawOwl(W * 0.22, H * 0.76);
+      drawOwl(W * 0.88, H * 0.79);
     }
     function drawParallax(arr, speed, scale) {
       for (var i = 0; i < arr.length; i++) {
         var s = arr[i];
         var x = ((s.x + t * speed) % (W + 40)) - 20;
-        var y = (s.y / 900) * H * 0.78;
+        var y = (s.y / 900) * H * 0.72;
         var tw = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * 2.2 + s.tw));
         g.globalAlpha = tw;
         g.fillStyle = s.c;
@@ -372,153 +498,60 @@
         }
       }
     }
-    function lightNext() {
-      for (var i = 0; i < constel.length; i++) {
-        if (!constel[i].lit) {
-          constel[i].lit = true;
-          burst(constel[i].x, constel[i].y, "#fde68a");
-          for (var k = 0; k < lines.length; k++) {
-            if (constel[lines[k].a].lit && constel[lines[k].b].lit) lines[k].on = true;
-          }
-          beep(520 + i * 40, 0.1, "sine", 0.09);
-          var all = true;
-          for (var j = 0; j < constel.length; j++) if (!constel[j].lit) all = false;
-          if (all) {
-            say("Picture done!");
-            chord([523, 659, 784], 0.22);
-            for (j = 0; j < constel.length; j++) burst(constel[j].x, constel[j].y, "#fbcfe8");
-          }
-          return;
-        }
-      }
-    }
-    function moonPos() {
-      var n = NIGHTS[Math.min(night, 4)];
-      var r = (night === 3 ? 58 : 36) * n.moon;
-      return { x: W * 0.78 + Math.sin(t * 0.25) * 12, y: H * 0.16 + Math.cos(t * 0.3) * 8, r: r };
-    }
-    function tapMoon(px, py) {
-      var m = moonPos();
-      var dx = px - m.x, dy = py - m.y;
-      if (dx * dx + dy * dy < (m.r + 24) * (m.r + 24) && moonCool <= 0) {
-        moonSlow = night === 3 ? 3.2 : 1.8;
-        moonCool = 4.5;
-        say("Moon hug! Slow…");
-        beep(280, 0.25, "sine", 0.1);
-        burst(m.x, m.y, "#fef3c7");
-        return true;
-      }
-      return false;
-    }
-    function catchStar(s) {
-      s.caught = true;
-      score += s.gold ? 3 : 1;
-      combo++;
-      showCombo();
-      burst(s.x, basket.y - 10, s.gold ? "#fbbf24" : "#e0e7ff");
-      if (s.gold) {
-        wish++;
-        say("A wish!");
-        chord([698, 880], 0.16);
-        lightNext();
-      } else {
-        beep(640 + combo * 20, 0.07, "triangle", 0.07);
-        if (combo % 2 === 0) lightNext();
-      }
-      hud();
-      var n = NIGHTS[night];
-      var lit = 0;
-      for (var i = 0; i < constel.length; i++) if (constel[i].lit) lit++;
-      if (score >= n.need && lit >= constel.length) nextNight();
-      else if (score >= n.need + 4) nextNight();
-    }
-    function miss() {
-      combo = 0;
-      lives = Math.max(0, lives - 1);
-      hud();
-      beep(180, 0.08, "sine", 0.05);
-      if (lives <= 0) {
-        lives = 5;
-        say("New hearts. Keep going!");
-        hud();
-      }
-    }
     function update(dt) {
       var n = NIGHTS[Math.min(night, 4)];
       var slow = moonSlow > 0 ? 0.38 : 1;
-      var wind = n.wind;
       t += dt;
-      if (comboT > 0) { comboT -= dt; if (comboT <= 0) document.getElementById("combo").classList.remove("on"); }
+      if (comboT > 0) { comboT -= dt; if (comboT <= 0) document.getElementById("wow").classList.remove("on"); }
       if (moonSlow > 0) moonSlow -= dt;
       if (moonCool > 0) moonCool -= dt;
-      if (shake > 0) shake -= dt;
       if (flash > 0) flash -= dt;
       if (sayT > 0) sayT -= dt;
+      if (swing > 0) swing = Math.max(0, swing - dt * 2.4);
+      kidX += (W * 0.52 - kidX) * dt * 1.2;
       var i, s, p;
       if (mode === "play") {
-        var target = pointerX || basket.x;
-        basket.x += (target - basket.x) * Math.min(1, dt * 10);
-        basket.x = Math.max(basket.w * 0.5, Math.min(W - basket.w * 0.5, basket.x));
-        basket.y = H * 0.82;
-        if (Math.random() < n.fall * dt * 1.6) spawnFall();
-        if (Math.random() < n.shot) spawnShot();
-        if (night === 2 && Math.random() < 0.015) {
-          meteors.push({ x: Math.random() * W, y: -20, vx: 90 + Math.random() * 80, vy: 260, r: 7, life: 2 });
+        if (floaters.length < 7 && Math.random() < n.spawn * dt * 1.8) spawnFloater();
+        if (night === 2 && Math.random() < 0.018) {
+          meteors.push({ x: Math.random() * W, y: -16, vx: 90 + Math.random() * 80, vy: 220, r: 8, life: 2.2 });
         }
-        for (i = falling.length - 1; i >= 0; i--) {
-          s = falling[i];
-          s.vx += wind * dt * 0.15 * (Math.sin(t + s.x) * 0.4 + 0.6);
+        for (i = floaters.length - 1; i >= 0; i--) {
+          s = floaters[i];
+          s.vx += Math.sin(t * 1.4 + s.blink) * n.wind * dt * 0.08;
           s.x += s.vx * dt * slow;
-          s.y += s.vy * dt * slow;
+          s.y += s.vy * dt * slow + Math.sin(t * 2 + s.blink) * 8 * dt;
           s.rot += s.spin * dt;
-          if (s.x < 16) { s.x = 16; s.vx *= -0.4; }
-          if (s.x > W - 16) { s.x = W - 16; s.vx *= -0.4; }
-          if (!s.caught && s.y > basket.y - 18 && s.y < basket.y + 28 && Math.abs(s.x - basket.x) < basket.w * 0.48) {
-            catchStar(s);
-            falling.splice(i, 1);
-            continue;
-          }
-          if (s.y > H + 20) { falling.splice(i, 1); miss(); }
+          s.life -= dt * slow;
+          if (s.x < 18) { s.x = 18; s.vx *= -0.5; }
+          if (s.x > W - 18) { s.x = W - 18; s.vx *= -0.5; }
+          if (s.y < 56) { s.y = 56; s.vy *= -0.4; }
+          if (s.y > H * 0.7) { s.y = H * 0.7; s.vy *= -0.4; }
+          if (s.life <= 0) { floaters.splice(i, 1); miss(); }
         }
-        for (i = shots.length - 1; i >= 0; i--) {
-          s = shots[i];
-          s.x += s.vx * dt * slow; s.y += s.vy * dt * slow; s.life -= dt;
-          s.tail.push({ x: s.x, y: s.y, a: 1 });
-          if (s.tail.length > 12) s.tail.shift();
-          if (s.y > basket.y - 10 && Math.abs(s.x - basket.x) < basket.w * 0.5) {
-            score += 2; combo += 2; showCombo(); burst(s.x, s.y, "#fbcfe8"); lightNext(); hud();
-            beep(880, 0.1, "sine", 0.09); shots.splice(i, 1); continue;
+        for (i = flyers.length - 1; i >= 0; i--) {
+          s = flyers[i];
+          s.p = Math.min(1, s.p + dt * 1.8);
+          var e = 1 - Math.pow(1 - s.p, 3);
+          s.x = s.x + (s.tx - s.x) * (0.18 + e * 0.4);
+          s.y = s.y + (s.ty - s.y) * (0.18 + e * 0.4);
+          s.rot += dt * 6;
+          if (s.p >= 1 || Math.hypot(s.x - s.tx, s.y - s.ty) < 8) {
+            lightNode(s.dest);
+            flyers.splice(i, 1);
+            maybeAdvance();
           }
-          if (s.life <= 0 || s.y > H + 40) shots.splice(i, 1);
         }
         for (i = meteors.length - 1; i >= 0; i--) {
           s = meteors[i];
           s.x += s.vx * dt * slow; s.y += s.vy * dt * slow; s.life -= dt;
-          if (s.y > basket.y - 8 && Math.abs(s.x - basket.x) < basket.w * 0.5) {
-            score += 2; burst(s.x, s.y, "#c4b5fd"); hud(); chord([784, 988], 0.12);
-            meteors.splice(i, 1); continue;
-          }
-          if (s.y > H) meteors.splice(i, 1);
+          if (s.y > H || s.life <= 0) meteors.splice(i, 1);
         }
-        if (night === 4 && Math.random() < 0.01) {
-          wishes.push({ x: Math.random() * W, y: -10, vy: 80, r: 18, spin: 0 });
-        }
-        for (i = wishes.length - 1; i >= 0; i--) {
-          s = wishes[i]; s.y += s.vy * dt * slow; s.spin += dt * 2;
-          if (s.y > basket.y - 12 && Math.abs(s.x - basket.x) < basket.w * 0.5) {
-            score += 5; lightNext(); lightNext(); burst(s.x, s.y, "#f472b6"); hud();
-            say("Big wish!"); wishes.splice(i, 1); continue;
-          }
-          if (s.y > H) wishes.splice(i, 1);
-        }
-        var litN = 0;
-        for (i = 0; i < constel.length; i++) if (constel[i].lit) litN++;
-        if (mode === "play" && score >= n.need && litN >= constel.length) nextNight();
+        maybeAdvance();
       } else {
-        if (Math.random() < 0.03) spawnFall();
-        for (i = falling.length - 1; i >= 0; i--) {
-          s = falling[i]; s.y += 40 * dt; s.rot += dt;
-          if (s.y > H * 0.7) falling.splice(i, 1);
+        if (Math.random() < 0.04) spawnFloater();
+        for (i = floaters.length - 1; i >= 0; i--) {
+          s = floaters[i]; s.y += 18 * dt; s.rot += dt;
+          if (s.y > H * 0.72) floaters.splice(i, 1);
         }
         if (mode === "win" && Math.random() < 0.08) burst(Math.random() * W, Math.random() * H * 0.5, "#fde68a");
       }
@@ -526,16 +559,15 @@
         p = sparks[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 180 * dt; p.life -= dt;
         if (p.life <= 0) sparks.splice(i, 1);
       }
-      for (i = clouds.length - 1; i >= 0; i--) clouds[i].x += clouds[i].s * dt * 0.004;
+      for (i = 0; i < clouds.length; i++) clouds[i].x += clouds[i].s * dt * 0.004;
     }
     function drawBg() {
-      var n = NIGHTS[Math.min(night, 4)];
       var top = night === 3 ? "#2e1065" : night === 4 ? "#1e1b4b" : "#0b0828";
       var bot = night === 2 ? "#1e1b4b" : "#020617";
       var grd = g.createLinearGradient(0, 0, 0, H);
       grd.addColorStop(0, top); grd.addColorStop(1, bot);
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      var blush = g.createRadialGradient(W * 0.75, H * 0.12, 10, W * 0.75, H * 0.12, W * 0.45);
+      var blush = g.createRadialGradient(W * 0.78, H * 0.12, 10, W * 0.78, H * 0.12, W * 0.45);
       blush.addColorStop(0, "rgba(88,28,135,.35)"); blush.addColorStop(1, "rgba(88,28,135,0)");
       g.fillStyle = blush; g.fillRect(0, 0, W, H);
       drawParallax(far, 6, 1);
@@ -549,32 +581,22 @@
         g.beginPath(); g.ellipse(cx, c.y * H, c.w, 18, 0, 0, Math.PI * 2); g.fill();
         g.beginPath(); g.ellipse(cx + 30, c.y * H - 8, c.w * 0.55, 16, 0, 0, Math.PI * 2); g.fill();
       }
-      if (night === 1 || (mode !== "play" && Math.sin(t) > 0)) {
-        g.strokeStyle = "rgba(226,232,240,.12)"; g.lineWidth = 1;
-        for (i = 0; i < 6; i++) {
-          var lx = (t * n.wind * 3 + i * 90) % (W + 40) - 20;
-          g.beginPath(); g.moveTo(lx, 40 + i * 70); g.lineTo(lx + 50, 20 + i * 70); g.stroke();
-        }
-      }
     }
     function drawWorld() {
       var m = moonPos();
       drawMoon(m.x, m.y, m.r);
       if (mode === "play") drawConst();
       var i, s, k;
-      for (i = 0; i < falling.length; i++) {
-        s = falling[i];
-        drawStar(s.x, s.y, s.r, s.rot, s.gold ? "#fbbf24" : "#fff7ed", s.gold ? "rgba(251,191,36,.45)" : "rgba(255,255,255,.25)");
+      for (i = 0; i < floaters.length; i++) {
+        s = floaters[i];
+        var tw = 0.75 + 0.25 * Math.sin(t * 6 + s.blink);
+        drawStar(s.x, s.y, s.r * tw, s.rot, s.gold ? "#fbbf24" : "#fff7ed", s.gold ? "rgba(251,191,36,.5)" : "rgba(255,255,255,.28)");
       }
-      for (i = 0; i < shots.length; i++) {
-        s = shots[i];
-        for (k = 0; k < s.tail.length; k++) {
-          g.globalAlpha = k / s.tail.length * 0.7;
-          g.fillStyle = "#fde68a";
-          g.beginPath(); g.arc(s.tail[k].x, s.tail[k].y, 2 + k * 0.25, 0, Math.PI * 2); g.fill();
-        }
-        g.globalAlpha = 1;
-        drawStar(s.x, s.y, 8, t * 4, "#fff", "rgba(253,230,138,.5)");
+      for (i = 0; i < flyers.length; i++) {
+        s = flyers[i];
+        drawStar(s.x, s.y, s.r, s.rot, s.gold ? "#fbbf24" : "#fff", "rgba(253,230,138,.45)");
+        g.strokeStyle = "rgba(253,230,138,.35)"; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(s.x, s.y); g.lineTo(s.tx, s.ty); g.stroke();
       }
       for (i = 0; i < meteors.length; i++) {
         s = meteors[i];
@@ -582,14 +604,8 @@
         g.beginPath(); g.moveTo(s.x - 30, s.y - 40); g.lineTo(s.x, s.y); g.stroke();
         drawStar(s.x, s.y, s.r, t, "#ddd6fe", "rgba(167,139,250,.4)");
       }
-      for (i = 0; i < wishes.length; i++) {
-        s = wishes[i];
-        drawStar(s.x, s.y, s.r, s.spin, "#f472b6", "rgba(244,114,182,.5)");
-        g.fillStyle = "#fff"; g.font = "bold 12px Trebuchet MS"; g.textAlign = "center";
-        g.fillText("wish", s.x, s.y + 28);
-      }
       drawHills();
-      if (mode === "play" || mode === "title") drawBasket(basket.x, mode === "title" ? H * 0.84 : basket.y);
+      drawKid(Math.max(70, Math.min(W - 70, kidX)), H * 0.78);
       for (i = 0; i < sparks.length; i++) {
         s = sparks[i];
         g.globalAlpha = Math.max(0, s.life / (s.max || 1));
@@ -603,8 +619,8 @@
       }
       if (mode === "play" && moonCool <= 0) {
         g.fillStyle = "rgba(254,243,199,.85)";
-        g.font = "bold 14px Trebuchet MS"; g.textAlign = "center";
-        g.fillText("tap moon", m.x, m.y + m.r + 18);
+        g.font = "bold 13px Trebuchet MS"; g.textAlign = "center";
+        g.fillText("tap moon", m.x, m.y + m.r + 16);
       }
     }
     function loop(now) {
@@ -613,30 +629,12 @@
       var dt = Math.min(0.033, (now - last) / 1000);
       last = now;
       update(dt);
-      g.save();
-      if (shake > 0) g.translate((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
       drawBg();
       drawWorld();
-      g.restore();
-    }
-    function ptr(e) {
-      var p = e.touches ? e.touches[0] : e;
-      return { x: p.clientX, y: p.clientY };
     }
     cv.addEventListener("pointerdown", function (e) {
-      var p = ptr(e);
-      pointerX = p.x; drag = true;
-      if (mode === "play") tapMoon(p.x, p.y);
+      tryTap(e.clientX, e.clientY);
     });
-    cv.addEventListener("pointermove", function (e) {
-      if (!drag && !e.buttons) return;
-      pointerX = ptr(e).x;
-    });
-    addEventListener("pointerup", function () { drag = false; });
-    cv.addEventListener("touchmove", function (e) {
-      e.preventDefault();
-      pointerX = e.touches[0].clientX;
-    }, { passive: false });
     document.getElementById("go").onclick = startGame;
     document.getElementById("again").onclick = function () {
       document.getElementById("win").classList.add("off");
@@ -644,8 +642,6 @@
     };
     addEventListener("resize", resize);
     resize();
-    basket.y = H * 0.84;
-    pointerX = W * 0.5;
     requestAnimationFrame(loop);
   })();
   </script>
