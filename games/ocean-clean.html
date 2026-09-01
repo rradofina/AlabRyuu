@@ -90,14 +90,77 @@
     body.scale.set(1, 1.2, 0.7); diver.add(body);
     var head = new T.Mesh(new T.SphereGeometry(0.12, 8, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
     head.position.y = 0.22; diver.add(head);
+    var mask = new T.Mesh(new T.BoxGeometry(0.16, 0.08, 0.05), new T.MeshLambertMaterial({ color: 0x1e293b }));
+    mask.position.set(0, 0.23, 0.1); diver.add(mask);
+    var lens = new T.Mesh(new T.BoxGeometry(0.12, 0.05, 0.02), new T.MeshLambertMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.75 }));
+    lens.position.set(0, 0.23, 0.13); diver.add(lens);
+    var strap = new T.Mesh(new T.BoxGeometry(0.14, 0.02, 0.1), new T.MeshLambertMaterial({ color: 0x334155 }));
+    strap.position.set(0, 0.24, 0.02); diver.add(strap);
+    var tank = new T.Mesh(new T.CylinderGeometry(0.09, 0.095, 0.4, 10), new T.MeshLambertMaterial({ color: 0xbae6fd }));
+    tank.position.set(-0.12, 0.08, -0.18); diver.add(tank);
+    var tankBand = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 0.055, 10), new T.MeshLambertMaterial({ color: 0xf97316 }));
+    tankBand.position.set(-0.12, 0.08, -0.18); diver.add(tankBand);
+    var valve = new T.Mesh(new T.CylinderGeometry(0.032, 0.036, 0.09, 6), new T.MeshLambertMaterial({ color: 0x64748b }));
+    valve.position.set(-0.12, 0.3, -0.18); diver.add(valve);
+    var hose = new T.Mesh(new T.CylinderGeometry(0.014, 0.014, 0.3, 6), new T.MeshLambertMaterial({ color: 0x334155 }));
+    hose.position.set(-0.06, 0.24, -0.02); hose.rotation.z = 0.75; hose.rotation.x = 0.35; diver.add(hose);
     var fins = [];
     for (var s = -1; s <= 1; s += 2) {
-      var fin = new T.Mesh(new T.BoxGeometry(0.08, 0.04, 0.22), new T.MeshLambertMaterial({ color: 0xfde047 }));
-      fin.position.set(s * 0.1, -0.2, -0.05); diver.add(fin); fins.push(fin);
+      var ankle = new T.Group();
+      ankle.position.set(s * 0.11, -0.22, 0.04);
+      var fin = new T.Mesh(new T.BoxGeometry(0.16, 0.035, 0.62), new T.MeshLambertMaterial({ color: 0xffe135 }));
+      fin.position.set(0, 0, -0.26);
+      ankle.add(fin);
+      var tip = new T.Mesh(new T.BoxGeometry(0.22, 0.025, 0.12), new T.MeshLambertMaterial({ color: 0xfacc15 }));
+      tip.position.set(0, 0, -0.54);
+      ankle.add(tip);
+      diver.add(ankle);
+      fins.push(ankle);
     }
-    diver.position.set(0, 0.4, 3); scene.add(diver);
+    diver.position.set(0, 0.4, 3);
+    diver.rotation.y = 0.95;
+    scene.add(diver);
 
     var fish = [], trash = [], coral = [];
+    function makeTrash(kind) {
+      var g = new T.Group();
+      g.userData = { got: 0 };
+      if (kind === 0) {
+        var bot = new T.Mesh(new T.CylinderGeometry(0.07, 0.08, 0.28, 10), new T.MeshLambertMaterial({ color: 0x5eead4, transparent: true, opacity: 0.8 }));
+        g.add(bot);
+        var neck = new T.Mesh(new T.CylinderGeometry(0.028, 0.036, 0.1, 8), new T.MeshLambertMaterial({ color: 0x99f6e4, transparent: true, opacity: 0.85 }));
+        neck.position.y = 0.18; g.add(neck);
+        var cap = new T.Mesh(new T.CylinderGeometry(0.034, 0.034, 0.04, 8), new T.MeshLambertMaterial({ color: 0xf97316 }));
+        cap.position.y = 0.24; g.add(cap);
+      } else if (kind === 1) {
+        var can = new T.Mesh(new T.CylinderGeometry(0.08, 0.08, 0.18, 12), new T.MeshLambertMaterial({ color: 0xef4444 }));
+        g.add(can);
+        var rim = new T.Mesh(new T.CylinderGeometry(0.084, 0.084, 0.02, 12), new T.MeshLambertMaterial({ color: 0xe2e8f0 }));
+        rim.position.y = 0.09; g.add(rim);
+        var stripe = new T.Mesh(new T.BoxGeometry(0.02, 0.08, 0.14), new T.MeshLambertMaterial({ color: 0xfde047 }));
+        stripe.position.set(0.07, 0, 0); g.add(stripe);
+      } else if (kind === 2) {
+        var bagCols = [0xf5f5f4, 0xf9a8d4, 0xbbf7d0];
+        for (var b = 0; b < 5; b++) {
+          var blob = new T.Mesh(new T.SphereGeometry(0.09 + (b % 3) * 0.015, 8, 6), new T.MeshLambertMaterial({ color: bagCols[b % 3] }));
+          blob.position.set((b % 2) * 0.09 - 0.04, (b % 3) * 0.05 - 0.04, ((b * 0.08) % 0.14) - 0.06);
+          blob.scale.set(1.15, 0.65 + (b % 2) * 0.25, 0.95);
+          g.add(blob);
+        }
+        var handle = new T.Mesh(new T.TorusGeometry(0.055, 0.012, 6, 10), new T.MeshLambertMaterial({ color: 0xe7e5e4 }));
+        handle.position.y = 0.16; g.add(handle);
+      } else {
+        var ring = new T.Mesh(new T.TorusGeometry(0.16, 0.014, 6, 16), new T.MeshLambertMaterial({ color: 0xfb923c }));
+        g.add(ring);
+        for (var n = 0; n < 4; n++) {
+          var cord = new T.Mesh(new T.CylinderGeometry(0.008, 0.008, 0.32, 5), new T.MeshLambertMaterial({ color: 0xfdba74 }));
+          cord.rotation.z = n * Math.PI / 4; g.add(cord);
+        }
+        var floater = new T.Mesh(new T.SphereGeometry(0.045, 6, 6), new T.MeshLambertMaterial({ color: 0xfacc15 }));
+        floater.position.set(0.16, 0, 0); g.add(floater);
+      }
+      return g;
+    }
     function makeFish(col) {
       var g = new T.Group();
       var b = new T.Mesh(new T.SphereGeometry(0.12, 8, 6), new T.MeshLambertMaterial({ color: col }));
@@ -120,9 +183,9 @@
         scene.add(f); fish.push(f);
       }
       for (var j = 0; j < r.need + 3; j++) {
-        var bag = new T.Mesh(new T.BoxGeometry(0.28, 0.22, 0.12), new T.MeshLambertMaterial({ color: j % 2 ? 0x86efac : 0xf472b6 }));
+        var bag = makeTrash(j % 4);
         bag.position.set((Math.random() - 0.5) * 8, -1 + Math.random() * 3, (Math.random() - 0.5) * 8);
-        bag.userData = { got: 0 };
+        bag.rotation.set(Math.random() * 0.6, Math.random() * 6, Math.random() * 0.5);
         scene.add(bag); trash.push(bag);
       }
       for (var k = 0; k < 8; k++) {
@@ -154,10 +217,11 @@
       ray.setFromCamera(mouse, cam);
       if (tool === "boat") { boat.position.x = mouse.x * 4; beep(300, 0.05); return; }
       if (tool === "feed") { fish.forEach(function (f) { f.userData.r = 1.2; }); stars++; save(); beep(700, 0.06); return; }
-      var hits = ray.intersectObjects(trash, false);
+      var hits = ray.intersectObjects(trash, true);
       if (hits.length) {
         var o = hits[0].object;
-        if (!o.userData.got) {
+        while (o && trash.indexOf(o) < 0) o = o.parent;
+        if (o && !o.userData.got) {
           o.userData.got = 1; o.visible = false; got++; stars++;
           document.getElementById("tr").textContent = "Trash " + got + "/" + REEFS[reef].need;
           document.getElementById("st").textContent = "⭐ " + stars;
@@ -201,7 +265,7 @@
       t += dt;
       boat.position.y = Math.sin(t * 1.4) * 0.08;
       boat.rotation.z = Math.sin(t * 1.2) * 0.05;
-      fins.forEach(function (f, i) { f.rotation.x = Math.sin(t * 8 + i) * 0.6; });
+      fins.forEach(function (f, i) { f.rotation.x = 0.4 + Math.sin(t * 9 + i * Math.PI) * 0.75; });
       diver.position.x = Math.sin(t * 0.4) * 1.2;
       diver.position.y = 0.2 + Math.sin(t * 1.1) * 0.2;
       fish.forEach(function (f, i) {

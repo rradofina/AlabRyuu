@@ -11,16 +11,18 @@
     button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
     .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:#ffffff22;padding:8px 14px;border-radius:999px}
     #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800}
-    #hud b{background:#ffffff22;padding:6px 10px;border-radius:999px}
-    .panel{position:fixed;left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom));z-index:8;background:#0b1438ee;border:3px solid #7ec8ff;border-radius:22px;padding:14px}
-    .who{font-size:13px;opacity:.8}
-    .say{font-size:24px;font-weight:900;margin:4px 0 10px}
-    .chs{display:flex;flex-wrap:wrap;gap:8px}
-    .chs button{min-height:54px;flex:1;border-radius:16px;background:#ffd84d;color:#16324a;font-weight:900;font-size:17px}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:#070b22ee}
+    #hud b{background:#6d28d9;padding:6px 10px;border-radius:999px}
+    .panel{position:fixed;left:12px;right:auto;width:min(380px,calc(100% - 24px));bottom:max(14px,env(safe-area-inset-bottom));z-index:8;background:linear-gradient(180deg,#3b0764ee,#1e1b4eee);border:3px solid #f0abfc;border-radius:8px 28px 28px 28px;padding:14px 16px;box-shadow:0 0 0 4px #581c8788}
+    .who{display:inline-block;font-size:13px;font-weight:800;background:#67e8f9;color:#164e63;padding:3px 10px;border-radius:999px}
+    .say{font-size:22px;font-weight:900;margin:8px 0 10px;color:#fdf4ff}
+    .chs{display:flex;flex-direction:column;gap:8px}
+    .chs button{min-height:50px;width:100%;border-radius:14px;background:#f0abfc;color:#4a044e;font-weight:900;font-size:17px}
+    .chs button:nth-child(2){background:#67e8f9;color:#164e63}
+    .chs button:nth-child(3){background:#fde68a;color:#422006}
+    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:#1e1b4eee}
     .cover.off{display:none}
     h1{font-size:clamp(32px,8vw,52px)}
-    .btn{background:#ffd84d;color:#16324a;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px}
+    .btn{background:#f0abfc;color:#4a044e;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px}
   </style>
 </head>
 <body>
@@ -44,7 +46,7 @@
   <script>
   (function () {
     if (!window.THREE) return;
-    var T = THREE, si = 0, camTarget = 0, t = 0;
+    var T = THREE, si = 0, camTarget = 0, t = 0, camUntil = 0;
     var flags = { helpedMoon: false, water: false, song: false, friend: "Pip" };
     try {
       var sv = JSON.parse(localStorage.getItem("alabryuu-space") || "{}");
@@ -86,15 +88,40 @@
     }
     scene.add(dash);
     var buddy = new T.Group();
-    buddy.add(new T.Mesh(new T.SphereGeometry(0.18, 10, 8), new T.MeshLambertMaterial({ color: 0x7ec8ff })));
-    var bh = new T.Mesh(new T.SphereGeometry(0.12, 10, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-    bh.position.y = 0.22; buddy.add(bh);
+    var torso = new T.Mesh(new T.BoxGeometry(0.22, 0.26, 0.14), new T.MeshLambertMaterial({ color: 0x7c3aed }));
+    torso.position.y = 0.02; buddy.add(torso);
+    var collar = new T.Mesh(new T.BoxGeometry(0.18, 0.05, 0.12), new T.MeshLambertMaterial({ color: 0xf0abfc }));
+    collar.position.y = 0.14; buddy.add(collar);
+    var bh = new T.Mesh(new T.SphereGeometry(0.13, 12, 10), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
+    bh.position.y = 0.26; buddy.add(bh);
+    var hair = new T.Mesh(new T.SphereGeometry(0.14, 10, 8), new T.MeshLambertMaterial({ color: 0x78350f }));
+    hair.scale.set(1.08, 0.68, 1.02); hair.position.set(0, 0.34, -0.01); buddy.add(hair);
+    var bang = new T.Mesh(new T.SphereGeometry(0.055, 8, 6), new T.MeshLambertMaterial({ color: 0x92400e }));
+    bang.position.set(0.05, 0.32, 0.1); buddy.add(bang);
+    var tuft = new T.Mesh(new T.SphereGeometry(0.045, 8, 6), new T.MeshLambertMaterial({ color: 0x78350f }));
+    tuft.position.set(-0.02, 0.42, 0.02); buddy.add(tuft);
+    var eyeL = new T.Mesh(new T.SphereGeometry(0.018, 6, 6), new T.MeshLambertMaterial({ color: 0x1e293b }));
+    eyeL.position.set(-0.04, 0.26, 0.115); buddy.add(eyeL);
+    var eyeR = eyeL.clone(); eyeR.position.x = 0.04; buddy.add(eyeR);
+    var arms = [];
     var legs = [];
     for (var side = -1; side <= 1; side += 2) {
-      var l = new T.Mesh(new T.BoxGeometry(0.05, 0.14, 0.05), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-      l.position.set(side * 0.07, -0.22, 0); buddy.add(l); legs.push(l);
+      var arm = new T.Group(); arm.position.set(side * 0.13, 0.1, 0);
+      var limb = new T.Mesh(new T.CylinderGeometry(0.024, 0.03, 0.2, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
+      limb.position.y = -0.08; arm.add(limb);
+      var hand = new T.Mesh(new T.SphereGeometry(0.032, 6, 6), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
+      hand.position.y = -0.18; arm.add(hand);
+      buddy.add(arm); arms.push(arm);
+      var leg = new T.Group(); leg.position.set(side * 0.06, -0.12, 0);
+      var thigh = new T.Mesh(new T.CylinderGeometry(0.03, 0.034, 0.18, 8), new T.MeshLambertMaterial({ color: 0x312e81 }));
+      thigh.position.y = -0.08; leg.add(thigh);
+      var shoe = new T.Mesh(new T.BoxGeometry(0.055, 0.03, 0.08), new T.MeshLambertMaterial({ color: 0xf472b6 }));
+      shoe.position.set(0, -0.18, 0.02); leg.add(shoe);
+      buddy.add(leg); legs.push(leg);
     }
-    buddy.position.set(0.85, -0.05, 0.9); scene.add(buddy);
+    buddy.position.set(0.7, 0.1, 1.15);
+    buddy.rotation.y = 0.2;
+    scene.add(buddy);
 
     var SCENES = [
       { who: "Pip", say: "Stars look shy.", ch: [["Wave hello", { friend: "Pip" }], ["Sing a song", { song: true }]] },
@@ -106,17 +133,19 @@
       { who: "Pip", say: "World waits below.", ch: [["Land soft", {}], ["Circle twice", {}]] },
       { who: "Star Kid", say: "Need a helper.", ch: [["Take Pip", { friend: "Pip" }], ["Take Fox", { friend: "Fox" }]] },
       { who: "Pip", say: "Almost home star.", ch: [["Decorate ship", {}], ["Save a wish", {}]] },
+      { who: "Comet Cat", say: "Sparkle ride?", ch: [["Hop on", {}], ["Wave thanks", {}], ["Share a cookie", {}]] },
+      { who: "Wish Fish", say: "Pick a soft wish.", ch: [["More stars", {}], ["More snacks", {}], ["More hugs", {}]] },
       { who: "Home", say: "Cozy dock. Hug?", ch: [["Hug everyone", {}], ["Wave and rest", {}]] },
-      { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }]] }
+      { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }], ["Rest and smile", { end: true }]] }
     ];
 
     function show() {
       var s = SCENES[Math.min(si, SCENES.length - 1)];
-      if (si === 2) s.say = flags.helpedMoon ? "Fox smiles now." : "Fox still hunts.";
+      if (si === 2) s.say = flags.helpedMoon ? "Fox smiles now." : "Fox still looks.";
       if (si === 6) s.say = flags.water ? "Green world grows." : "Dry world waits.";
       document.getElementById("who").textContent = s.who;
       document.getElementById("say").textContent = s.say;
-      document.getElementById("info").textContent = "Beat " + (si + 1) + "/11";
+      document.getElementById("info").textContent = "Beat " + (si + 1) + "/" + SCENES.length;
       var box = document.getElementById("chs"); box.innerHTML = "";
       s.ch.forEach(function (pair) {
         var b = document.createElement("button"); b.textContent = pair[0];
@@ -128,6 +157,7 @@
             si = 0;
           } else si++;
           camTarget = Math.min(si, planets.length - 1);
+          camUntil = t + 2.6;
           try { localStorage.setItem("alabryuu-space", JSON.stringify({ scene: si, flags: flags })); } catch (e) {}
           if (!pair[1].end) show();
         };
@@ -143,11 +173,17 @@
       requestAnimationFrame(loop);
       t = clock.getElapsedTime();
       planets.forEach(function (pl, i) { pl.rotation.y = t * 0.15 + i; });
-      legs.forEach(function (l, i) { l.rotation.x = Math.sin(t * 6 + i * 3) * 0.5; });
-      buddy.position.y = -0.05 + Math.sin(t * 3) * 0.03;
+      arms.forEach(function (a, i) { a.rotation.z = (i ? 1 : -1) * (0.35 + Math.sin(t * 4 + i) * 0.55); });
+      legs.forEach(function (l, i) { l.rotation.x = Math.sin(t * 5 + i * 3) * 0.28; });
+      buddy.position.y = 0.1 + Math.sin(t * 3) * 0.03;
       var dest = planets[camTarget];
-      camera.position.lerp(new T.Vector3(0, 0.55, 2.5), 0.04);
-      camera.lookAt(dest.position.x * 0.15, dest.position.y * 0.1, -6);
+      if (t < camUntil) {
+        camera.position.lerp(new T.Vector3(dest.position.x * 0.32, dest.position.y * 0.22 + 0.5, Math.max(dest.position.z * 0.42, -11)), 0.035);
+        camera.lookAt(dest.position);
+      } else {
+        camera.position.lerp(new T.Vector3(0, 0.55, 2.5), 0.04);
+        camera.lookAt(dest.position.x * 0.15, dest.position.y * 0.1, -6);
+      }
       dash.rotation.z = Math.sin(t * 0.7) * 0.02;
       renderer.render(scene, camera);
     }
