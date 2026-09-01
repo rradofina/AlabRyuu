@@ -5,63 +5,460 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Fish Friends</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#0e7490;color:#ecfeff;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.25);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:rgba(255,255,255,.16);padding:8px 12px;border-radius:16px}
-    #sea{position:fixed;inset:0;background:linear-gradient(#67e8f9,#0e7490 70%,#164e63)}
-    .fish{position:absolute;font-size:52px}.fish .face{display:block;font-size:52px}
-    .fish.hungry::after{content:"hungry!";position:absolute;left:50%;top:-18px;transform:translateX(-50%);font-size:12px;font-weight:800;background:#fff;color:#0e7490;padding:2px 6px;border-radius:8px;white-space:nowrap}
-    .bub{position:absolute;font-size:22px;pointer-events:none}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(8,40,50,.84);z-index:8;gap:12px}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-    h1{position:fixed;top:52px;width:100%;text-align:center;font-size:28px;pointer-events:none}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: Georgia, "Times New Roman", serif;
+      background: #083344; color: #ecfeff;
+      touch-action: none; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    .home {
+      position: fixed; top: 10px; left: 10px; z-index: 20;
+      color: #fff; text-decoration: none; font-family: Trebuchet MS, sans-serif;
+      font-weight: 800; font-size: 16px;
+      background: rgba(8, 51, 68, .7); padding: 8px 14px; border-radius: 10px;
+      border: 2px solid #67e8f9;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+    .plaque {
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+      z-index: 12; min-width: 190px; max-width: 72%;
+      background: linear-gradient(#d6a15a, #b45309);
+      border: 4px solid #78350f; border-radius: 8px 8px 16px 16px;
+      padding: 8px 16px 10px; text-align: center;
+      box-shadow: 0 6px 0 #451a03; pointer-events: none;
+    }
+    .plaque .tank { font-size: 20px; font-weight: 800; color: #fff7ed; letter-spacing: 0.4px; }
+    .plaque .meta { margin-top: 4px; font-family: Trebuchet MS, sans-serif; font-weight: 800; font-size: 14px; color: #422006; }
+    .stars { position: fixed; top: 10px; right: 10px; z-index: 12; pointer-events: none; display: flex; gap: 5px; }
+    .stars i {
+      width: 22px; height: 22px; background: #334155; clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+    }
+    .stars i.on { background: #fde047; }
+    .hint {
+      position: fixed; left: 12px; right: 96px; bottom: 88px; z-index: 8;
+      text-align: center; font-family: Trebuchet MS, sans-serif; font-weight: 800;
+      font-size: 18px; color: #fff; text-shadow: 0 2px 0 #083344; pointer-events: none;
+    }
+    .lamp {
+      position: fixed; left: 12px; bottom: 16px; z-index: 14;
+      width: 92px; height: 92px; border-radius: 50%;
+      background: #fde047; color: #422006; font-family: Trebuchet MS, sans-serif;
+      font-weight: 800; font-size: 16px; box-shadow: 0 8px 0 #ca8a04;
+    }
+    .lamp.night { background: #64748b; color: #f8fafc; box-shadow: 0 8px 0 #334155; }
+    .lamp:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
+    .cover {
+      position: fixed; inset: 0; z-index: 18;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 12px; padding: 24px;
+      background: linear-gradient(180deg, rgba(8,47,73,.45), rgba(8,51,68,.7));
+    }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(34px, 9vw, 52px); color: #fff; text-shadow: 0 4px 0 #083344; }
+    .cover p { font-family: Trebuchet MS, sans-serif; font-weight: 800; font-size: 18px; max-width: 300px; }
+    .btn {
+      font-family: Trebuchet MS, sans-serif; background: #67e8f9; color: #083344;
+      font-weight: 800; font-size: 26px; padding: 16px 36px; border-radius: 22px;
+      box-shadow: 0 8px 0 #0891b2;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #0891b2; }
+    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
-  <a class="home" href="../index.html">← Home</a>
-  <div id="hud">Feeds 0 / 8</div>
-  <div id="sea"></div>
-  <h1>Tap the hungry fish!</h1>
-  <div class="win" id="win">
-    <div style="font-size:72px">🐠</div>
-    <h2>Full tummies!</h2>
-    <button class="play" id="again">Feed again</button>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div class="plaque">
+    <div class="tank" id="tankName">Gold Bowl</div>
+    <div class="meta" id="fedMeta">Fed 0</div>
+  </div>
+  <div class="stars" id="stars"></div>
+  <div class="hint" id="say">Drag food from the jar!</div>
+  <button class="lamp" id="lampBtn" type="button">Day</button>
+  <div class="cover" id="title">
+    <h1>Fish Friends</h1>
+    <p>Pull flakes from the jar. Hungry fish swim over. Flip the lamp!</p>
+    <button class="btn" id="go" type="button">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <h1>Full tummies!</h1>
+    <p id="winP">Five tanks. Soft swim.</p>
+    <button class="btn g" id="again" type="button">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var kinds=["🐟","🐠","🐡","🐬"],feeds=0,need=0,fish=[];
-    var sea=document.getElementById("sea");
-    for(var i=0;i<4;i++){
-      var el=document.createElement("button");el.className="fish";el.innerHTML='<span class="face">'+kinds[i]+"</span>";
-      sea.appendChild(el);
-      fish.push({el:el,x:40+Math.random()*220,y:120+i*90,vx:1.2+(i%2?-1:1)*0.8,vy:0.4,fed:0});
-      (function(f){el.onclick=function(){
-        if(f!==hungry()){beep(200,.08);el.style.transform="scale(.9)";setTimeout(function(){el.style.transform="";},120);return;}
-        f.fed++;feeds++;beep(700,.08);
-        var b=document.createElement("div");b.className="bub";b.textContent="🫧";b.style.left=f.x+"px";b.style.top=f.y+"px";sea.appendChild(b);
-        setTimeout(function(){b.remove();},500);
-        document.getElementById("hud").textContent="Feeds "+feeds+" / 8";
-        pickHungry();
-        if(feeds>=8){document.getElementById("win").classList.add("on");beep(880,.2);}
-      };})(fish[i]);
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, t = 0, last = 0, mode = "title", tank = 0, stars = 0, fed = 0, need = 4;
+    var day = 1, grab = 0, gx = 0, gy = 0, px = 0, py = 0, tossVx = 0, tossVy = 0;
+    var fishes = [], flakes = [], bubbles = [], plants = [], gravel = [], snails = [];
+    var jar = { x: 0, y: 0, w: 86, h: 110 };
+    var TANKS = [
+      { n: "Gold Bowl", need: 4, night: 0, fish: [{ c: "#f59e0b", c2: "#fde047", n: 3 }] },
+      { n: "Blue Bay", need: 5, night: 0, fish: [{ c: "#38bdf8", c2: "#7dd3fc", n: 4 }, { c: "#22d3ee", c2: "#a5f3fc", n: 2 }] },
+      { n: "Pink Reef", need: 5, night: 0, fish: [{ c: "#fb7185", c2: "#fda4af", n: 3 }, { c: "#fb923c", c2: "#fdba74", n: 2 }] },
+      { n: "Night Glow", need: 4, night: 1, fish: [{ c: "#4ade80", c2: "#bbf7d0", n: 4 }] },
+      { n: "Mix Party", need: 6, night: 0, fish: [{ c: "#f59e0b", c2: "#fde047", n: 2 }, { c: "#38bdf8", c2: "#7dd3fc", n: 2 }, { c: "#c084fc", c2: "#e9d5ff", n: 2 }] }
+    ];
+
+    function beep(f, d, typ) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), a = ac.createGain();
+        o.type = typ || "sine"; o.frequency.value = f; a.gain.value = 0.07;
+        o.connect(a); a.connect(ac.destination); o.start();
+        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    function hungry(){return fish[need];}
-    function pickHungry(){var opts=[0,1,2,3].filter(function(i){return i!==need;});need=opts[Math.floor(Math.random()*opts.length)];fish.forEach(function(f,i){f.el.classList.toggle("hungry",i===need);});}
-    function loop(){
-      fish.forEach(function(f){
-        f.x+=f.vx;f.y+=f.vy;
-        if(f.x<20||f.x>innerWidth-70)f.vx*=-1;
-        if(f.y<90||f.y>innerHeight-90)f.vy*=-1;
-        f.el.style.left=f.x+"px";f.el.style.top=f.y+"px";
-        var face=f.el.querySelector(".face");if(face)face.style.transform=f.vx<0?"scaleX(-1)":"";
-      });
+    function say(s) { document.getElementById("say").textContent = s; }
+    function paintStars() {
+      var el = document.getElementById("stars"), html = "", i;
+      for (i = 0; i < 5; i++) html += "<i" + (i < stars ? " class=\"on\"" : "") + "></i>";
+      el.innerHTML = html;
+    }
+    function hud() {
+      document.getElementById("tankName").textContent = TANKS[Math.min(tank, 4)].n;
+      document.getElementById("fedMeta").textContent = "Fed " + fed + " / " + need;
+      paintStars();
+    }
+    function resize() {
+      W = cv.width = innerWidth; H = cv.height = innerHeight;
+      jar.x = W - 78; jar.y = H * 0.42;
+      if (!plants.length) seedDecor();
+    }
+    function seedDecor() {
+      plants = []; gravel = []; snails = [];
+      var i;
+      for (i = 0; i < 7; i++) {
+        plants.push({ x: 0.08 + i * 0.12, h: 70 + (i % 3) * 28, ph: i * 1.1, c: i % 2 ? "#166534" : "#15803d" });
+      }
+      for (i = 0; i < 70; i++) {
+        gravel.push({ x: Math.random(), y: 0.88 + Math.random() * 0.1, r: 3 + Math.random() * 4, c: i % 3 ? "#a8a29e" : "#d6d3d1" });
+      }
+      snails.push({ x: 0.18, dir: 1, ph: 0 });
+      snails.push({ x: 0.62, dir: -1, ph: 2 });
+    }
+    function makeFish(col, col2, i) {
+      return {
+        x: 80 + Math.random() * (W - 200), y: H * 0.28 + Math.random() * H * 0.42,
+        vx: (Math.random() > 0.5 ? 1 : -1) * (28 + Math.random() * 22),
+        vy: 0, col: col, col2: col2, hungry: i % 2 === 0, mouth: 0,
+        wag: Math.random() * 6, blink: 0, s: 20 + (i % 3) * 4
+      };
+    }
+    function resetTank() {
+      var T = TANKS[tank], i, k;
+      fishes = []; flakes = []; bubbles = [];
+      fed = 0; need = T.need; day = T.night ? 0 : 1;
+      for (k = 0; k < T.fish.length; k++) {
+        for (i = 0; i < T.fish[k].n; i++) fishes.push(makeFish(T.fish[k].c, T.fish[k].c2, i + k * 3));
+      }
+      document.getElementById("lampBtn").textContent = day ? "Day" : "Night";
+      document.getElementById("lampBtn").className = "lamp" + (day ? "" : " night");
+      say("Drag flakes from the jar!");
+      hud();
+    }
+    function startGame() {
+      mode = "play"; tank = 0; stars = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      resetTank();
+      beep(392, 0.12); beep(494, 0.14);
+    }
+    function nextTank() {
+      stars++;
+      tank++;
+      if (tank >= 5) {
+        mode = "win";
+        document.getElementById("winP").textContent = "You fed fish in five tanks!";
+        document.getElementById("win").classList.remove("off");
+        beep(523, 0.18); beep(659, 0.2);
+        hud();
+        return;
+      }
+      beep(660, 0.12);
+      resetTank();
+    }
+    function inJar(x, y) {
+      return x > jar.x - 30 && x < W && y > jar.y - 20 && y < jar.y + jar.h + 20;
+    }
+    function toss(x, y, vx, vy) {
+      var i;
+      for (i = 0; i < 5; i++) {
+        flakes.push({
+          x: x + (Math.random() - 0.5) * 16,
+          y: y + (Math.random() - 0.5) * 10,
+          vx: vx * 0.55 + (Math.random() - 0.5) * 40,
+          vy: vy * 0.35 + 20 + Math.random() * 30,
+          r: 4 + Math.random() * 3, rot: Math.random() * 6, sink: 0
+        });
+      }
+      beep(620, 0.06);
+      say("Yum flakes!");
+    }
+    function drawFish(f) {
+      var face = f.vx >= 0 ? 1 : -1;
+      var wag = Math.sin(t * (f.hungry ? 14 : 8) + f.wag) * (f.hungry ? 9 : 5);
+      g.save();
+      g.translate(f.x, f.y);
+      g.scale(face, 1);
+      g.rotate(Math.atan2(f.vy, Math.abs(f.vx) + 8) * 0.45);
+      g.fillStyle = f.col;
+      g.beginPath();
+      g.moveTo(-f.s - 12, wag);
+      g.lineTo(-f.s + 2, -8);
+      g.lineTo(-f.s + 2, 8);
+      g.closePath(); g.fill();
+      g.beginPath(); g.ellipse(0, 0, f.s, f.s * 0.55, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = f.col2;
+      g.beginPath(); g.ellipse(4, 0, f.s * 0.38, f.s * 0.32, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = f.col;
+      g.beginPath(); g.moveTo(-2, -f.s * 0.5); g.lineTo(6, -f.s * 0.95); g.lineTo(10, -f.s * 0.4); g.fill();
+      g.beginPath(); g.ellipse(2, f.s * 0.28, 8, 4, 0.4, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#fff";
+      g.beginPath(); g.arc(f.s * 0.48, -4, 4.2, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#0f172a";
+      if (Math.sin(t * 2.4 + f.wag) > 0.92) g.fillRect(f.s * 0.38, -5, 6, 1.4);
+      else { g.beginPath(); g.arc(f.s * 0.55, -4, 1.8, 0, Math.PI * 2); g.fill(); }
+      if (f.hungry) {
+        g.fillStyle = "#9f1239";
+        g.beginPath(); g.ellipse(f.s * 0.62, 5, 6 + Math.sin(t * 8) * 1.5, 3.4, 0, 0, Math.PI * 2); g.fill();
+      } else {
+        g.strokeStyle = "#0f172a"; g.lineWidth = 1.6;
+        g.beginPath(); g.arc(f.s * 0.45, 5, 3.2, 0.2, Math.PI - 0.2); g.stroke();
+      }
+      g.restore();
+    }
+    function drawSnail(sn) {
+      var step = Math.sin(t * 4 + sn.ph);
+      var x = ((sn.x + t * 0.018 * sn.dir) % 1 + 1) % 1 * (W - 40) + 20;
+      var y = H * 0.86 + Math.abs(step) * -1.5;
+      g.save(); g.translate(x, y); if (sn.dir < 0) g.scale(-1, 1);
+      g.fillStyle = "#d6d3d1";
+      g.beginPath(); g.ellipse(8, 8, 12, 5, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#a8a29e";
+      g.beginPath(); g.arc(0, 2, 11, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#78716c"; g.lineWidth = 2;
+      g.beginPath(); g.arc(0, 2, 7, 0.4, 4.2); g.stroke();
+      g.strokeStyle = "#d6d3d1"; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(16, 4); g.lineTo(22, -6 + step * 2); g.moveTo(18, 4); g.lineTo(24, -4 + step * 2); g.stroke();
+      g.fillStyle = "#0f172a";
+      g.beginPath(); g.arc(22, -6 + step * 2, 1.4, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(24, -4 + step * 2, 1.4, 0, Math.PI * 2); g.fill();
+      g.restore();
+    }
+    function drawCastle() {
+      var cx = W * 0.22, cy = H * 0.78;
+      g.fillStyle = "#a8a29e";
+      g.fillRect(cx - 36, cy - 8, 72, 40);
+      g.fillRect(cx - 32, cy - 40, 20, 34);
+      g.fillRect(cx + 12, cy - 48, 20, 42);
+      g.fillStyle = "#78716c";
+      var i;
+      for (i = 0; i < 4; i++) g.fillRect(cx - 36 + i * 18, cy - 16, 10, 8);
+      g.fillRect(cx - 32, cy - 48, 8, 8);
+      g.fillRect(cx - 20, cy - 48, 8, 8);
+      g.fillRect(cx + 12, cy - 56, 8, 8);
+      g.fillRect(cx + 24, cy - 56, 8, 8);
+      g.fillStyle = day ? "#0c4a6e" : "#082f49";
+      g.beginPath(); g.arc(cx, cy + 16, 12, Math.PI, 0); g.fill();
+      g.fillRect(cx + 16, cy - 36, 6, 8);
+    }
+    function drawJar() {
+      var x = jar.x, y = jar.y;
+      g.fillStyle = "rgba(253,186,116,.35)";
+      g.beginPath();
+      g.moveTo(x - 28, y + 16); g.lineTo(x - 32, y + 100); g.lineTo(x + 32, y + 100); g.lineTo(x + 28, y + 16);
+      g.closePath(); g.fill();
+      g.strokeStyle = "#fdba74"; g.lineWidth = 4; g.stroke();
+      g.fillStyle = "#ea580c";
+      g.fillRect(x - 30, y, 60, 18);
+      g.fillStyle = "#fff7ed";
+      g.font = "bold 13px Trebuchet MS"; g.textAlign = "center";
+      g.fillText("FOOD", x, y + 13);
+      g.fillStyle = "#fdba74";
+      var i;
+      for (i = 0; i < 8; i++) {
+        g.save(); g.translate(x - 10 + (i % 4) * 8, y + 40 + ((i / 4) | 0) * 14); g.rotate(i);
+        g.fillRect(-4, -2, 8, 4); g.restore();
+      }
+    }
+    function drawBg() {
+      var top = day ? "#7dd3fc" : "#0f172a";
+      var bot = day ? "#0369a1" : "#082f49";
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      grd.addColorStop(0, top); grd.addColorStop(1, bot);
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      if (day) {
+        g.fillStyle = "rgba(254,243,199,.35)";
+        g.beginPath(); g.arc(W * 0.5, 8, 90, 0, Math.PI * 2); g.fill();
+      }
+      var i;
+      for (i = 0; i < gravel.length; i++) {
+        g.fillStyle = gravel[i].c;
+        g.beginPath(); g.arc(gravel[i].x * W, gravel[i].y * H, gravel[i].r, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = "#d6d3d1";
+      g.beginPath(); g.moveTo(0, H * 0.88);
+      for (i = 0; i <= W; i += 14) g.lineTo(i, H * 0.88 + Math.sin(i * 0.08 + t) * 3);
+      g.lineTo(W, H); g.lineTo(0, H); g.fill();
+      for (i = 0; i < plants.length; i++) {
+        var p = plants[i], px = p.x * W, sway = Math.sin(t * 1.4 + p.ph) * 12;
+        g.strokeStyle = p.c; g.lineWidth = 8;
+        g.beginPath(); g.moveTo(px, H * 0.9);
+        g.quadraticCurveTo(px + sway, H * 0.9 - p.h * 0.5, px + sway * 1.2, H * 0.9 - p.h);
+        g.stroke();
+        g.fillStyle = p.c;
+        g.beginPath(); g.ellipse(px + sway * 1.2, H * 0.9 - p.h, 10, 16, sway * 0.04, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.ellipse(px + sway * 0.6, H * 0.9 - p.h * 0.55, 8, 12, -0.4, 0, Math.PI * 2); g.fill();
+      }
+      drawCastle();
+      for (i = 0; i < snails.length; i++) drawSnail(snails[i]);
+      g.strokeStyle = "rgba(255,255,255,.22)"; g.lineWidth = 10;
+      g.strokeRect(8, 8, W - 16, H - 16);
+      g.fillStyle = "rgba(255,255,255,.08)";
+      g.beginPath(); g.moveTo(18, 18); g.lineTo(W * 0.28, 18); g.lineTo(18, H * 0.5); g.fill();
+    }
+    function update(dt) {
+      t += dt;
+      var i, f, fl, best, bd, k, d;
+      if (mode !== "play") {
+        for (i = 0; i < fishes.length; i++) {
+          f = fishes[i];
+          f.x += f.vx * dt; f.wag += dt;
+          if (f.x < 40 || f.x > W - 50) f.vx *= -1;
+        }
+        return;
+      }
+      for (i = 0; i < fishes.length; i++) {
+        f = fishes[i];
+        f.wag += dt;
+        if (!f.hungry && Math.random() < 0.003) f.hungry = true;
+        best = null; bd = 220;
+        if (f.hungry) {
+          for (k = 0; k < flakes.length; k++) {
+            d = Math.hypot(flakes[k].x - f.x, flakes[k].y - f.y);
+            if (d < bd) { bd = d; best = flakes[k]; }
+          }
+        }
+        if (best) {
+          f.vx += (best.x - f.x) * dt * 2.2;
+          f.vy += (best.y - f.y) * dt * 2.2;
+          var sp = Math.hypot(f.vx, f.vy) || 1;
+          if (sp > 90) { f.vx *= 90 / sp; f.vy *= 90 / sp; }
+          if (bd < 26) {
+            best.sink = 99;
+            f.hungry = false; f.mouth = 1;
+            fed++;
+            beep(540, 0.08, "triangle");
+            hud();
+            if (fed >= need) nextTank();
+          }
+        } else {
+          f.vy += Math.sin(t * 1.2 + f.wag) * 18 * dt;
+          f.vx += Math.sin(t * 0.7 + i) * 10 * dt;
+          if (Math.abs(f.vx) < 18) f.vx = f.vx < 0 ? -22 : 22;
+        }
+        f.x += f.vx * dt; f.y += f.vy * dt;
+        if (f.x < 36) { f.x = 36; f.vx = Math.abs(f.vx); }
+        if (f.x > W - 90) { f.x = W - 90; f.vx = -Math.abs(f.vx); }
+        if (f.y < H * 0.18) { f.y = H * 0.18; f.vy *= -0.3; }
+        if (f.y > H * 0.82) { f.y = H * 0.82; f.vy *= -0.3; }
+      }
+      for (i = flakes.length - 1; i >= 0; i--) {
+        fl = flakes[i];
+        fl.vy += 110 * dt;
+        fl.vx *= 0.99;
+        fl.x += fl.vx * dt;
+        fl.y += fl.vy * dt;
+        fl.rot += dt * 4;
+        if (fl.y > H * 0.9 || fl.sink > 10) flakes.splice(i, 1);
+      }
+      if (Math.random() < 0.15) bubbles.push({ x: 30 + Math.random() * (W - 80), y: H * 0.88, r: 3 + Math.random() * 5, vy: -30 - Math.random() * 20 });
+      for (i = bubbles.length - 1; i >= 0; i--) {
+        bubbles[i].y += bubbles[i].vy * dt;
+        bubbles[i].x += Math.sin(t * 2 + i) * 10 * dt;
+        if (bubbles[i].y < 24) bubbles.splice(i, 1);
+      }
+    }
+    function draw() {
+      drawBg();
+      var i;
+      for (i = 0; i < bubbles.length; i++) {
+        g.strokeStyle = "rgba(255,255,255,.45)"; g.lineWidth = 1.6;
+        g.beginPath(); g.arc(bubbles[i].x, bubbles[i].y, bubbles[i].r, 0, Math.PI * 2); g.stroke();
+        g.fillStyle = "rgba(255,255,255,.18)";
+        g.beginPath(); g.arc(bubbles[i].x - 1, bubbles[i].y - 1, bubbles[i].r * 0.3, 0, Math.PI * 2); g.fill();
+      }
+      for (i = 0; i < fishes.length; i++) drawFish(fishes[i]);
+      for (i = 0; i < flakes.length; i++) {
+        g.save(); g.translate(flakes[i].x, flakes[i].y); g.rotate(flakes[i].rot);
+        g.fillStyle = "#fdba74"; g.fillRect(-flakes[i].r, -2, flakes[i].r * 2, 4);
+        g.restore();
+      }
+      drawJar();
+      if (grab) {
+        g.fillStyle = "#fdba74";
+        g.save(); g.translate(gx, gy); g.rotate(t * 4);
+        g.fillRect(-6, -3, 12, 6); g.restore();
+        g.strokeStyle = "rgba(254,243,199,.5)"; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(jar.x, jar.y + 20); g.lineTo(gx, gy); g.stroke();
+      }
+    }
+    function loop(now) {
       requestAnimationFrame(loop);
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
     }
-    pickHungry();loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function pos(e) {
+      var p = e.touches ? e.touches[0] : e;
+      return { x: p.clientX, y: p.clientY };
+    }
+    cv.addEventListener("pointerdown", function (e) {
+      if (mode !== "play") return;
+      var p = pos(e);
+      if (inJar(p.x, p.y)) {
+        grab = 1; gx = p.x; gy = p.y; px = p.x; py = p.y;
+        try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+      }
+    });
+    cv.addEventListener("pointermove", function (e) {
+      if (!grab) return;
+      var p = pos(e);
+      tossVx = (p.x - px) / 0.016; tossVy = (p.y - py) / 0.016;
+      px = p.x; py = p.y; gx = p.x; gy = p.y;
+    });
+    function endGrab(e) {
+      if (!grab) return;
+      grab = 0;
+      toss(gx, gy, tossVx, tossVy);
+    }
+    cv.addEventListener("pointerup", endGrab);
+    cv.addEventListener("pointercancel", endGrab);
+    document.getElementById("lampBtn").onclick = function () {
+      day = day ? 0 : 1;
+      this.textContent = day ? "Day" : "Night";
+      this.className = "lamp" + (day ? "" : " night");
+      say(day ? "Bright tank!" : "Soft night.");
+      beep(day ? 520 : 300, 0.1);
+    };
+    document.getElementById("go").onclick = startGame;
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off");
+      startGame();
+    };
+    addEventListener("resize", resize);
+    resize();
+    fishes = [makeFish("#f59e0b", "#fde047", 0), makeFish("#38bdf8", "#7dd3fc", 1), makeFish("#fb7185", "#fda4af", 2)];
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

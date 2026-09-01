@@ -5,59 +5,381 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Balloon Pop</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#e0f2fe;color:#0f172a;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:26px;z-index:2}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff3;padding:8px 12px;border-radius:16px}
-    #sky{position:fixed;inset:0}
-    .bal{position:absolute;width:76px;height:90px;font-size:56px;line-height:90px}
-    .bal.wig{animation:wig .35s}
-    @keyframes wig{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,20,50,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Trebuchet MS", system-ui, sans-serif;
+      background: #5b21b6; color: #fff7ed;
+      touch-action: none; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    .home {
+      position: fixed; top: 10px; left: 10px; z-index: 20;
+      color: #3b0764; text-decoration: none; font-weight: 800; font-size: 16px;
+      background: #fde047; padding: 8px 14px; border-radius: 999px;
+      box-shadow: 0 4px 0 #ca8a04;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+    .banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+      display: flex; justify-content: center; pointer-events: none;
+    }
+    .banner .inner {
+      margin-top: 8px; background: #7c3aed; border: 4px solid #fde047;
+      border-radius: 0 0 22px 22px; padding: 8px 22px 10px;
+      box-shadow: 0 6px 0 #4c1d95; text-align: center; min-width: 200px;
+    }
+    .banner .wave { font-weight: 800; font-size: 18px; color: #fde047; }
+    .banner .pops { font-weight: 800; font-size: 14px; color: #fff; }
+    .ask {
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+      z-index: 12; display: flex; align-items: center; gap: 10px;
+      background: #fff; color: #3b0764; padding: 10px 18px; border-radius: 999px;
+      box-shadow: 0 6px 0 #c4b5fd; pointer-events: none; font-weight: 800; font-size: 22px;
+    }
+    .ask .dot { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #3b0764; flex-shrink: 0; }
+    .starrow { position: fixed; top: 58px; right: 10px; z-index: 12; display: flex; gap: 4px; pointer-events: none; }
+    .starrow b { width: 16px; height: 16px; background: #4c1d95; clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
+    .starrow b.on { background: #fde047; }
+    .hint {
+      position: fixed; left: 10px; right: 10px; top: 70px; z-index: 8;
+      text-align: center; font-weight: 800; font-size: 18px;
+      text-shadow: 0 3px 0 #5b21b6; pointer-events: none;
+    }
+    .cover {
+      position: fixed; inset: 0; z-index: 18;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 12px; padding: 24px;
+      background: linear-gradient(180deg, rgba(124,58,237,.4), rgba(91,33,182,.62));
+    }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(34px, 9vw, 52px); color: #fde047; text-shadow: 0 5px 0 #4c1d95; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 300px; }
+    .btn {
+      background: #fde047; color: #422006; font-weight: 800; font-size: 26px;
+      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #ca8a04;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
+    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
-  <a class="home" href="../index.html">← Home</a>
-  <div id="hud">0 / 10</div>
-  <div id="ask">Pop RED</div>
-  <div id="sky"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🎈</div>
-    <h2>Pop party!</h2>
-    <button class="play" id="again">Pop again</button>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div class="banner"><div class="inner"><div class="wave" id="waveName">Parade</div><div class="pops" id="pops">Pops 0</div></div></div>
+  <div class="starrow" id="stars"></div>
+  <div class="hint" id="say">Hold. Aim the pin. Let go!</div>
+  <div class="ask"><span class="dot" id="askDot"></span><span id="askWord">RED</span></div>
+  <div class="cover" id="title">
+    <h1>Balloon Pop</h1>
+    <p>Hold to aim the pin. Let go to poke the color we ask!</p>
+    <button class="btn" id="go" type="button">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <h1>Party yes!</h1>
+    <p id="winP">Five waves. Big pops.</p>
+    <button class="btn g" id="again" type="button">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var cols=[{n:"RED",e:"🔴"},{n:"BLUE",e:"🔵"},{n:"YELLOW",e:"🟡"},{n:"GREEN",e:"🟢"}];
-    var need=cols[0],score=0,play=true,items=[],sky=document.getElementById("sky");
-    function setNeed(){need=cols[Math.floor(Math.random()*cols.length)];document.getElementById("ask").textContent="Pop "+need.n;}
-    function spawn(){
-      var c=cols[Math.floor(Math.random()*cols.length)];
-      var b=document.createElement("button");b.className="bal";b.textContent=c.e;
-      var x=20+Math.random()*(innerWidth-80),y=innerHeight+10,sp=1.4+Math.random()*1.6;
-      b.style.left=x+"px";b.style.top=y+"px";sky.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,c:c,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        if(c.n!==need.n){b.classList.remove("wig");void b.offsetWidth;b.classList.add("wig");beep(180,.1);return;}
-        it.dead=true;b.remove();score++;beep(720,.08);document.getElementById("hud").textContent=score+" / 10";
-        if(score>=10){play=false;document.getElementById("win").classList.add("on");beep(900,.2);} else setNeed();
-      };
-      items.push(it);
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, t = 0, last = 0, mode = "title", wave = 0, pops = 0, stars = 0, need = 6;
+    var ask = "red", hold = 0, aim = -1.2, kidX = 0, kidY = 0, pinLen = 170;
+    var balloons = [], bits = [], clouds = [], flags = [];
+    var pokeFlash = 0;
+    var COLORS = [
+      { k: "red", c: "#ef4444", n: "RED" },
+      { k: "blue", c: "#3b82f6", n: "BLUE" },
+      { k: "yellow", c: "#facc15", n: "YELLOW" },
+      { k: "green", c: "#22c55e", n: "GREEN" },
+      { k: "pink", c: "#f472b6", n: "PINK" }
+    ];
+    var WAVES = [
+      { n: "Parade", wind: 8, rise: 16, need: 6, rain: 0, say: "Hold. Aim. Poke RED." },
+      { n: "Breeze", wind: 28, rise: 20, need: 7, rain: 0, say: "Wind slides them." },
+      { n: "Mix-up", wind: 12, rise: 22, need: 7, rain: 0, say: "Look at the color!" },
+      { n: "Gust", wind: 48, rise: 24, need: 8, rain: 0, say: "Big wind. Aim well." },
+      { n: "Rainbow", wind: 18, rise: 18, need: 8, rain: 1, say: "Rainbow always counts!" }
+    ];
+
+    function beep(f, d, typ) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), a = ac.createGain();
+        o.type = typ || "square"; o.frequency.value = f; a.gain.value = 0.06;
+        o.connect(a); a.connect(ac.destination); o.start();
+        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    var t=0;
-    function loop(){
-      t++;if(play&&t%36===0)spawn();
-      items.forEach(function(it){if(it.dead)return;it.y-=it.sp;it.el.style.top=it.y+"px";if(it.y<-80){it.dead=true;it.el.remove();}});
-      items=items.filter(function(it){return !it.dead;});
+    function say(s) { document.getElementById("say").textContent = s; }
+    function paintStars() {
+      var el = document.getElementById("stars"), html = "", i;
+      for (i = 0; i < 5; i++) html += "<b" + (i < stars ? " class=\"on\"" : "") + "></b>";
+      el.innerHTML = html;
+    }
+    function setAsk(k) {
+      ask = k;
+      var col = COLORS.filter(function (c) { return c.k === k; })[0] || COLORS[0];
+      document.getElementById("askDot").style.background = col.c;
+      document.getElementById("askWord").textContent = col.n;
+    }
+    function hud() {
+      document.getElementById("waveName").textContent = WAVES[Math.min(wave, 4)].n;
+      document.getElementById("pops").textContent = "Pops " + pops + " / " + need;
+      paintStars();
+    }
+    function resize() {
+      W = cv.width = innerWidth; H = cv.height = innerHeight;
+      kidX = W * 0.5; kidY = H * 0.86;
+      pinLen = Math.min(210, Math.max(140, H * 0.28));
+      if (!flags.length) seed();
+    }
+    function seed() {
+      flags = []; clouds = [];
+      var i;
+      for (i = 0; i < 12; i++) flags.push({ x: i / 11, c: COLORS[i % COLORS.length].c, ph: i });
+      for (i = 0; i < 4; i++) clouds.push({ x: Math.random(), y: 0.12 + Math.random() * 0.1, w: 60 + Math.random() * 50, s: 8 });
+    }
+    function spawnBal(anywhere) {
+      var col = COLORS[(Math.random() * COLORS.length) | 0];
+      var rain = WAVES[Math.min(wave, 4)].rain && Math.random() < 0.2;
+      balloons.push({
+        x: anywhere ? 50 + Math.random() * (W - 100) : 40 + Math.random() * (W - 80),
+        y: anywhere ? 90 + Math.random() * (H * 0.4) : H * 0.72,
+        r: 24 + Math.random() * 10, col: col.k, hex: col.c, rain: rain,
+        ph: Math.random() * 6, drift: 0, gone: 0
+      });
+    }
+    function resetWave() {
+      var w = WAVES[wave];
+      balloons = []; bits = []; pops = 0; need = w.need;
+      setAsk(COLORS[(Math.random() * COLORS.length) | 0].k);
+      say(w.say);
+      var i;
+      for (i = 0; i < 5; i++) spawnBal(true);
+      hud();
+    }
+    function startGame() {
+      mode = "play"; wave = 0; stars = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      resetWave();
+      beep(392, 0.1); beep(523, 0.12);
+    }
+    function nextWave() {
+      stars++;
+      wave++;
+      if (wave >= 5) {
+        mode = "win";
+        document.getElementById("winP").textContent = "You poked the party colors!";
+        document.getElementById("win").classList.remove("off");
+        beep(659, 0.16); beep(784, 0.2);
+        hud();
+        return;
+      }
+      beep(700, 0.1);
+      resetWave();
+    }
+    function spray(x, y, c) {
+      var i;
+      for (i = 0; i < 14; i++) {
+        bits.push({
+          x: x, y: y, vx: (Math.random() - 0.5) * 240, vy: (Math.random() - 0.5) * 220 - 30,
+          life: 0.45 + Math.random() * 0.4, c: c, s: 3 + Math.random() * 4
+        });
+      }
+    }
+    function pinTip() {
+      return { x: kidX + Math.cos(aim) * pinLen, y: kidY - 28 + Math.sin(aim) * pinLen };
+    }
+    function poke() {
+      var tip = pinTip(), i, b, dx, dy, hit = -1, sway, bob;
+      pokeFlash = 0.18;
+      beep(880, 0.05, "triangle");
+      for (i = 0; i < balloons.length; i++) {
+        b = balloons[i];
+        if (b.gone) continue;
+        bob = Math.sin(t * 2.2 + b.ph) * 8;
+        sway = Math.sin(t * 1.4 + b.ph) * 6;
+        dx = tip.x - (b.x + sway); dy = tip.y - (b.y + bob);
+        if (dx * dx + dy * dy < (b.r + 28) * (b.r + 28)) { hit = i; break; }
+      }
+      if (hit < 0) { say("Aim again!"); return; }
+      b = balloons[hit];
+      if (b.col === ask || b.rain) {
+        spray(b.x, b.y, b.rain ? "#a78bfa" : b.hex);
+        balloons.splice(hit, 1);
+        pops += b.rain ? 2 : 1;
+        beep(520, 0.08); beep(660, 0.1);
+        say(b.rain ? "Rainbow yes!" : "Pop!");
+        if (Math.random() < 0.5) setAsk(COLORS[(Math.random() * COLORS.length) | 0].k);
+        hud();
+        if (pops >= need) nextWave();
+      } else {
+        b.gone = 1;
+        b.drift = (b.x < kidX ? -80 : 80);
+        say("It floats away. Try " + (COLORS.filter(function (c) { return c.k === ask; })[0] || { n: "that" }).n + "!");
+        beep(200, 0.08, "sine");
+      }
+    }
+    function drawBalloon(b) {
+      var bob = Math.sin(t * 2.2 + b.ph) * 8;
+      var sway = Math.sin(t * 1.4 + b.ph) * 6;
+      var x = b.x + sway, y = b.y + bob;
+      g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.6;
+      g.beginPath(); g.moveTo(x, y + b.r * 1.12);
+      g.quadraticCurveTo(x + Math.sin(t * 2 + b.ph) * 10, y + b.r + 28, x + Math.sin(t + b.ph) * 6, y + b.r + 46);
+      g.stroke();
+      if (b.rain) {
+        var rg = ["#ef4444", "#fb923c", "#facc15", "#22c55e", "#3b82f6", "#a78bfa"], i;
+        for (i = 0; i < 6; i++) {
+          g.fillStyle = rg[i];
+          g.beginPath(); g.ellipse(x, y, b.r - i * 2, b.r * 1.16 - i * 2, 0, 0, Math.PI * 2); g.fill();
+        }
+      } else {
+        g.fillStyle = b.hex;
+        g.beginPath(); g.ellipse(x, y, b.r, b.r * 1.16, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "rgba(255,255,255,.5)";
+        g.beginPath(); g.ellipse(x - b.r * 0.32, y - b.r * 0.34, b.r * 0.2, b.r * 0.3, -0.4, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = b.rain ? "#6d28d9" : b.hex;
+      g.beginPath(); g.moveTo(x - 5, y + b.r * 1.08); g.lineTo(x + 5, y + b.r * 1.08); g.lineTo(x, y + b.r * 1.28); g.fill();
+    }
+    function drawKid() {
+      var tip = pinTip();
+      var shx = kidX + 8, shy = kidY - 46;
+      g.strokeStyle = "#422006"; g.lineWidth = 5; g.lineCap = "round";
+      var hop = hold ? 0 : Math.abs(Math.sin(t * 3)) * 3;
+      g.beginPath(); g.moveTo(kidX - 8, kidY - 18 - hop); g.lineTo(kidX - 10, kidY + 4); g.stroke();
+      g.beginPath(); g.moveTo(kidX + 8, kidY - 18 - hop); g.lineTo(kidX + 12, kidY + 4); g.stroke();
+      g.fillStyle = "#7c3aed";
+      g.beginPath(); g.roundRect ? (g.roundRect(kidX - 14, kidY - 50 - hop, 28, 34, 8), g.fill()) : g.fillRect(kidX - 14, kidY - 50 - hop, 28, 34);
+      g.fillStyle = "#fdba74";
+      g.beginPath(); g.arc(kidX, kidY - 62 - hop, 13, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#422006";
+      g.beginPath(); g.ellipse(kidX, kidY - 70 - hop, 13, 6, 0, Math.PI, 0); g.fill();
+      g.fillStyle = "#1e1b4b";
+      g.beginPath(); g.arc(kidX - 4, kidY - 64 - hop, 1.8, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(kidX + 5, kidY - 64 - hop, 1.8, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "#fdba74"; g.lineWidth = 6;
+      g.beginPath(); g.moveTo(shx, shy - hop); g.lineTo(shx + Math.cos(aim) * 36, shy - hop + Math.sin(aim) * 36); g.stroke();
+      g.strokeStyle = "#92400e"; g.lineWidth = 5;
+      g.beginPath(); g.moveTo(shx, shy - hop); g.lineTo(tip.x, tip.y); g.stroke();
+      g.fillStyle = pokeFlash > 0 ? "#fde047" : "#e2e8f0";
+      g.beginPath();
+      g.moveTo(tip.x, tip.y);
+      g.lineTo(tip.x - Math.cos(aim) * 14 - Math.sin(aim) * 5, tip.y - Math.sin(aim) * 14 + Math.cos(aim) * 5);
+      g.lineTo(tip.x - Math.cos(aim) * 14 + Math.sin(aim) * 5, tip.y - Math.sin(aim) * 14 - Math.cos(aim) * 5);
+      g.closePath(); g.fill();
+    }
+    function drawBg() {
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      grd.addColorStop(0, wave === 4 ? "#4c1d95" : "#7dd3fc");
+      grd.addColorStop(0.5, wave === 4 ? "#7c3aed" : "#f9a8d4");
+      grd.addColorStop(1, "#86efac");
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      if (wave !== 4) {
+        g.fillStyle = "#fde047";
+        g.beginPath(); g.arc(W * 0.84, H * 0.16, 24, 0, Math.PI * 2); g.fill();
+      }
+      var i, c, cx;
+      for (i = 0; i < clouds.length; i++) {
+        c = clouds[i];
+        cx = ((c.x + t * 0.03) % 1.3) * W - 20;
+        g.fillStyle = "rgba(255,255,255,.85)";
+        g.beginPath(); g.ellipse(cx, c.y * H, c.w, 14, 0, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.ellipse(cx + 20, c.y * H - 8, c.w * 0.45, 12, 0, 0, Math.PI * 2); g.fill();
+      }
+      g.strokeStyle = "#fde047"; g.lineWidth = 3;
+      g.beginPath();
+      for (i = 0; i < flags.length; i++) {
+        var fx = flags[i].x * W, fy = 36 + Math.sin(t * 2 + flags[i].ph) * 5;
+        if (i === 0) g.moveTo(fx, fy); else g.lineTo(fx, fy);
+      }
+      g.stroke();
+      for (i = 0; i < flags.length; i++) {
+        g.fillStyle = flags[i].c;
+        var x = flags[i].x * W, y = 36 + Math.sin(t * 2 + flags[i].ph) * 5;
+        g.beginPath(); g.moveTo(x - 9, y); g.lineTo(x + 9, y); g.lineTo(x, y + 20); g.fill();
+      }
+      g.fillStyle = "#4d7c0f"; g.fillRect(0, H * 0.78, W, H);
+      g.fillStyle = "#65a30d"; g.fillRect(0, H * 0.78, W, 10);
+    }
+    function update(dt) {
+      var w = WAVES[Math.min(wave, 4)];
+      t += dt;
+      if (pokeFlash > 0) pokeFlash -= dt;
+      var i, b;
+      if (mode === "play") {
+        if (balloons.length < 6 + wave) spawnBal(false);
+        for (i = balloons.length - 1; i >= 0; i--) {
+          b = balloons[i];
+          if (b.gone) {
+            b.x += b.drift * dt; b.y -= 10 * dt; b.drift *= 1.01;
+            if (b.x < -40 || b.x > W + 40) balloons.splice(i, 1);
+            continue;
+          }
+          b.y -= w.rise * dt;
+          b.x += Math.sin(t * 1.1 + b.ph) * 10 * dt + w.wind * dt * 0.28;
+          if (b.x < 28) b.x = 28;
+          if (b.x > W - 28) b.x = W - 28;
+          if (b.y < 40) balloons.splice(i, 1);
+        }
+      } else if (balloons.length < 6) spawnBal(true);
+      for (i = bits.length - 1; i >= 0; i--) {
+        bits[i].x += bits[i].vx * dt; bits[i].y += bits[i].vy * dt; bits[i].vy += 220 * dt; bits[i].life -= dt;
+        if (bits[i].life <= 0) bits.splice(i, 1);
+      }
+    }
+    function draw() {
+      drawBg();
+      var i;
+      for (i = 0; i < balloons.length; i++) drawBalloon(balloons[i]);
+      for (i = 0; i < bits.length; i++) {
+        g.globalAlpha = Math.max(0, bits[i].life);
+        g.fillStyle = bits[i].c;
+        g.beginPath(); g.arc(bits[i].x, bits[i].y, bits[i].s, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = 1;
+      }
+      drawKid();
+    }
+    function loop(now) {
       requestAnimationFrame(loop);
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
     }
-    setNeed();loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    cv.addEventListener("pointerdown", function (e) {
+      if (mode !== "play") return;
+      hold = 1;
+      var p = pos(e);
+      aim = Math.atan2(p.y - (kidY - 28), p.x - kidX);
+      try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    cv.addEventListener("pointermove", function (e) {
+      if (!hold || mode !== "play") return;
+      var p = pos(e);
+      aim = Math.atan2(p.y - (kidY - 28), p.x - kidX);
+    });
+    function release() {
+      if (!hold) return;
+      hold = 0;
+      if (mode === "play") poke();
+    }
+    cv.addEventListener("pointerup", release);
+    cv.addEventListener("pointercancel", release);
+    document.getElementById("go").onclick = startGame;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
+    addEventListener("resize", resize);
+    resize();
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

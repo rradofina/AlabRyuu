@@ -5,58 +5,377 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Duck Pond</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#38bdf8;color:#0c4a6e;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
-    #pond{position:fixed;inset:0;background:linear-gradient(#7dd3fc,#0ea5e9)}
-    .duck{position:absolute;font-size:48px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,70,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: Verdana, Geneva, sans-serif;
+      background: #14532d; color: #ecfccb;
+      touch-action: none; user-select: none;
+    }
+    button {
+      background: transparent; border: 0; appearance: none;
+      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
+    }
+    .home {
+      position: fixed; top: 10px; left: 10px; z-index: 20;
+      color: #14532d; text-decoration: none; font-weight: 800; font-size: 16px;
+      background: #fde047; padding: 8px 14px; border-radius: 14px;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+    .pads {
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+      z-index: 12; display: flex; gap: 8px; pointer-events: none;
+    }
+    .pad {
+      min-width: 88px; background: #166534; border: 3px solid #86efac;
+      border-radius: 40px 40px 28px 28px; padding: 8px 12px; text-align: center;
+    }
+    .pad .n { font-weight: 800; font-size: 13px; color: #bbf7d0; }
+    .pad .v { font-weight: 800; font-size: 16px; color: #fff; }
+    .stars {
+      position: fixed; top: 10px; right: 10px; z-index: 12;
+      display: flex; flex-direction: column; gap: 3px; pointer-events: none;
+    }
+    .stars i {
+      width: 18px; height: 18px; background: #365314;
+      clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+    }
+    .stars i.on { background: #fde047; }
+    .hint {
+      position: fixed; left: 12px; right: 12px; bottom: 16px; z-index: 8;
+      text-align: center; font-weight: 800; font-size: 17px;
+      color: #fff; text-shadow: 0 2px 0 #14532d; pointer-events: none;
+    }
+    .cover {
+      position: fixed; inset: 0; z-index: 18;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 12px; padding: 24px;
+      background: linear-gradient(180deg, rgba(22,101,52,.4), rgba(20,83,45,.62));
+    }
+    .cover.off { display: none; }
+    h1 { font-size: clamp(34px, 9vw, 52px); color: #fde047; text-shadow: 0 4px 0 #14532d; }
+    .cover p { font-weight: 800; font-size: 18px; max-width: 300px; }
+    .btn {
+      background: #fde047; color: #422006; font-weight: 800; font-size: 26px;
+      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #ca8a04;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
+    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
-  <a class="home" href="../index.html">← Home</a>
-  <div id="hud">🐥 0 / 8</div>
-  <div id="ask">Tap mama's yellow babies!</div>
-  <div id="pond"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🦆</div>
-    <h2>Family swim!</h2>
-    <button class="play" id="again">Swim again</button>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div class="pads">
+    <div class="pad"><div class="n">Pond</div><div class="v" id="pondName">Morning</div></div>
+    <div class="pad"><div class="n">Home</div><div class="v" id="homeN">0 / 0</div></div>
+  </div>
+  <div class="stars" id="stars"></div>
+  <div class="hint" id="say">Draw a crumb trail to mama!</div>
+  <div class="cover" id="title">
+    <h1>Duck Pond</h1>
+    <p>Draw a bread trail. Babies follow it home to mama.</p>
+    <button class="btn" id="go" type="button">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <h1>Family hug!</h1>
+    <p id="winP">Five ponds. Soft quacks.</p>
+    <button class="btn g" id="again" type="button">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var kinds=[{e:"🐥",ok:true},{e:"🦆",ok:false},{e:"🐸",ok:false},{e:"🐟",ok:false}];
-    var score=0,play=true,items=[],pond=document.getElementById("pond");
-    function spawn(){
-      if(!play)return;
-      var k=Math.random()<.45?kinds[0]:kinds[1+Math.floor(Math.random()*3)];
-      var b=document.createElement("button");b.className="duck";b.textContent=k.e;
-      var y=120+Math.random()*(innerHeight-200),x=-40,sp=1.2+Math.random()*1.8;
-      b.style.left=x+"px";b.style.top=y+"px";pond.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,ok:k.ok,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        if(!k.ok){document.getElementById("ask").textContent="That's not a baby!";beep(180,.1);return;}
-        it.dead=true;b.remove();score++;beep(700,.08);
-        document.getElementById("hud").textContent="🐥 "+score+" / 8";
-        if(score>=8){play=false;document.getElementById("win").classList.add("on");beep(920,.2);}
-      };
-      items.push(it);
+  (function () {
+    var cv = document.getElementById("c"), g = cv.getContext("2d");
+    var W, H, t = 0, last = 0, mode = "title", pond = 0, saved = 0, need = 4, stars = 0;
+    var drawing = 0, trail = [], mama, babies = [], reeds = [], lilies = [], bugs = [], ripples = [];
+    var PONDS = [
+      { n: "Morning", wind: 8, babies: 3, lily: 3, say: "Draw a trail to mama." },
+      { n: "Lily", wind: 12, babies: 4, lily: 6, say: "Pads bob. Lead them." },
+      { n: "Breeze", wind: 36, babies: 4, lily: 4, say: "Wind scoots crumbs." },
+      { n: "Dusk", wind: 10, babies: 5, lily: 4, say: "Soft light. Draw home." },
+      { n: "Night", wind: 8, babies: 5, lily: 5, say: "Glow path home!" }
+    ];
+
+    function beep(f, d) {
+      try {
+        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
+        var o = ac.createOscillator(), a = ac.createGain();
+        o.type = "sine"; o.frequency.value = f; a.gain.value = 0.07;
+        o.connect(a); a.connect(ac.destination); o.start();
+        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+        o.stop(ac.currentTime + d);
+      } catch (e) {}
     }
-    var acc=0;
-    function loop(){
-      acc++;if(play&&acc%40===0)spawn();
-      items.forEach(function(it){if(it.dead)return;it.x+=it.sp;it.el.style.left=it.x+"px";if(it.x>innerWidth+40){it.dead=true;it.el.remove();}});
-      items=items.filter(function(it){return !it.dead;});
+    function say(s) { document.getElementById("say").textContent = s; }
+    function paintStars() {
+      var el = document.getElementById("stars"), html = "", i;
+      for (i = 0; i < 5; i++) html += "<i" + (i < stars ? " class=\"on\"" : "") + "></i>";
+      el.innerHTML = html;
+    }
+    function hud() {
+      document.getElementById("pondName").textContent = PONDS[Math.min(pond, 4)].n;
+      document.getElementById("homeN").textContent = saved + " / " + need;
+      paintStars();
+    }
+    function resize() {
+      W = cv.width = innerWidth; H = cv.height = innerHeight;
+      if (!reeds.length) seed();
+    }
+    function seed() {
+      reeds = []; bugs = [];
+      var i;
+      for (i = 0; i < 16; i++) reeds.push({ x: Math.random(), side: i < 8 ? 0 : 1, h: 50 + Math.random() * 60, ph: i });
+      for (i = 0; i < 7; i++) bugs.push({ x: Math.random(), y: 0.35 + Math.random() * 0.3, ph: i, s: 18 + Math.random() * 20 });
+    }
+    function resetPond() {
+      var p = PONDS[pond], i;
+      babies = []; trail = []; lilies = []; ripples = [];
+      saved = 0; need = p.babies;
+      mama = { x: W * 0.7, y: H * 0.55, a: 0, u: 0, foot: 0 };
+      for (i = 0; i < p.babies; i++) {
+        babies.push({
+          x: 50 + Math.random() * (W * 0.4), y: H * 0.4 + Math.random() * H * 0.28,
+          vx: 0, vy: 0, a: 0, home: 0, ti: 0, ph: i, foot: i
+        });
+      }
+      for (i = 0; i < p.lily; i++) {
+        lilies.push({ x: 0.18 + Math.random() * 0.64, y: 0.4 + Math.random() * 0.28, r: 16 + Math.random() * 10, ph: i, flower: i % 2 });
+      }
+      say(p.say);
+      hud();
+    }
+    function startGame() {
+      mode = "play"; pond = 0; stars = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      resetPond();
+      beep(330, 0.1); beep(392, 0.12);
+    }
+    function nextPond() {
+      stars++;
+      pond++;
+      if (pond >= 5) {
+        mode = "win";
+        document.getElementById("winP").textContent = "All ducklings found mama!";
+        document.getElementById("win").classList.remove("off");
+        beep(523, 0.16); beep(659, 0.2);
+        hud();
+        return;
+      }
+      beep(640, 0.1);
+      resetPond();
+    }
+    function addCrumb(x, y) {
+      var lastC = trail[trail.length - 1];
+      if (lastC && Math.hypot(x - lastC.x, y - lastC.y) < 16) return;
+      trail.push({ x: x, y: y, life: 10 });
+      ripples.push({ x: x, y: y, r: 4, life: 0.5 });
+    }
+    function drawDuck(x, y, a, big, baby, foot) {
+      var s = big ? 1 : 0.62;
+      var pad = Math.sin(foot) * (big ? 5 : 4);
+      g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s);
+      g.strokeStyle = "#b45309"; g.lineWidth = 2.4; g.lineCap = "round";
+      g.beginPath(); g.moveTo(-8, 8); g.lineTo(-14, 16 + pad); g.lineTo(-6, 16 + pad); g.stroke();
+      g.beginPath(); g.moveTo(6, 8); g.lineTo(4, 16 - pad); g.lineTo(12, 16 - pad); g.stroke();
+      g.fillStyle = baby ? "#fde047" : "#eab308";
+      g.beginPath(); g.ellipse(0, 0, 20, 13, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = baby ? "#facc15" : "#ca8a04";
+      g.beginPath(); g.ellipse(-4, -6 + Math.sin(foot) * 1.5, 8, 6, -0.4, 0, Math.PI * 2); g.fill();
+      g.fillStyle = baby ? "#fde047" : "#eab308";
+      g.beginPath(); g.arc(16, -6, 9, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#ea580c";
+      g.beginPath(); g.ellipse(26, -5, 7, 3.4, 0.1, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#1c1917";
+      if (Math.sin(t * 2.6 + x) > 0.92) g.fillRect(16, -9, 5, 1.3);
+      else { g.beginPath(); g.arc(18, -8, 1.8, 0, Math.PI * 2); g.fill(); }
+      g.restore();
+    }
+    function drawBg() {
+      var p = PONDS[Math.min(pond, 4)];
+      var top = pond === 3 ? "#fb923c" : pond === 4 ? "#1e1b4b" : "#7dd3fc";
+      var mid = pond === 4 ? "#1e3a5f" : "#38bdf8";
+      var grd = g.createLinearGradient(0, 0, 0, H);
+      grd.addColorStop(0, top); grd.addColorStop(0.34, mid); grd.addColorStop(1, "#0284c7");
+      g.fillStyle = grd; g.fillRect(0, 0, W, H);
+      if (pond < 4) {
+        g.fillStyle = pond === 3 ? "#fdba74" : "#fde047";
+        g.beginPath(); g.arc(W * 0.82, H * 0.14, 26, 0, Math.PI * 2); g.fill();
+      } else {
+        g.fillStyle = "#fef3c7";
+        g.beginPath(); g.arc(W * 0.8, H * 0.12, 20, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = pond === 4 ? "#0c4a6e" : "#0284c7";
+      g.beginPath(); g.moveTo(0, H * 0.34);
+      var i;
+      for (i = 0; i <= W; i += 16) g.lineTo(i, H * 0.34 + Math.sin(i * 0.02 + t) * 6);
+      g.lineTo(W, H); g.lineTo(0, H); g.fill();
+      g.fillStyle = pond === 4 ? "#155e75" : "#0ea5e9";
+      g.beginPath(); g.moveTo(0, H * 0.4);
+      for (i = 0; i <= W; i += 18) g.lineTo(i, H * 0.4 + Math.sin(i * 0.03 + t * 1.3) * 7);
+      g.lineTo(W, H); g.lineTo(0, H); g.fill();
+      g.fillStyle = "#166534";
+      g.beginPath(); g.ellipse(W * 0.08, H * 0.96, W * 0.38, 80, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(W * 0.92, H * 0.96, W * 0.4, 86, 0, 0, Math.PI * 2); g.fill();
+      for (i = 0; i < reeds.length; i++) {
+        var r = reeds[i];
+        var rx = r.side ? W - r.x * W * 0.16 : r.x * W * 0.16;
+        var sway = Math.sin(t * 1.6 + r.ph) * (8 + p.wind * 0.1);
+        g.strokeStyle = "#365314"; g.lineWidth = 4;
+        g.beginPath(); g.moveTo(rx, H * 0.82);
+        g.quadraticCurveTo(rx + sway, H * 0.82 - r.h * 0.5, rx + sway * 1.2, H * 0.82 - r.h);
+        g.stroke();
+        g.fillStyle = "#4d7c0f";
+        g.beginPath(); g.ellipse(rx + sway * 1.2, H * 0.82 - r.h - 4, 5, 10, 0, 0, Math.PI * 2); g.fill();
+      }
+      for (i = 0; i < lilies.length; i++) {
+        var L = lilies[i], lx = L.x * W, ly = L.y * H + Math.sin(t * 1.5 + L.ph) * 3;
+        g.fillStyle = "#15803d";
+        g.beginPath(); g.ellipse(lx, ly, L.r, L.r * 0.68, 0, 0.25, Math.PI * 2 - 0.35); g.fill();
+        g.strokeStyle = "#166534"; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(lx, ly); g.lineTo(lx + L.r * 0.6, ly - 2); g.stroke();
+        if (L.flower) {
+          var k;
+          g.fillStyle = "#f9a8d4";
+          for (k = 0; k < 5; k++) {
+            var a = k * 1.256 + t * 0.2;
+            g.beginPath(); g.ellipse(lx + Math.cos(a) * 5, ly + Math.sin(a) * 3, 4, 2.4, a, 0, Math.PI * 2); g.fill();
+          }
+          g.fillStyle = "#fde047";
+          g.beginPath(); g.arc(lx, ly, 2.4, 0, Math.PI * 2); g.fill();
+        }
+      }
+    }
+    function update(dt) {
+      var p = PONDS[Math.min(pond, 4)];
+      t += dt;
+      if (!mama) return;
+      mama.u += dt * 0.5;
+      var mx = W * 0.55 + Math.cos(mama.u) * W * 0.22;
+      var my = H * 0.52 + Math.sin(mama.u * 1.4) * H * 0.1;
+      mama.a = Math.atan2(my - mama.y, mx - mama.x);
+      mama.x += (mx - mama.x) * Math.min(1, dt * 2.4);
+      mama.y += (my - mama.y) * Math.min(1, dt * 2.4);
+      mama.foot += dt * 10;
+      var i, b, c, tx, ty, d;
+      for (i = 0; i < babies.length; i++) {
+        b = babies[i];
+        if (b.home) {
+          b.x += (mama.x - 18 - i * 10 - b.x) * dt * 3;
+          b.y += (mama.y + 10 + (i % 2) * 8 - b.y) * dt * 3;
+          b.a = mama.a;
+          b.foot += dt * 10;
+          continue;
+        }
+        if (trail.length && b.ti < trail.length) {
+          c = trail[Math.min(b.ti, trail.length - 1)];
+          tx = c.x; ty = c.y;
+          d = Math.hypot(tx - b.x, ty - b.y);
+          b.vx += (tx - b.x) * dt * 2.6;
+          b.vy += (ty - b.y) * dt * 2.6;
+          if (d < 18) b.ti++;
+        } else {
+          b.vx += Math.sin(t + b.ph) * 16 * dt;
+          b.vy += Math.cos(t * 0.8 + b.ph) * 10 * dt;
+        }
+        if (Math.hypot(mama.x - b.x, mama.y - b.y) < 36 && (b.ti > 2 || trail.length > 3)) {
+          b.home = 1; saved++;
+          beep(600, 0.09);
+          say("Home!");
+          hud();
+          if (saved >= need) nextPond();
+        }
+        b.vx *= 0.94; b.vy *= 0.94;
+        b.x += b.vx * dt; b.y += b.vy * dt;
+        b.a = Math.atan2(b.vy, b.vx);
+        b.foot += dt * (8 + Math.hypot(b.vx, b.vy) * 0.08);
+        if (b.x < 24) b.x = 24;
+        if (b.x > W - 24) b.x = W - 24;
+        if (b.y < H * 0.36) b.y = H * 0.36;
+        if (b.y > H * 0.86) b.y = H * 0.86;
+      }
+      for (i = trail.length - 1; i >= 0; i--) {
+        trail[i].x += Math.sin(t + i) * p.wind * 0.12 * dt;
+        trail[i].life -= dt;
+        if (trail[i].life <= 0) trail.splice(i, 1);
+      }
+      for (i = ripples.length - 1; i >= 0; i--) {
+        ripples[i].r += 36 * dt; ripples[i].life -= dt;
+        if (ripples[i].life <= 0) ripples.splice(i, 1);
+      }
+    }
+    function draw() {
+      drawBg();
+      var i;
+      for (i = 0; i < ripples.length; i++) {
+        g.strokeStyle = "rgba(255,255,255," + (ripples[i].life * 0.45) + ")"; g.lineWidth = 2;
+        g.beginPath(); g.arc(ripples[i].x, ripples[i].y, ripples[i].r, 0, Math.PI * 2); g.stroke();
+      }
+      if (trail.length > 1) {
+        g.strokeStyle = "rgba(253,230,138,.75)"; g.lineWidth = 6; g.lineCap = "round"; g.lineJoin = "round";
+        g.beginPath(); g.moveTo(trail[0].x, trail[0].y);
+        for (i = 1; i < trail.length; i++) g.lineTo(trail[i].x, trail[i].y);
+        g.stroke();
+      }
+      for (i = 0; i < trail.length; i++) {
+        g.fillStyle = "#fde68a";
+        g.beginPath(); g.arc(trail[i].x, trail[i].y, 4, 0, Math.PI * 2); g.fill();
+      }
+      for (i = 0; i < babies.length; i++) {
+        if (!babies[i].home) drawDuck(babies[i].x, babies[i].y, babies[i].a, false, true, babies[i].foot);
+      }
+      if (mama) drawDuck(mama.x, mama.y, mama.a, true, false, mama.foot);
+      for (i = 0; i < babies.length; i++) {
+        if (babies[i].home) drawDuck(babies[i].x, babies[i].y, babies[i].a, false, true, babies[i].foot);
+      }
+      for (i = 0; i < bugs.length; i++) {
+        var u = bugs[i];
+        var bx = ((u.x + Math.sin(t * 0.4 + u.ph) * 0.1) % 1) * W;
+        var by = u.y * H + Math.sin(t * 2 + u.ph) * 8;
+        var fl = 0.4 + 0.6 * Math.abs(Math.sin(t * 12 + u.ph));
+        g.fillStyle = pond === 4 ? "rgba(253,224,71,.75)" : "#365314";
+        g.beginPath(); g.ellipse(bx - 5, by, 5 * fl, 2.4, -0.3, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.ellipse(bx + 5, by, 5 * fl, 2.4, 0.3, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#14532d";
+        g.fillRect(bx - 1, by - 3, 2, 6);
+      }
+    }
+    function loop(now) {
       requestAnimationFrame(loop);
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt); draw();
     }
-    loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    cv.addEventListener("pointerdown", function (e) {
+      if (mode !== "play") return;
+      drawing = 1; trail = [];
+      var p = pos(e);
+      addCrumb(p.x, p.y);
+      var i;
+      for (i = 0; i < babies.length; i++) if (!babies[i].home) babies[i].ti = 0;
+      try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+      beep(420, 0.04);
+    });
+    cv.addEventListener("pointermove", function (e) {
+      if (!drawing || mode !== "play") return;
+      var p = pos(e);
+      addCrumb(p.x, p.y);
+    });
+    function endDraw() { drawing = 0; }
+    cv.addEventListener("pointerup", endDraw);
+    cv.addEventListener("pointercancel", endDraw);
+    document.getElementById("go").onclick = startGame;
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
+    addEventListener("resize", resize);
+    resize();
+    mama = { x: W * 0.55, y: H * 0.55, a: 0, u: 0, foot: 0 };
+    babies = [
+      { x: W * 0.3, y: H * 0.58, vx: 0, vy: 0, a: 0, home: 0, ti: 0, ph: 0, foot: 0 },
+      { x: W * 0.4, y: H * 0.62, vx: 0, vy: 0, a: 0, home: 0, ti: 0, ph: 1, foot: 1 }
+    ];
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>
