@@ -118,8 +118,8 @@
       var c=cols[kind]||cols.dog;
       var sleeping=pose==="sleep";
       var eating=pose==="eat";
-      var headY=eating?-10:-18;
-      var headX=eating?16:18;
+      var headY=eating?-4: sleeping? -8 : -18;
+      var headX=eating?22:18;
 
       function legs(){
         if(sleeping) return;
@@ -212,8 +212,8 @@
       ellipse(cx,cy+36,24,8,"rgba(0,0,0,.15)");
       x.save();
       x.translate(cx,cy+bounce);
-      if(asleep) x.rotate(-0.55);
-      if(eating) x.rotate(0.18);
+      if(asleep) x.rotate(-1.15);
+      if(eating) x.rotate(0.35);
       var walk=pose==="bounce"?Math.sin(T*8):0;
       var wag=pose==="sleep"?2:Math.sin(T*9)*10;
       var shut=blink>0.85;
@@ -257,6 +257,7 @@
       var h=hitAt(mx,my);
       if(h&&h.id==="play"){start();return;}
       if(h&&h.id==="again"){stage="title";return;}
+      if(h&&h.id==="back"){stage="park";say=DAYS[day].tip;ball=null;return;}
       if(stage==="feed"){
         for(var i=flakes.length-1;i>=0;i--){
           var f=flakes[i],dx=mx-f.x,dy=my-f.y;

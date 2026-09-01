@@ -59,7 +59,7 @@
       { name: "Snow", kind: "sheep" }, { name: "Maple", kind: "horse" }, { name: "Cluck", kind: "chicken" },
       { name: "Nibble", kind: "goat" }
     ];
-    var HIT = { cow: 52, pig: 48, duck: 42, sheep: 50, horse: 54, chicken: 40, goat: 48 };
+    var HIT = { cow: 52, pig: 48, duck: 42, sheep: 50, horse: 58, chicken: 40, goat: 48 };
 
     function beep(f, d) {
       try {
@@ -277,20 +277,22 @@
 
     function drawHorse(walk) {
       stepLegs([-16, -6, 8, 18], 10, 18, "#7c2d12", walk);
-      oval(2, 0, 24, 13, "#b45309");
-      oval(24, -10, 13, 8, "#b45309");
-      oval(34, -8, 7, 4, "#92400e");
+      oval(0, 2, 26, 13, "#b45309");
       g.fillStyle = "#7c2d12";
       g.beginPath();
-      g.moveTo(10, -12); g.lineTo(8, -22); g.lineTo(14, -14);
-      g.lineTo(18, -24); g.lineTo(22, -12);
+      g.moveTo(8, -8); g.lineTo(6, -22); g.lineTo(12, -10);
+      g.lineTo(14, -26); g.lineTo(18, -10);
+      g.lineTo(20, -22); g.lineTo(24, -8);
       g.fill();
+      oval(22, -12, 8, 10, "#b45309");
+      oval(32, -16, 12, 7, "#b45309");
+      oval(42, -15, 7, 4, "#92400e");
       g.fillStyle = "#92400e";
-      g.beginPath(); g.ellipse(16, -16, 3.5, 6, -0.3, 0, 6.28); g.fill();
-      g.beginPath(); g.ellipse(24, -16, 3.5, 6, 0.2, 0, 6.28); g.fill();
-      eye(26, -12, 0);
-      g.strokeStyle = "#7c2d12"; g.lineWidth = 4;
-      g.beginPath(); g.moveTo(-20, -2); g.quadraticCurveTo(-32, -16 + walk * 6, -22, 8); g.stroke();
+      g.beginPath(); g.ellipse(18, -20, 3.5, 7, -0.4, 0, 6.28); g.fill();
+      g.beginPath(); g.ellipse(26, -22, 3.5, 7, 0.15, 0, 6.28); g.fill();
+      eye(30, -18, 0);
+      g.strokeStyle = "#7c2d12"; g.lineWidth = 5;
+      g.beginPath(); g.moveTo(-24, 0); g.quadraticCurveTo(-40, -18 + walk * 8, -26, 10); g.stroke();
     }
 
     function drawChicken(walk) {
