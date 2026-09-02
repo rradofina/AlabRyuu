@@ -115,9 +115,9 @@
     function say(s) { document.getElementById("say").textContent = s; }
     function hud() {
       document.getElementById("tree").textContent = STAGES[Math.min(stage, 4)].n;
-      document.getElementById("got").textContent = "🍎 " + score;
-      var h = ""; for (var i = 0; i < lives; i++) h += "💛";
-      document.getElementById("lives").textContent = h || "…";
+      document.getElementById("got").textContent = "Fruit " + score;
+      var nicks = document.querySelectorAll("#nicks i");
+      for (var i = 0; i < nicks.length; i++) nicks[i].className = i < lives ? "ok" : "";
     }
     function popCombo() {
       var el = document.getElementById("combo");
