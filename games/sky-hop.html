@@ -4,20 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Sky Hop · AlabRyuu</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet" />
   <style>
     :root { --ink:#16324a; --sky:#7ec8ff; }
     * { box-sizing: border-box; }
-    html, body { margin:0; height:100%; overflow:hidden; font-family:Nunito,sans-serif; background:#7ec8ff; color:#16324a; }
+    html, body { margin:0; height:100%; overflow:hidden; font-family:Trebuchet MS,Comic Sans MS,sans-serif; background:#7ec8ff; color:#16324a; }
     canvas { display:block; width:100%; height:100%; touch-action:none; }
     .hud { position:fixed; inset:0; pointer-events:none; z-index:2; }
     .top { display:flex; justify-content:space-between; padding:max(10px,env(safe-area-inset-top)) 12px 0; }
     a { pointer-events:auto; color:#16324a; font-weight:900; text-decoration:none; background:#fff8; padding:8px 12px; border-radius:999px; }
     .chip { background:#fff; padding:8px 12px; border-radius:999px; font-weight:900; }
     .tools { position:absolute; left:50%; bottom:max(12px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; gap:10px; pointer-events:auto; }
-    button { min-height:64px; min-width:88px; border:0; border-radius:20px; background:#ffd84d; color:#16324a; font:900 18px Nunito,sans-serif; }
+    button { min-height:64px; min-width:88px; border:0; border-radius:20px; background:#ffd84d; color:#16324a; font:900 18px Trebuchet MS,sans-serif; }
     button.on { outline:4px solid #16324a; }
     .ov { position:fixed; inset:0; background:#7ec8ffee; display:grid; place-items:center; padding:20px; z-index:5; text-align:center; }
     .ov h1 { font-size:clamp(32px,8vw,56px); margin:0; }

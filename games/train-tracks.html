@@ -7,11 +7,12 @@
   <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#365314;color:#fff7ed;touch-action:none;user-select:none}
+    html,body{height:100%;overflow:hidden;font-family:Georgia,serif;background:#3f2a14;color:#fff7ed;touch-action:none;user-select:none}
     button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;font-size:17px;background:rgba(0,0,0,.35);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800;text-align:right;pointer-events:none}
-    #hud b{display:inline-block;background:#fff7ed;color:#7c2d12;padding:6px 10px;border-radius:999px;margin-left:6px}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#431407;text-decoration:none;font-family:Trebuchet MS,sans-serif;font-weight:800;font-size:16px;background:#fde68a;padding:8px 14px;border-radius:4px;border:3px solid #b45309}
+    .ticket{position:fixed;top:10px;right:10px;z-index:8;width:118px;background:#fef3c7;color:#7c2d12;border:4px dashed #b45309;padding:8px 10px;text-align:center;font-family:Trebuchet MS,sans-serif;font-weight:800;box-shadow:0 6px 0 #431407;pointer-events:none}
+    .ticket small{display:block;font-size:11px;letter-spacing:1px}
+    .ticket b{display:block;font-size:16px;margin-top:4px}
     #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;text-shadow:0 2px 0 #7c2d12;z-index:8;pointer-events:none}
     #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:6px;padding:10px;background:#78350f;flex-wrap:wrap;justify-content:center}
     #dock.on{display:flex}
@@ -26,7 +27,7 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="mp">Short run</b><b id="cg">📦 0</b><b id="st">⭐ 0</b></div>
+  <div class="ticket"><small>YARD</small><b id="mp">Short run</b><b id="cg">Cargo 0</b><b id="st">Stars 0</b></div>
   <div id="say">Snap tracks. Then the train runs!</div>
   <div id="dock">
     <button data-p="H" class="on">═</button>
@@ -89,22 +90,60 @@
       var g = new T.Group();
       var tieM = new T.MeshLambertMaterial({ color: 0x7c2d12 });
       var railM = new T.MeshLambertMaterial({ color: 0x78716c });
+      var curve = kind !== "H" && kind !== "V";
       for (var i = 0; i < 4; i++) {
-        var tie = new T.Mesh(new T.BoxGeometry(1.2, 0.08, 0.18), tieM);
-        tie.position.set(0, 0.04, -0.5 + i * 0.35);
+        var tie = new T.Mesh(new T.BoxGeometry(1.15, 0.08, 0.16), tieM);
+        if (curve) {
+          var a = (i / 3) * Math.PI / 2;
+          tie.position.set(Math.sin(a) * 0.45, 0.04, Math.cos(a) * 0.45 - 0.2);
+          tie.rotation.y = a;
+        } else tie.position.set(0, 0.04, -0.5 + i * 0.35);
         g.add(tie);
       }
-      var r1 = new T.Mesh(new T.BoxGeometry(0.08, 0.08, 1.5), railM);
-      r1.position.set(-0.28, 0.1, 0); g.add(r1);
-      var r2 = r1.clone(); r2.position.x = 0.28; g.add(r2);
-      if (kind === "V") g.rotation.y = Math.PI / 2;
-      if (kind === "NE") g.rotation.y = 0;
-      if (kind === "NW") g.rotation.y = Math.PI / 2;
-      if (kind === "SE") g.rotation.y = -Math.PI / 2;
-      if (kind === "SW") g.rotation.y = Math.PI;
-      if (kind !== "H" && kind !== "V") {
-        g.rotation.y += 0;
+      if (curve) {
+        var arc = new T.Mesh(new T.TorusGeometry(0.55, 0.045, 6, 10, Math.PI / 2), railM);
+        arc.rotation.x = Math.PI / 2; arc.position.set(0.28, 0.1, -0.28); g.add(arc);
+        var arc2 = new T.Mesh(new T.TorusGeometry(0.28, 0.045, 6, 10, Math.PI / 2), railM);
+        arc2.rotation.x = Math.PI / 2; arc2.position.set(0.14, 0.1, -0.14); g.add(arc2);
+        if (kind === "NE") g.rotation.y = 0;
+        if (kind === "NW") g.rotation.y = Math.PI / 2;
+        if (kind === "SE") g.rotation.y = -Math.PI / 2;
+        if (kind === "SW") g.rotation.y = Math.PI;
+      } else {
+        var r1 = new T.Mesh(new T.BoxGeometry(0.08, 0.08, 1.5), railM);
+        r1.position.set(-0.28, 0.1, 0); g.add(r1);
+        var r2 = r1.clone(); r2.position.x = 0.28; g.add(r2);
+        if (kind === "V") g.rotation.y = Math.PI / 2;
       }
+      return g;
+    }
+    function makeCargo(kind) {
+      var g = new T.Group();
+      if (kind === 0) {
+        for (var i = 0; i < 5; i++) {
+          var n = new T.Mesh(new T.SphereGeometry(0.12, 7, 6), new T.MeshLambertMaterial({ color: i % 2 ? 0x44403c : 0x1c1917 }));
+          n.position.set((i % 3 - 1) * 0.1, 0.12 + (i % 2) * 0.08, (Math.floor(i / 3) - 0.3) * 0.1);
+          g.add(n);
+        }
+      } else if (kind === 1) {
+        var bar = new T.Mesh(new T.CylinderGeometry(0.14, 0.14, 0.28, 10), new T.MeshLambertMaterial({ color: 0xb45309 }));
+        bar.position.y = 0.16; g.add(bar);
+        var lid = new T.Mesh(new T.CylinderGeometry(0.15, 0.15, 0.04, 10), new T.MeshLambertMaterial({ color: 0xfde68a }));
+        lid.position.y = 0.32; g.add(lid);
+      } else {
+        var sack = new T.Mesh(new T.SphereGeometry(0.16, 8, 6), new T.MeshLambertMaterial({ color: 0xca8a04 }));
+        sack.scale.set(1, 0.85, 1); sack.position.y = 0.16; g.add(sack);
+        var top = new T.Mesh(new T.ConeGeometry(0.06, 0.1, 6), new T.MeshLambertMaterial({ color: 0x92400e }));
+        top.position.y = 0.32; g.add(top);
+      }
+      return g;
+    }
+    function makeStation(gold) {
+      var g = new T.Group();
+      var house = new T.Mesh(new T.CylinderGeometry(0.28, 0.32, 0.4, 8), new T.MeshLambertMaterial({ color: gold ? 0xf59e0b : 0x22c55e }));
+      house.position.y = 0.28; g.add(house);
+      var roof = new T.Mesh(new T.ConeGeometry(0.38, 0.28, 8), new T.MeshLambertMaterial({ color: gold ? 0xfde047 : 0x166534 }));
+      roof.position.y = 0.58; g.add(roof);
       return g;
     }
 
@@ -120,21 +159,21 @@
           gridG.add(pad);
         }
       }
-      var start = new T.Mesh(new T.BoxGeometry(1.2, 0.2, 1.2), new T.MeshLambertMaterial({ color: 0x22c55e }));
-      start.position.copy(worldPos(m.start[0], m.start[1])); start.position.y = 0.12; gridG.add(start);
-      var goal = new T.Mesh(new T.BoxGeometry(1.2, 0.2, 1.2), new T.MeshLambertMaterial({ color: 0xf59e0b }));
-      goal.position.copy(worldPos(m.goal[0], m.goal[1])); goal.position.y = 0.12; gridG.add(goal);
+      var start = makeStation(false);
+      start.position.copy(worldPos(m.start[0], m.start[1])); gridG.add(start);
+      var goal = makeStation(true);
+      goal.position.copy(worldPos(m.goal[0], m.goal[1])); gridG.add(goal);
       for (var i = 0; i < m.need; i++) {
-        var box = new T.Mesh(new T.BoxGeometry(0.35, 0.35, 0.35), new T.MeshLambertMaterial({ color: 0xb45309 }));
+        var box = makeCargo(i % 3);
         var gx = 1 + (i % (m.w - 2)), gy = (i + 1) % m.h;
-        box.position.copy(worldPos(gx, gy)); box.position.y = 0.4;
+        box.position.copy(worldPos(gx, gy)); box.position.y = 0.12;
         box.userData = { gx: gx, gy: gy, got: 0 };
         scene.add(box); boxes.push(box);
       }
       placePiece(m.start[0], m.start[1], "H");
       document.getElementById("mp").textContent = m.n;
-      document.getElementById("cg").textContent = "📦 0/" + m.need;
-      document.getElementById("st").textContent = "⭐ " + stars;
+      document.getElementById("cg").textContent = "Cargo 0/" + m.need;
+      document.getElementById("st").textContent = "Stars " + stars;
       document.getElementById("say").textContent = ["Lay a straight!", "Add a turn!", "Bridge the gap!", "Night lights on!", "Home station!"][mapI];
       cam.position.set(m.w * 0.7, 9 + m.h * 0.3, 8);
       cam.lookAt(0, 0, 0);
@@ -290,8 +329,8 @@
         boxes.forEach(function (box) {
           if (!box.userData.got && train.position.distanceTo(box.position) < 0.8) {
             box.userData.got = 1; box.visible = false; cargo++; stars++;
-            document.getElementById("cg").textContent = "📦 " + cargo + "/" + MAPS[mapI].need;
-            document.getElementById("st").textContent = "⭐ " + stars;
+            document.getElementById("cg").textContent = "Cargo " + cargo + "/" + MAPS[mapI].need;
+            document.getElementById("st").textContent = "Stars " + stars;
             try { localStorage.setItem("alabryuu-train", JSON.stringify({ stars: stars })); } catch (e) {}
             beep(720, 0.07);
           }

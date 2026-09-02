@@ -7,16 +7,16 @@
   <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#0c4a6e;color:#ecfeff;touch-action:none;user-select:none}
+    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,system-ui,sans-serif;background:#082f49;color:#ecfeff;touch-action:none;user-select:none}
     button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:rgba(0,0,0,.35);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
-    #hud b{display:inline-block;background:#fff;color:#0c4a6e;padding:6px 10px;border-radius:999px;margin-left:6px}
-    #say{position:fixed;left:10px;right:10px;bottom:110px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
-    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:8px;padding:10px 12px 16px}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#082f49;text-decoration:none;font-weight:800;background:#7dd3fc;padding:8px 14px;border-radius:40% 40% 50% 50%}
+    .buoy{position:fixed;top:10px;right:10px;z-index:8;width:108px;background:#f97316;color:#fff7ed;border-radius:50% 50% 16px 16px;padding:14px 8px 10px;text-align:center;font-weight:800;box-shadow:0 8px 0 #9a3412;pointer-events:none}
+    .buoy b{display:block;font-size:13px}
+    #say{position:fixed;left:10px;right:10px;bottom:118px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
+    #dock{position:fixed;left:0;right:0;bottom:8px;z-index:8;display:none;justify-content:center;gap:14px;padding:0 12px}
     #dock.on{display:flex}
-    #dock button{flex:1;height:80px;border-radius:18px;font-weight:800;font-size:18px;background:#7dd3fc;color:#082f49}
-    #dock button.on{outline:4px solid #fff}
+    #dock button{width:86px;height:86px;border-radius:50%;font-weight:800;font-size:15px;background:#7dd3fc;color:#082f49;box-shadow:0 0 0 6px #38bdf855}
+    #dock button.on{background:#fde047;color:#422006}
     .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#38bdf8,#0c4a6e)}
     .cover.off{display:none}
     h1{font-size:clamp(32px,8vw,52px)}
@@ -25,7 +25,7 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="rf">Sunny bay</b><b id="tr">Trash 0</b><b id="st">⭐ 0</b></div>
+  <div class="buoy"><b id="rf">Sunny bay</b><b id="tr">Trash 0</b><b id="st">Stars 0</b></div>
   <div id="say">Tap trash. Fish swim. Boat floats!</div>
   <div id="dock">
     <button id="net" class="on">Net</button>
@@ -105,17 +105,20 @@
     var hose = new T.Mesh(new T.CylinderGeometry(0.014, 0.014, 0.3, 6), new T.MeshLambertMaterial({ color: 0x334155 }));
     hose.position.set(-0.06, 0.24, -0.02); hose.rotation.z = 0.75; hose.rotation.x = 0.35; diver.add(hose);
     var fins = [];
+    var hips = [];
     for (var s = -1; s <= 1; s += 2) {
+      var hip = new T.Group();
+      hip.position.set(s * 0.08, -0.16, 0);
+      var calf = new T.Mesh(new T.CylinderGeometry(0.03, 0.04, 0.2, 7), new T.MeshLambertMaterial({ color: 0x166534 }));
+      calf.position.y = -0.1; hip.add(calf);
       var ankle = new T.Group();
-      ankle.position.set(s * 0.11, -0.22, 0.04);
-      var fin = new T.Mesh(new T.BoxGeometry(0.16, 0.035, 0.62), new T.MeshLambertMaterial({ color: 0xffe135 }));
-      fin.position.set(0, 0, -0.26);
+      ankle.position.set(0, -0.2, 0);
+      var fin = new T.Mesh(new T.SphereGeometry(0.12, 8, 6), new T.MeshLambertMaterial({ color: 0xffe135 }));
+      fin.scale.set(0.7, 0.18, 2.1); fin.position.set(0, 0, -0.18);
       ankle.add(fin);
-      var tip = new T.Mesh(new T.BoxGeometry(0.22, 0.025, 0.12), new T.MeshLambertMaterial({ color: 0xfacc15 }));
-      tip.position.set(0, 0, -0.54);
-      ankle.add(tip);
-      diver.add(ankle);
-      fins.push(ankle);
+      hip.add(ankle);
+      diver.add(hip);
+      hips.push(hip); fins.push(ankle);
     }
     diver.position.set(0, 0.4, 3);
     diver.rotation.y = 0.95;
@@ -195,7 +198,7 @@
       }
       document.getElementById("rf").textContent = r.n;
       document.getElementById("tr").textContent = "Trash " + got + "/" + r.need;
-      document.getElementById("st").textContent = "⭐ " + stars;
+      document.getElementById("st").textContent = "Stars " + stars;
       document.getElementById("say").textContent = ["Tap the trash!", "Feed the fish!", "Night glow net!", "Steer the boat!", "Home reef!"][reef];
     }
 
@@ -224,7 +227,7 @@
         if (o && !o.userData.got) {
           o.userData.got = 1; o.visible = false; got++; stars++;
           document.getElementById("tr").textContent = "Trash " + got + "/" + REEFS[reef].need;
-          document.getElementById("st").textContent = "⭐ " + stars;
+          document.getElementById("st").textContent = "Stars " + stars;
           save(); beep(640, 0.07);
           if (got >= REEFS[reef].need) {
             reef++;
@@ -265,9 +268,12 @@
       t += dt;
       boat.position.y = Math.sin(t * 1.4) * 0.08;
       boat.rotation.z = Math.sin(t * 1.2) * 0.05;
-      fins.forEach(function (f, i) { f.rotation.x = 0.4 + Math.sin(t * 9 + i * Math.PI) * 0.75; });
+      hips.forEach(function (h, i) { h.rotation.x = Math.sin(t * 8 + i * Math.PI) * 0.7; });
+      fins.forEach(function (f, i) { f.rotation.x = 0.35 + Math.sin(t * 8 + i * Math.PI) * 0.55; });
       diver.position.x = Math.sin(t * 0.4) * 1.2;
       diver.position.y = 0.2 + Math.sin(t * 1.1) * 0.2;
+      diver.position.z = 3 + Math.cos(t * 0.35) * 0.4;
+      diver.rotation.x = Math.sin(t * 1.1) * 0.12;
       fish.forEach(function (f, i) {
         var u = f.userData;
         var a = t * 0.7 + u.u + i * 0.2;

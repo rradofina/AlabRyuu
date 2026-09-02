@@ -32,15 +32,13 @@
     }
     .pad .n { font-weight: 800; font-size: 13px; color: #bbf7d0; }
     .pad .v { font-weight: 800; font-size: 16px; color: #fff; }
-    .stars {
+    .crumbs {
       position: fixed; top: 10px; right: 10px; z-index: 12;
-      display: flex; flex-direction: column; gap: 3px; pointer-events: none;
+      width: 36px; height: 90px; background: #fde68a; border: 3px solid #b45309;
+      border-radius: 8px 8px 18px 18px; pointer-events: none; overflow: hidden;
     }
-    .stars i {
-      width: 18px; height: 18px; background: #365314;
-      clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
-    }
-    .stars i.on { background: #fde047; }
+    .crumbs i { display: block; height: 18%; background: #ca8a04; margin: 2px 4px 0; border-radius: 50%; }
+    .crumbs i.on { background: #92400e; }
     .hint {
       position: fixed; left: 12px; right: 12px; bottom: 16px; z-index: 8;
       text-align: center; font-weight: 800; font-size: 17px;
@@ -70,7 +68,7 @@
     <div class="pad"><div class="n">Pond</div><div class="v" id="pondName">Morning</div></div>
     <div class="pad"><div class="n">Home</div><div class="v" id="homeN">0 / 0</div></div>
   </div>
-  <div class="stars" id="stars"></div>
+  <div class="crumbs" id="stars"></div>
   <div class="hint" id="say">Draw a crumb trail to mama!</div>
   <div class="cover" id="title">
     <h1>Duck Pond</h1>

@@ -32,15 +32,14 @@
       box-shadow: 0 5px 0 #1c0a00; min-width: 140px;
     }
     .woodbar .wn { font-family: Trebuchet MS, sans-serif; font-weight: 800; font-size: 16px; color: #fde68a; }
-    .stars {
+    .lilies {
       position: fixed; top: 10px; right: 10px; z-index: 12;
-      display: flex; gap: 4px; pointer-events: none;
+      display: flex; gap: 5px; pointer-events: none;
     }
-    .stars i {
-      width: 18px; height: 18px; background: #365314;
-      clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+    .lilies i {
+      width: 18px; height: 12px; background: #365314; border-radius: 50%;
     }
-    .stars i.on { background: #fde047; }
+    .lilies i.on { background: #86efac; }
     #word {
       position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
       z-index: 12; min-width: 200px; text-align: center;
@@ -78,7 +77,7 @@
   <a class="home" href="../index.html">Home</a>
   <canvas id="c"></canvas>
   <div class="woodbar"><div class="wn" id="wordN">Word 1</div></div>
-  <div class="stars" id="stars"></div>
+  <div class="lilies" id="stars"></div>
   <div class="hint" id="say">Tap the next letter!</div>
   <div id="word">___</div>
   <div class="cover" id="title">

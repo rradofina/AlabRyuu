@@ -7,11 +7,11 @@
   <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#1c1917;color:#fff7ed;touch-action:none;user-select:none}
+    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,system-ui,sans-serif;background:#1c1917;color:#fff7ed;touch-action:none;user-select:none}
     button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;font-size:17px;background:#ea580c;padding:8px 14px;border-radius:8px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
-    #hud b{display:inline-block;background:#292524;color:#fdba74;padding:6px 10px;border-radius:8px;margin-left:6px;border:2px solid #ea580c}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;font-size:17px;background:#ea580c;padding:8px 14px;clip-path:polygon(12% 0,100% 0,88% 100%,0 100%)}
+    .glass{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:8;min-width:200px;background:linear-gradient(#7dd3fc88,#0c4a6eaa);border:3px solid #fdba74;border-radius:8px 8px 40px 40px;padding:8px 16px 12px;text-align:center;font-weight:800;pointer-events:none;box-shadow:inset 0 10px 0 #ffffff33}
+    .glass b{display:block;color:#fff7ed;text-shadow:0 2px 0 #9a3412}
     #say{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:8;font-weight:800;text-shadow:0 2px 0 #9a3412;pointer-events:none;width:90%;text-align:center}
     #pads{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:8px;padding:10px 12px 16px}
     #pads.on{display:flex}
@@ -27,7 +27,7 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="tr">Dawn City</b><b id="co">0</b><b id="sp">0</b></div>
+  <div class="glass"><b id="tr">Dawn City</b><b id="co">Coins 0</b><b id="sp">0 mph</b></div>
   <div id="say">Tap a lane. Wheels spin!</div>
   <div id="pads">
     <button id="L">◀ Left</button>
@@ -123,6 +123,14 @@
       });
       var head = new T.Mesh(new T.SphereGeometry(0.09, 8, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
       head.position.set(0, 0.7, 0.02); chassis.add(head);
+      var hat = new T.Mesh(new T.SphereGeometry(0.07, 7, 6), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
+      hat.scale.set(1.1, 0.45, 1.1); hat.position.set(0, 0.78, 0); chassis.add(hat);
+      var wheel = new T.Mesh(new T.TorusGeometry(0.07, 0.012, 6, 10), new T.MeshLambertMaterial({ color: 0x292524 }));
+      wheel.position.set(0, 0.58, 0.16); wheel.rotation.x = 1.1; chassis.add(wheel);
+      for (var hs = -1; hs <= 1; hs += 2) {
+        var hand = new T.Mesh(new T.SphereGeometry(0.03, 6, 5), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
+        hand.position.set(hs * 0.08, 0.56, 0.14); chassis.add(hand);
+      }
       g.scale.setScalar(scale || 1);
       g.userData = { wheels: wheels, body: chassis };
       return g;
@@ -172,7 +180,7 @@
       }
       document.getElementById("tr").textContent = tr.n;
       document.getElementById("say").textContent = ["Steer with taps!", "Tunnel lights!", "Splash the rain!", "Hold BOOST!", "Home lights!"][track];
-      document.getElementById("co").textContent = "🪙 " + coins;
+      document.getElementById("co").textContent = "Coins " + coins;
     }
 
     function start() {
@@ -227,7 +235,7 @@
           if (p.position.z > 8) { p.position.z = -50; p.visible = true; }
           if (p.visible && Math.abs(p.position.z) < 1 && Math.abs(p.position.x - car.position.x) < 0.7) {
             p.visible = false; coins++; stars++; beep(880, 0.06); save();
-            document.getElementById("co").textContent = "🪙 " + coins;
+            document.getElementById("co").textContent = "Coins " + coins;
             if (coins >= tr.need) {
               track++;
               if (track >= TRACKS.length) {

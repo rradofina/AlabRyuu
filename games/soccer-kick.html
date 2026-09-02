@@ -7,13 +7,13 @@
   <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#166534;color:#ecfccb;touch-action:none;user-select:none}
+    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,system-ui,sans-serif;background:#14532d;color:#ecfccb;touch-action:none;user-select:none}
     button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#14532d;text-decoration:none;font-weight:800;background:#fde047;padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
-    #hud b{display:inline-block;background:#fff;color:#14532d;padding:6px 10px;border-radius:999px;margin-left:6px}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#14532d;text-decoration:none;font-weight:800;background:#fde047;padding:8px 14px;border-radius:4px}
+    .scarf{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:8;min-width:210px;background:repeating-linear-gradient(90deg,#16a34a 0 14px,#fff 14px 20px,#dc2626 20px 34px,#fff 34px 40px);padding:8px 18px 10px;border-radius:0 0 16px 16px;text-align:center;box-shadow:0 6px 0 #14532d;pointer-events:none}
+    .scarf b{display:block;background:#14532d;color:#fde047;padding:4px 10px;font-size:15px}
     #say{position:fixed;left:10px;right:10px;bottom:108px;text-align:center;font-weight:800;text-shadow:0 2px 0 #14532d;z-index:8;pointer-events:none}
-    #bar{position:fixed;left:16px;right:16px;bottom:18px;z-index:8;height:16px;background:#14532d;border-radius:999px;overflow:hidden;box-shadow:inset 0 0 0 2px #fff}
+    #bar{position:fixed;left:22%;right:22%;bottom:18px;z-index:8;height:22px;background:#14532d;border-radius:6px 18px 6px 18px;overflow:hidden;box-shadow:inset 0 0 0 3px #fde047;transform:skewX(-12deg)}
     #fill{height:100%;width:0;background:linear-gradient(90deg,#86efac,#fde047,#f97316)}
     .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#22c55e,#14532d)}
     .cover.off{display:none}
@@ -23,7 +23,7 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="hf">Friendly</b><b id="sc">0 – 0</b><b id="gl">⚽ 0</b></div>
+  <div class="scarf"><b id="hf">Friendly</b><b id="sc">Home 0 – 0 Away</b></div>
   <div id="say">Hold to power. Let go to kick!</div>
   <div id="bar"><div id="fill"></div></div>
   <div class="cover" id="title">
@@ -84,16 +84,25 @@
       head.position.y = 1.05; g.add(head);
       var hair = new T.Mesh(new T.SphereGeometry(0.17, 8, 6), new T.MeshLambertMaterial({ color: 0x5a3a22 }));
       hair.position.set(0, 1.14, -0.02); g.add(hair);
-      var legs = [];
+      var eye = new T.Mesh(new T.SphereGeometry(0.02, 6, 5), new T.MeshLambertMaterial({ color: 0x1e293b }));
+      eye.position.set(0.05, 1.06, 0.13); g.add(eye);
+      var eyeR = eye.clone(); eyeR.position.x = -0.05; g.add(eyeR);
+      var legs = [], arms = [];
       for (var s = -1; s <= 1; s += 2) {
+        var sh = new T.Group(); sh.position.set(s * 0.2, 0.82, 0);
+        var arm = new T.Mesh(new T.CylinderGeometry(0.032, 0.038, 0.26, 7), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
+        arm.position.y = -0.12; sh.add(arm);
+        var hand = new T.Mesh(new T.SphereGeometry(0.04, 6, 5), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
+        hand.position.y = -0.26; sh.add(hand);
+        g.add(sh); arms.push(sh);
         var hip = new T.Group(); hip.position.set(s * 0.09, 0.48, 0);
-        var thigh = new T.Mesh(new T.BoxGeometry(0.09, 0.28, 0.09), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
-        thigh.position.y = -0.14; hip.add(thigh);
-        var foot = new T.Mesh(new T.BoxGeometry(0.1, 0.06, 0.16), new T.MeshLambertMaterial({ color: 0x111827 }));
-        foot.position.set(0, -0.3, 0.03); hip.add(foot);
+        var thigh = new T.Mesh(new T.CylinderGeometry(0.04, 0.05, 0.26, 7), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
+        thigh.position.y = -0.12; hip.add(thigh);
+        var foot = new T.Mesh(new T.SphereGeometry(0.07, 7, 6), new T.MeshLambertMaterial({ color: 0x111827 }));
+        foot.scale.set(1, 0.55, 1.45); foot.position.set(0, -0.28, 0.04); hip.add(foot);
         g.add(hip); legs.push(hip);
       }
-      g.userData = { body: body, head: head, legs: legs };
+      g.userData = { body: body, head: head, legs: legs, arms: arms };
       return g;
     }
     var player = kid(0xf97316); player.position.set(0, 0, 4); scene.add(player);
@@ -124,6 +133,7 @@
       scene.background = new T.Color(m.night ? 0x0f172a : 0x7dd3fc);
       scene.fog = new T.Fog(scene.background, 20, 50);
       document.getElementById("hf").textContent = m.n;
+      document.getElementById("sc").textContent = "Home " + goals + " – " + misses + " Away";
       document.getElementById("say").textContent = ["Hold, then kick!", "Wind curves it!", "Aim the tap!", "Chip the rain!", "Cup kick!"][match];
       resetKick();
     }
@@ -131,7 +141,9 @@
       phase = "ready"; power = 0; kickT = 0; holding = 0;
       player.position.set(0, 0, 4);
       ball.position.set(0.15, 0.16, 3.2); ballV.set(0, 0, 0);
-      goalie.position.x = 0;
+      goalie.position.set(0, 0, -11.2); goalie.rotation.z = 0;
+      goalie.userData.body.rotation.z = 0;
+      goalie.userData.arms.forEach(function (a) { a.rotation.z = 0; });
       document.getElementById("fill").style.width = "0%";
     }
     function start() {
@@ -171,11 +183,15 @@
         var step = Math.sin(kickT * 24);
         player.userData.legs[0].rotation.x = step * 0.9;
         player.userData.legs[1].rotation.x = -step * 0.9;
+        player.userData.arms[0].rotation.x = -step * 0.6;
+        player.userData.arms[1].rotation.x = step * 0.6;
         if (kickT > 0.42) {
           var swing = (kickT - 0.42) / 0.18;
           player.userData.legs[0].rotation.x = 0.4;
           player.userData.legs[1].rotation.x = swing < 0.4 ? -1.45 : -1.45 + (swing - 0.4) * 4.4;
           player.userData.body.rotation.x = -0.22;
+          player.userData.arms[0].rotation.x = -0.8;
+          player.userData.arms[1].rotation.x = 0.9;
         }
         if (kickT >= 0.6) {
           phase = "fly";
@@ -197,15 +213,18 @@
         ball.rotation.x += dt * 10; ball.rotation.y += dt * 6;
         var dive = Math.max(-2, Math.min(2, ball.position.x)) * m.dive;
         goalie.position.x += (dive - goalie.position.x) * 4 * dt;
-        goalie.userData.legs[0].rotation.z = dive * 0.4;
-        goalie.userData.legs[1].rotation.z = -dive * 0.2;
-        goalie.rotation.z = -dive * 0.15;
+        goalie.position.y = Math.min(0.55, Math.abs(dive) * 0.28);
+        goalie.rotation.z = -dive * 0.55;
+        goalie.userData.body.rotation.z = -dive * 0.2;
+        goalie.userData.arms[0].rotation.z = 1.1 + dive * 0.3;
+        goalie.userData.arms[1].rotation.z = -1.1 + dive * 0.3;
+        goalie.userData.legs[0].rotation.x = 0.6;
+        goalie.userData.legs[1].rotation.x = -0.3;
         if (ball.position.z < -12) {
           var inGoal = Math.abs(ball.position.x) < 2.1 && ball.position.y < 2.2 && Math.abs(ball.position.x - goalie.position.x) > 0.55;
           if (inGoal) { goals++; stars++; beep(880, 0.12); document.getElementById("say").textContent = "GOAL!"; }
           else { misses++; beep(160, 0.1); document.getElementById("say").textContent = "Try again!"; }
-          document.getElementById("sc").textContent = goals + " – " + misses;
-          document.getElementById("gl").textContent = "⚽ " + goals;
+          document.getElementById("sc").textContent = "Home " + goals + " – " + misses + " Away";
           save();
           if (goals >= m.need) {
             match++;
