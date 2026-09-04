@@ -34,316 +34,433 @@
       <button id="deco">Decorate</button>
     </div>
   </div>
-  <div class="ov" id="title"><div><h1>Sky Hop</h1><p>Hop the 3D clouds. Climb forever. Decorate as you go.</p><button id="go">Play</button></div></div>
-  <script src="../vendor/three.min.js"></script>
+  <div class="ov" id="title"><div><h1>Sky Hop</h1><p>Hop the clouds. Climb forever. Decorate as you go.</p><button id="go">Play</button></div></div>
   <script>
-(function () {
-  const LS = "alabryuu-sky";
-  const save = JSON.parse(localStorage.getItem(LS) || "{}");
-  const canvas = document.getElementById("c");
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x7ec8ff, 12, 40);
-  const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 80);
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(innerWidth, innerHeight, false);
-  renderer.setClearColor(0x7ec8ff, 1);
-  const clock = new THREE.Clock();
+  (function () {
+    var LS = "alabryuu-sky";
+    var save = {};
+    try { save = JSON.parse(localStorage.getItem(LS) || "{}"); } catch (e) {}
+    var cv = document.getElementById("c");
+    var ctx = cv.getContext("2d");
+    var W = 390, H = 700, T = 0;
+    var clouds = [];
+    var on = 0;
+    var hopCount = save.hops || 0;
+    var best = save.best || 0;
+    var stars = save.stars || 0;
+    var decorations = save.decos || 0;
+    var hopPhase = "idle";
+    var hopT = 0;
+    var flutterT = 0;
+    var hopFrom = { x: 0, y: 0 };
+    var hopTo = { x: 0, y: 0 };
+    var kid = { x: 0, y: 0, squash: 1, lean: 0, knee: 0, wing: 0.4 };
+    var camX = 0, camY = 0;
+    var dust = [];
+    var rain = [];
+    var TINTS = ["#ffffff", "#e8f7ff", "#ffd6f0", "#c8d8f0", "#ffe08a", "#d1fae5"];
+    var cheers = ["Higher!", "Nice hop!", "Keep going!", "Up up!", "Whee!"];
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xffd8a8, 0.9));
-  const sun = new THREE.DirectionalLight(0xfff3c8, 0.8);
-  sun.position.set(6, 10, 4);
-  scene.add(sun);
-
-  const sky = new THREE.Mesh(new THREE.SphereGeometry(50, 16, 12), new THREE.MeshBasicMaterial({ color: 0x4aa8e8, side: THREE.BackSide }));
-  scene.add(sky);
-
-  function puff(x, y, z, s, c) {
-    const g = new THREE.Group();
-    const mat = new THREE.MeshLambertMaterial({ color: c });
-    for (let i = 0; i < 5; i++) {
-      const m = new THREE.Mesh(new THREE.SphereGeometry(s * (0.5 + Math.random() * 0.5), 10, 8), mat);
-      m.position.set((Math.random() - 0.5) * s * 1.6, (Math.random() - 0.4) * s * 0.6, (Math.random() - 0.5) * s * 0.8);
-      g.add(m);
+    function resize() {
+      W = innerWidth;
+      H = innerHeight;
+      var d = Math.min(devicePixelRatio || 1, 2);
+      cv.width = Math.floor(W * d);
+      cv.height = Math.floor(H * d);
+      cv.style.width = W + "px";
+      cv.style.height = H + "px";
+      ctx.setTransform(d, 0, 0, d, 0, 0);
     }
-    g.position.set(x, y, z);
-    scene.add(g);
-    return g;
-  }
+    addEventListener("resize", resize);
+    resize();
 
-  const TINTS = [0xffffff, 0xe8f7ff, 0xffd6f0, 0xc8d8f0, 0xffe08a, 0xd1fae5];
-  let clouds = [];
-  let on = 0;
-  let hopCount = save.hops || 0;
-  let best = save.best || 0;
-  let stars = save.stars || 0;
-  let mode = "hop";
-  let hopping = 0;
-  let hopPhase = "idle";
-  let hopT = 0;
-  const hopFrom = new THREE.Vector3();
-  const hopTo = new THREE.Vector3();
-  let decorations = save.decos || 0;
+    function sx(wx) { return wx - camX; }
+    function sy(wy) { return H * 0.66 - (wy - camY); }
 
-  const kid = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), new THREE.MeshLambertMaterial({ color: 0xff8a5b }));
-  body.scale.set(1, 1.15, 0.8);
-  kid.add(body);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), new THREE.MeshLambertMaterial({ color: 0xffe0b0 }));
-  head.position.y = 0.32;
-  kid.add(head);
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), new THREE.MeshLambertMaterial({ color: 0x5a3a22 }));
-  hair.position.set(0, 0.4, -0.02);
-  kid.add(hair);
-  const wings = [];
-  for (const s of [-1, 1]) {
-    const w = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), new THREE.MeshLambertMaterial({ color: 0xfff3a8 }));
-    w.scale.set(1.4, 0.35, 0.7);
-    w.position.set(s * 0.28, 0.08, -0.05);
-    kid.add(w);
-    wings.push(w);
-  }
-  const hips = [];
-  for (const s of [-1, 1]) {
-    const hip = new THREE.Group();
-    hip.position.set(s * 0.09, -0.18, 0);
-    const thigh = new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.035, 0.12, 4, 6) : new THREE.CylinderGeometry(0.035, 0.04, 0.16, 6), new THREE.MeshLambertMaterial({ color: 0xffe0b0 }));
-    thigh.position.y = -0.1;
-    hip.add(thigh);
-    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), new THREE.MeshLambertMaterial({ color: 0x5a3a22 }));
-    foot.scale.set(1.15, 0.45, 1.45);
-    foot.position.set(0, -0.2, 0.03);
-    hip.add(foot);
-    kid.add(hip);
-    hips.push(hip);
-  }
-  scene.add(kid);
-  const dust = [];
-  function puffCloud(n) {
-    for (let i = 0; i < n; i++) {
-      const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
-      m.position.copy(kid.position);
-      m.position.y -= 0.25;
-      m.userData = { vx: (Math.random() - 0.5) * 1.4, vy: 0.4 + Math.random(), vz: (Math.random() - 0.5) * 0.8, life: 0.4 };
-      scene.add(m);
-      dust.push(m);
+    function hud() {
+      document.getElementById("info").textContent = "High " + Math.max(best, hopCount) + " · ★" + stars;
     }
-  }
-
-  function hud() {
-    const high = Math.max(best, hopCount);
-    document.getElementById("info").textContent = "High " + high + " · ★" + stars;
-  }
-
-  function persist() {
-    try {
-      localStorage.setItem(LS, JSON.stringify({ hops: hopCount, best, stars, decos: decorations }));
-    } catch (e) {}
-    hud();
-  }
-
-  function cloudAt(idx) {
-    for (let i = 0; i < clouds.length; i++) {
-      if (clouds[i].i === idx) return clouds[i];
+    function persist() {
+      try {
+        localStorage.setItem(LS, JSON.stringify({ hops: hopCount, best: best, stars: stars, decos: decorations }));
+      } catch (e) {}
+      hud();
     }
-    return null;
-  }
-
-  function spawnCloud(i) {
-    const tint = TINTS[((i * 0.07) | 0) % TINTS.length];
-    const y = Math.sin(i * 0.9) * 0.7 + i * 0.08;
-    const g = puff(i * 3.2, y, (i % 2) * -0.4, 0.85, tint);
-    clouds.push({ g, deco: 0, i, baseY: y });
-  }
-
-  function ensureAhead() {
-    const last = clouds.length ? clouds[clouds.length - 1].i : -1;
-    const need = on + 8;
-    for (let i = last + 1; i <= need; i++) spawnCloud(i);
-  }
-
-  function recycleBehind() {
-    while (clouds.length && clouds[0].i < on - 3) {
-      const old = clouds.shift();
-      scene.remove(old.g);
-      old.g.traverse((o) => {
-        if (o.geometry) o.geometry.dispose();
+    function cloudAt(idx) {
+      for (var i = 0; i < clouds.length; i++) if (clouds[i].i === idx) return clouds[i];
+      return null;
+    }
+    function spawnCloud(i) {
+      var lobs = [];
+      for (var n = 0; n < 5; n++) {
+        lobs.push({
+          ox: (n - 2) * 22 + (i * 13 + n * 7) % 11 - 5,
+          oy: 10 + (n % 3) * 8,
+          rx: 28 + (n * 9 + i) % 14,
+          ry: 16 + (n * 5 + i * 3) % 8
+        });
+      }
+      clouds.push({
+        i: i,
+        x: i * 148,
+        y: i * 36 + Math.sin(i * 0.9) * 28,
+        tint: TINTS[((i * 0.07) | 0) % TINTS.length],
+        lobs: lobs,
+        decos: [],
+        star: i > 0 && i % 3 === 0 ? 1 : 0
       });
     }
-  }
-
-  function snapToCloud(idx) {
-    ensureAhead();
-    on = Math.max(0, idx);
-    hopPhase = "idle";
-    hopping = 0;
-    const c = cloudAt(on) || clouds[0];
-    if (!c) return;
-    kid.position.copy(c.g.position).add(new THREE.Vector3(0, 0.9, 0));
-    kid.rotation.x = 0;
-    kid.rotation.z = 0;
-    body.scale.set(1, 1.15, 0.8);
-    hips.forEach((h) => { h.rotation.x = 0; h.position.y = -0.18; });
-    head.rotation.x = 0;
-  }
-
-  function build() {
-    clouds.forEach((c) => {
-      scene.remove(c.g);
-      c.g.traverse((o) => {
-        if (o.geometry) o.geometry.dispose();
-      });
-    });
-    clouds = [];
-    on = 0;
-    hopPhase = "idle";
-    hopping = 0;
-    ensureAhead();
-    snapToCloud(0);
-    hud();
-    document.getElementById("say").textContent = "Tap Hop!";
-  }
-  build();
-
-  document.getElementById("go").onclick = () => document.getElementById("title").classList.add("hidden");
-  document.getElementById("hop").onclick = () => { mode = "hop"; hop(); };
-  document.getElementById("flutter").onclick = () => { mode = "flutter"; hopping = 0.4; };
-  document.getElementById("deco").onclick = () => {
-    mode = "deco";
-    const c = cloudAt(on);
-    if (!c) { snapToCloud(on); return; }
-    const flower = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshLambertMaterial({ color: 0xff6b9a }));
-    flower.position.set((Math.random() - 0.5) * 0.8, 0.5, 0.2);
-    c.g.add(flower);
-    c.deco++;
-    decorations++;
-    stars++;
-    persist();
-  };
-
-  const cheers = ["Higher!", "Nice hop!", "Keep going!", "Up up!", "Whee!"];
-
-  function hop() {
-    if (hopPhase !== "idle") return;
-    ensureAhead();
-    const here = cloudAt(on);
-    const next = cloudAt(on + 1);
-    if (!here || !next) {
-      snapToCloud(on);
-      document.getElementById("say").textContent = "Hop again!";
-      return;
+    function ensureAhead() {
+      var last = clouds.length ? clouds[clouds.length - 1].i : -1;
+      for (var i = last + 1; i <= on + 8; i++) spawnCloud(i);
     }
-    hopPhase = "crouch";
-    hopT = 0;
-    hopFrom.copy(here.g.position);
-    hopTo.copy(next.g.position);
-    hopCount++;
-    if (hopCount > best) best = hopCount;
-    if (hopCount % 5 === 0) stars += 1;
-    persist();
-    document.getElementById("say").textContent = cheers[hopCount % cheers.length];
-  }
-  canvas.addEventListener("pointerdown", hop);
+    function recycleBehind() {
+      while (clouds.length && clouds[0].i < on - 3) clouds.shift();
+    }
+    function puffDust(n) {
+      for (var i = 0; i < n; i++) {
+        dust.push({
+          x: kid.x + (Math.random() - 0.5) * 28,
+          y: kid.y - 8,
+          vx: (Math.random() - 0.5) * 50,
+          vy: 20 + Math.random() * 40,
+          life: 0.45
+        });
+      }
+    }
+    function snapToCloud(idx) {
+      ensureAhead();
+      on = Math.max(0, idx);
+      hopPhase = "idle";
+      hopT = 0;
+      flutterT = 0;
+      var c = cloudAt(on) || clouds[0];
+      if (!c) return;
+      kid.x = c.x;
+      kid.y = c.y + 18;
+      kid.squash = 1;
+      kid.lean = 0;
+      kid.knee = 0;
+    }
+    function build() {
+      clouds = [];
+      dust = [];
+      on = 0;
+      hopPhase = "idle";
+      ensureAhead();
+      snapToCloud(0);
+      camX = kid.x - W * 0.38;
+      camY = kid.y - 20;
+      hud();
+      document.getElementById("say").textContent = "Tap Hop!";
+    }
 
-  const rain = [];
-  for (let i = 0; i < 20; i++) {
-    const d = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.18, 0.03), new THREE.MeshBasicMaterial({ color: 0x8ad4ff }));
-    d.position.set(Math.random() * 20 - 4, 20, Math.random() * 4 - 2);
-    scene.add(d);
-    rain.push(d);
-  }
+    function hop() {
+      if (hopPhase !== "idle") return;
+      ensureAhead();
+      var here = cloudAt(on);
+      var next = cloudAt(on + 1);
+      if (!here || !next) {
+        snapToCloud(on);
+        document.getElementById("say").textContent = "Hop again!";
+        return;
+      }
+      hopPhase = "crouch";
+      hopT = 0;
+      hopFrom.x = here.x;
+      hopFrom.y = here.y + 18;
+      hopTo.x = next.x;
+      hopTo.y = next.y + 18;
+      hopCount++;
+      if (hopCount > best) best = hopCount;
+      if (hopCount % 5 === 0) stars += 1;
+      persist();
+      document.getElementById("say").textContent = cheers[hopCount % cheers.length];
+    }
+    function collectIfStar() {
+      var c = cloudAt(on);
+      if (c && c.star) {
+        c.star = 0;
+        stars++;
+        persist();
+        document.getElementById("say").textContent = "Star!";
+      }
+    }
 
-  function loop() {
+    document.getElementById("go").onclick = function () {
+      document.getElementById("title").classList.add("hidden");
+    };
+    document.getElementById("hop").onclick = function () { hop(); };
+    document.getElementById("flutter").onclick = function () {
+      if (hopPhase !== "idle") return;
+      flutterT = 0.4;
+    };
+    document.getElementById("deco").onclick = function () {
+      var c = cloudAt(on);
+      if (!c) { snapToCloud(on); return; }
+      c.decos.push({
+        ox: (Math.random() - 0.5) * 50,
+        oy: 6 + Math.random() * 10,
+        col: ["#ff6b9a", "#fb7185", "#f472b6", "#fde047"][(Math.random() * 4) | 0]
+      });
+      decorations++;
+      stars++;
+      persist();
+      document.getElementById("say").textContent = "Pretty!";
+    };
+    cv.addEventListener("pointerdown", hop);
+
+    function lerp(a, b, k) { return a + (b - a) * k; }
+    function ellipse(x, y, rx, ry, fill) {
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+    function drawCloud(c, t) {
+      var bob = Math.sin(t * 1.4 + c.i) * 6;
+      var px = sx(c.x);
+      var py = sy(c.y + bob);
+      if (px < -140 || px > W + 140 || py < -80 || py > H + 80) return;
+      ctx.save();
+      ctx.shadowColor = "rgba(22,50,74,0.12)";
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 6;
+      for (var i = 0; i < c.lobs.length; i++) {
+        var lob = c.lobs[i];
+        ellipse(px + lob.ox, py + lob.oy, lob.rx, lob.ry, c.tint);
+      }
+      ctx.restore();
+      ctx.strokeStyle = "rgba(255,255,255,0.65)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(px, py + 8, 62, 18, 0, Math.PI * 1.1, Math.PI * 1.85);
+      ctx.stroke();
+      for (var d = 0; d < c.decos.length; d++) {
+        var fl = c.decos[d];
+        var fx = px + fl.ox, fy = py + fl.oy;
+        ctx.fillStyle = fl.col;
+        for (var p = 0; p < 5; p++) {
+          var a = p * 1.26;
+          ellipse(fx + Math.cos(a) * 7, fy + Math.sin(a) * 6, 6, 5, fl.col);
+        }
+        ellipse(fx, fy, 4, 4, "#fde047");
+      }
+      if (c.star) {
+        drawStar(px + 36, py - 28, 10, "#fde047");
+      }
+    }
+    function drawStar(x, y, r, col) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(T * 1.2);
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      for (var i = 0; i < 5; i++) {
+        var a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+        var b = a + Math.PI / 5;
+        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        ctx.lineTo(Math.cos(b) * r * 0.42, Math.sin(b) * r * 0.42);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    function drawKid() {
+      var px = sx(kid.x);
+      var py = sy(kid.y);
+      var sq = kid.squash;
+      var wing = kid.wing;
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(kid.lean);
+      // wings
+      ctx.fillStyle = "#fff3a8";
+      ctx.save();
+      ctx.translate(-18, -28 * sq);
+      ctx.rotate(-wing);
+      ellipse(0, 0, 22, 10, "#fff3a8");
+      ctx.restore();
+      ctx.save();
+      ctx.translate(18, -28 * sq);
+      ctx.rotate(wing);
+      ellipse(0, 0, 22, 10, "#fff3a8");
+      ctx.restore();
+      // legs
+      ctx.strokeStyle = "#ffe0b0";
+      ctx.lineWidth = 7;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(-7, -8);
+      ctx.lineTo(-8 - kid.knee * 4, 10 + kid.knee * 4);
+      ctx.moveTo(7, -8);
+      ctx.lineTo(8 + kid.knee * 4, 10 + kid.knee * 4);
+      ctx.stroke();
+      ctx.fillStyle = "#5a3a22";
+      ellipse(-8 - kid.knee * 4, 12 + kid.knee * 4, 7, 4, "#5a3a22");
+      ellipse(8 + kid.knee * 4, 12 + kid.knee * 4, 7, 4, "#5a3a22");
+      // body
+      ellipse(0, -22 * sq, 16, 18 * sq, "#ff8a5b");
+      // head
+      ellipse(4, -46 * sq, 14, 13, "#ffe0b0");
+      ellipse(2, -54 * sq, 15, 8, "#5a3a22");
+      ellipse(10, -47 * sq, 2, 2.2, "#16324a");
+      ctx.strokeStyle = "#e11d48";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(10, -43 * sq, 4, 0.2, 2.6);
+      ctx.stroke();
+      ctx.restore();
+    }
+    function drawSky(t) {
+      var g = ctx.createLinearGradient(0, 0, 0, H);
+      var climb = Math.min(1, (camY + hopCount * 2) / 800);
+      g.addColorStop(0, climb > 0.4 ? "#c4b5fd" : "#4aa8e8");
+      g.addColorStop(0.45, "#7ec8ff");
+      g.addColorStop(1, "#f9a8d4");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+      // sun
+      ellipse(W * 0.82, 70, 38, 38, "#ffe08a");
+      ellipse(W * 0.82, 70, 52, 52, "rgba(255,224,138,0.28)");
+      // far puffs
+      ctx.globalAlpha = 0.35;
+      for (var i = 0; i < 8; i++) {
+        var fx = ((i * 160 - camX * 0.25) % (W + 180)) - 40;
+        var fy = 80 + (i % 3) * 70 + Math.sin(t + i) * 6;
+        ellipse(fx, fy, 50, 18, "#fff");
+        ellipse(fx + 30, fy + 6, 36, 14, "#fff");
+      }
+      ctx.globalAlpha = 1;
+      // twinkles
+      for (var s = 0; s < 18; s++) {
+        var tw = 0.4 + 0.6 * Math.abs(Math.sin(t * 3 + s));
+        ctx.globalAlpha = tw * 0.8;
+        drawStar(((s * 97 - camX * 0.15) % (W + 40)), (s * 53 + camY * 0.08) % (H * 0.7), 4 + (s % 3), "#fff7cc");
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    var last = performance.now();
+    function loop(now) {
+      var dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      T += dt;
+      ensureAhead();
+      var pad = cloudAt(on);
+      if (!pad) snapToCloud(on);
+
+      if (hopPhase === "crouch") {
+        hopT += dt;
+        var k = Math.min(1, hopT / 0.28);
+        kid.squash = 0.55 + 0.1 * (1 - k);
+        kid.knee = 1.1 * k;
+        kid.lean = 0.12 * k;
+        kid.x = hopFrom.x;
+        kid.y = hopFrom.y - 4 * k;
+        kid.wing = 0.15;
+        if (hopT >= 0.28) { hopPhase = "takeoff"; hopT = 0; puffDust(7); }
+      } else if (hopPhase === "takeoff") {
+        hopT += dt;
+        var k2 = Math.min(1, hopT / 0.1);
+        kid.squash = 1.35;
+        kid.knee = -0.4;
+        kid.lean = -0.2;
+        kid.x = lerp(hopFrom.x, hopTo.x, k2 * 0.16);
+        kid.y = lerp(hopFrom.y, hopTo.y, k2 * 0.16) + 36 + k2 * 24;
+        kid.wing = 0.9;
+        if (hopT >= 0.1) { hopPhase = "air"; hopT = 0; on++; ensureAhead(); recycleBehind(); }
+      } else if (hopPhase === "air") {
+        hopT += dt;
+        var dur = 0.62;
+        var k3 = Math.min(1, hopT / dur);
+        var hang = Math.sin(k3 * Math.PI);
+        kid.x = lerp(hopFrom.x, hopTo.x, k3);
+        kid.y = lerp(hopFrom.y, hopTo.y, k3) + hang * 78;
+        kid.squash = 1.2;
+        kid.knee = -1.1;
+        kid.lean = -0.25 + k3 * 0.4;
+        kid.wing = 0.55 + Math.sin(T * 22) * 0.5;
+        if (hopT >= dur) { hopPhase = "land"; hopT = 0; puffDust(8); }
+      } else if (hopPhase === "land") {
+        hopT += dt;
+        var k4 = Math.min(1, hopT / 0.2);
+        var dip = k4 < 0.45 ? 10 * (1 - k4 / 0.45) : 0;
+        kid.x = hopTo.x;
+        kid.y = hopTo.y - dip;
+        kid.squash = 0.6 + k4 * 0.4;
+        kid.knee = 0.7 * (1 - k4);
+        kid.lean = 0;
+        kid.wing = 0.35;
+        if (hopT >= 0.2) {
+          hopPhase = "idle";
+          kid.squash = 1;
+          collectIfStar();
+        }
+      } else if (flutterT > 0) {
+        flutterT -= dt;
+        var fk = 1 - flutterT / 0.4;
+        kid.y = (pad ? pad.y + 18 : kid.y) + Math.sin(fk * Math.PI) * 28;
+        kid.wing = 0.2 + Math.sin(T * 24) * 0.7;
+        kid.knee = -0.5;
+        kid.squash = 1.1;
+      } else {
+        if (pad) {
+          kid.x = pad.x;
+          kid.y = pad.y + 18 + Math.sin(T * 3) * 4;
+        }
+        kid.squash = 1;
+        kid.knee = Math.sin(T * 8) * 0.15;
+        kid.lean = 0;
+        kid.wing = 0.35 + Math.sin(T * 8) * 0.2;
+      }
+
+      camX += (kid.x - W * 0.38 - camX) * 0.1;
+      camY += (kid.y - 24 - camY) * 0.1;
+
+      // rain weather, not a level
+      if (hopCount % 20 > 14) {
+        if (rain.length < 24) {
+          rain.push({ x: camX + Math.random() * W, y: camY + 220 + Math.random() * 80, vy: 220 });
+        }
+      } else {
+        rain.length = 0;
+      }
+      for (var r = 0; r < rain.length; r++) {
+        rain[r].y -= rain[r].vy * dt;
+        if (sy(rain[r].y) > H) rain[r].y = camY + 200;
+      }
+
+      for (var di = dust.length - 1; di >= 0; di--) {
+        var m = dust[di];
+        m.life -= dt;
+        m.x += m.vx * dt;
+        m.y += m.vy * dt;
+        if (m.life <= 0) dust.splice(di, 1);
+      }
+
+      drawSky(T);
+      for (var ci = 0; ci < clouds.length; ci++) drawCloud(clouds[ci], T);
+      for (var ri = 0; ri < rain.length; ri++) {
+        ctx.strokeStyle = "#8ad4ff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(sx(rain[ri].x), sy(rain[ri].y));
+        ctx.lineTo(sx(rain[ri].x), sy(rain[ri].y) - 14);
+        ctx.stroke();
+      }
+      for (var dj = 0; dj < dust.length; dj++) {
+        ctx.globalAlpha = Math.max(0, dust[dj].life * 2);
+        ellipse(sx(dust[dj].x), sy(dust[dj].y), 6, 5, "#fff");
+        ctx.globalAlpha = 1;
+      }
+      drawKid();
+      requestAnimationFrame(loop);
+    }
+
+    build();
     requestAnimationFrame(loop);
-    const dt = Math.min(clock.getDelta(), 0.05);
-    const t = clock.elapsedTime;
-    wings.forEach((w, i) => { w.rotation.z = Math.sin(t * (hopPhase === "air" || hopping > 0 ? 18 : 14) + i) * 0.55 * (i ? -1 : 1); });
-    if (hopPhase === "crouch") {
-      hopT += dt;
-      const k = Math.min(1, hopT / 0.34);
-      body.scale.set(1.55, 0.45, 1.2);
-      kid.position.copy(hopFrom).add(new THREE.Vector3(0, 0.62 - 0.32 * k, 0));
-      hips.forEach((h) => { h.rotation.x = 1.35 * k; h.position.y = -0.18 - 0.06 * k; });
-      head.rotation.x = 0.55 * k;
-      kid.rotation.x = 0.22 * k;
-      wings.forEach((w, i) => { w.rotation.z = 0.7 * k * (i ? -1 : 1); });
-      if (hopT >= 0.34) { hopPhase = "takeoff"; hopT = 0; puffCloud(8); }
-    } else if (hopPhase === "takeoff") {
-      hopT += dt;
-      const k = Math.min(1, hopT / 0.1);
-      body.scale.set(0.78, 1.55, 0.68);
-      hips.forEach((h) => { h.rotation.x = -0.55; h.position.y = -0.12; });
-      head.rotation.x = -0.4;
-      kid.rotation.x = -0.32;
-      kid.position.lerpVectors(hopFrom, hopTo, k * 0.16).add(new THREE.Vector3(0, 1.05 + k * 0.7, 0));
-      if (hopT >= 0.1) { hopPhase = "air"; hopT = 0; on++; ensureAhead(); recycleBehind(); }
-    } else if (hopPhase === "air") {
-      hopT += dt;
-      const dur = 0.78;
-      const k = Math.min(1, hopT / dur);
-      const hang = Math.sin(k * Math.PI);
-      const loft = hang > 0.58 ? hang * 1.28 : hang;
-      kid.position.lerpVectors(hopFrom, hopTo, k).add(new THREE.Vector3(0, 0.95 + loft * 1.75, 0));
-      body.scale.set(0.72, 1.42, 0.7);
-      hips.forEach((h) => { h.rotation.x = -1.65; h.position.y = -0.02; });
-      head.rotation.x = -0.35;
-      kid.rotation.x = -0.35 + k * 0.55;
-      kid.rotation.z = Math.sin(k * Math.PI) * 0.22;
-      if (hopT >= dur) { hopPhase = "land"; hopT = 0; puffCloud(10); }
-    } else if (hopPhase === "land") {
-      hopT += dt;
-      const k = Math.min(1, hopT / 0.22);
-      const dip = k < 0.45 ? 0.22 * (1 - k / 0.45) : 0;
-      kid.position.copy(hopTo).add(new THREE.Vector3(0, 0.9 - dip, 0));
-      body.scale.set(1.4, 0.55 + k * 0.6, 1.05);
-      hips.forEach((h) => { h.rotation.x = 0.85 * (1 - k); h.position.y = -0.18; });
-      head.rotation.x = k < 0.4 ? 0.55 : 0.55 - (k - 0.4) * 0.9;
-      kid.rotation.x = 0;
-      kid.rotation.z = 0;
-      if (hopT >= 0.22) { hopPhase = "idle"; body.scale.set(1, 1.15, 0.8); }
-    } else if (hopping > 0) {
-      hopping -= dt;
-      const pad = cloudAt(on);
-      if (!pad) { snapToCloud(on); }
-      else {
-        const k = 1 - hopping / 0.4;
-        kid.position.y = pad.g.position.y + 0.9 + Math.sin(k * Math.PI) * 0.55;
-        hips.forEach((h) => { h.rotation.x = -0.7; });
-        body.scale.set(0.95, 1.2, 0.8);
-      }
-    } else {
-      const pad = cloudAt(on);
-      if (!pad) { snapToCloud(on); }
-      else {
-        kid.position.x = pad.g.position.x;
-        kid.position.z = pad.g.position.z;
-        kid.position.y = pad.g.position.y + 0.9 + Math.sin(t * 3) * 0.06;
-        hips.forEach((h, i) => { h.rotation.x = Math.sin(t * 8 + i * 3) * 0.4; h.position.y = -0.18; });
-        head.rotation.x = 0;
-        body.scale.set(1, 1.15, 0.8);
-      }
-    }
-    dust.forEach((m) => {
-      m.userData.life -= dt;
-      m.position.x += m.userData.vx * dt;
-      m.position.y += m.userData.vy * dt;
-      m.position.z += m.userData.vz * dt;
-      m.material.opacity = Math.max(0, m.userData.life * 2);
-      m.scale.addScalar(dt * 1.6);
-    });
-    for (let di = dust.length - 1; di >= 0; di--) {
-      if (dust[di].userData.life <= 0) { scene.remove(dust[di]); dust.splice(di, 1); }
-    }
-    clouds.forEach((c) => { c.g.position.y = c.baseY + Math.sin(t * 1.4 + c.i) * 0.08; });
-    if (hopCount % 20 > 14) rain.forEach((d) => { d.position.y -= 8 * dt; if (d.position.y < 0) d.position.y = 9; });
-    else rain.forEach((d) => { d.position.y = 20; });
-    camera.position.lerp(new THREE.Vector3(kid.position.x - 0.2, kid.position.y + 1.6, 6.2), 0.08);
-    camera.lookAt(kid.position.x + 1.2, kid.position.y, 0);
-    renderer.render(scene, camera);
-  }
-  addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
-  loop();
-})();
+  })();
   </script>
 </body>
 </html>
