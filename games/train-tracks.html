@@ -148,6 +148,7 @@
     }
 
     function rebuildGrid() {
+      boxes.forEach(function (b) { scene.remove(b); });
       while (gridG.children.length) gridG.remove(gridG.children[0]);
       tiles = {}; boxes = [];
       var m = MAPS[mapI];
@@ -183,7 +184,9 @@
       var k = key(x, y);
       if (tiles[k] && tiles[k].mesh) gridG.remove(tiles[k].mesh);
       var mesh = makeRail(kind);
-      var p = worldPos(x, y); mesh.position.copy(p); mesh.position.y = 0.08;
+      var p = worldPos(x, y);       mesh.position.copy(p); mesh.position.y = 0.08;
+      mesh.userData = { gx: x, gy: y };
+      mesh.traverse(function (o) { o.userData.gx = x; o.userData.gy = y; });
       gridG.add(mesh);
       tiles[k] = { kind: kind, mesh: mesh, x: x, y: y };
     }
@@ -279,10 +282,12 @@
       mouse.x = (ev.clientX / innerWidth) * 2 - 1;
       mouse.y = -(ev.clientY / innerHeight) * 2 + 1;
       ray.setFromCamera(mouse, cam);
-      var hits = ray.intersectObjects(gridG.children, false);
+      var hits = ray.intersectObjects(gridG.children, true);
       if (!hits.length) return;
-      var u = hits[0].object.userData;
-      if (u.gx == null) return;
+      var obj = hits[0].object;
+      while (obj && (obj.userData.gx == null) && obj.parent) obj = obj.parent;
+      var u = obj && obj.userData;
+      if (!u || u.gx == null) return;
       placePiece(u.gx, u.gy, piece);
       beep(500, 0.05);
     });

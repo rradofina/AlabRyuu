@@ -180,6 +180,7 @@
       scene.fog.color.copy(scene.background);
       for (var i = 0; i < 5; i++) makeLog();
       for (var j = 0; j < 6; j++) makeFlower();
+      rain.forEach(function (r) { r.visible = !!VAL[valley].rain; });
       if (VAL[valley].boss) {
         var boss = makeDino(1.6, 0x365314);
         boss.position.set(0, 0, 16);
@@ -379,12 +380,20 @@
             document.getElementById("st").textContent = "⭐ " + stars; beep(880, 0.06); save();
           }
         });
-        if (VAL[valley].rain && Math.random() < 0.4) {
-          var drop = new T.Mesh(new T.SphereGeometry(0.03, 4, 4), new T.MeshBasicMaterial({ color: 0x7dd3fc }));
-          drop.position.set((Math.random() - 0.5) * 8, 6, (Math.random() - 0.5) * 8);
-          scene.add(drop); rain.push(drop);
+        if (VAL[valley].rain) {
+          if (rain.length < 20 && Math.random() < 0.4) {
+            var drop = new T.Mesh(new T.SphereGeometry(0.03, 4, 4), new T.MeshBasicMaterial({ color: 0x7dd3fc }));
+            drop.position.set((Math.random() - 0.5) * 8, 6, (Math.random() - 0.5) * 8);
+            scene.add(drop); rain.push(drop);
+          }
+          rain.forEach(function (r) {
+            r.visible = true;
+            r.position.y -= 10 * dt;
+            if (r.position.y < 0) r.position.set((Math.random() - 0.5) * 8, 6, (Math.random() - 0.5) * 8);
+          });
+        } else {
+          rain.forEach(function (r) { r.visible = false; });
         }
-        rain.forEach(function (r) { r.position.y -= 10 * dt; });
         if (shock) { shock.scale.addScalar(dt * 8); shock.material.opacity -= dt * 1.5; }
         trees.children.forEach(function (tr, i) { tr.rotation.z = Math.sin(t * 1.5 + i) * 0.04; });
         if (flowers >= VAL[valley].need) {

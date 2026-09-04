@@ -155,16 +155,22 @@
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
 
-    function onDown() { if (play && phase === "ready") { holding = 1; phase = "power"; } }
+    var lastX = innerWidth / 2;
+    function onDown(ev) {
+      if (ev && ev.clientX != null) lastX = ev.clientX;
+      if (play && phase === "ready") { holding = 1; phase = "power"; }
+    }
     function onUp(ev) {
       if (!play || phase !== "power") return;
       holding = 0; phase = "run"; kickT = 0;
-      var nx = (ev.clientX / innerWidth) * 2 - 1;
+      var cx = ev && ev.clientX != null ? ev.clientX : lastX;
+      var nx = (cx / innerWidth) * 2 - 1;
       kickAim.set(nx * 3.2 + (MATCH[match].wind ? Math.sin(t) * 1.2 : 0), 1.2 + power * 2.2, -10 - power * 8);
       beep(240, 0.08);
     }
     renderer.domElement.addEventListener("pointerdown", onDown);
-    renderer.domElement.addEventListener("pointerup", onUp);
+    addEventListener("pointerup", onUp);
+    addEventListener("pointercancel", onUp);
 
     var clock = new T.Clock();
     function tick() {

@@ -105,9 +105,12 @@
       document.getElementById("st").textContent = "⭐ " + stars;
       var box = document.getElementById("chs"); box.innerHTML = "";
       if (s.seek) {
+        if (!pals.some(function (p) { return p.hid; })) {
+          pals.forEach(function (p) { p.hid = 1; });
+        }
         var b = document.createElement("button");
-        b.textContent = "Tap a hider!";
-        b.onclick = function () {};
+        b.textContent = "Found one!";
+        b.onclick = function () { findPal(null); };
         box.appendChild(b);
         return;
       }
@@ -125,21 +128,34 @@
         box.appendChild(b);
       });
     }
+    function findPal(target) {
+      var s = SCENES[Math.min(si, SCENES.length - 1)];
+      if (!s.seek) return;
+      if (!pals.some(function (p) { return p.hid; })) {
+        pals.forEach(function (p) { p.hid = 1; });
+      }
+      var p = target;
+      if (!p || !p.hid) {
+        p = pals.filter(function (x) { return x.hid; })[0];
+      }
+      if (!p) return;
+      p.hid = 0; found++; stars++;
+      document.getElementById("say").textContent = "Hi " + p.name + "!";
+      si++; save(); show();
+    }
     cv.addEventListener("pointerdown", function (ev) {
       var s = SCENES[Math.min(si, SCENES.length - 1)];
       if (!s.seek) return;
       var r = cv.getBoundingClientRect();
       var px = ev.clientX - r.left, py = ev.clientY - r.top;
+      var hit = null;
       pals.forEach(function (p) {
-        if (p.hid && Math.hypot(px - p.hx * W, py - p.hy * H) < 50) {
-          p.hid = 0; found++; stars++;
-          document.getElementById("say").textContent = "Hi " + p.name + "!";
-          si++; save(); show();
-        }
+        if (p.hid && Math.hypot(px - p.hx * W, py - p.hy * H) < 70) hit = p;
       });
+      if (hit) findPal(hit);
     });
     document.getElementById("go").onclick = function () { document.getElementById("title").classList.add("off"); show(); };
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); si = 0; show(); };
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); si = 0; pals.forEach(function (p) { p.hid = 1; }); found = 0; show(); };
     function loop() { T += 0.016; draw(); requestAnimationFrame(loop); }
     show(); loop();
   })();

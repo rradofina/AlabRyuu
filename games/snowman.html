@@ -170,7 +170,7 @@
     }
 
     function allStacked() {
-      return balls.every(function (b) { return b.stacked; });
+      return balls.length >= 3 && balls.every(function (b) { return b.stacked; });
     }
 
     function checkDone() {
