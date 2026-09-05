@@ -17,6 +17,7 @@
   <script>
   (function(){
     var cv=document.getElementById("c"),x=cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     var W,H,T=0,last=0,stage="title",order=0,stars=0,mx=0,my=0,down=0;
     var hits=[],say="Tap Play!",scoops=[],melt=0,steam=[],spr=[],drip=[],spin=0,served=0,shake=0;
     var FLAV=[{id:"str",c:"#fb7185",h:"#fda4af",n:"Berry"},{id:"cho",c:"#7c2d12",h:"#b45309",n:"Choco"},{id:"van",c:"#fef3c7",h:"#fde68a",n:"Van"},{id:"min",c:"#6ee7b7",h:"#a7f3d0",n:"Mint"},{id:"lem",c:"#fde047",h:"#fef08a",n:"Lemon"}];
@@ -38,17 +39,14 @@
     function btn(id,bx,by,bw,bh,label,col,tc){hits.push({id:id,x:bx,y:by,w:bw,h:bh});round(bx,by+5,bw,bh,18,"rgba(0,0,0,.15)");round(bx,by,bw,bh-4,18,col||"#ffd166");x.fillStyle=tc||"#3b2100";x.font="800 "+Math.floor(bh*.32)+"px Trebuchet MS";x.textAlign="center";x.textBaseline="middle";x.fillText(label,bx+bw/2,by+bh/2-2);}
     function flav(id){for(var i=0;i<FLAV.length;i++)if(FLAV[i].id===id)return FLAV[i];return FLAV[0];}
     function drawScoop(f,cx,cy,r,meltAmt){
-      var squish=1+meltAmt*0.18,drop=meltAmt*10;
-      ellipse(cx,cy+r*0.55+drop,r*0.95,r*0.28*squish,"rgba(80,20,50,.12)");
-      ellipse(cx,cy+drop,r,r*0.82*squish,f.c);
-      ellipse(cx-r*0.25,cy-r*0.2+drop,r*0.35,r*0.22,f.h);
+      var drop=(meltAmt||0)*10;
+      var ch=f.id==="str"?"🍓":f.id==="cho"?"🍫":f.id==="van"?"🍦":f.id==="min"?"🌿":"🍋";
+      em("🍨",cx,cy+drop,r*2.1);
+      em(ch,cx,cy-r*0.15+drop,r*1.15);
       if(meltAmt>0.25){x.strokeStyle=f.c;x.lineWidth=5;x.beginPath();x.moveTo(cx+r*0.4,cy+r*0.4+drop);x.quadraticCurveTo(cx+r*0.6,cy+r+drop*2,cx+r*0.35,cy+r*1.2+drop*2);x.stroke();}
     }
     function drawCone(cx,baseY){
-      x.fillStyle="#d97706";
-      x.beginPath();x.moveTo(cx,baseY+70);x.lineTo(cx-28,baseY);x.lineTo(cx+28,baseY);x.closePath();x.fill();
-      x.strokeStyle="#b45309";x.lineWidth=2;
-      for(var i=0;i<5;i++){x.beginPath();x.moveTo(cx-22+i*4,baseY+6+i*12);x.lineTo(cx+18-i*3,baseY+10+i*10);x.stroke();}
+      em("🍦",cx,baseY+28,72);
     }
     function drawStack(cx,baseY){
       drawCone(cx,baseY);
@@ -70,39 +68,14 @@
       for(i=0;i<5;i++){
         var f=FLAV[i],bx=W*0.64+ (i%3)*46,by=H*0.26+Math.floor(i/3)*54;
         ellipse(bx,by+16,18,8,"#94a3b8");
-        ellipse(bx,by,16,12,f.c);
+        em(f.id==="str"?"🍓":f.id==="cho"?"🍫":f.id==="van"?"🍦":f.id==="min"?"🌿":"🍋",bx,by,28);
       }
       if(Math.random()<0.25)steam.push({x:W*0.72+rnd(-40,50),y:H*0.22,vy:-18,life:1.2,s:10});
       x.fillStyle="#cbd5e1";round(W*0.08,H*0.62,W*0.5,H*0.16,20,"#cbd5e1");
       spin+=0.02;
     }
     function drawWho(who,cx,cy,s){
-      if(who==="🦊"){
-        ellipse(cx,cy,s,s*0.9,"#fb923c");
-        x.beginPath();x.moveTo(cx-s*0.7,cy-s*0.2);x.lineTo(cx-s*0.55,cy-s*1.15);x.lineTo(cx-s*0.15,cy-s*0.45);x.fillStyle="#ea580c";x.fill();
-        x.beginPath();x.moveTo(cx+s*0.7,cy-s*0.2);x.lineTo(cx+s*0.55,cy-s*1.15);x.lineTo(cx+s*0.15,cy-s*0.45);x.fill();
-        ellipse(cx,cy+s*0.15,s*0.45,s*0.28,"#fed7aa");
-        ellipse(cx-s*0.28,cy-s*0.08,s*0.1,s*0.12,"#1c1917");ellipse(cx+s*0.28,cy-s*0.08,s*0.1,s*0.12,"#1c1917");
-      }else if(who==="🐧"){
-        ellipse(cx,cy,s*0.85,s,"#1e293b");ellipse(cx,cy+s*0.15,s*0.5,s*0.55,"#fff7ed");
-        x.fillStyle="#f59e0b";x.beginPath();x.moveTo(cx-s*0.18,cy+s*0.05);x.lineTo(cx+s*0.18,cy+s*0.05);x.lineTo(cx,cy+s*0.32);x.fill();
-        ellipse(cx-s*0.22,cy-s*0.2,s*0.1,s*0.12,"#f8fafc");ellipse(cx+s*0.22,cy-s*0.2,s*0.1,s*0.12,"#f8fafc");
-        ellipse(cx-s*0.22,cy-s*0.2,s*0.05,s*0.06,"#0f172a");ellipse(cx+s*0.22,cy-s*0.2,s*0.05,s*0.06,"#0f172a");
-      }else if(who==="🐱"){
-        ellipse(cx,cy,s,s*0.9,"#fb7185");
-        x.beginPath();x.moveTo(cx-s*0.7,cy-s*0.15);x.lineTo(cx-s*0.45,cy-s*1.1);x.lineTo(cx-s*0.1,cy-s*0.4);x.fillStyle="#f472b6";x.fill();
-        x.beginPath();x.moveTo(cx+s*0.7,cy-s*0.15);x.lineTo(cx+s*0.45,cy-s*1.1);x.lineTo(cx+s*0.15,cy-s*0.4);x.fill();
-        ellipse(cx-s*0.28,cy-s*0.05,s*0.12,s*0.14,"#1c1917");ellipse(cx+s*0.28,cy-s*0.05,s*0.12,s*0.14,"#1c1917");
-      }else if(who==="🦄"){
-        ellipse(cx,cy,s,s*0.9,"#f5d0fe");
-        x.fillStyle="#a78bfa";x.beginPath();x.moveTo(cx-s*0.1,cy-s*0.7);x.lineTo(cx+s*0.08,cy-s*1.35);x.lineTo(cx+s*0.22,cy-s*0.55);x.fill();
-        ellipse(cx-s*0.28,cy-s*0.05,s*0.1,s*0.12,"#1c1917");ellipse(cx+s*0.28,cy-s*0.05,s*0.1,s*0.12,"#1c1917");
-      }else{
-        ellipse(cx,cy,s*0.85,s*0.9,"#ffe0b0");
-        ellipse(cx,cy-s*0.55,s*0.9,s*0.4,"#5a3a22");
-        ellipse(cx-s*0.25,cy-s*0.05,s*0.1,s*0.12,"#1c1917");ellipse(cx+s*0.25,cy-s*0.05,s*0.1,s*0.12,"#1c1917");
-        x.strokeStyle="#9a3412";x.lineWidth=2;x.beginPath();x.arc(cx,cy+s*0.18,s*0.22,0.2,2.9);x.stroke();
-      }
+      em(who||"🧒",cx,cy,Math.max(28,s*2.6));
     }
     function drawGuest(){
       var o=ORDERS[order],gx=W*0.22,gy=H*0.28+Math.sin(T*3)*4;
@@ -169,7 +142,7 @@
           var bx=24+i*((W-40)/5),by=H*0.80;
           hits.push({id:"f-"+FLAV[i].id,x:bx,y:by-30,w:64,h:64});
           round(bx,by-30,64,64,16,FLAV[i].h);
-          ellipse(bx+32,by,18,14,FLAV[i].c);
+          em(FLAV[i].id==="str"?"🍓":FLAV[i].id==="cho"?"🍫":FLAV[i].id==="van"?"🍦":FLAV[i].id==="min"?"🌿":"🍋",bx+32,by-2,28);
           x.fillStyle="#831843";x.font="800 11px Trebuchet MS";x.textAlign="center";x.fillText(FLAV[i].n,bx+32,by+22);
         }
         btn("oops",W-110,H*0.64,90,36,"Oops","#fecaca","#9f1239");
@@ -179,7 +152,8 @@
           var tx=W*0.18+i*W*0.22,ty=H*0.80;
           hits.push({id:"t-"+TOPS[i].id,x:tx-36,y:ty-30,w:72,h:60});
           round(tx-36,ty-30,72,60,14,"#fdf2f8");
-          x.fillStyle=TOPS[i].c;x.font="800 14px Trebuchet MS";x.textAlign="center";x.fillText(TOPS[i].n,tx,ty);
+          em(TOPS[i].id==="spr"?"✨":TOPS[i].id==="chry"?"🍒":"🍫",tx,ty-8,26);
+          x.fillStyle=TOPS[i].c;x.font="800 14px Trebuchet MS";x.textAlign="center";x.fillText(TOPS[i].n,tx,ty+16);
         }
       }
       if(stage==="serve")btn("serve",W/2-70,H*0.78,140,48,"Serve!","#ffd166","#3b2100");
@@ -255,7 +229,7 @@
       if(melt>0.5){x.globalAlpha=0.25;ellipse(W*0.38,H*0.66,20+melt*16,6,"#fda4af");x.globalAlpha=1;}
     }
     function drawCherry(cx,cy){
-      ellipse(cx,cy,6,6,"#e11d48");x.strokeStyle="#166534";x.lineWidth=2;x.beginPath();x.moveTo(cx,cy-6);x.lineTo(cx+6,cy-16);x.stroke();
+      em("🍒",cx,cy,22);
     }
     function iceLayer(){
       drawPole();drawBanner();drawStools();drawFreezerFan();drawPuddle();
@@ -269,6 +243,9 @@
     var iceSay=['Stack kind.', 'Melt? Restack.', 'Freezer shh.', 'Cherry hat.', 'Smile cone.', 'Cold yum.', 'Dots fall.', 'Bubble talk.'];
     function iceDot(px,py,c,r){x.fillStyle=c;x.beginPath();x.arc(px,py,r||3,0,6.28);x.fill();}
     function iceItem(kind,px,py,t){
+      var EM={"stripeAwning":"🎪", "chromeRail":"✨", "glassFog":"🌫️", "waffleStack":"🧇", "cherryBin":"🍒", "sprinkleBin":"✨", "saucePump":"🍫", "napkinDispenser":"🧻", "stoolPink":"💺", "stoolMint":"🪑", "menuHeart":"💕", "freezerHandle":"🧊", "steamPuff":"💨", "dripDrop":"💧", "coneStand":"🍦", "bell":"🔔", "tipJar":"💵", "poster":"🖼️", "fanCool":"🪭", "lightGlobe":"💡", "doily":"🌸", "mintLeaf":"🌿", "lemonSlice":"🍋", "berry":"🍓", "chocoShave":"🍫", "whipped":"🍦", "umbrella":"⛱️", "radioPop":"📻", "floorTile":"🟪", "windowFrost":"❄️"};
+      if(EM[kind]){ em(EM[kind],px,py,22); return; }
+
       if(kind==="stripeAwning"){ var bob=0;
         round(px-11,py-9,22,18,5,"#fb7185");x.fillStyle="#1c1917";x.font="800 8px Trebuchet MS";x.textAlign="center";x.fillText("awn",px,py+2);
         x.globalAlpha=1;x.shadowBlur=0;return; }
@@ -426,6 +403,9 @@
     var ic2Say=['Stack kind.', 'Melt? Restack.', 'Freezer shh.', 'Cherry hat.', 'Smile cone.', 'Cold yum.', 'Dots fall.', 'Bubble talk.'];
     function ic2Dot(px,py,c,r){x.fillStyle=c;x.beginPath();x.arc(px,py,r||3,0,6.28);x.fill();}
     function ic2Item(kind,px,py,t){
+      var EM={"stripeAwning":"🎪", "chromeRail":"✨", "glassFog":"🌫️", "waffleStack":"🧇", "cherryBin":"🍒", "sprinkleBin":"✨", "saucePump":"🍫", "napkinDispenser":"🧻", "stoolPink":"💺", "stoolMint":"🪑", "menuHeart":"💕", "freezerHandle":"🧊", "steamPuff":"💨", "dripDrop":"💧", "coneStand":"🍦", "bell":"🔔", "tipJar":"💵", "poster":"🖼️", "fanCool":"🪭", "lightGlobe":"💡", "doily":"🌸", "mintLeaf":"🌿", "lemonSlice":"🍋", "berry":"🍓", "chocoShave":"🍫", "whipped":"🍦", "umbrella":"⛱️", "radioPop":"📻", "floorTile":"🟪", "windowFrost":"❄️"};
+      if(EM[kind]){ em(EM[kind],px,py,22); return; }
+
       if(kind==="stripeAwning"){ var bob=0;
         round(px-11,py-9,22,18,5,"#fb7185");x.fillStyle="#1c1917";x.font="800 8px Trebuchet MS";x.textAlign="center";x.fillText("awn",px,py+2);
         x.globalAlpha=1;x.shadowBlur=0;return; }

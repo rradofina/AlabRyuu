@@ -41,6 +41,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     var W, H, last = 0, t = 0, play = false, meadow = 0, honey = 0, need = 8;
     var bees = [], flowers = [], pollen = [], gusts = [], clouds = [];
     var hive = { x: 0, y: 0, fill: 0 }, wind = 0, windT = 0;
@@ -222,9 +223,7 @@
       var i, c;
       for (i = 0; i < clouds.length; i++) {
         c = clouds[i];
-        x.fillStyle = meadow === 4 ? "rgba(196,181,253,.4)" : "rgba(255,255,255,.8)";
-        x.beginPath(); x.arc(c.x, c.y, 16 * c.s, 0, Math.PI * 2);
-        x.arc(c.x + 16, c.y - 6, 14 * c.s, 0, Math.PI * 2); x.arc(c.x + 28, c.y, 15 * c.s, 0, Math.PI * 2); x.fill();
+        em("☁️", c.x + 12, c.y, 28 * c.s);
       }
       x.fillStyle = m.grass;
       x.fillRect(0, H * 0.7, W, H * 0.3);
@@ -235,19 +234,8 @@
     }
 
     function drawHive() {
-      x.fillStyle = "#92400e";
-      x.beginPath();
-      if (x.roundRect) x.roundRect(hive.x - 28, hive.y - 10, 56, 70, 14);
-      else x.rect(hive.x - 28, hive.y - 10, 56, 70);
-      x.fill();
-      x.fillStyle = "#f59e0b";
-      x.fillRect(hive.x - 20, hive.y + 40 - hive.fill * 40, 40, hive.fill * 40);
-      x.fillStyle = "#78350f";
-      var r;
-      for (r = 0; r < 4; r++) x.fillRect(hive.x - 22, hive.y + 6 + r * 12, 44, 3);
-      x.fillStyle = "#1c1917";
-      x.beginPath(); x.arc(hive.x, hive.y + 48, 7, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#fde047"; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
+      em("🍯", hive.x, hive.y + 18, 64);
+      x.fillStyle = "#854d0e"; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
       x.fillText(Math.round(hive.fill * 100) + "%", hive.x, hive.y - 16);
     }
 
@@ -255,36 +243,16 @@
       x.save();
       x.translate(f.x, f.y);
       x.rotate(Math.sin(f.ph) * 0.08 + wind * 0.15);
-      x.fillStyle = "#166534";
-      x.fillRect(-2, 0, 4, 28);
       var sc = 0.35 + f.bloom * 0.75;
       x.scale(sc, sc);
-      x.fillStyle = f.col;
-      var p;
-      for (p = 0; p < 6; p++) {
-        x.rotate(Math.PI / 3);
-        x.beginPath(); x.ellipse(0, -12, 7, 12, 0, 0, Math.PI * 2); x.fill();
-      }
-      x.fillStyle = "#fde047";
-      x.beginPath(); x.arc(0, 0, 7, 0, Math.PI * 2); x.fill();
+      em("🌸", 0, 0, 40);
       x.restore();
     }
 
     function drawBee(b) {
       x.save(); x.translate(b.x, b.y); x.rotate(Math.sin(b.ph) * 0.2);
-      var flap = Math.sin(b.wing) * 0.5;
-      x.fillStyle = "rgba(255,255,255,.7)";
-      x.beginPath(); x.ellipse(-2, -8, 8, 5 + flap * 4, -0.5, 0, Math.PI * 2); x.fill();
-      x.beginPath(); x.ellipse(6, -8, 8, 5 + flap * 4, 0.5, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#facc15";
-      x.beginPath(); x.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#1c1917";
-      x.fillRect(-6, -8, 3, 16); x.fillRect(2, -8, 3, 16);
-      x.beginPath(); x.arc(10, -2, 3, 0, Math.PI * 2); x.fill();
-      if (b.bag) {
-        x.fillStyle = "#fde047";
-        x.beginPath(); x.arc(-10, 6, 4, 0, Math.PI * 2); x.fill();
-      }
+      em("🐝", 0, 0, 28 + Math.sin(b.wing) * 3);
+      if (b.bag) em("🌼", -12, 8, 14);
       x.restore();
     }
 

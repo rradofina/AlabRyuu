@@ -18,6 +18,7 @@
   <script>
   (function(){
     var cv=document.getElementById("c"),x=cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     var W,H,T=0,last=0,stage="title",order=0,stars=0,hold=0,mx=0,my=0,down=0;
     var bits=[],crumbs=[],steam=[],hits=[],say="Tap Play!",bakerArm=0,stir=0,stirNeed=5,dough=0;
     var shapePick="",ovenT=0,ovenWarm=0,ovenIn=0,retry=0,deco=0,decoNeed=8,serveT=0,glowPulse=0;
@@ -53,29 +54,10 @@
     function round(a,b,w,h,r,col){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();if(col){x.fillStyle=col;x.fill();}}
     function ellipse(cx,cy,rx,ry,col){x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,6.28);x.fillStyle=col;x.fill();}
     function cookShape(id,cx,cy,s,col,icing,t){
-      x.save();x.translate(cx,cy);x.rotate(Math.sin(t*2+s)*.04);
-      if(id==="star"){
-        x.beginPath();for(var i=0;i<5;i++){var a=-1.57+i*1.256,b=a+0.628;x.lineTo(Math.cos(a)*s,Math.sin(a)*s);x.lineTo(Math.cos(b)*s*.42,Math.sin(b)*s*.42);}x.closePath();x.fillStyle=col;x.fill();
-        x.beginPath();for(i=0;i<5;i++){a=-1.57+i*1.256;b=a+0.628;x.lineTo(Math.cos(a)*s*.62,Math.sin(a)*s*.62);x.lineTo(Math.cos(b)*s*.26,Math.sin(b)*s*.26);}x.closePath();x.fillStyle=icing;x.fill();
-      }else if(id==="heart"){
-        x.beginPath();x.moveTo(0,s*.7);x.bezierCurveTo(-s*1.1,s*.05,-s*.9,-s*.7,0,-s*.18);x.bezierCurveTo(s*.9,-s*.7,s*1.1,s*.05,0,s*.7);x.fillStyle=col;x.fill();
-        x.beginPath();x.moveTo(0,s*.42);x.bezierCurveTo(-s*.7,s*.02,-s*.55,-s*.4,0,-s*.08);x.bezierCurveTo(s*.55,-s*.4,s*.7,s*.02,0,s*.42);x.fillStyle=icing;x.fill();
-      }else if(id==="dino"){
-        ellipse(0,s*.12,s*.72,s*.5,col);ellipse(s*.55,-s*.18,s*.38,s*.32,col);ellipse(s*.78,-s*.38,s*.12,s*.1,col);
-        ellipse(-s*.55,s*.42,s*.16,s*.22,col);ellipse(-s*.2,s*.5,s*.16,s*.2,col);ellipse(s*.2,s*.5,s*.16,s*.2,col);
-        ellipse(0,s*.08,s*.46,s*.3,icing);x.fillStyle="#1c1917";x.beginPath();x.arc(s*.68,-s*.22,s*.07,0,6.28);x.fill();
-        x.strokeStyle=col;x.lineWidth=s*.12;x.beginPath();x.moveTo(-s*.7,0);x.quadraticCurveTo(-s*1.1,-s*.4,-s*.85,-s*.7);x.stroke();
-      }else if(id==="moon"){
-        x.beginPath();x.arc(0,0,s,0,6.28);x.fillStyle=col;x.fill();
-        x.globalCompositeOperation="destination-out";x.beginPath();x.arc(s*.38,-s*.1,s*.78,0,6.28);x.fill();
-        x.globalCompositeOperation="source-over";
-        x.beginPath();x.arc(-s*.2,s*.1,s*.55,0.6,4.2);x.fillStyle=icing;x.fill();
-        ellipse(-s*.25,-s*.2,s*.1,s*.08,"#fef3c7");ellipse(s*.05,s*.25,s*.08,s*.06,"#fef3c7");
-      }else{
-        var cols=["#ef4444","#f59e0b","#fde047","#22c55e","#38bdf8","#a78bfa"];
-        for(i=0;i<6;i++){x.beginPath();x.moveTo(0,0);x.arc(0,0,s,-1.57+i*1.047,-1.57+(i+1)*1.047);x.closePath();x.fillStyle=cols[i];x.fill();}
-        ellipse(0,0,s*.28,s*.28,icing);
-      }
+      x.save();x.translate(cx,cy);x.rotate(Math.sin((t||0)*2+s)*.04);
+      em("🍪",0,2,s*2.2);
+      var ch=id==="star"?"⭐":id==="heart"?"❤️":id==="dino"?"🦕":id==="moon"?"🌙":id==="rainbow"?"🌈":"🍪";
+      em(ch,0,-s*0.22,s*1.35);
       x.restore();
     }
     function drawBaker(px,py,sc,arm){
@@ -86,8 +68,8 @@
       x.fillStyle="#fff7ed";round(-20,22,40,28,6,"#fff7ed");
       x.fillStyle="#fecaca";round(-8,28,16,10,4,"#fecaca");
       x.fillStyle="#7c2d12";x.font="800 9px Trebuchet MS";x.textAlign="center";x.fillText(AV.name,-0,36);
-      x.fillStyle="#fde68a";x.beginPath();x.arc(0,4,16,0,6.28);x.fill();
-      x.font="22px serif";x.textAlign="center";x.textBaseline="middle";x.fillText(AV.hair,0,4);
+      em("🧑‍🍳",0,4,32);
+      x.font="18px serif";x.textAlign="center";x.textBaseline="middle";x.fillText(AV.hair,0,4);
       x.fillStyle="#fff";round(-14,-16,28,10,4,"#fff");
       x.save();x.translate(-22,26);x.rotate(-.4+arm);round(-6,-4,22,8,4,"#fde68a");x.restore();
       x.save();x.translate(22,26);x.rotate(.3-arm*.5);round(-16,-4,22,8,4,"#fde68a");x.restore();
@@ -154,7 +136,7 @@
         var jx=40+i*38,jy=H*0.22;
         ellipse(jx,jy+28,12,5,dim?"#1c1917":"#78350f");
         x.fillStyle=jars[i];round(jx-11,jy,22,30,6,jars[i]);
-        x.fillStyle="#fff";x.globalAlpha=.35;round(jx-8,jy+4,8,18,3,"#fff");x.globalAlpha=1;
+        em("🫙",jx,jy+12,22);
         x.fillStyle="#a8a29e";round(jx-12,jy-6,24,10,3,"#a8a29e");
       }
       x.fillStyle=dim?"#1c1917":"#7c2d12";
@@ -205,6 +187,7 @@
       if(ORDERS[order].wrinkle==="butter"&&mix>1){ellipse(cx-18,cy,8,6,"#fde68a");ellipse(cx+16,cy+8,7,5,"#fef08a");}
       if(ORDERS[order].wrinkle==="chips"&&mix>2){for(var i=0;i<5;i++)ellipse(cx-20+i*10,cy+Math.sin(i+T)*4,4,3,"#44403c");}
       x.strokeStyle="#b45309";x.lineWidth=6;x.beginPath();x.ellipse(cx,cy,r,r*0.62,0,0,6.28);x.stroke();
+      em("🥣",cx,cy-r*0.15,r*1.6);
       hits.push({id:"bowl",x:cx-r,y:cy-r*0.7,w:r*2,h:r*1.5});
     }
     function drawHud(){
@@ -377,6 +360,7 @@
         hits.push({id:"jar-"+i,x:jx-28,y:jy-28,w:56,h:56});
         ellipse(jx,jy+18,16,6,"#78350f");
         round(jx-16,jy-18,32,36,8,jars[i]);
+        em("🫙",jx,jy,28);
         x.fillStyle="#a8a29e";round(jx-18,jy-24,36,10,3,"#a8a29e");
       }
       drawBaker(W*0.14,H*0.5,1,Math.sin(T*6)*0.3);
@@ -502,6 +486,9 @@
     var cookieSay=['Mix slow.', 'Warm glow.', 'Never burn.', 'Pretty dots.', 'Yum box!', 'Baker smile.', 'Kind oven.', 'Crumbs dance.'];
     function cookieDot(px,py,c,r){x.fillStyle=c;x.beginPath();x.arc(px,py,r||3,0,6.28);x.fill();}
     function cookieItem(kind,px,py,t){
+      var EM={"copperPot":"🍲", "whisk":"🥄", "sugarCube":"🧂", "butterPat":"🧈", "vanilla":"🌼", "cinnamon":"🪵", "chocChip":"🍫", "raisin":"🍇", "egg":"🥚", "milk":"🥛", "ovenMitt":"🧤", "timer":"⏱️", "scale":"⚖️", "bowlSmall":"🥣", "cookieTin":"🍪", "ribbon":"🎀", "postcard":"✉️", "plantHerb":"🌿", "windowCat":"🐱", "sunbeam":"☀️", "crumbTrail":"✨", "jamJar":"🍯", "honey":"🍯", "nutBowl":"🥜", "teaCup":"☕", "napkin":"🧻", "stringLights":"💡", "chalkBoard":"📝", "stepStool":"🪜", "rugOval":"🧸"};
+      if(EM[kind]){ em(EM[kind],px,py,22); return; }
+
       if(kind==="copperPot"){ var bob=0;
         round(px-10,py-12,20,24,5,"#b45309");cookieDot(px,py-16,"#a8a29e",4);
         x.globalAlpha=1;x.shadowBlur=0;return; }
@@ -663,6 +650,9 @@
     var ck2Say=['Mix slow.', 'Warm glow.', 'Never burn.', 'Pretty dots.', 'Yum box!', 'Baker smile.', 'Kind oven.', 'Crumbs dance.'];
     function ck2Dot(px,py,c,r){x.fillStyle=c;x.beginPath();x.arc(px,py,r||3,0,6.28);x.fill();}
     function ck2Item(kind,px,py,t){
+      var EM={"copperPot":"🍲", "whisk":"🥄", "sugarCube":"🧂", "butterPat":"🧈", "vanilla":"🌼", "cinnamon":"🪵", "chocChip":"🍫", "raisin":"🍇", "egg":"🥚", "milk":"🥛", "ovenMitt":"🧤", "timer":"⏱️", "scale":"⚖️", "bowlSmall":"🥣", "cookieTin":"🍪", "ribbon":"🎀", "postcard":"✉️", "plantHerb":"🌿", "windowCat":"🐱", "sunbeam":"☀️", "crumbTrail":"✨", "jamJar":"🍯", "honey":"🍯", "nutBowl":"🥜", "teaCup":"☕", "napkin":"🧻", "stringLights":"💡", "chalkBoard":"📝", "stepStool":"🪜", "rugOval":"🧸"};
+      if(EM[kind]){ em(EM[kind],px,py,22); return; }
+
       if(kind==="copperPot"){ var bob=0;
         round(px-10,py-12,20,24,5,"#b45309");ck2Dot(px,py-16,"#a8a29e",4);
         x.globalAlpha=1;x.shadowBlur=0;return; }

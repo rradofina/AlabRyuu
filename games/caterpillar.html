@@ -41,6 +41,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     var W, H, last = 0, t = 0, play = false, mode = "crawl";
     var garden = 0, eaten = 0, need = 5, drag = false;
     var head = { x: 0, y: 0 }, segs = [], trail = [];
@@ -228,11 +229,9 @@
           x.fillRect((s * 71) % W, 10 + (s * 37) % (H * 0.3), 2, 2);
         }
         x.globalAlpha = 1;
-        x.fillStyle = "#fde047";
-        x.beginPath(); x.arc(W * 0.82, 50, 16, 0, Math.PI * 2); x.fill();
+        em("🌙", W * 0.82, 50, 32);
       } else {
-        x.fillStyle = "#fde047";
-        x.beginPath(); x.arc(W * 0.18, 56, 22, 0, Math.PI * 2); x.fill();
+        em("☀️", W * 0.18, 56, 40);
       }
       x.fillStyle = g.grass;
       x.fillRect(0, H * 0.72, W, H * 0.28);
@@ -246,17 +245,8 @@
       }
       for (i = 0; i < flowers.length; i++) {
         var f = flowers[i];
-        x.fillStyle = "#166534";
-        x.fillRect(f.x - 2, f.y, 4, 18);
         x.save(); x.translate(f.x, f.y); x.scale(0.4 + f.bloom * 0.8, 0.4 + f.bloom * 0.8);
-        x.fillStyle = f.col;
-        var p;
-        for (p = 0; p < 5; p++) {
-          x.rotate((Math.PI * 2) / 5);
-          x.beginPath(); x.ellipse(0, -10, 6, 10, 0, 0, Math.PI * 2); x.fill();
-        }
-        x.fillStyle = "#fde047";
-        x.beginPath(); x.arc(0, 0, 5, 0, Math.PI * 2); x.fill();
+        em("🌸", 0, 0, 36);
         x.restore();
       }
     }
@@ -265,48 +255,21 @@
       var i, s;
       for (i = segs.length - 1; i >= 0; i--) {
         s = segs[i];
-        x.fillStyle = i % 2 ? "#4ade80" : "#22c55e";
-        x.beginPath(); x.arc(s.x, s.y, s.r + Math.sin(t * 6 + i) * 1.2, 0, Math.PI * 2); x.fill();
-        x.fillStyle = "#14532d";
-        x.beginPath(); x.arc(s.x - 4, s.y - 2, 2, 0, Math.PI * 2); x.fill();
-        x.beginPath(); x.arc(s.x + 4, s.y - 2, 2, 0, Math.PI * 2); x.fill();
+        em(i % 2 ? "🟢" : "💚", s.x, s.y, (s.r + Math.sin(t * 6 + i) * 1.2) * 2.2);
       }
-      x.fillStyle = "#16a34a";
-      x.beginPath(); x.arc(head.x, head.y, 16 + Math.sin(t * 8) * 1.5, 0, Math.PI * 2); x.fill();
-      x.strokeStyle = "#14532d"; x.lineWidth = 2;
-      x.beginPath(); x.moveTo(head.x - 6, head.y - 14); x.lineTo(head.x - 10, head.y - 26 + Math.sin(t * 8) * 3); x.stroke();
-      x.beginPath(); x.moveTo(head.x + 6, head.y - 14); x.lineTo(head.x + 10, head.y - 26 + Math.cos(t * 8) * 3); x.stroke();
-      x.fillStyle = "#14532d";
-      x.beginPath(); x.arc(head.x - 5, head.y - 2, 3, 0, Math.PI * 2); x.fill();
-      x.beginPath(); x.arc(head.x + 5, head.y - 2, 3, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#fff";
-      x.beginPath(); x.arc(head.x - 4, head.y - 3, 1.2, 0, Math.PI * 2); x.fill();
+      em("🐛", head.x, head.y, 36 + Math.sin(t * 8) * 2);
     }
 
     function drawCoco() {
       x.save();
       x.translate(head.x, head.y);
       x.rotate(coco.a);
-      x.scale(coco.s, coco.s * 1.15);
-      x.fillStyle = "#a3e635";
-      x.beginPath(); x.ellipse(0, 0, 18, 26, 0, 0, Math.PI * 2); x.fill();
-      x.strokeStyle = "#65a30d"; x.lineWidth = 2;
-      x.beginPath(); x.ellipse(0, 0, 12, 20, 0.3, 0, Math.PI * 2); x.stroke();
+      em("🧶", 0, 0, 28 * coco.s);
       x.restore();
     }
 
     function drawButterfly() {
-      var flap = Math.sin(fly.flap) * 0.7;
-      x.save(); x.translate(fly.x, fly.y);
-      x.fillStyle = "#7c3aed";
-      x.beginPath(); x.ellipse(-16, -4, 16, 10 + flap * 8, -0.4, 0, Math.PI * 2); x.fill();
-      x.beginPath(); x.ellipse(16, -4, 16, 10 + flap * 8, 0.4, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#c4b5fd";
-      x.beginPath(); x.ellipse(-12, 10, 10, 7 + flap * 4, 0.2, 0, Math.PI * 2); x.fill();
-      x.beginPath(); x.ellipse(12, 10, 10, 7 + flap * 4, -0.2, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#1e1b4b";
-      x.beginPath(); x.ellipse(0, 0, 5, 14, 0, 0, Math.PI * 2); x.fill();
-      x.restore();
+      em("🦋", fly.x, fly.y, 40 + Math.sin(fly.flap) * 8);
     }
 
     function draw() {
@@ -316,9 +279,7 @@
         L = leaves[i];
         if (L.got) continue;
         x.save(); x.translate(L.x, L.y + Math.sin(t * 2 + L.ph) * 3); x.rotate(Math.sin(L.ph) * 0.2); x.scale(L.s, L.s);
-        x.fillStyle = "#65a30d";
-        x.beginPath(); x.ellipse(0, 0, 14, 8, 0.4, 0, Math.PI * 2); x.fill();
-        x.strokeStyle = "#166534"; x.beginPath(); x.moveTo(-10, 0); x.lineTo(10, 0); x.stroke();
+        em("🍃", 0, 0, 28);
         x.restore();
       }
       for (i = 0; i < puffs.length; i++) {

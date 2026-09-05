@@ -122,6 +122,8 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+    function emC(ctx,ch,px,py,s){ ctx.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(ch,px,py); }
     var W = 0, H = 0, last = 0, t = 0, play = false, cardI = 0, stars = 0;
     var dance = 0, flash = 0, tab = "eyes";
     var m = { eyes: 0, mouth: 0, horn: 0, col: 0, ear: 0 };
@@ -193,76 +195,26 @@
       ctx.fill();
     }
     function drawHeart(ctx, hx, hy, s, col) {
-      ctx.fillStyle = col;
-      ctx.beginPath();
-      ctx.moveTo(hx, hy + s * 0.3);
-      ctx.bezierCurveTo(hx, hy - s * 0.25, hx - s, hy - s * 0.25, hx - s, hy + s * 0.2);
-      ctx.bezierCurveTo(hx - s, hy + s * 0.75, hx, hy + s, hx, hy + s);
-      ctx.bezierCurveTo(hx, hy + s, hx + s, hy + s * 0.75, hx + s, hy + s * 0.2);
-      ctx.bezierCurveTo(hx + s, hy - s * 0.25, hx, hy - s * 0.25, hx, hy + s * 0.3);
-      ctx.fill();
+      emC(ctx, "❤️", hx, hy, Math.max(16, s * 1.6));
     }
     function drawStar(ctx, cx, cy, r, col) {
-      ctx.fillStyle = col;
-      ctx.beginPath();
-      var i;
-      for (i = 0; i < 5; i++) {
-        var a = -Math.PI / 2 + i * Math.PI * 2 / 5;
-        var b = a + Math.PI / 5;
-        ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-        ctx.lineTo(cx + Math.cos(b) * r * 0.45, cy + Math.sin(b) * r * 0.45);
-      }
-      ctx.closePath(); ctx.fill();
+      emC(ctx, "⭐", cx, cy, Math.max(14, r * 1.8));
     }
 
     function drawEyes(ctx, kind, y) {
-      oval(ctx, -20, y, 14, 16, "#fff");
-      oval(ctx, 20, y, 14, 16, "#fff");
-      ctx.fillStyle = "#1e1b4b";
-      ctx.strokeStyle = "#1e1b4b";
-      ctx.lineWidth = 3.5;
-      ctx.lineCap = "round";
-      if (kind === 0) {
-        disc(ctx, -20, y, 5, "#1e1b4b");
-        disc(ctx, 20, y, 5, "#1e1b4b");
-        disc(ctx, -18, y - 2, 1.6, "#fff");
-        disc(ctx, 22, y - 2, 1.6, "#fff");
-      } else if (kind === 1) {
-        disc(ctx, -20, y + 1, 8, "#1e1b4b");
-        disc(ctx, 20, y + 1, 8, "#1e1b4b");
-        disc(ctx, -16, y - 2, 2.4, "#fff");
-        disc(ctx, 24, y - 2, 2.4, "#fff");
-      } else if (kind === 2) {
-        ctx.beginPath(); ctx.arc(-20, y + 4, 8, Math.PI, 0); ctx.stroke();
-        ctx.beginPath(); ctx.arc(20, y + 4, 8, Math.PI, 0); ctx.stroke();
-      } else {
-        ctx.beginPath(); ctx.arc(-20, y - 2, 8, 0.15, Math.PI - 0.15); ctx.stroke();
-        ctx.beginPath(); ctx.arc(20, y - 2, 8, 0.15, Math.PI - 0.15); ctx.stroke();
-      }
+      var eyes = ["👀", "😍", "😴", "😉"];
+      emC(ctx, eyes[kind] || "👀", 0, y, 38);
     }
 
     function drawMouth(ctx, kind, y) {
-      ctx.strokeStyle = "#9d174d";
-      ctx.fillStyle = "#fb7185";
-      ctx.lineWidth = 4.5;
-      ctx.lineCap = "round";
-      if (kind === 0) {
-        ctx.beginPath(); ctx.arc(0, y, 18, 0.15, Math.PI - 0.15); ctx.stroke();
-      } else if (kind === 1) {
-        ctx.beginPath(); ctx.ellipse(0, y + 4, 20, 12, 0, 0, Math.PI); ctx.fill();
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(-9, y - 1, 6, 8);
-        ctx.fillRect(3, y - 1, 6, 8);
-      } else if (kind === 2) {
-        ctx.beginPath(); ctx.arc(0, y + 2, 9, 0, Math.PI * 2); ctx.stroke();
-      } else {
-        ctx.beginPath(); ctx.moveTo(-14, y); ctx.quadraticCurveTo(0, y + 14, 14, y); ctx.stroke();
-        ctx.fillStyle = "#1e1b4b";
-        ctx.fillRect(-2.5, y + 2, 5, 4);
-      }
+      var mouths = ["😄", "😁", "😗", "😛"];
+      emC(ctx, mouths[kind] || "😄", 0, y, 34);
     }
 
     function drawHorn(ctx, kind, y) {
+      var horns = ["🎀", "🌸", "🌼", "🎩"];
+      emC(ctx, horns[kind] || "🎀", 0, y, 30);
+      return;
       if (kind === 0) {
         ctx.fillStyle = "#fb7185";
         ctx.beginPath(); ctx.ellipse(-14, y, 12, 9, -0.35, 0, Math.PI * 2); ctx.fill();
@@ -298,6 +250,10 @@
     }
 
     function drawEars(ctx, kind, col) {
+      var ears = ["🐰", "🦊", "🐻", "🐶"];
+      emC(ctx, ears[kind] || "🐰", -58, -6, 28);
+      emC(ctx, ears[kind] || "🐰", 58, -6, 28);
+      return;
       if (kind === 0) {
         oval(ctx, -62, -8, 20, 18, col);
         oval(ctx, 62, -8, 20, 18, col);

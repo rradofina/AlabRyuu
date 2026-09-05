@@ -49,6 +49,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     var W, H, last = 0, t = 0, play = false, free = false, oct2 = 0;
     var song = 0, step = 0, wait = 0, glow = 0;
     var keys = [], notes = [], sparks = [], dust = [];
@@ -260,6 +261,7 @@
         if (x.roundRect) x.roundRect(k.x, k.y + dip, k.w, k.h - dip, 8);
         else x.rect(k.x, k.y + dip, k.w, k.h - dip);
         x.fill();
+        em("🎹", k.x + k.w * 0.5, k.y + dip + k.h * 0.55, Math.min(36, k.w * 0.55));
         x.fillStyle = k.press > 0 ? "#fff" : "#4c1d95";
         x.font = "bold 18px Trebuchet MS"; x.textAlign = "center";
         x.fillText(k.name, k.x + k.w * 0.5, k.y + dip + 28);
@@ -276,11 +278,7 @@
       var fy = fly.y + Math.sin(fly.bob) * 5;
       x.fillStyle = "rgba(253,224,71,.25)";
       x.beginPath(); x.arc(fly.x, fy, 16 + Math.sin(t * 8) * 3, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#fde047";
-      x.beginPath(); x.arc(fly.x, fy, 7, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "rgba(255,255,255,.7)";
-      x.beginPath(); x.ellipse(fly.x - 8, fy - 2, 7, 4, -0.4, 0, Math.PI * 2); x.fill();
-      x.beginPath(); x.ellipse(fly.x + 8, fy - 2, 7, 4, 0.4, 0, Math.PI * 2); x.fill();
+      em("✨", fly.x, fy, 28);
       var i;
       for (i = 0; i < dust.length; i++) {
         x.globalAlpha = Math.max(0, dust[i].life);
@@ -295,10 +293,9 @@
       var i;
       for (i = 0; i < notes.length; i++) {
         x.globalAlpha = Math.max(0, notes[i].life);
-        x.fillStyle = notes[i].col;
-        x.beginPath(); x.arc(notes[i].x, notes[i].y, 12, 0, Math.PI * 2); x.fill();
-        x.fillStyle = "#fff"; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
-        x.fillText(notes[i].name, notes[i].x, notes[i].y + 4);
+        em("🎵", notes[i].x, notes[i].y, 22);
+        x.fillStyle = notes[i].col; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
+        x.fillText(notes[i].name, notes[i].x, notes[i].y + 14);
       }
       x.globalAlpha = 1;
       for (i = 0; i < sparks.length; i++) {

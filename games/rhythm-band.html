@@ -84,6 +84,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), g = cv.getContext("2d");
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
     var W, H, last = 0, t = 0, mode = "title", stars = 0, song = 0, cheer = 0.4;
     var pads = [], seq = [], input = [], phase = "show", showI = 0, showT = 0;
     var notes = [], crowd = [], pops = [];
@@ -315,6 +316,14 @@
       g.translate(n.x, n.y);
       g.rotate(n.spin * (1 - n.life));
       g.globalAlpha = clamp(n.life, 0, 1);
+      em(n.kind === "orb" ? "✨" : "🎵", 0, 0, 22);
+      g.restore();
+      g.globalAlpha = 1;
+      return;
+      g.save();
+      g.translate(n.x, n.y);
+      g.rotate(n.spin * (1 - n.life));
+      g.globalAlpha = clamp(n.life, 0, 1);
       if (n.kind === "orb") {
         var grd = g.createRadialGradient(0, 0, 1, 0, 0, 10);
         grd.addColorStop(0, "#fff");
@@ -502,79 +511,20 @@
     }
 
     function drawDrummer(p) {
-      var play = p.play, sc = p.s * 0.0155;
-      g.save();
-      g.translate(p.mx, p.my);
-      g.scale(sc, sc);
-      kidBase(play * 4);
-      var bounce = 1 + play * 0.22;
-      g.save();
-      g.translate(0, 28);
-      g.scale(1, bounce);
-      g.fillStyle = "#9f1239";
-      g.fillRect(-16, -8, 32, 14);
-      g.fillStyle = "#f9a8d4";
-      g.beginPath(); g.ellipse(0, -8, 16, 6, 0, 0, 6.28); g.fill();
-      g.strokeStyle = "#e8b84a";
-      g.lineWidth = 2;
-      g.beginPath(); g.ellipse(0, -8, 16, 6, 0, 0, 6.28); g.stroke();
-      g.restore();
-      kidBody(SKIN[0], HAIR[0], SHIRTS[0]);
-      g.save();
-      g.translate(-12, 2);
-      g.rotate(-1.15 + play * 1.7);
-      g.strokeStyle = SKIN[0]; g.lineWidth = 6; g.lineCap = "round";
-      g.beginPath(); g.moveTo(0, 0); g.lineTo(16, 0); g.stroke();
-      g.translate(16, 0); stick(18);
-      g.restore();
-      g.save();
-      g.translate(12, 2);
-      g.rotate(-0.05 - play * 1.45);
-      g.strokeStyle = SKIN[0]; g.lineWidth = 6; g.lineCap = "round";
-      g.beginPath(); g.moveTo(0, 0); g.lineTo(16, 0); g.stroke();
-      g.translate(16, 0); stick(18);
-      g.restore();
-      g.restore();
+      var bounce = 1 + p.play * 0.18;
+      em("🧒", p.mx, p.my - 22, p.s * 0.5);
+      em("🥁", p.mx, p.my + 10, p.s * 0.72 * bounce);
     }
 
     function drawXyloKid(p) {
-      var play = p.play, sc = p.s * 0.0155;
-      g.save();
-      g.translate(p.mx, p.my);
-      g.scale(sc, sc);
-      kidBase(play * 3);
-      g.fillStyle = "#92400e";
-      g.fillRect(-22, 26, 44, 5);
-      g.fillRect(-20, 18, 4, 10);
-      g.fillRect(16, 18, 4, 10);
-      var i, w;
-      for (i = 0; i < 4; i++) {
-        w = 10 - i;
-        g.fillStyle = i % 2 ? "#38bdf8" : "#1d4ed8";
-        g.fillRect(-18 + i * 10, 16 - i, w, 6);
-      }
-      kidBody(SKIN[1], HAIR[1], SHIRTS[1]);
-      g.save();
-      g.translate(10, 0);
-      g.rotate(-1.25 + play * 1.75);
-      g.strokeStyle = SKIN[1]; g.lineWidth = 6; g.lineCap = "round";
-      g.beginPath(); g.moveTo(0, 0); g.lineTo(15, 0); g.stroke();
-      g.strokeStyle = "#b45309";
-      g.lineWidth = 3;
-      g.beginPath(); g.moveTo(15, 0); g.lineTo(32, 4); g.stroke();
-      g.fillStyle = "#60a5fa";
-      g.beginPath(); g.arc(32, 4, 3.4, 0, 6.28); g.fill();
-      g.restore();
-      g.save();
-      g.translate(-12, 4);
-      g.rotate(0.5);
-      g.strokeStyle = SKIN[1]; g.lineWidth = 6; g.lineCap = "round";
-      g.beginPath(); g.moveTo(0, 0); g.lineTo(12, 8); g.stroke();
-      g.restore();
-      g.restore();
+      em("🧒", p.mx, p.my - 22, p.s * 0.5);
+      em("🎹", p.mx, p.my + 10, p.s * 0.7 * (1 + p.play * 0.15));
     }
 
     function drawGuitarKid(p) {
+      em("🧒", p.mx, p.my - 22, p.s * 0.5);
+      em("🎸", p.mx + 6, p.my + 8, p.s * 0.72 * (1 + p.play * 0.15));
+      return;
       var play = p.play, sc = p.s * 0.0155;
       g.save();
       g.translate(p.mx, p.my);
@@ -614,6 +564,9 @@
     }
 
     function drawHornKid(p) {
+      em("🧒", p.mx, p.my - 22, p.s * 0.5);
+      em("🎺", p.mx + 8, p.my + 4, p.s * 0.7 * (1 + p.play * 0.18));
+      return;
       var play = p.play, sc = p.s * 0.0155;
       g.save();
       g.translate(p.mx, p.my);
@@ -675,6 +628,17 @@
       g.save();
       g.translate(p.x, p.y);
       g.scale(1 + p.squash * 0.06, sq);
+      em("🥁", 0, 0, p.s * 0.85);
+      if (p.glow > 0) {
+        g.strokeStyle = hexA("#ffffff", p.glow);
+        g.lineWidth = 7;
+        g.beginPath(); g.ellipse(0, 0, r + 8, r * 0.5 + 8, 0, 0, 6.28); g.stroke();
+      }
+      g.restore();
+      return;
+      g.save();
+      g.translate(p.x, p.y);
+      g.scale(1 + p.squash * 0.06, sq);
       g.fillStyle = "rgba(0,0,0,.25)";
       g.beginPath(); g.ellipse(0, r * 0.55, r * 0.7, r * 0.18, 0, 0, 6.28); g.fill();
       g.strokeStyle = "#4a2c0a"; g.lineWidth = 5;
@@ -709,6 +673,17 @@
 
     function drawXyloPad(p) {
       var s = p.s, sq = 1 - p.squash * 0.1;
+      g.save();
+      g.translate(p.x, p.y);
+      g.scale(1, sq);
+      em("🎹", 0, 0, s * 0.85);
+      if (p.glow > 0) {
+        g.strokeStyle = hexA("#ffffff", p.glow);
+        g.lineWidth = 6;
+        g.strokeRect(-s * 0.4, -s * 0.28, s * 0.8, s * 0.52);
+      }
+      g.restore();
+      return;
       g.save();
       g.translate(p.x, p.y);
       g.scale(1, sq);
@@ -747,6 +722,17 @@
 
     function drawGuitarPad(p) {
       var s = p.s, sq = 1 - p.squash * 0.1;
+      g.save();
+      g.translate(p.x, p.y + 4);
+      g.scale(1 + p.squash * 0.05, sq);
+      em("🎸", 0, 0, s * 0.9);
+      if (p.glow > 0) {
+        g.strokeStyle = hexA("#ffffff", p.glow);
+        g.lineWidth = 6;
+        g.beginPath(); g.ellipse(0, 0, s * 0.4, s * 0.32, 0, 0, 6.28); g.stroke();
+      }
+      g.restore();
+      return;
       g.save();
       g.translate(p.x, p.y + 4);
       g.scale(1 + p.squash * 0.05, sq);
@@ -789,6 +775,17 @@
 
     function drawHornPad(p) {
       var s = p.s, sq = 1 - p.squash * 0.08;
+      g.save();
+      g.translate(p.x, p.y);
+      g.scale(1, sq);
+      em("🎺", 0, 0, s * 0.85);
+      if (p.glow > 0) {
+        g.strokeStyle = hexA("#ffffff", p.glow);
+        g.lineWidth = 6;
+        g.beginPath(); g.ellipse(0, 0, s * 0.48, s * 0.3, 0, 0, 6.28); g.stroke();
+      }
+      g.restore();
+      return;
       g.save();
       g.translate(p.x, p.y);
       g.scale(1, sq);
@@ -863,6 +860,11 @@
     function drawCrowd() {
       crowd.forEach(function (c) {
         var bob = Math.sin(t * 5 + c.ph) * (5 + cheer * 6);
+        em("😊", c.x, c.y + bob - 8, 22 * c.sc);
+      });
+      return;
+      crowd.forEach(function (c) {
+        var bob = Math.sin(t * 5 + c.ph) * (5 + cheer * 6);
         var arms = 0.4 + cheer * 0.7;
         g.save();
         g.translate(c.x, c.y + bob);
@@ -891,7 +893,7 @@
     function drawPops() {
       pops.forEach(function (p) {
         g.globalAlpha = clamp(p.life, 0, 1);
-        if (p.star) drawStar(p.x, p.y - (1 - p.life) * 20, 8, p.col);
+        if (p.star) em("⭐", p.x, p.y - (1 - p.life) * 20, 20);
         else {
           g.strokeStyle = p.col;
           g.lineWidth = 3;

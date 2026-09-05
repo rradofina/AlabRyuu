@@ -46,6 +46,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     var layer, lx, W, H, last = 0, t = 0, play = false, pic = 0;
     var drawing = false, lastP = null, brush = 0, order = 0;
     var drips = [], clouds = [], guides = [], bits = [];
@@ -235,33 +236,12 @@
     function drawGuide() {
       var p = PICS[pic] || PICS[0];
       x.save();
-      x.globalAlpha = 0.22;
-      x.strokeStyle = "#fff"; x.lineWidth = 4;
-      if (p.kind === "bow" || p.kind === "night") {
-        var i;
-        for (i = 0; i < 7; i++) {
-          x.beginPath(); x.arc(W * 0.5, H * 0.78, 90 + i * 14, Math.PI, Math.PI * 2); x.stroke();
-        }
-      }
-      if (p.kind === "house") {
-        x.strokeRect(W * 0.32, H * 0.48, W * 0.36, H * 0.22);
-        x.beginPath(); x.moveTo(W * 0.3, H * 0.48); x.lineTo(W * 0.5, H * 0.34); x.lineTo(W * 0.7, H * 0.48); x.stroke();
-      }
-      if (p.kind === "flower") {
-        x.beginPath(); x.arc(W * 0.5, H * 0.5, 20, 0, Math.PI * 2); x.stroke();
-        var k;
-        for (k = 0; k < 6; k++) {
-          var a = k * Math.PI / 3;
-          x.beginPath(); x.ellipse(W * 0.5 + Math.cos(a) * 36, H * 0.5 + Math.sin(a) * 36, 16, 10, a, 0, Math.PI * 2); x.stroke();
-        }
-      }
-      if (p.kind === "sun") {
-        x.beginPath(); x.arc(W * 0.22, H * 0.22, 28, 0, Math.PI * 2); x.stroke();
-        x.beginPath(); x.ellipse(W * 0.5, H * 0.72, W * 0.32, 20, 0, 0, Math.PI * 2); x.stroke();
-      }
-      if (p.kind === "night") {
-        x.beginPath(); x.arc(W * 0.7, H * 0.22, 16, 0, Math.PI * 2); x.stroke();
-      }
+      x.globalAlpha = 0.55;
+      if (p.kind === "bow" || p.kind === "night") em("🌈", W * 0.5, H * 0.52, 120);
+      if (p.kind === "house") em("🏠", W * 0.5, H * 0.5, 96);
+      if (p.kind === "flower") em("🌸", W * 0.5, H * 0.5, 90);
+      if (p.kind === "sun") { em("☀️", W * 0.22, H * 0.22, 56); em("🌊", W * 0.5, H * 0.72, 72); }
+      if (p.kind === "night") em("🌙", W * 0.7, H * 0.22, 40);
       x.restore();
     }
 
@@ -273,8 +253,7 @@
       else { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#bfdbfe"); }
       x.fillStyle = g; x.fillRect(0, 0, W, H);
       if (p.kind !== "night") {
-        x.fillStyle = "#fde047";
-        x.beginPath(); x.arc(W * 0.82, 60, 18, 0, Math.PI * 2); x.fill();
+        em("☀️", W * 0.82, 60, 36);
       } else {
         x.fillStyle = "#fff";
         var s;
@@ -286,8 +265,8 @@
       for (i = 0; i < clouds.length; i++) {
         c = clouds[i];
         x.save(); x.translate(c.x, c.y + Math.sin(t + c.ph) * 4); x.scale(c.s, c.s);
-        x.fillStyle = c.col ? c.col : "rgba(255,255,255,.9)";
-        x.beginPath(); x.arc(0, 0, 20, 0, Math.PI * 2); x.arc(18, -8, 16, 0, Math.PI * 2); x.arc(34, 2, 18, 0, Math.PI * 2); x.fill();
+        if (c.col) { x.fillStyle = c.col; x.beginPath(); x.arc(0, 0, 22, 0, Math.PI * 2); x.fill(); }
+        em("☁️", 12, 0, 44);
         x.restore();
       }
     }
