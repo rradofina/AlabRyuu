@@ -4,59 +4,87 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Duck Pond</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#38bdf8;color:#0c4a6e;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
-    #pond{position:fixed;inset:0;background:linear-gradient(#7dd3fc,#0ea5e9)}
-    .duck{position:absolute;font-size:48px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,70,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#0369a1}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">🐥 0 / 8</div>
-  <div id="ask">Tap mama's yellow babies!</div>
-  <div id="pond"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🦆</div>
-    <h2>Family swim!</h2>
-    <button class="play" id="again">Swim again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="bb">🐥 0/5</b></div>
+  <div id="say">Tap reeds. Find baby ducks!</div>
+  <div class="cover" id="title">
+    <div class="hero">🦆</div>
+    <h1>Duck Pond</h1>
+    <p>Mama lost 5 babies. Find them!</p>
+    <button class="play" id="go">Seek</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🐥</div>
+    <h1>Family!</h1>
+    <p>All the babies came back.</p>
+    <button class="play g" id="again">Seek again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var kinds=[{e:"🐥",ok:true},{e:"🦆",ok:false},{e:"🐸",ok:false},{e:"🐟",ok:false}];
-    var score=0,play=true,items=[],pond=document.getElementById("pond");
-    function spawn(){
-      if(!play)return;
-      var k=Math.random()<.45?kinds[0]:kinds[1+Math.floor(Math.random()*3)];
-      var b=document.createElement("button");b.className="duck";b.textContent=k.e;
-      var y=120+Math.random()*(innerHeight-200),x=-40,sp=1.2+Math.random()*1.8;
-      b.style.left=x+"px";b.style.top=y+"px";pond.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,ok:k.ok,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        if(!k.ok){document.getElementById("ask").textContent="That's not a baby!";beep(180,.1);return;}
-        it.dead=true;b.remove();score++;beep(700,.08);
-        document.getElementById("hud").textContent="🐥 "+score+" / 8";
-        if(score>=8){play=false;document.getElementById("win").classList.add("on");beep(920,.2);}
-      };
-      items.push(it);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, n = 0, reeds = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    var acc=0;
-    function loop(){
-      acc++;if(play&&acc%40===0)spawn();
-      items.forEach(function(it){if(it.dead)return;it.x+=it.sp;it.el.style.left=it.x+"px";if(it.x>innerWidth+40){it.dead=true;it.el.remove();}});
-      items=items.filter(function(it){return !it.dead;});
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; n = 0;
+      reeds = [
+        { x: 0.18, y: 0.42, baby: 1, got: 0 },
+        { x: 0.42, y: 0.36, baby: 0, got: 0 },
+        { x: 0.68, y: 0.44, baby: 1, got: 0 },
+        { x: 0.28, y: 0.64, baby: 1, got: 0 },
+        { x: 0.55, y: 0.70, baby: 0, got: 0 },
+        { x: 0.80, y: 0.62, baby: 1, got: 0 },
+        { x: 0.48, y: 0.54, baby: 1, got: 0 }
+      ];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("bb").textContent = "🐥 0/5";
+      document.getElementById("say").textContent = "Tap the reeds!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      reeds.forEach(function (r) {
+        var dx = kidPt(e, cv).x - r.x * W, dy = kidPt(e, cv).y - r.y * H;
+        if (dx * dx + dy * dy < 55 * 55 && !r.got) {
+          r.got = 1;
+          if (r.baby) {
+            n++;
+            document.getElementById("bb").textContent = "🐥 " + n + "/5";
+            document.getElementById("say").textContent = "Peep peep!";
+            if (n >= 5) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else document.getElementById("say").textContent = "Just reeds. Keep looking!";
+        }
+      });
+    });
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#38bdf8"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#4ade80"; x.fillRect(0, 0, W, 90);
+      em("🦆", W * 0.5, 130, 80);
+      reeds.forEach(function (r) {
+        if (r.got && r.baby) em("🐥", r.x * W, r.y * H, 64);
+        else em("🌾", r.x * W, r.y * H + Math.sin(t * 2 + r.x) * 3, 72);
+      });
       requestAnimationFrame(loop);
     }
-    loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

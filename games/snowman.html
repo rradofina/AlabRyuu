@@ -4,50 +4,95 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Snowman Build</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#0f172a;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#7dd3fc,#e2e8f0 55%,#fff);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px);color:#0c4a6e}
-    .msg{font-weight:800;margin:8px}
-    .man{min-height:210px;font-size:42px;line-height:1.05;margin:8px}
-    .parts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-    .parts button{width:78px;height:78px;border-radius:20px;background:#fff;font-size:34px;box-shadow:0 6px 0 #94a3b8}
-    .parts button.done{opacity:.35}
-    .parts button:active{transform:translateY(3px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(15,30,50,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#e0f2fe}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Snowman Build</h1>
-  <p class="msg" id="msg">First, tap the big snowball!</p>
-  <div class="man" id="man">❄️</div>
-  <div class="parts" id="parts"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">⛄</div>
-    <h2>Frosty friend!</h2>
-    <button class="play" id="again">Build again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="st">Stack</b></div>
+  <div id="say">Tap Big, then Mid, then Little!</div>
+  <div class="dock" id="dock">
+    <button id="big"><span>⚪</span>Big</button>
+    <button id="mid"><span>⚪</span>Mid</button>
+    <button id="lit"><span>⚪</span>Little</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">⛄</div>
+    <h1>Snowman Build</h1>
+    <p>Stack 3 snowballs. Then decorate!</p>
+    <button class="play" id="go">Build</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">⛄</div>
+    <h1>Hello snowman!</h1>
+    <p>Carrot nose and all.</p>
+    <button class="play g" id="again">Build again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var steps=[{e:"⚪",n:"big snow",look:"⚪",s:"40px"},{e:"🔘",n:"middle snow",look:"🔘<br>⚪",s:"32px"},{e:"⛄",n:"head",look:"⛄"},{e:"🥕",n:"carrot",look:"⛄🥕"},{e:"🎩",n:"hat",look:"🎩<br>⛄🥕"},{e:"🪵",n:"arms",look:"🎩<br>🪵⛄🥕🪵"}];
-    var need=0,box=document.getElementById("parts");
-    steps.forEach(function(s,i){
-      var b=document.createElement("button");b.textContent=s.e;if(s.s)b.style.fontSize=s.s;
-      b.onclick=function(){
-        if(i!==need){document.getElementById("msg").textContent="Next is the "+steps[need].n+"!";beep(180,.1);return;}
-        b.classList.add("done");document.getElementById("man").innerHTML=s.look;beep(520+i*60,.1);need++;
-        if(need>=steps.length){document.getElementById("msg").textContent="Hello snowman!";document.getElementById("win").classList.add("on");beep(960,.2);}
-        else document.getElementById("msg").textContent="Now the "+steps[need].n+"!";
-      };
-      box.appendChild(b);
-    });
-    document.getElementById("again").onclick=function(){location.reload();};
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, step = 0;
+    var ORDER = ["big", "mid", "lit"];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; step = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("say").textContent = "Tap Big first!";
+      document.getElementById("st").textContent = "Stack";
+    }
+    function add(name) {
+      if (!play) return;
+      if (name === ORDER[step]) {
+        step++;
+        if (step === 1) document.getElementById("say").textContent = "Now Mid!";
+        if (step === 2) document.getElementById("say").textContent = "Now Little!";
+        if (step === 3) {
+          document.getElementById("say").textContent = "Yay! Face time.";
+          document.getElementById("dock").innerHTML = '<button id="face"><span>🥕</span>Face</button>';
+          document.getElementById("face").onclick = function () {
+            play = false;
+            document.getElementById("dock").classList.remove("on");
+            document.getElementById("win").classList.remove("off");
+          };
+        }
+      } else document.getElementById("say").textContent = "Stack in order: Big, Mid, Little.";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = function () {
+      document.getElementById("dock").innerHTML = '<button id="big"><span>⚪</span>Big</button><button id="mid"><span>⚪</span>Mid</button><button id="lit"><span>⚪</span>Little</button>';
+      document.getElementById("big").onclick = function () { add("big"); };
+      document.getElementById("mid").onclick = function () { add("mid"); };
+      document.getElementById("lit").onclick = function () { add("lit"); };
+      start();
+    };
+    document.getElementById("big").onclick = function () { add("big"); };
+    document.getElementById("mid").onclick = function () { add("mid"); };
+    document.getElementById("lit").onclick = function () { add("lit"); };
+    function loop() {
+      x.fillStyle = "#e0f2fe"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#fff"; x.fillRect(0, H * 0.72, W, H);
+      em("❄️", 40, 90, 40); em("❄️", W - 40, 110, 36);
+      if (step >= 1) em("⚪", W * 0.5, H * 0.64, 96);
+      if (step >= 2) em("⚪", W * 0.5, H * 0.50, 72);
+      if (step >= 3) em("⚪", W * 0.5, H * 0.38, 56);
+      if (!play && step >= 3) em("⛄", W * 0.5, H * 0.48, 120);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

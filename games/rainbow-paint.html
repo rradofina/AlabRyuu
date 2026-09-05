@@ -4,52 +4,97 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Rainbow Paint</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b0764;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#e9d5ff,#fef08a);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    .msg{font-weight:800;margin:8px}
-    .bow{width:min(300px,88vw);margin:12px auto;display:flex;flex-direction:column;gap:6px}
-    .stripe{height:28px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 3px #ddd}
-    .pots{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
-    .pot{width:64px;height:72px;border-radius:18px 18px 24px 24px;box-shadow:0 6px 0 rgba(0,0,0,.18);font-weight:800;font-size:12px;color:#222}
-    .pot:active{transform:translateY(3px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    html,body{background:#7dd3fc}
+    .dock button{min-width:56px;min-height:84px}
+    .dock button span{font-size:32px}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Rainbow Paint</h1>
-  <p class="msg" id="msg">Paint red first!</p>
-  <div class="bow" id="bow"></div>
-  <div class="pots" id="pots"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🌈</div>
-    <h2>Full rainbow!</h2>
-    <button class="play" id="again">Paint again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="nx">Next 🔴</b></div>
+  <div id="say">Paint the sky in rainbow order!</div>
+  <div class="dock" id="dock">
+    <button data-i="0"><span>🔴</span></button>
+    <button data-i="1"><span>🟠</span></button>
+    <button data-i="2"><span>🟡</span></button>
+    <button data-i="3"><span>🟢</span></button>
+    <button data-i="4"><span>🔵</span></button>
+    <button data-i="5"><span>🟣</span></button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">🌈</div>
+    <h1>Rainbow Paint</h1>
+    <p>Tap colors in order. Fill the sky!</p>
+    <button class="play" id="go">Paint</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🌈</div>
+    <h1>Rainbow!</h1>
+    <p>The whole sky smiled.</p>
+    <button class="play g" id="again">Paint again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var cols=[{n:"red",c:"#ef4444"},{n:"orange",c:"#f97316"},{n:"yellow",c:"#facc15"},{n:"green",c:"#22c55e"},{n:"blue",c:"#3b82f6"},{n:"purple",c:"#a855f7"}];
-    var need=0,bow=document.getElementById("bow");
-    cols.forEach(function(){var s=document.createElement("div");s.className="stripe";bow.appendChild(s);});
-    var stripes=bow.querySelectorAll(".stripe");
-    cols.forEach(function(col,i){
-      var b=document.createElement("button");b.className="pot";b.style.background=col.c;b.textContent=col.n;
-      b.onclick=function(){
-        if(i!==need){document.getElementById("msg").textContent="Next is "+cols[need].n+"!";beep(180,.1);return;}
-        stripes[need].style.background=col.c;stripes[need].style.boxShadow="none";beep(500+need*70,.1);need++;
-        if(need>=cols.length){document.getElementById("msg").textContent="Wow!";document.getElementById("win").classList.add("on");beep(960,.2);}
-        else document.getElementById("msg").textContent="Now "+cols[need].n+"!";
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, next = 0;
+    var COLS = [
+      { e: "🔴", c: "#ef4444" }, { e: "🟠", c: "#f97316" }, { e: "🟡", c: "#facc15" },
+      { e: "🟢", c: "#22c55e" }, { e: "🔵", c: "#3b82f6" }, { e: "🟣", c: "#a855f7" }
+    ];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; next = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("nx").textContent = "Next " + COLS[0].e;
+      document.getElementById("say").textContent = "Tap " + COLS[0].e + " first!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
+      b.onclick = function () {
+        if (!play) return;
+        var i = +b.getAttribute("data-i");
+        if (i === next) {
+          next++;
+          if (next >= COLS.length) {
+            play = false;
+            document.getElementById("dock").classList.remove("on");
+            document.getElementById("win").classList.remove("off");
+          } else {
+            document.getElementById("nx").textContent = "Next " + COLS[next].e;
+            document.getElementById("say").textContent = "Yes! Now " + COLS[next].e;
+          }
+        } else document.getElementById("say").textContent = "Next is " + COLS[next].e;
       };
-      document.getElementById("pots").appendChild(b);
     });
-    document.getElementById("again").onclick=function(){location.reload();};
+    function loop() {
+      x.fillStyle = "#7dd3fc"; x.fillRect(0, 0, W, H);
+      for (var i = 0; i < next; i++) {
+        x.beginPath();
+        x.arc(W * 0.5, H * 0.72, 40 + i * 28, Math.PI, 0);
+        x.strokeStyle = COLS[i].c; x.lineWidth = 18; x.stroke();
+      }
+      em("☁️", 60, 120, 56); em("☁️", W - 50, 140, 64);
+      if (next >= COLS.length) em("🌈", W * 0.5, H * 0.42, 96);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

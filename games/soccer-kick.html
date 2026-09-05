@@ -4,57 +4,96 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Soccer Kick</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#4ade80;color:#14532d;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #field{position:fixed;inset:0;background:repeating-linear-gradient(90deg,#4ade80 0 40px,#22c55e 40px 80px)}
-    #goal{position:fixed;top:12%;width:120px;height:70px;margin-left:-60px;font-size:64px;text-align:center;line-height:70px}
-    #ball{position:fixed;bottom:16%;left:50%;margin-left:-32px;font-size:64px;width:64px;text-align:center}
-    .hint{position:fixed;bottom:8%;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,10,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">⚽ 0 / 5</div>
-  <div id="field"></div>
-  <div id="goal">🥅</div>
-  <div id="ball">⚽</div>
-  <p class="hint" id="hint">Tap when the goal is in the middle!</p>
-  <div class="win" id="win">
-    <div style="font-size:72px">🏆</div>
-    <h2>Goal hero!</h2>
-    <button class="play" id="again">Kick again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="gl">⚽ 0–0</b></div>
+  <div id="say">Tap Kick! Or tap the ball.</div>
+  <div class="dock" id="dock">
+    <button id="kick"><span>👟</span>Kick</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">⚽</div>
+    <h1>Soccer Kick</h1>
+    <p>Tap Kick. Score 3 goals!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🏆</div>
+    <h1>Goal hero!</h1>
+    <p>You scored!</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var gx=innerWidth/2,dir=2.4,score=0,busy=false,play=true;
-    var goal=document.getElementById("goal"),ball=document.getElementById("ball");
-    function loop(){
-      if(play&&!busy){gx+=dir;if(gx<70||gx>innerWidth-70)dir*=-1;goal.style.left=gx+"px";}
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, goals = 0, stars = 0, ballY = 0.78, kicking = 0, keeper = 0;
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-soccer") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; goals = 0; ballY = 0.78; kicking = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("gl").textContent = "⚽ 0–0";
+      document.getElementById("say").textContent = "Tap Kick! Or tap the ball.";
+    }
+    function kick() {
+      if (!play || kicking) return;
+      kicking = 1;
+      document.getElementById("say").textContent = "Kick!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("kick").onclick = kick;
+    cv.addEventListener("pointerdown", kick);
+    addEventListener("keydown", function (e) {
+      if (e.code === "Space" || e.key === " " || e.key === "Enter") { e.preventDefault(); kick(); }
+    });
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      keeper = Math.sin(t * 1.4);
+      x.fillStyle = "#4ade80"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#86efac"; x.fillRect(W * 0.18, 70, W * 0.64, 110);
+      em("🥅", W * 0.5, 120, 96);
+      em("🧤", W * 0.5 + keeper * 100, 155, 56);
+      if (play && kicking) {
+        ballY -= 1.8 * dt;
+        if (ballY < 0.22) {
+          kicking = 0; ballY = 0.78;
+          goals++; stars++;
+          try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {}
+          document.getElementById("gl").textContent = "⚽ " + goals + "–0";
+          document.getElementById("say").textContent = "GOAL!  " + goals + "/3";
+          if (goals >= 3) {
+            play = false;
+            document.getElementById("dock").classList.remove("on");
+            document.getElementById("win").classList.remove("off");
+          }
+        }
+      }
+      em("⚽", W * 0.5, ballY * H, 80);
+      em("🧒", W * 0.5, H * 0.86, 64);
       requestAnimationFrame(loop);
     }
-    function kick(){
-      if(!play||busy)return;
-      busy=true;
-      var mid=innerWidth/2,hit=Math.abs(gx-mid)<70;
-      ball.style.transition="transform .35s ease";
-      ball.style.transform="translateY(-"+Math.round(innerHeight*0.48)+"px)";
-      setTimeout(function(){
-        if(hit){score++;beep(880,.15);document.getElementById("hud").textContent="⚽ "+score+" / 5";document.getElementById("hint").textContent="GOAL!";if(score>=5){play=false;document.getElementById("win").classList.add("on");beep(990,.2);}}
-        else{beep(180,.1);document.getElementById("hint").textContent="Miss! Wait for the middle.";}
-        ball.style.transform="none";
-        setTimeout(function(){busy=false;},200);
-      },360);
-    }
-    addEventListener("pointerdown",function(e){if(!e.target.closest("a,button,.play"))kick();});
-    loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

@@ -4,64 +4,121 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Paint House</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e1b4b;touch-action:manipulation}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#c4b5fd,#67e8f9);padding:58px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .who{display:inline-flex;gap:6px;padding:6px 12px;border-radius:999px;font-weight:800;margin:8px}
-    .target{display:flex;justify-content:center;gap:8px;margin:8px}
-    .dot{width:28px;height:28px;border-radius:50%;box-shadow:0 3px 0 rgba(0,0,0,.2)}
-    .house{width:min(320px,92vw);margin:10px auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .room{height:110px;border-radius:22px;font-weight:800;font-size:16px;color:#222;box-shadow:0 7px 0 rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .room span{font-size:36px}
-    .room:active{transform:translateY(3px)}
-    .msg{font-weight:800;min-height:2em;margin-top:10px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(30,20,70,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#fef3c7} .dock button{min-width:72px;min-height:84px}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Paint House</h1>
-  <div class="who" id="who"></div>
-  <p class="msg">Match the color dots. Tap a room to paint!</p>
-  <div class="target" id="target"></div>
-  <div class="house" id="house"></div>
-  <p class="msg" id="msg"></p>
-  <div class="win" id="win">
-    <div style="font-size:72px">🏠</div>
-    <h2>Pretty house!</h2>
-    <p id="winline"></p>
-    <button class="play" id="again">Paint again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="pc">🎨 0</b></div>
+  <div id="say">Pick a color. Paint the house!</div>
+  <div class="dock" id="dock">
+    <button data-c="#ef4444" style="background:#ef4444"><span>🟥</span></button>
+    <button data-c="#3b82f6" style="background:#3b82f6"><span>🟦</span></button>
+    <button data-c="#22c55e" style="background:#22c55e"><span>🟩</span></button>
+    <button data-c="#f59e0b" class="on" style="background:#f59e0b"><span>🟨</span></button>
+    <button data-c="#a855f7" style="background:#a855f7"><span>🟪</span></button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">🏠</div>
+    <h1>Paint House</h1>
+    <p>Drag a fat brush. Color the walls!</p>
+    <button class="play" id="go">Paint</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🏡</div>
+    <h1>Pretty house!</h1>
+    <p>So colorful.</p>
+    <button class="play g" id="again">Paint again</button>
   </div>
   <script>
-    function av(){try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name)return a;}catch(e){}return{name:"Kid",hair:"🧒",shirt:"#ffd166",pet:"🐶"};}
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var A=av(),cols=["#fca5a5","#fde68a","#86efac","#93c5fd","#d8b4fe","#f9a8d4"];
-    var rooms=[{n:"Kitchen",e:"🍳"},{n:"Bedroom",e:"🛏️"},{n:"Bath",e:"🛁"},{n:"Garden",e:"🌻"}];
-    var goal=rooms.map(function(){return Math.floor(Math.random()*cols.length);});
-    var cur=rooms.map(function(){return 0;});if(goal.every(function(v,i){return v===0;}))goal[0]=2;
-    document.getElementById("who").innerHTML=A.hair+" Painter "+A.name;
-    document.getElementById("who").style.background=A.shirt;
-    var tg=document.getElementById("target");
-    goal.forEach(function(g){var d=document.createElement("div");d.className="dot";d.style.background=cols[g];tg.appendChild(d);});
-    var house=document.getElementById("house");
-    rooms.forEach(function(r,i){
-      var b=document.createElement("button");b.className="room";
-      function paint(){b.style.background=cols[cur[i]];b.innerHTML="<span>"+r.e+"</span>"+r.n;}
-      paint();
-      b.onclick=function(){cur[i]=(cur[i]+1)%cols.length;paint();beep(420+cur[i]*40,.08);check();};
-      house.appendChild(b);
-    });
-    function check(){
-      var ok=cur.every(function(v,i){return v===goal[i];});
-      if(ok){document.getElementById("winline").textContent=A.name+" painted a cozy home for "+A.pet+"!";document.getElementById("win").classList.add("on");beep(880,.2);}
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, color = "#f59e0b", drawing = 0, painted = 0, lastX = 0, lastY = 0;
+    var AV = { shirt: "#ffd166" };
+    try { var a = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null"); if (a && a.shirt) AV.shirt = a.shirt; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    document.getElementById("again").onclick=function(){location.reload();};
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+      drawHouse();
+    }
+    addEventListener("resize", resize);
+    function houseBox() { return { x: W * 0.22, y: H * 0.28, w: W * 0.56, h: H * 0.36 }; }
+    function drawHouse() {
+      x.fillStyle = "#7dd3fc"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.64, W, H);
+      em("☀️", W * 0.84, 80, 56);
+      var b = houseBox();
+      x.fillStyle = "#fed7aa"; x.fillRect(b.x, b.y, b.w, b.h);
+      x.fillStyle = "#9a3412";
+      x.beginPath(); x.moveTo(b.x - 16, b.y); x.lineTo(b.x + b.w / 2, b.y - 70); x.lineTo(b.x + b.w + 16, b.y); x.fill();
+      x.fillStyle = "#78350f"; x.fillRect(b.x + b.w * 0.4, b.y + b.h * 0.45, b.w * 0.2, b.h * 0.55);
+      em("🪟", b.x + b.w * 0.22, b.y + b.h * 0.35, 40);
+      em("🪟", b.x + b.w * 0.78, b.y + b.h * 0.35, 40);
+    }
+    function start() {
+      play = true; painted = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      resize();
+      document.getElementById("say").textContent = "Drag on the walls!";
+      document.getElementById("pc").textContent = "🎨 0";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
+      b.onclick = function () {
+        color = b.getAttribute("data-c");
+        [].forEach.call(document.querySelectorAll("#dock button"), function (el) { el.classList.toggle("on", el === b); });
+      };
+    });
+    function inHouse(px, py) {
+      var b = houseBox();
+      return px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h && py < H - 120;
+    }
+    function blob(px, py) {
+      if (!inHouse(px, py)) return;
+      x.fillStyle = color;
+      x.beginPath(); x.arc(px, py, 18, 0, Math.PI * 2); x.fill();
+      painted++;
+      document.getElementById("pc").textContent = "🎨 " + painted;
+      if (painted >= 24) {
+        play = false; drawing = 0;
+        document.getElementById("dock").classList.remove("on");
+        document.getElementById("win").classList.remove("off");
+      }
+    }
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play || kidPt(e, cv).y > H - 110) return;
+      drawing = 1; lastX = kidPt(e, cv).x; lastY = kidPt(e, cv).y;
+      blob(kidPt(e, cv).x, kidPt(e, cv).y);
+      try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    cv.addEventListener("pointermove", function (e) {
+      if (!drawing || !play) return;
+      if (inHouse(kidPt(e, cv).x, kidPt(e, cv).y)) {
+        x.strokeStyle = color; x.lineWidth = 28; x.lineCap = "round";
+        x.beginPath(); x.moveTo(lastX, lastY); x.lineTo(kidPt(e, cv).x, kidPt(e, cv).y); x.stroke();
+        painted++;
+        document.getElementById("pc").textContent = "🎨 " + painted;
+        if (painted >= 40) {
+          play = false; drawing = 0;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("win").classList.remove("off");
+        }
+      }
+      lastX = kidPt(e, cv).x; lastY = kidPt(e, cv).y;
+    });
+    addEventListener("pointerup", function () { drawing = 0; });
+    resize();
+  })();
   </script>
 </body>
 </html>

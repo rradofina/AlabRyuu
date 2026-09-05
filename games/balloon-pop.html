@@ -4,60 +4,95 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Balloon Pop</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#e0f2fe;color:#0f172a;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:26px;z-index:2}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff3;padding:8px 12px;border-radius:16px}
-    #sky{position:fixed;inset:0}
-    .bal{position:absolute;width:76px;height:90px;font-size:56px;line-height:90px}
-    .bal.wig{animation:wig .35s}
-    @keyframes wig{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,20,50,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#7dd3fc}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">0 / 10</div>
-  <div id="ask">Pop RED</div>
-  <div id="sky"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🎈</div>
-    <h2>Pop party!</h2>
-    <button class="play" id="again">Pop again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="got">0/8</b></div>
+  <div id="say">Pop the red ones! 🔴</div>
+  <div class="cover" id="title">
+    <div class="hero">🎈</div>
+    <h1>Balloon Pop</h1>
+    <p>Pop only the color we ask!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🎉</div>
+    <h1>Pop party!</h1>
+    <p>Eight right pops.</p>
+    <button class="play g" id="again">Pop again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var cols=[{n:"RED",e:"🔴"},{n:"BLUE",e:"🔵"},{n:"YELLOW",e:"🟡"},{n:"GREEN",e:"🟢"}];
-    var need=cols[0],score=0,play=true,items=[],sky=document.getElementById("sky");
-    function setNeed(){need=cols[Math.floor(Math.random()*cols.length)];document.getElementById("ask").textContent="Pop "+need.n;}
-    function spawn(){
-      var c=cols[Math.floor(Math.random()*cols.length)];
-      var b=document.createElement("button");b.className="bal";b.textContent=c.e;
-      var x=20+Math.random()*(innerWidth-80),y=innerHeight+10,sp=1.4+Math.random()*1.6;
-      b.style.left=x+"px";b.style.top=y+"px";sky.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,c:c,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        if(c.n!==need.n){b.classList.remove("wig");void b.offsetWidth;b.classList.add("wig");beep(180,.1);return;}
-        it.dead=true;b.remove();score++;beep(720,.08);document.getElementById("hud").textContent=score+" / 10";
-        if(score>=10){play=false;document.getElementById("win").classList.add("on");beep(900,.2);} else setNeed();
-      };
-      items.push(it);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, n = 0;
+    var want = "🔴", balls = [];
+    var SET = [
+      { e: "🔴", n: "red" }, { e: "🟡", n: "yellow" }, { e: "🔵", n: "blue" }, { e: "🟢", n: "green" }
+    ];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    var t=0;
-    function loop(){
-      t++;if(play&&t%36===0)spawn();
-      items.forEach(function(it){if(it.dead)return;it.y-=it.sp;it.el.style.top=it.y+"px";if(it.y<-80){it.dead=true;it.el.remove();}});
-      items=items.filter(function(it){return !it.dead;});
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function spawn() {
+      var s = SET[(Math.random() * SET.length) | 0];
+      balls.push({ e: s.e, x: 50 + Math.random() * (W - 100), y: H + 20, vy: 70 + Math.random() * 40 });
+    }
+    function start() {
+      play = true; n = 0; balls = []; want = "🔴";
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("got").textContent = "0/8";
+      document.getElementById("say").textContent = "Pop the red ones! 🔴";
+      for (var i = 0; i < 5; i++) {
+        var e = i < 2 ? "🔴" : SET[(1 + i) % SET.length].e;
+        balls.push({ e: e, x: 50 + i * 70, y: H * 0.35 + (i % 3) * 90, vy: 28 + i * 4 });
+      }
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      for (var i = balls.length - 1; i >= 0; i--) {
+        var dx = kidPt(e, cv).x - balls[i].x, dy = kidPt(e, cv).y - balls[i].y;
+        if (dx * dx + dy * dy < 72 * 72) {
+          if (balls[i].e === want) {
+            balls.splice(i, 1); n++;
+            document.getElementById("got").textContent = n + "/8";
+            document.getElementById("say").textContent = "Pop!";
+            if (n === 4) { want = "🟡"; document.getElementById("say").textContent = "Now yellow! 🟡"; }
+            if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else {
+            document.getElementById("say").textContent = "Not that color. " + want;
+          }
+          return;
+        }
+      }
+    });
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#7dd3fc"; x.fillRect(0, 0, W, H);
+      em("☁️", 60, 90, 56); em("☁️", W - 50, 120, 64);
+      if (play) {
+        if (balls.length < 5 && Math.random() < 0.04) spawn();
+        balls.forEach(function (b) { b.y -= b.vy * dt; });
+        balls = balls.filter(function (b) { return b.y > -40; });
+      }
+      balls.forEach(function (b) { em(b.e, b.x, b.y, 80); });
       requestAnimationFrame(loop);
     }
-    setNeed();loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

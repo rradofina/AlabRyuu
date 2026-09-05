@@ -4,50 +4,105 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Shape Sorter</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e3a8a;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#bfdbfe,#fde68a);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .msg{font-weight:800;margin:8px}
-    .piece{font-size:96px;margin:12px;min-height:110px}
-    .holes{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:10px}
-    .hole{width:88px;height:88px;border-radius:22px;background:#fff;box-shadow:0 7px 0 #93c5fd;font-size:48px}
-    .hole:active{transform:translateY(4px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,30,70,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#1e3a5f}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Shape Sorter</h1>
-  <p class="msg" id="msg">Tap the matching hole!</p>
-  <div class="piece" id="piece">🔵</div>
-  <div class="holes" id="holes"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">⭐</div>
-    <h2>All sorted!</h2>
-    <button class="play" id="again">Sort again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="got">0/6</b></div>
+  <div id="say">Drag each shape to its hole!</div>
+  <div class="cover" id="title">
+    <div class="hero">🔺</div>
+    <h1>Shape Sorter</h1>
+    <p>Drag the shape to the matching hole.</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">⭐</div>
+    <h1>Sorted!</h1>
+    <p>Every shape found a home.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var shapes=[{e:"🔵",n:"circle"},{e:"🟥",n:"square"},{e:"🔺",n:"triangle"},{e:"⭐",n:"star"}];
-    var need=shapes[0],score=0,box=document.getElementById("holes");
-    shapes.forEach(function(s){
-      var b=document.createElement("button");b.className="hole";b.textContent=s.e;
-      b.onclick=function(){
-        if(s.n!==need.n){document.getElementById("msg").textContent="Try the "+need.n+" hole.";beep(180,.1);return;}
-        score++;beep(700,.1);document.getElementById("msg").textContent="In! "+score+"/8";
-        if(score>=8){document.getElementById("win").classList.add("on");beep(940,.2);} else next();
-      };
-      box.appendChild(b);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, drag = -1, n = 0;
+    var holes = [], bits = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; n = 0; drag = -1;
+      holes = [
+        { e: "🔴", x: 0.22, y: 0.28 },
+        { e: "🟦", x: 0.50, y: 0.28 },
+        { e: "⭐", x: 0.78, y: 0.28 }
+      ];
+      bits = [
+        { e: "🔴", x: 0.25, y: 0.68, done: 0 },
+        { e: "⭐", x: 0.50, y: 0.72, done: 0 },
+        { e: "🟦", x: 0.75, y: 0.66, done: 0 },
+        { e: "🔴", x: 0.35, y: 0.80, done: 0 },
+        { e: "🟦", x: 0.62, y: 0.82, done: 0 },
+        { e: "⭐", x: 0.18, y: 0.82, done: 0 }
+      ];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("got").textContent = "0/6";
+      document.getElementById("say").textContent = "Drag a shape up!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      drag = -1;
+      bits.forEach(function (b, i) {
+        if (b.done) return;
+        var dx = kidPt(e, cv).x - b.x * W, dy = kidPt(e, cv).y - b.y * H;
+        if (dx * dx + dy * dy < 50 * 50) drag = i;
+      });
     });
-    function next(){need=shapes[Math.floor(Math.random()*shapes.length)];document.getElementById("piece").textContent=need.e;}
-    next();
-    document.getElementById("again").onclick=function(){location.reload();};
+    cv.addEventListener("pointermove", function (e) {
+      if (drag < 0 || !play) return;
+      bits[drag].x = kidPt(e, cv).x / W; bits[drag].y = kidPt(e, cv).y / H;
+    });
+    addEventListener("pointerup", function () {
+      if (drag < 0 || !play) return;
+      var b = bits[drag];
+      holes.forEach(function (h) {
+        var dx = b.x * W - h.x * W, dy = b.y * H - h.y * H;
+        if (dx * dx + dy * dy < 60 * 60) {
+          if (b.e === h.e) {
+            b.done = 1; b.x = h.x; b.y = h.y; n++;
+            document.getElementById("got").textContent = n + "/6";
+            document.getElementById("say").textContent = "Yes!";
+            if (n >= 6) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else document.getElementById("say").textContent = "Wrong hole. Match the shape!";
+        }
+      });
+      drag = -1;
+    });
+    function loop() {
+      x.fillStyle = "#1e3a5f"; x.fillRect(0, 0, W, H);
+      holes.forEach(function (h) {
+        x.beginPath(); x.arc(h.x * W, h.y * H, 42, 0, Math.PI * 2);
+        x.fillStyle = "#0f172a"; x.fill();
+        em(h.e, h.x * W, h.y * H, 40);
+      });
+      bits.forEach(function (b) { if (!b.done) em(b.e, b.x * W, b.y * H, 64); });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

@@ -4,58 +4,96 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Ocean Clean</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#0ea5e9;color:#082f49;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:22px;color:#fff}
-    #sea{position:fixed;inset:0;background:linear-gradient(#7dd3fc,#0369a1)}
-    .bit{position:absolute;font-size:44px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(8,30,50,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#0369a1}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">♻️ 0 / 10</div>
-  <div id="ask">Tap trash. Leave the fish!</div>
-  <div id="sea"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🌊</div>
-    <h2>Sparkly sea!</h2>
-    <button class="play" id="again">Clean again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="tr">🗑️ 0/8</b></div>
+  <div id="say">Tap the trash!</div>
+  <div class="cover" id="title">
+    <div class="hero">🌊</div>
+    <h1>Ocean Clean</h1>
+    <p>Tap 8 bits of trash. Not the fish!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🐠</div>
+    <h1>Sparkly sea!</h1>
+    <p>The fish are happy.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var trash=["🧴","🥤","🛍️","🧦"],fish=["🐟","🐠","🐡","🐢"],score=0,play=true,items=[],sea=document.getElementById("sea");
-    function spawn(){
-      if(!play)return;
-      var junk=Math.random()<.55,e=junk?trash[Math.floor(Math.random()*trash.length)]:fish[Math.floor(Math.random()*fish.length)];
-      var b=document.createElement("button");b.className="bit";b.textContent=e;
-      var x=20+Math.random()*(innerWidth-60),y=innerHeight+10,sp=1.1+Math.random()*1.6;
-      b.style.left=x+"px";b.style.top=y+"px";sea.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,junk:junk,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        if(!junk){document.getElementById("ask").textContent="That's a friend! Only trash.";beep(180,.1);return;}
-        it.dead=true;b.remove();score++;beep(700,.08);
-        document.getElementById("hud").textContent="♻️ "+score+" / 10";
-        if(score>=10){play=false;document.getElementById("win").classList.add("on");beep(920,.2);}
-      };
-      items.push(it);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, n = 0, stars = 0, bits = [];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-ocean") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    var acc=0;
-    function loop(){
-      acc++;if(play&&acc%30===0)spawn();
-      items.forEach(function(it){if(it.dead)return;it.y-=it.sp;it.el.style.top=it.y+"px";if(it.y<-50){it.dead=true;it.el.remove();}});
-      items=items.filter(function(it){return !it.dead;});
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; n = 0;
+      bits = [
+        { e: "🧴", trash: 1, x: 0.22, y: 0.32 },
+        { e: "🥤", trash: 1, x: 0.55, y: 0.30 },
+        { e: "🛍️", trash: 1, x: 0.80, y: 0.38 },
+        { e: "👟", trash: 1, x: 0.30, y: 0.50 },
+        { e: "🧴", trash: 1, x: 0.68, y: 0.52 },
+        { e: "🥤", trash: 1, x: 0.18, y: 0.66 },
+        { e: "🛍️", trash: 1, x: 0.48, y: 0.68 },
+        { e: "👟", trash: 1, x: 0.78, y: 0.64 },
+        { e: "🐟", trash: 0, x: 0.42, y: 0.40 },
+        { e: "🐠", trash: 0, x: 0.62, y: 0.72 }
+      ];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("tr").textContent = "🗑️ 0/8";
+      document.getElementById("say").textContent = "Tap the trash!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      var p = kidPt(e, cv), i, best = -1, bestD = 85 * 85;
+      for (i = 0; i < bits.length; i++) {
+        var dx = p.x - bits[i].x * W, dy = p.y - bits[i].y * H, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      if (best < 0) {
+        for (i = 0; i < bits.length; i++) if (bits[i].trash) { best = i; break; }
+      }
+      if (best < 0) return;
+      var b = bits[best];
+      if (b.trash) {
+        bits.splice(best, 1); n++; stars++;
+        try { localStorage.setItem("alabryuu-ocean", JSON.stringify({ stars: stars })); } catch (err) {}
+        document.getElementById("tr").textContent = "🗑️ " + n + "/8";
+        document.getElementById("say").textContent = "Got it!  " + n + "/8";
+        if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
+      } else document.getElementById("say").textContent = "That's a fish! Tap trash.";
+    });
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#0ea5e9"; x.fillRect(0, 0, W, H);
+      em("🪸", 40, H * 0.82, 64); em("🪸", W - 40, H * 0.78, 72);
+      bits.forEach(function (b, i) {
+        em(b.e, b.x * W, b.y * H + Math.sin(t * 2 + i) * 4, 72);
+      });
       requestAnimationFrame(loop);
     }
-    loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

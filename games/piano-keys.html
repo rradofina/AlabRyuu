@@ -4,57 +4,110 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Piano Keys</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#fff;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#1e1b4b,#7c3aed);padding:56px 12px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .msg{font-weight:800;margin:10px;min-height:2.2em}
-    .keys{display:flex;justify-content:center;gap:8px;margin:18px auto;max-width:420px}
-    .key{flex:1;height:180px;border-radius:18px 18px 28px 28px;font-weight:800;font-size:22px;color:#222;box-shadow:0 8px 0 rgba(0,0,0,.25)}
-    .key:active,.key.lit{transform:translateY(5px);filter:brightness(1.15)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,10,40,.86);z-index:8;gap:12px}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    html,body{background:#111827}
+    .keys{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:none;gap:8px;z-index:40}
+    .keys.on{display:flex}
+    .keys button{width:64px;height:160px;border-radius:16px;background:#fff;color:#111;font-weight:900;font-size:28px;box-shadow:0 8px 0 #020617}
+    .keys button.lit{background:#fde047}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Piano Keys</h1>
-  <p class="msg" id="msg">Listen to the bird song, then play it!</p>
-  <div class="keys" id="keys"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🎹</div>
-    <h2>Little pianist!</h2>
-    <button class="play" id="again">Play again</button>
+  <div id="hud"><b id="rd">Song 1</b></div>
+  <div id="say">Watch the keys glow. Copy!</div>
+  <div style="position:fixed;inset:0 0 190px 0;display:grid;place-items:center;font-size:110px;pointer-events:none" id="face">🎹</div>
+  <div class="keys" id="keys">
+    <button data-i="0">1</button>
+    <button data-i="1">2</button>
+    <button data-i="2">3</button>
+    <button data-i="3">4</button>
+    <button data-i="4">5</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">🎹</div>
+    <h1>Piano Keys</h1>
+    <p>Copy the little song.</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🎵</div>
+    <h1>Music star!</h1>
+    <p>Three songs played.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.type="triangle";o.frequency.value=f;g.gain.value=.14;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var notes=[{n:"C",f:262,c:"#fecaca"},{n:"D",f:294,c:"#fde68a"},{n:"E",f:330,c:"#bbf7d0"},{n:"G",f:392,c:"#93c5fd"},{n:"A",f:440,c:"#e9d5ff"}];
-    var songs=[[0,1,2],[2,1,0,1],[0,2,4,2],[0,1,2,3,4]];
-    var song=0,step=0,lock=true,keys=[];
-    notes.forEach(function(note,i){
-      var b=document.createElement("button");b.className="key";b.textContent=note.n;b.style.background=note.c;
-      b.onclick=function(){
-        flash(i);
-        if(lock)return;
-        if(i!==songs[song][step]){document.getElementById("msg").textContent="Almost! Hear it again.";playSong();return;}
-        step++;
-        if(step>=songs[song].length){song++;if(song>=songs.length){document.getElementById("win").classList.add("on");beep(880,.2);return;}document.getElementById("msg").textContent="Pretty! Next song.";setTimeout(playSong,500);}
-      };
-      document.getElementById("keys").appendChild(b);keys.push(b);
-    });
-    function flash(i){keys[i].classList.add("lit");beep(notes[i].f,.18);setTimeout(function(){keys[i].classList.remove("lit");},160);}
-    function playSong(){
-      lock=true;step=0;document.getElementById("msg").textContent="Listen… song "+(song+1);
-      var i=0,pat=songs[song];
-      function n(){if(i>=pat.length){lock=false;document.getElementById("msg").textContent="Your turn!";return;}flash(pat[i]);i++;setTimeout(n,380);}
-      setTimeout(n,350);
+  (function () {
+    var SONGS = [[2], [0, 4], [1, 2, 3]];
+    var song = 0, seq = [], step = 0, listen = false, gen = 0;
+    var btns = [].slice.call(document.querySelectorAll("#keys button"));
+    var AC = null;
+    function beep(i) {
+      try {
+        AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+        var o = AC.createOscillator(), g = AC.createGain();
+        o.frequency.value = [262, 294, 330, 392, 440][i];
+        o.type = "sine"; g.gain.value = 0.12;
+        o.connect(g); g.connect(AC.destination);
+        o.start(); setTimeout(function () { o.stop(); }, 280);
+      } catch (e) {}
     }
-    document.getElementById("again").onclick=function(){location.reload();};
-    setTimeout(playSong,400);
+    function light(i) {
+      btns[i].classList.add("lit"); beep(i);
+      document.getElementById("face").textContent = String(i + 1);
+      document.getElementById("say").textContent = "Watch key " + (i + 1);
+      setTimeout(function () { btns[i].classList.remove("lit"); }, 650);
+    }
+    function playSong() {
+      var my = ++gen;
+      listen = false; step = 0; seq = SONGS[song];
+      document.getElementById("rd").textContent = "Song " + (song + 1);
+      document.getElementById("say").textContent = "Watch the yellow key...";
+      var i = 0;
+      function tick() {
+        if (my !== gen) return;
+        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn! Tap key " + (seq[0] + 1); return; }
+        light(seq[i]); i++; setTimeout(tick, 950);
+      }
+      setTimeout(tick, 700);
+    }
+    function start() {
+      song = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("keys").classList.add("on");
+      playSong();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    btns.forEach(function (b) {
+      b.onclick = function () {
+        var i = +b.getAttribute("data-i");
+        light(i);
+        if (!listen) return;
+        if (i === seq[step]) {
+          step++;
+          if (step < seq.length) document.getElementById("say").textContent = "Yes! Next key " + (seq[step] + 1);
+          if (step >= seq.length) {
+            song++;
+            if (song >= SONGS.length) {
+              listen = false;
+              document.getElementById("keys").classList.remove("on");
+              document.getElementById("win").classList.remove("off");
+            } else {
+              document.getElementById("say").textContent = "Nice song!";
+              setTimeout(playSong, 500);
+            }
+          }
+        } else {
+          document.getElementById("say").textContent = "Oops. Watch again!";
+          playSong();
+        }
+      };
+    });
+  })();
   </script>
 </body>
 </html>

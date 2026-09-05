@@ -4,51 +4,87 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Bug Hunt</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#365314;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#bbf7d0,#65a30d);padding:56px 12px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px);color:#fff}
-    .msg{font-weight:800;color:#fff;margin:8px}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(340px,92vw);margin:12px auto}
-    .leaf{height:78px;border-radius:18px;background:#166534;font-size:36px;box-shadow:0 6px 0 #14532d;color:#fff}
-    .leaf:active{transform:translateY(3px)}
-    .leaf.open{background:#fefce8;color:#222}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,40,10,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#166534}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Bug Hunt</h1>
-  <p class="msg" id="msg">Flip leaves. Find 8 bugs!</p>
-  <div class="grid" id="grid"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🐞</div>
-    <h2>Bug scientist!</h2>
-    <button class="play" id="again">Hunt again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="got">🐞 0/4</b></div>
+  <div id="say">Flip the leaves. Find bugs!</div>
+  <div class="cover" id="title">
+    <div class="hero">🐞</div>
+    <h1>Bug Hunt</h1>
+    <p>Tap leaves. Find 4 bugs!</p>
+    <button class="play" id="go">Hunt</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🦋</div>
+    <h1>Bug explorer!</h1>
+    <p>Four little bugs waved.</p>
+    <button class="play g" id="again">Hunt again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var bugs=["🐞","🐛","🐝","🪲","🦗","🦋","🐜","🐌"],found=0;
-    var deck=bugs.concat(["🍂","🌸","🍄","🪨"]);
-    for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=deck[i];deck[i]=deck[j];deck[j]=t;}
-    var grid=document.getElementById("grid");
-    deck.forEach(function(item){
-      var b=document.createElement("button");b.className="leaf";b.textContent="🍃";
-      var isBug=bugs.indexOf(item)>=0;
-      b.onclick=function(){
-        if(b.classList.contains("open"))return;
-        b.classList.add("open");b.textContent=item;
-        if(isBug){found++;beep(720,.1);document.getElementById("msg").textContent="Found "+found+" / 8 bugs!";if(found>=8){document.getElementById("win").classList.add("on");beep(960,.2);}}
-        else{beep(200,.08);document.getElementById("msg").textContent="Just a "+item+" . Keep looking!";}
-      };
-      grid.appendChild(b);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, n = 0, leaves = [];
+    var BUGS = ["🐞", "🐛", "🦋", "🐝"];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; n = 0;
+      leaves = [
+        { x: 0.25, y: 0.36, bug: "🐞", open: 0 },
+        { x: 0.70, y: 0.34, bug: "", open: 0 },
+        { x: 0.22, y: 0.58, bug: "🐛", open: 0 },
+        { x: 0.55, y: 0.52, bug: "🦋", open: 0 },
+        { x: 0.78, y: 0.62, bug: "", open: 0 },
+        { x: 0.48, y: 0.74, bug: "🐝", open: 0 }
+      ];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("got").textContent = "🐞 0/4";
+      document.getElementById("say").textContent = "Flip the leaves!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      leaves.forEach(function (L) {
+        var dx = kidPt(e, cv).x - L.x * W, dy = kidPt(e, cv).y - L.y * H;
+        if (dx * dx + dy * dy < 55 * 55 && !L.open) {
+          L.open = 1;
+          if (L.bug) {
+            n++;
+            document.getElementById("got").textContent = "🐞 " + n + "/4";
+            document.getElementById("say").textContent = "Hi " + L.bug + "!";
+            if (n >= 4) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else document.getElementById("say").textContent = "Just a leaf. Keep looking!";
+        }
+      });
     });
-    document.getElementById("again").onclick=function(){location.reload();};
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#4ade80"; x.fillRect(0, 0, W, H);
+      em("🌳", 40, 100, 64); em("🌳", W - 36, 110, 72);
+      leaves.forEach(function (L) {
+        if (L.open && L.bug) em(L.bug, L.x * W, L.y * H, 72);
+        else if (L.open) em("🍂", L.x * W, L.y * H, 56);
+        else em("🍃", L.x * W, L.y * H + Math.sin(t * 2 + L.x) * 3, 72);
+      });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

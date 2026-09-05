@@ -4,67 +4,86 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Ice Cream Shop</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#831843;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fbcfe8,#a5f3fc);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    .order{display:inline-block;background:#fff;padding:8px 16px;border-radius:999px;font-weight:800;margin:8px;box-shadow:0 5px 0 #f472b6}
-    .cone{min-height:220px;font-size:52px;line-height:1.05;margin:10px}
-    .flavs{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-    .flavs button{width:76px;height:76px;border-radius:20px;background:#fff;font-size:36px;box-shadow:0 6px 0 #fb7185}
-    .flavs button:active{transform:translateY(3px)}
-    .row{display:flex;justify-content:center;gap:10px;margin-top:12px}
-    .row button{background:#ffd166;color:#3b2100;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .msg{font-weight:800;margin-top:8px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,10,40,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#9d174d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Ice Cream Shop</h1>
-  <div class="order" id="order"></div>
-  <div class="cone" id="cone">🍦</div>
-  <div class="flavs" id="flavs"></div>
-  <div class="row">
-    <button id="undo">Oops</button>
-    <button id="serve">Serve</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="od">Order</b></div>
+  <div id="say">Stack the scoops we ask!</div>
+  <div class="dock" id="dock">
+    <button id="van"><span>🍦</span>Vanilla</button>
+    <button id="choc"><span>🍫</span>Choco</button>
+    <button id="ber"><span>🍓</span>Berry</button>
   </div>
-  <p class="msg" id="msg">Stack the scoops from the bottom.</p>
-  <div class="win" id="win">
-    <div style="font-size:72px">🍨</div>
-    <h2>Sweet shop!</h2>
-    <button class="play" id="again">Scoop again</button>
+  <div class="cover" id="title">
+    <div class="hero">🍦</div>
+    <h1>Ice Cream Shop</h1>
+    <p>Stack scoops in order. Then serve!</p>
+    <button class="play" id="go">Scoop</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">😋</div>
+    <h1>Yum cone!</h1>
+    <p>Perfect stack.</p>
+    <button class="play g" id="again">Scoop again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var scoops=["🍓","🍫","🍦","🍇","🍋"],need=[],have=[],score=0;
-    function draw(){document.getElementById("cone").innerHTML=have.slice().reverse().join("<br>")+"<br>🍦";}
-    function round(){
-      have=[];need=[];
-      var n=2+Math.floor(Math.random()*2);
-      for(var i=0;i<n;i++)need.push(scoops[Math.floor(Math.random()*scoops.length)]);
-      document.getElementById("order").textContent="Please: "+need.join(" ");
-      document.getElementById("msg").textContent="Cone "+(score+1)+" / 4";
-      draw();
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, order = ["🍦", "🍫", "🍓"], stack = [];
+    var MAP = { v: "🍦", c: "🍫", s: "🍓" };
+    var NAME = { "🍦": "Vanilla", "🍫": "Choco", "🍓": "Berry" };
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    scoops.forEach(function(s){
-      var b=document.createElement("button");b.textContent=s;
-      b.onclick=function(){if(have.length>=4)return;have.push(s);draw();beep(540,.07);};
-      document.getElementById("flavs").appendChild(b);
-    });
-    document.getElementById("undo").onclick=function(){have.pop();draw();beep(240,.06);};
-    document.getElementById("serve").onclick=function(){
-      if(have.join()!==need.join()){document.getElementById("msg").textContent="Stack them in that order!";beep(180,.1);return;}
-      score++;beep(840,.12);
-      if(score>=4){document.getElementById("win").classList.add("on");beep(960,.2);} else round();
-    };
-    document.getElementById("again").onclick=function(){location.reload();};
-    round();
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; stack = [];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("od").textContent = order.join(" ");
+      document.getElementById("say").textContent = "First " + NAME[order[0]] + "!";
+    }
+    function add(k) {
+      if (!play) return;
+      var scoop = MAP[k];
+      if (scoop === order[stack.length]) {
+        stack.push(scoop);
+        document.getElementById("say").textContent = stack.length >= 3 ? "Serve!" : "Now " + NAME[order[stack.length]] + "!";
+        if (stack.length >= 3) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("win").classList.remove("off");
+        }
+      } else {
+        stack = [];
+        document.getElementById("say").textContent = "Oops. Start with " + NAME[order[0]] + "!";
+      }
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("van").onclick = function () { add("v"); };
+    document.getElementById("choc").onclick = function () { add("c"); };
+    document.getElementById("ber").onclick = function () { add("s"); };
+    function loop() {
+      x.fillStyle = "#fda4af"; x.fillRect(0, 0, W, H);
+      em("🏪", 50, 110, 56);
+      em("🧇", W * 0.5, H * 0.64, 88);
+      stack.forEach(function (s, i) { em(s, W * 0.5, H * 0.52 - i * 44, 72); });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

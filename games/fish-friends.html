@@ -4,64 +4,95 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Fish Friends</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#0e7490;color:#ecfeff;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.25);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:rgba(255,255,255,.16);padding:8px 12px;border-radius:16px}
-    #sea{position:fixed;inset:0;background:linear-gradient(#67e8f9,#0e7490 70%,#164e63)}
-    .fish{position:absolute;font-size:52px}.fish .face{display:block;font-size:52px}
-    .fish.hungry::after{content:"hungry!";position:absolute;left:50%;top:-18px;transform:translateX(-50%);font-size:12px;font-weight:800;background:#fff;color:#0e7490;padding:2px 6px;border-radius:8px;white-space:nowrap}
-    .bub{position:absolute;font-size:22px;pointer-events:none}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(8,40,50,.84);z-index:8;gap:12px}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-    h1{position:fixed;top:52px;width:100%;text-align:center;font-size:28px;pointer-events:none}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#0369a1}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">Feeds 0 / 8</div>
-  <div id="sea"></div>
-  <h1>Tap the hungry fish!</h1>
-  <div class="win" id="win">
-    <div style="font-size:72px">🐠</div>
-    <h2>Full tummies!</h2>
-    <button class="play" id="again">Feed again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fd">🍞 0/6</b></div>
+  <div id="say">Tap the water. Drop food!</div>
+  <div class="cover" id="title">
+    <div class="hero">🐟</div>
+    <h1>Fish Friends</h1>
+    <p>Tap to drop food. Feed 6 fish!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🐠</div>
+    <h1>Full tummies!</h1>
+    <p>All the fish said yum.</p>
+    <button class="play g" id="again">Feed again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var kinds=["🐟","🐠","🐡","🐬"],feeds=0,need=0,fish=[];
-    var sea=document.getElementById("sea");
-    for(var i=0;i<4;i++){
-      var el=document.createElement("button");el.className="fish";el.innerHTML='<span class="face">'+kinds[i]+"</span>";
-      sea.appendChild(el);
-      fish.push({el:el,x:40+Math.random()*220,y:120+i*90,vx:1.2+(i%2?-1:1)*0.8,vy:0.4,fed:0});
-      (function(f){el.onclick=function(){
-        if(f!==hungry()){beep(200,.08);el.style.transform="scale(.9)";setTimeout(function(){el.style.transform="";},120);return;}
-        f.fed++;feeds++;beep(700,.08);
-        var b=document.createElement("div");b.className="bub";b.textContent="🫧";b.style.left=f.x+"px";b.style.top=f.y+"px";sea.appendChild(b);
-        setTimeout(function(){b.remove();},500);
-        document.getElementById("hud").textContent="Feeds "+feeds+" / 8";
-        pickHungry();
-        if(feeds>=8){document.getElementById("win").classList.add("on");beep(880,.2);}
-      };})(fish[i]);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, fed = 0;
+    var fish = [], crumbs = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function hungry(){return fish[need];}
-    function pickHungry(){var opts=[0,1,2,3].filter(function(i){return i!==need;});need=opts[Math.floor(Math.random()*opts.length)];fish.forEach(function(f,i){f.el.classList.toggle("hungry",i===need);});}
-    function loop(){
-      fish.forEach(function(f){
-        f.x+=f.vx;f.y+=f.vy;
-        if(f.x<20||f.x>innerWidth-70)f.vx*=-1;
-        if(f.y<90||f.y>innerHeight-90)f.vy*=-1;
-        f.el.style.left=f.x+"px";f.el.style.top=f.y+"px";
-        var face=f.el.querySelector(".face");if(face)face.style.transform=f.vx<0?"scaleX(-1)":"";
-      });
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; fed = 0; crumbs = [];
+      fish = [
+        { e: "🐟", x: 0.2, y: 0.4, ate: 0 },
+        { e: "🐠", x: 0.5, y: 0.55, ate: 0 },
+        { e: "🐡", x: 0.75, y: 0.38, ate: 0 },
+        { e: "🐟", x: 0.35, y: 0.7, ate: 0 }
+      ];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("fd").textContent = "🍞 0/6";
+      document.getElementById("say").textContent = "Tap the water. Drop food!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      crumbs.push({ x: kidPt(e, cv).x, y: kidPt(e, cv).y, life: 4 });
+    });
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#0ea5e9"; x.fillRect(0, 0, W, H);
+      em("🪸", 50, H * 0.8, 56); em("🪸", W - 40, H * 0.75, 64);
+      if (play) {
+        crumbs.forEach(function (c) { c.y += 30 * dt; c.life -= dt; });
+        crumbs = crumbs.filter(function (c) { return c.life > 0 && c.y < H; });
+        fish.forEach(function (f, i) {
+          f.x += Math.sin(t + i) * 0.0015;
+          crumbs.forEach(function (c) {
+            if (f.ate) return;
+            var dx = c.x - f.x * W, dy = c.y - f.y * H;
+            if (dx * dx + dy * dy < 70 * 70) {
+              f.x = c.x / W; f.y = c.y / H;
+              c.life = 0; f.ate = 1; fed++;
+              document.getElementById("fd").textContent = "🍞 " + fed + "/6";
+              document.getElementById("say").textContent = "Yum " + f.e + "!";
+              if (fed >= 6) {
+                play = false;
+                document.getElementById("win").classList.remove("off");
+              } else {
+                setTimeout(function () { f.ate = 0; }, 400);
+              }
+            }
+          });
+        });
+      }
+      crumbs.forEach(function (c) { em("🍞", c.x, c.y, 40); });
+      fish.forEach(function (f) { em(f.e, f.x * W, f.y * H + Math.sin(t * 2) * 6, 72); });
       requestAnimationFrame(loop);
     }
-    pickHungry();loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

@@ -4,76 +4,90 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Star Catch</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#0f172a;color:#fff;overflow:hidden;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(255,255,255,.16);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:rgba(255,255,255,.14);padding:8px 12px;border-radius:16px}
-    #sky{position:fixed;inset:0}
-    .star{position:absolute;font-size:32px;pointer-events:none}
-    .star.wish{font-size:40px;filter:drop-shadow(0 0 8px #fde68a)}
-    #basket{position:fixed;bottom:18px;width:92px;height:64px;margin-left:-46px;font-size:56px;text-align:center;line-height:64px;pointer-events:none}
-    .cover{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(#1e293b,#fbbf24);z-index:8;gap:10px;text-align:center;padding:20px}
-    .cover.off{display:none}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:28px;padding:14px 32px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-    h1{font-size:clamp(34px,9vw,52px)}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#0f172a}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">⭐ 0 / 10</div>
-  <div id="sky"></div>
-  <div id="basket">🧺</div>
-  <div class="cover" id="start">
-    <div style="font-size:72px">⭐</div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="got">⭐ 0/10</b></div>
+  <div id="say">Tap the falling stars!</div>
+  <div class="cover" id="title">
+    <div class="hero">⭐</div>
     <h1>Star Catch</h1>
-    <p>Drag the basket. Gold stars count extra!</p>
+    <p>Tap 10 falling stars.</p>
     <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:72px">✨</div>
-    <h1>Wish granted!</h1>
-    <button class="play" id="again">Catch again</button>
+    <div class="hero">🌟</div>
+    <h1>Sky full!</h1>
+    <p>You caught them all.</p>
+    <button class="play g" id="again">Catch again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var bx=innerWidth/2,score=0,play=false,stars=[];
-    var basket=document.getElementById("basket"),sky=document.getElementById("sky");
-    function move(e){var p=e.touches?e.touches[0]:e;bx=p.clientX;basket.style.left=bx+"px";}
-    addEventListener("pointermove",move);addEventListener("touchmove",move,{passive:true});
-    addEventListener("pointerdown",function(e){if(!e.target.closest("a,button"))move(e);});
-    basket.style.left=bx+"px";
-    function spawn(){
-      if(!play)return;
-      var el=document.createElement("div");
-      var wish=Math.random()<.28;
-      el.className="star"+(wish?" wish":"");el.textContent=wish?"🌟":"⭐";
-      var x=30+Math.random()*(innerWidth-60),y=-20,sp=2+Math.random()*2.8;
-      el.style.left=x+"px";el.style.top=y+"px";sky.appendChild(el);
-      stars.push({el:el,x:x,y:y,sp:sp,wish:wish,got:false});
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, n = 0, stars = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    var acc=0;
-    function loop(){
-      if(play){
-        acc++;if(acc%28===0)spawn();
-        var by=innerHeight-50;
-        stars.forEach(function(s){
-          if(s.got)return;
-          s.y+=s.sp;s.el.style.top=s.y+"px";
-          if(Math.abs(s.x-bx)<48 && Math.abs(s.y-by)<40){
-            s.got=true;s.el.remove();score+=s.wish?2:1;beep(s.wish?920:700,.08);
-            document.getElementById("hud").textContent="⭐ "+score+" / 10";
-            if(score>=10){play=false;document.getElementById("win").classList.remove("off");beep(990,.2);}
-          } else if(s.y>innerHeight+20){s.got=true;s.el.remove();}
-        });
-        stars=stars.filter(function(s){return !s.got;});
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function spawn() { stars.push({ x: 40 + Math.random() * (W - 80), y: -40, s: 90 + Math.random() * 50 }); }
+    function start() {
+      play = true; n = 0; stars = [];
+      stars.push({ x: W * 0.3, y: H * 0.28, s: 70 });
+      stars.push({ x: W * 0.7, y: H * 0.42, s: 80 });
+      stars.push({ x: W * 0.5, y: H * 0.18, s: 60 });
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("got").textContent = "⭐ 0/10";
+      document.getElementById("say").textContent = "Tap the falling stars!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      for (var i = stars.length - 1; i >= 0; i--) {
+        var dx = kidPt(e, cv).x - stars[i].x, dy = kidPt(e, cv).y - stars[i].y;
+        if (dx * dx + dy * dy < 72 * 72) {
+          stars.splice(i, 1); n++;
+          document.getElementById("got").textContent = "⭐ " + n + "/10";
+          document.getElementById("say").textContent = "Got one!";
+          if (n >= 10) {
+            play = false;
+            document.getElementById("win").classList.remove("off");
+          }
+          return;
+        }
       }
+    });
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#0f172a"; x.fillRect(0, 0, W, H);
+      em("🌙", W * 0.82, 90, 64);
+      if (play) {
+        if (stars.length < 3 && Math.random() < 0.03) spawn();
+        stars.forEach(function (s) { s.y += s.s * dt; });
+        for (var i = stars.length - 1; i >= 0; i--) {
+          if (stars[i].y > H + 20) {
+            stars.splice(i, 1);
+            document.getElementById("say").textContent = "Try the next one!";
+          }
+        }
+      }
+      stars.forEach(function (s) { em("⭐", s.x, s.y, 64); });
       requestAnimationFrame(loop);
     }
-    document.getElementById("go").onclick=function(){document.getElementById("start").classList.add("off");score=0;play=true;beep(520,.1);};
-    document.getElementById("again").onclick=function(){location.reload();};
-    loop();
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

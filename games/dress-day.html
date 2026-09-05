@@ -4,68 +4,95 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Dress the Day</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#4c1d95;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#c4b5fd,#f9a8d4);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    .sky{font-size:64px;margin:6px}
-    .msg{font-weight:800;min-height:2em}
-    .kid{font-size:28px;background:#fff;display:inline-block;padding:12px 18px;border-radius:24px;margin:8px;min-width:160px}
-    .row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px}
-    .row button{width:76px;height:76px;border-radius:20px;background:#fff;font-size:36px;box-shadow:0 6px 0 #a78bfa}
-    .row button.on{outline:4px solid #3b0764}
-    .go{margin-top:8px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(40,10,60,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#7c3aed}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Dress the Day</h1>
-  <div class="sky" id="sky">☀️</div>
-  <p class="msg" id="msg">Sunny day! Pick sun clothes.</p>
-  <div class="kid" id="kid">🧒</div>
-  <div class="row" id="hats"></div>
-  <div class="row" id="coats"></div>
-  <div class="row" id="shoes"></div>
-  <button class="go" id="go">Ready!</button>
-  <div class="win" id="win">
-    <div style="font-size:72px">👗</div>
-    <h2>Dressed for every day!</h2>
-    <button class="play" id="again">Dress again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="wx">☀️</b><b id="rd">1/3</b></div>
+  <div id="say">What do we wear in sun?</div>
+  <div class="dock" id="dock">
+    <button id="sunwear"><span>😎</span>Sunny</button>
+    <button id="rainwear"><span>🧥</span>Rain</button>
+    <button id="snowwear"><span>🧤</span>Snow</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">👗</div>
+    <h1>Dress the Day</h1>
+    <p>Pick clothes for the weather!</p>
+    <button class="play" id="go">Dress</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🌟</div>
+    <h1>Ready for anything!</h1>
+    <p>Sun, rain, and snow.</p>
+    <button class="play g" id="again">Dress again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var days=[{e:"☀️",n:"sun",hat:"🧢",coat:"👕",shoe:"👟",txt:"Sunny day! Pick sun clothes."},{e:"🌧️",n:"rain",hat:"🌂",coat:"🧥",shoe:"👢",txt:"Rainy day! Stay dry."},{e:"❄️",n:"snow",hat:"🧣",coat:"🧥",shoe:"👢",txt:"Snow day! Stay warm."}];
-    var hats=["🧢","🎩","🌂","🧣"],coats=["👕","👗","🧥","🎽"],shoes=["👟","👠","👢","🩴"];
-    var pick={hat:"",coat:"",shoe:""},day=0,score=0;
-    function row(id,list,key){
-      var box=document.getElementById(id);box.innerHTML="";
-      list.forEach(function(e){
-        var b=document.createElement("button");b.textContent=e;
-        b.onclick=function(){pick[key]=e;box.querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});show();beep(480,.06);};
-        box.appendChild(b);
-      });
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, round = 0, stars = 0, flags = {};
+    var DAYS = [
+      { w: "☀️", q: "Sunny day. What do we wear?", ok: "a", wear: "😎" },
+      { w: "🌧️", q: "Rain! What keeps us dry?", ok: "b", wear: "🧥" },
+      { w: "❄️", q: "Snow! What keeps hands warm?", ok: "c", wear: "🧤" }
+    ];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-dress") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function show(){document.getElementById("kid").textContent=(pick.hat||"")+"🧒"+(pick.coat||"")+(pick.shoe||"");}
-    function setDay(){
-      var d=days[day];pick={hat:"",coat:"",shoe:""};
-      document.getElementById("sky").textContent=d.e;document.getElementById("msg").textContent=d.txt;show();
-      row("hats",hats,"hat");row("coats",coats,"coat");row("shoes",shoes,"shoe");
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
-    document.getElementById("go").onclick=function(){
-      var d=days[day];
-      if(pick.hat!==d.hat||pick.coat!==d.coat||pick.shoe!==d.shoe){document.getElementById("msg").textContent="Almost! Try the "+d.txt;beep(180,.1);return;}
-      score++;beep(820,.12);
-      if(score>=3){document.getElementById("win").classList.add("on");beep(960,.2);return;}
-      day++;setDay();
-    };
-    document.getElementById("again").onclick=function(){location.reload();};
-    setDay();
+    addEventListener("resize", resize); resize();
+    function show() {
+      var d = DAYS[round];
+      document.getElementById("wx").textContent = d.w;
+      document.getElementById("rd").textContent = (round + 1) + "/3";
+      document.getElementById("say").textContent = d.q;
+    }
+    function start() {
+      play = true; round = 0; flags = {};
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      show();
+    }
+    function pick(k) {
+      if (!play) return;
+      var d = DAYS[round];
+      if (k === d.ok) {
+        flags[k] = 1; stars++;
+        try { localStorage.setItem("alabryuu-dress", JSON.stringify({ stars: stars, flags: flags })); } catch (e) {}
+        round++;
+        if (round >= 3) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("win").classList.remove("off");
+        } else show();
+      } else document.getElementById("say").textContent = "Not for this weather. " + d.q;
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("sunwear").onclick = function () { pick("a"); };
+    document.getElementById("rainwear").onclick = function () { pick("b"); };
+    document.getElementById("snowwear").onclick = function () { pick("c"); };
+    function loop() {
+      var d = DAYS[Math.min(round, 2)];
+      x.fillStyle = d.w === "☀️" ? "#7dd3fc" : (d.w === "🌧️" ? "#64748b" : "#e0f2fe");
+      x.fillRect(0, 0, W, H);
+      em(d.w, W * 0.8, 90, 72);
+      em("🧒", W * 0.5, H * 0.42, 110);
+      if (play) em(d.wear, W * 0.5, H * 0.28, 48);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

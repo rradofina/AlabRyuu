@@ -4,51 +4,94 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Caterpillar</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#14532d;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#86efac,#22c55e);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px);color:#fff}
-    .msg{font-weight:800;color:#fff;margin:8px}
-    .bug{font-size:42px;letter-spacing:-6px;min-height:70px;margin:16px}
-    .leafs{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:10px}
-    .leafs button{width:88px;height:88px;border-radius:24px;background:#fefce8;font-size:42px;box-shadow:0 7px 0 #166534}
-    .leafs button:active{transform:translateY(4px)}
-    .leafs button.gone{opacity:.35}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,20,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#166534}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Caterpillar</h1>
-  <p class="msg" id="msg">Tap leaves to grow!</p>
-  <div class="bug" id="bug">🐛</div>
-  <div class="leafs" id="leafs"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🦋</div>
-    <h2>Hello butterfly!</h2>
-    <button class="play" id="again">Grow again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="lv">🍃 0/8</b></div>
+  <div id="say">Tap leaves. Grow big. Avoid rocks!</div>
+  <div class="cover" id="title">
+    <div class="hero">🐛</div>
+    <h1>Caterpillar</h1>
+    <p>Eat 8 leaves. Become a butterfly!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🦋</div>
+    <h1>You can fly!</h1>
+    <p>A brand new butterfly.</p>
+    <button class="play g" id="again">Grow again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var grow=1,stage="eat",box=document.getElementById("leafs");
-    function draw(){document.getElementById("bug").textContent=stage==="fly"?"🦋":stage==="sleep"?"🟣":"🐛"+new Array(grow).join("🟢");}
-    for(var i=0;i<6;i++){
-      var b=document.createElement("button");b.textContent="🍃";
-      b.onclick=function(){
-        if(stage!=="eat"||this.classList.contains("gone"))return;
-        this.classList.add("gone");grow++;draw();beep(500+grow*40,.1);
-        document.getElementById("msg").textContent="Munch! "+grow+"/7";
-        if(grow>=7){stage="sleep";document.getElementById("msg").textContent="Tap the cocoon!";var c=document.createElement("button");c.textContent="🟣";c.onclick=function(){if(stage!=="sleep")return;stage="fly";draw();document.getElementById("msg").textContent="A butterfly!";document.getElementById("win").classList.add("on");beep(960,.2);};box.appendChild(c);beep(320,.15);}
-      };
-      box.appendChild(b);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, n = 0, bugX = 0.2, bits = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    draw();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function start() {
+      play = true; n = 0; bugX = 0.18;
+      placeBits();
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("lv").textContent = "🍃 0/8";
+      document.getElementById("say").textContent = "Tap the leaves!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    function placeBits() {
+      bits = [
+        { e: "🍃", x: 0.28, y: 0.36 },
+        { e: "🍃", x: 0.62, y: 0.34 },
+        { e: "🪨", x: 0.45, y: 0.48 },
+        { e: "🍃", x: 0.78, y: 0.50 },
+        { e: "🍃", x: 0.22, y: 0.58 },
+        { e: "🪨", x: 0.70, y: 0.66 },
+        { e: "🍃", x: 0.40, y: 0.70 },
+        { e: "🍃", x: 0.58, y: 0.58 },
+        { e: "🍃", x: 0.85, y: 0.36 },
+        { e: "🍃", x: 0.12, y: 0.46 }
+      ];
+    }
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      for (var i = bits.length - 1; i >= 0; i--) {
+        var b = bits[i], dx = kidPt(e, cv).x - b.x * W, dy = kidPt(e, cv).y - b.y * H;
+        if (dx * dx + dy * dy < 70 * 70) {
+          if (b.e === "🍃") {
+            bits.splice(i, 1); n++; bugX = Math.min(0.8, bugX + 0.07);
+            document.getElementById("lv").textContent = "🍃 " + n + "/8";
+            document.getElementById("say").textContent = "Yum! Growing.";
+            if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else {
+            document.getElementById("say").textContent = "Ouch rock! Eat leaves.";
+          }
+          return;
+        }
+      }
+    });
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.78, W, H);
+      em("🌳", 40, 100, 64);
+      bits.forEach(function (b) { em(b.e, b.x * W, b.y * H, 64); });
+      em(n >= 8 ? "🦋" : "🐛", bugX * W, H * 0.70, 48 + n * 6);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

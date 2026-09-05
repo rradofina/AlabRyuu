@@ -4,68 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Pizza Party</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#7c2d12;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fed7aa,#fb7185);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px)}
-    .order{display:inline-block;background:#fff;padding:8px 16px;border-radius:999px;font-weight:800;margin:8px;box-shadow:0 5px 0 #ea580c}
-    .pie{width:min(240px,70vw);height:240px;margin:12px auto;border-radius:50%;background:#f59e0b;box-shadow:inset 0 0 0 18px #fbbf24,0 10px 0 #b45309;position:relative}
-    .top{position:absolute;font-size:36px;transform:translate(-50%,-50%)}
-    .tops{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px}
-    .tops button{width:72px;height:72px;border-radius:20px;background:#fff7ed;font-size:34px;box-shadow:0 6px 0 #c2410c}
-    .tops button:active{transform:translateY(3px)}
-    .serve{margin-top:8px;background:#ffd166;color:#3b2100;font-weight:800;font-size:22px;padding:12px 24px;border-radius:999px;box-shadow:0 6px 0 #e09f1f}
-    .msg{font-weight:800;min-height:1.6em;margin-top:8px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,10,20,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#7c2d12}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Pizza Party</h1>
-  <div class="order" id="order"></div>
-  <div class="pie" id="pie"></div>
-  <div class="tops" id="tops"></div>
-  <button class="serve" id="serve">Serve!</button>
-  <p class="msg" id="msg">Tap toppings. Make the order.</p>
-  <div class="win" id="win">
-    <div style="font-size:72px">🍕</div>
-    <h2>Party pizzas!</h2>
-    <button class="play" id="again">Bake again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="od">Toppings 0/3</b></div>
+  <div id="say">Tap Cheese, Tomato, Mush!</div>
+  <div class="dock" id="dock">
+    <button id="ch"><span>🧀</span>Cheese</button>
+    <button id="tm"><span>🍅</span>Tomato</button>
+    <button id="ms"><span>🍄</span>Mush</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">🍕</div>
+    <h1>Pizza Party</h1>
+    <p>Tap the three toppings!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🍕</div>
+    <h1>Pizza ready!</h1>
+    <p>Hot and yummy.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var menu=[{e:"🍅",n:"tomato"},{e:"🧀",n:"cheese"},{e:"🍄",n:"mushroom"},{e:"🫒",n:"olive"},{e:"🍍",n:"pineapple"}];
-    var need=[],have=[],score=0,pie=document.getElementById("pie");
-    function round(){
-      have=[];pie.innerHTML="";
-      need=menu.slice().sort(function(){return Math.random()-.5;}).slice(0,2+Math.floor(Math.random()*2));
-      document.getElementById("order").textContent="Order: "+need.map(function(t){return t.e;}).join(" ");
-      document.getElementById("msg").textContent="Pizza "+(score+1)+" / 4";
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, have = { ch: 0, tm: 0, ms: 0 };
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    menu.forEach(function(t){
-      var b=document.createElement("button");b.textContent=t.e;
-      b.onclick=function(){
-        if(have.length>=6)return;
-        have.push(t.e);
-        var el=document.createElement("div");el.className="top";el.textContent=t.e;
-        el.style.left=(30+Math.random()*40)+"%";el.style.top=(30+Math.random()*40)+"%";
-        pie.appendChild(el);beep(500,.07);
-      };
-      document.getElementById("tops").appendChild(b);
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function count() { return have.ch + have.tm + have.ms; }
+    function hud() { document.getElementById("od").textContent = "Toppings " + count() + "/3"; }
+    function start() {
+      play = true; have = { ch: 0, tm: 0, ms: 0 };
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("say").textContent = "Tap Cheese, Tomato, Mush!";
+      hud();
+    }
+    function add(k, name) {
+      if (!play) return;
+      have[k] = 1;
+      hud();
+      document.getElementById("say").textContent = name + " on!  " + count() + "/3";
+      if (count() >= 3) {
+        play = false;
+        document.getElementById("dock").classList.remove("on");
+        document.getElementById("win").classList.remove("off");
+      }
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("ch").onclick = function () { add("ch", "Cheese"); };
+    document.getElementById("tm").onclick = function () { add("tm", "Tomato"); };
+    document.getElementById("ms").onclick = function () { add("ms", "Mushroom"); };
+    cv.addEventListener("pointerdown", function () {
+      if (!play) return;
+      if (!have.ch) add("ch", "Cheese");
+      else if (!have.tm) add("tm", "Tomato");
+      else add("ms", "Mushroom");
     });
-    document.getElementById("serve").onclick=function(){
-      var ok=need.every(function(t){return have.indexOf(t.e)>=0;});
-      if(!ok||!have.length){document.getElementById("msg").textContent="Hmm, that is not the order.";beep(180,.1);return;}
-      score++;beep(820,.12);
-      if(score>=4){document.getElementById("win").classList.add("on");beep(960,.2);} else round();
-    };
-    document.getElementById("again").onclick=function(){location.reload();};
-    round();
+    function loop() {
+      x.fillStyle = "#fed7aa"; x.fillRect(0, 0, W, H);
+      em("👨‍🍳", 60, 110, 64);
+      em("🫓", W * 0.5, H * 0.42, 150);
+      if (have.ch) em("🧀", W * 0.40, H * 0.40, 64);
+      if (have.tm) em("🍅", W * 0.58, H * 0.38, 64);
+      if (have.ms) em("🍄", W * 0.50, H * 0.50, 64);
+      if (count() >= 3) em("🍕", W * 0.5, H * 0.42, 130);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

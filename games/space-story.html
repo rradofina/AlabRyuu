@@ -4,48 +4,107 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Space Story</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#e0e7ff;touch-action:manipulation}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:radial-gradient(circle at 20% 0%,#7c3aed,transparent 40%),#0b0830;padding:58px 16px 28px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(255,255,255,.16);padding:8px 14px;border-radius:999px}
-    .card{max-width:420px;margin:0 auto;background:#1e1b4b;border-radius:32px;padding:22px 18px 24px;box-shadow:0 12px 0 #312e81}
-    .art{font-size:88px;line-height:1;margin:6px 0 10px}
-    h1{font-size:28px;margin-bottom:8px;color:#fde68a}
-    p{font-size:20px;line-height:1.4;min-height:4.2em}
-    .row{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-    .row button{background:#c4b5fd;color:#2e1065;font-weight:800;font-size:20px;padding:14px 16px;border-radius:20px;box-shadow:0 6px 0 #6d28d9}
-    .row button:active{transform:translateY(3px);box-shadow:0 3px 0 #6d28d9}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#0b1026}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="card">
-    <div class="art" id="art">🚀</div>
-    <h1 id="title">Space Story</h1>
-    <p id="line"></p>
-    <div class="row" id="row"></div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="pl">🪐 0/5</b><b id="st">⭐ 0</b></div>
+  <div id="say">Tap to boost. Catch 5 planets!</div>
+  <div class="cover" id="title">
+    <div class="hero">🚀</div>
+    <h1>Space Story</h1>
+    <p>Boost the rocket. Catch planets!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🌌</div>
+    <h1>Home among stars</h1>
+    <p id="wp">Five planet friends!</p>
+    <button class="play g" id="again">Fly again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var pages={
-      start:{art:"🚀",t:"Captain Bean",line:"Captain Bean hopped into a cozy rocket with a jam sandwich. The stars blinked hello. “Ready for a kind trip?” asked the rocket.",next:[{l:"Visit the Moon",to:"moon"},{l:"Visit a rainbow planet",to:"rain"}]},
-      moon:{art:"🌙",t:"Moon Wave",line:"The Moon waved a dusty hand. “Want a snack, space friend? I packed glow-cheese cubes.” A crater giggled.",next:[{l:"Share the sandwich",to:"share"},{l:"Taste glow-cheese",to:"cheese"}]},
-      rain:{art:"🪐",t:"Planet Giggle",line:"Planet Giggle wore rings like hula hoops. Clouds made funny faces. “Help us find the lost giggle?” said a tiny comet.",next:[{l:"Look in a crater",to:"crater"},{l:"Ask the rings",to:"rings"}]},
-      share:{art:"🥪",t:"Picnic Crater",line:"Bean split the sandwich. The Moon said, “You made night taste like home.” Fireflies that were really tiny stars danced.",next:[{l:"Dance with stars",to:"endStars"}]},
-      cheese:{art:"🧀",t:"Glow Grins",line:"The cheese made Bean’s smile light up. A moon-mouse clapped. “Now we can read bedtime maps!”",next:[{l:"Read a sky map",to:"endStars"}]},
-      crater:{art:"😄",t:"Found It",line:"Inside the crater sat the lost giggle, taking a nap on a pillow of dust. It woke up and bounced into Bean’s pocket.",next:[{l:"Bring it home",to:"endParty"}]},
-      rings:{art:"⭕",t:"Hula Help",line:"The rings spun and sang, “Giggle went that way!” They pointed to a lemonade comet. Everyone got a sip.",next:[{l:"Ride the comet",to:"endParty"}]},
-      endStars:{art:"🌟",t:"Bedtime Sky",line:"Bean tucked the rocket in with a blanket of quiet light. The Moon hummed a slow song. Tomorrow they would fly again. The end.",next:[{l:"Read again",to:"start"}]},
-      endParty:{art:"🎊",t:"Comet Party",line:"Planet Giggle threw a soft parade. No loud booms. Just streamers, lemonade, and one very happy giggle. Bean waved all the way home. The end.",next:[{l:"Read again",to:"start"}]}
-    };
-    function show(id){
-      var p=pages[id];document.getElementById("art").textContent=p.art;document.getElementById("title").textContent=p.t;document.getElementById("line").textContent=p.line;
-      var row=document.getElementById("row");row.innerHTML="";
-      p.next.forEach(function(n){var b=document.createElement("button");b.textContent=n.l;b.onclick=function(){beep(id.indexOf("end")===0?880:600,.1);show(n.to);};row.appendChild(b);});
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, got = 0, stars = 0;
+    var rocket = { y: 0.72, vy: 0 }, planets = [], flags = {};
+    var KINDS = ["🪐", "🌕", "🌍", "🟠", "🟣"];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-space") || "{}"); } catch (e) { sv = {}; }
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    show("start");
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function hud() {
+      document.getElementById("pl").textContent = "🪐 " + got + "/5";
+      document.getElementById("st").textContent = "⭐ " + stars;
+    }
+    function spawn() {
+      planets = [];
+      for (var i = 0; i < 5; i++) {
+        planets.push({ k: KINDS[i], x: 0.18 + i * 0.16, y: -0.15 - i * 0.28, got: 0 });
+      }
+    }
+    function start() {
+      play = true; got = 0; rocket.y = 0.72; rocket.vy = 0; flags = {};
+      spawn();
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("say").textContent = "Tap to boost!";
+      hud();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    function boost() {
+      if (!play) return;
+      rocket.vy = -0.55;
+      document.getElementById("say").textContent = "Zoom!";
+    }
+    cv.addEventListener("pointerdown", boost);
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#0b1026"; x.fillRect(0, 0, W, H);
+      var i;
+      for (i = 0; i < 20; i++) em("✨", (i * 67) % W, (i * 53 + t * 20) % H, 16);
+      if (play) {
+        rocket.vy += 0.9 * dt;
+        rocket.y += rocket.vy * dt;
+        if (rocket.y > 0.78) { rocket.y = 0.78; rocket.vy = 0; }
+        if (rocket.y < 0.18) { rocket.y = 0.18; rocket.vy = 0.1; }
+        planets.forEach(function (p) {
+          if (p.got) return;
+          p.y += 0.18 * dt;
+          var px = p.x * W, py = p.y * H;
+          var dx = px - W * 0.5, dy = py - rocket.y * H;
+          if (dx * dx + dy * dy < 70 * 70) {
+            p.got = 1; got++; stars++; flags[p.k] = 1;
+            try { localStorage.setItem("alabryuu-space", JSON.stringify({ scene: got, flags: flags })); } catch (e) {}
+            hud();
+            document.getElementById("say").textContent = "Hi " + p.k + "!";
+            if (got >= 5) {
+              play = false;
+              document.getElementById("wp").textContent = "⭐ " + stars + "  Five planet friends!";
+              document.getElementById("win").classList.remove("off");
+            }
+          }
+          if (p.y > 1.1) p.y = -0.2;
+        });
+      }
+      planets.forEach(function (p) { if (!p.got) em(p.k, p.x * W, p.y * H, 64); });
+      em("🚀", W * 0.5, rocket.y * H, 88);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    hud();
+  })();
   </script>
 </body>
 </html>

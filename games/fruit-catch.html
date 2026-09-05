@@ -4,59 +4,90 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Fruit Catch</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#86efac;color:#14532d;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #ask{position:fixed;top:54px;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
-    #sky{position:fixed;inset:0}
-    .fr{position:absolute;font-size:48px;line-height:1}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,50,20,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">🍎 0 / 10</div>
-  <div id="ask">Tap the fruit. Skip the rock!</div>
-  <div id="sky"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🍉</div>
-    <h2>Fruit basket full!</h2>
-    <button class="play" id="again">Catch again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="got">🍉 0/10</b></div>
+  <div id="say">Drag the basket. Catch fruit!</div>
+  <div class="cover" id="title">
+    <div class="hero">🍉</div>
+    <h1>Fruit Catch</h1>
+    <p>Move the basket. Catch 10 fruits!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🧺</div>
+    <h1>Fruit pile!</h1>
+    <p>Ten yummy catches.</p>
+    <button class="play g" id="again">Catch again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var fruits=["🍎","🍌","🍇","🍊","🍓"],score=0,play=true,items=[],sky=document.getElementById("sky");
-    function spawn(){
-      if(!play)return;
-      var rock=Math.random()<.28,e=rock?"🪨":fruits[Math.floor(Math.random()*fruits.length)];
-      var b=document.createElement("button");b.className="fr";b.textContent=e;
-      var x=20+Math.random()*(innerWidth-70),y=-40,sp=2+Math.random()*2.4;
-      b.style.left=x+"px";b.style.top=y+"px";sky.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,rock:rock,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        if(rock){document.getElementById("ask").textContent="Oops! Only fruit.";beep(160,.1);it.dead=true;b.remove();return;}
-        it.dead=true;b.remove();score++;beep(720,.08);
-        document.getElementById("hud").textContent="🍎 "+score+" / 10";
-        document.getElementById("ask").textContent="Yum!";
-        if(score>=10){play=false;document.getElementById("win").classList.add("on");beep(920,.2);}
-      };
-      items.push(it);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, n = 0, basket = 0.5, fruit = [];
+    var KINDS = ["🍎", "🍌", "🍇", "🍊", "🍉"];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    var acc=0;
-    function loop(){
-      acc++;if(play&&acc%26===0)spawn();
-      items.forEach(function(it){if(it.dead)return;it.y+=it.sp;it.el.style.top=it.y+"px";if(it.y>innerHeight+20){it.dead=true;it.el.remove();}});
-      items=items.filter(function(it){return !it.dead;});
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function spawn() { fruit.push({ e: KINDS[(Math.random() * KINDS.length) | 0], x: 0.15 + Math.random() * 0.7, y: -0.05, vy: 0.28 + Math.random() * 0.12 }); }
+    function start() {
+      play = true; n = 0; fruit = []; basket = 0.5;
+      fruit.push({ e: "🍎", x: 0.3, y: 0.15, vy: 0.32 });
+      fruit.push({ e: "🍌", x: 0.7, y: 0.02, vy: 0.28 });
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("got").textContent = "🍉 0/10";
+      document.getElementById("say").textContent = "Drag the basket!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointermove", function (e) {
+      if (!play) return;
+      basket = Math.max(0.12, Math.min(0.88, kidPt(e, cv).x / W));
+    });
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      basket = Math.max(0.12, Math.min(0.88, kidPt(e, cv).x / W));
+    });
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
+      em("🌳", 40, 120, 64); em("☀️", W - 50, 80, 56);
+      if (play) {
+        if (fruit.length < 3 && Math.random() < 0.04) spawn();
+        fruit.forEach(function (f) { f.y += f.vy * dt; });
+        var by = H * 0.78;
+        for (var i = fruit.length - 1; i >= 0; i--) {
+          var f = fruit[i], fx = f.x * W, fy = f.y * H;
+          if (Math.abs(fx - basket * W) < 50 && fy > by - 30 && fy < by + 30) {
+            fruit.splice(i, 1); n++;
+            document.getElementById("got").textContent = "🍉 " + n + "/10";
+            document.getElementById("say").textContent = "Yum!";
+            if (n >= 10) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else if (fy > H) {
+            fruit.splice(i, 1);
+            document.getElementById("say").textContent = "Miss. Next one!";
+          }
+        }
+      }
+      fruit.forEach(function (f) { em(f.e, f.x * W, f.y * H, 56); });
+      em("🧺", basket * W, H * 0.78, 80);
       requestAnimationFrame(loop);
     }
-    loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

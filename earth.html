@@ -4,473 +4,232 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Little Earth</title>
+  <link rel="stylesheet" href="kid.css" />
+  <script src="kid.js"></script>
   <style>
-    :root {
-      --sky: #070b1a;
-      --card: #ffffff;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%;
-      overflow: hidden;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: var(--sky);
-      color: #fff;
-      touch-action: manipulation;
-      user-select: none;
-    }
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .home {
-      position: fixed; top: 14px; left: 14px; z-index: 5;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(255,255,255,.16); padding: 8px 14px; border-radius: 999px;
-    }
-    #stars {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(2px 2px at 20% 30%, #fff, transparent),
-        radial-gradient(2px 2px at 80% 20%, #fff, transparent),
-        radial-gradient(1px 1px at 50% 80%, #fff, transparent),
-        radial-gradient(2px 2px at 10% 70%, #cde, transparent),
-        radial-gradient(1px 1px at 70% 50%, #fff, transparent),
-        radial-gradient(2px 2px at 40% 10%, #fff, transparent);
-      opacity: .55;
-      animation: twinkle 4s ease-in-out infinite;
-    }
-    @keyframes twinkle { 50% { opacity: .25; } }
-
-    .screen {
-      position: relative;
-      z-index: 1;
-      width: min(520px, 100vw);
-      height: 100%;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 16px 28px;
-      text-align: center;
-      gap: 14px;
-    }
-    .screen.on { display: flex; }
-
-    h1 {
-      font-size: clamp(42px, 10vw, 64px);
-      letter-spacing: -1px;
-      text-shadow: 0 6px 0 #3b1d8f;
-    }
-    .sub { font-size: 22px; opacity: .9; }
-    .btn {
-      border: 0;
-      background: #ffd166;
-      color: #3b2100;
-      font: inherit;
-      font-weight: 800;
-      font-size: 32px;
-      padding: 16px 36px;
-      border-radius: 999px;
-      box-shadow: 0 8px 0 #e09f1f;
-      cursor: pointer;
-    }
-    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #e09f1f; }
-    .btn.ghost {
-      background: #7bed9f;
-      box-shadow: 0 8px 0 #2ed573;
-      color: #063;
-    }
-
-    #hud {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 20px;
-      font-weight: 800;
-    }
-    #era-title { font-size: clamp(26px, 6vw, 34px); text-shadow: 0 3px 0 rgba(0,0,0,.35); }
-    #era-line { font-size: 20px; min-height: 2.4em; }
-
-    .stage {
-      position: relative;
-      width: min(360px, 86vw);
-      height: min(360px, 86vw);
-      margin: 6px 0 8px;
-    }
-    #earth {
-      position: absolute;
-      inset: 12%;
-      border-radius: 50%;
-      overflow: hidden;
-      background: #1d4ed8;
-      box-shadow:
-        0 0 0 12px rgba(125, 211, 252, .12),
-        0 20px 40px rgba(0,0,0,.45),
-        inset -18px -10px 30px rgba(0,0,0,.28);
-      transition: box-shadow 1.1s ease, transform .35s ease;
-    }
-    #earth.pop { animation: pop .35s ease; }
-    @keyframes pop { 50% { transform: scale(1.07); } }
-    #earth.morph { animation: morph 1.1s ease; }
-    @keyframes morph {
-      0% { transform: scale(.92) rotate(-8deg); filter: brightness(1.2); }
-      55% { transform: scale(1.06) rotate(6deg); }
-      100% { transform: scale(1) rotate(0); filter: none; }
-    }
-    #earth > i {
-      position: absolute; inset: 0; border-radius: 50%;
-      pointer-events: none;
-      transition: opacity 1.15s ease, transform 1.15s ease, filter 1.15s ease;
-    }
-    .lava {
-      background:
-        radial-gradient(circle at 32% 28%, #ffe08a, #ff6a00 38%, #b91c1c 68%, #450a0a);
-      opacity: 1;
-    }
-    .ocean {
-      background: radial-gradient(circle at 30% 28%, #7dd3fc, #2563eb 48%, #1e3a8a);
-      opacity: 0;
-    }
-    .land {
-      background:
-        radial-gradient(ellipse 28% 34% at 28% 42%, #4d7c0f 0 70%, transparent 71%),
-        radial-gradient(ellipse 18% 22% at 22% 28%, #65a30d 0 60%, transparent 61%),
-        radial-gradient(ellipse 32% 24% at 72% 38%, #3f6212 0 65%, transparent 66%),
-        radial-gradient(ellipse 20% 28% at 78% 62%, #4d7c0f 0 60%, transparent 61%),
-        radial-gradient(ellipse 16% 14% at 48% 72%, #854d0e 0 55%, transparent 56%),
-        radial-gradient(ellipse 14% 18% at 58% 22%, #166534 0 55%, transparent 56%);
-      opacity: 0;
-      transform: scale(.35);
-    }
-    .clouds {
-      background:
-        radial-gradient(ellipse 40% 12% at 40% 30%, rgba(255,255,255,.7) 0 40%, transparent 41%),
-        radial-gradient(ellipse 30% 10% at 70% 58%, rgba(255,255,255,.55) 0 40%, transparent 41%),
-        radial-gradient(ellipse 24% 8% at 30% 70%, rgba(255,255,255,.45) 0 40%, transparent 41%);
-      opacity: 0;
-    }
-    .ash {
-      background: radial-gradient(circle at 40% 40%, #e2e8f0, #64748b 40%, #0f172a);
-      opacity: 0;
-    }
-    .shine {
-      background: radial-gradient(circle at 30% 24%, rgba(255,255,255,.4), transparent 42%);
-      opacity: .9;
-    }
-
-    /* 0 hot rock */
-    #earth[data-era="0"] { box-shadow: 0 0 0 14px rgba(255,100,40,.28), 0 20px 40px rgba(0,0,0,.45); }
-    #earth[data-era="0"] .lava { opacity: 1; }
-    #earth[data-era="0"] .ocean, #earth[data-era="0"] .land, #earth[data-era="0"] .clouds, #earth[data-era="0"] .ash { opacity: 0; }
-
-    /* 1 water floods */
-    #earth[data-era="1"] .lava { opacity: .15; }
-    #earth[data-era="1"] .ocean { opacity: 1; }
-    #earth[data-era="1"] .land, #earth[data-era="1"] .clouds, #earth[data-era="1"] .ash { opacity: 0; }
-
-    /* 2 tiny life — blue, faint specks */
-    #earth[data-era="2"] .lava { opacity: 0; }
-    #earth[data-era="2"] .ocean { opacity: 1; }
-    #earth[data-era="2"] .land { opacity: .18; transform: scale(.2); filter: hue-rotate(40deg); }
-    #earth[data-era="2"] .clouds, #earth[data-era="2"] .ash { opacity: 0; }
-
-    /* 3 fish — deep ocean */
-    #earth[data-era="3"] .ocean { opacity: 1; }
-    #earth[data-era="3"] .land { opacity: .12; transform: scale(.22); }
-    #earth[data-era="3"] .lava, #earth[data-era="3"] .clouds, #earth[data-era="3"] .ash { opacity: 0; }
-
-    /* 4 bugs — first islands */
-    #earth[data-era="4"] .ocean { opacity: 1; }
-    #earth[data-era="4"] .land { opacity: .45; transform: scale(.45); }
-    #earth[data-era="4"] .lava, #earth[data-era="4"] .clouds, #earth[data-era="4"] .ash { opacity: 0; }
-
-    /* 5 frogs — more land */
-    #earth[data-era="5"] .ocean { opacity: 1; }
-    #earth[data-era="5"] .land { opacity: .6; transform: scale(.62); }
-    #earth[data-era="5"] .lava, #earth[data-era="5"] .clouds, #earth[data-era="5"] .ash { opacity: 0; }
-
-    /* 6 trees — continents grow */
-    #earth[data-era="6"] .ocean { opacity: 1; }
-    #earth[data-era="6"] .land { opacity: .85; transform: scale(.82); }
-    #earth[data-era="6"] .clouds { opacity: .15; }
-    #earth[data-era="6"] .lava, #earth[data-era="6"] .ash { opacity: 0; }
-
-    /* 7 dinos — lush */
-    #earth[data-era="7"] .ocean { opacity: 1; }
-    #earth[data-era="7"] .land { opacity: 1; transform: scale(.95); }
-    #earth[data-era="7"] .clouds { opacity: .25; }
-    #earth[data-era="7"] .lava, #earth[data-era="7"] .ash { opacity: 0; }
-
-    /* 8 meteor dust */
-    #earth[data-era="8"] .ocean { opacity: .55; }
-    #earth[data-era="8"] .land { opacity: .4; transform: scale(.95); filter: grayscale(.6); }
-    #earth[data-era="8"] .ash { opacity: .75; }
-    #earth[data-era="8"] .clouds { opacity: .5; }
-    #earth[data-era="8"] .lava { opacity: 0; }
-
-    /* 9 birds — recovering */
-    #earth[data-era="9"] .ocean { opacity: 1; }
-    #earth[data-era="9"] .land { opacity: .95; transform: scale(1); }
-    #earth[data-era="9"] .clouds { opacity: .45; }
-    #earth[data-era="9"] .ash { opacity: .08; }
-    #earth[data-era="9"] .lava { opacity: 0; }
-
-    /* 10 animals — almost today */
-    #earth[data-era="10"] .ocean { opacity: 1; }
-    #earth[data-era="10"] .land { opacity: 1; transform: scale(1); }
-    #earth[data-era="10"] .clouds { opacity: .55; }
-    #earth[data-era="10"] .ash, #earth[data-era="10"] .lava { opacity: 0; }
-    #earth[data-era="10"] { box-shadow: 0 0 0 14px rgba(125,211,252,.22), 0 20px 40px rgba(0,0,0,.45); }
-
-    /* 11 people — Earth now */
-    #earth[data-era="11"] .ocean { opacity: 1; }
-    #earth[data-era="11"] .land { opacity: 1; transform: scale(1); }
-    #earth[data-era="11"] .clouds { opacity: .7; }
-    #earth[data-era="11"] .ash, #earth[data-era="11"] .lava { opacity: 0; }
-    #earth[data-era="11"] { box-shadow: 0 0 0 16px rgba(186,230,253,.28), 0 20px 40px rgba(0,0,0,.45); }
-
-    #bits { position: absolute; inset: 0; }
-    .bit {
-      position: absolute;
-      font-size: 46px;
-      line-height: 1;
-      cursor: pointer;
-      background: transparent;
-      border: 0;
-      padding: 0;
-      margin: 0;
-      box-shadow: none;
-      outline: none;
-      appearance: none;
-      -webkit-appearance: none;
-      -webkit-tap-highlight-color: transparent;
-      filter: drop-shadow(0 4px 0 rgba(0,0,0,.25));
-      animation: floaty 2.4s ease-in-out infinite;
-      transition: transform .12s;
-    }
-    .bit:active { transform: scale(1.25); }
-    .bit.gone { animation: burst .28s forwards; pointer-events: none; }
-    @keyframes floaty {
-      0%,100% { transform: translateY(0) rotate(-6deg); }
-      50% { transform: translateY(-10px) rotate(6deg); }
-    }
-    @keyframes burst {
-      to { transform: scale(1.6); opacity: 0; }
-    }
-
-    #bar-wrap {
-      width: min(360px, 86vw);
-      height: 22px;
-      background: rgba(255,255,255,.18);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    #bar {
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, #ffd166, #7bed9f);
-      border-radius: inherit;
-      transition: width .25s;
-    }
-    #hint { font-size: 18px; opacity: .85; min-height: 1.4em; }
-
-    #win h1 { text-shadow: 0 6px 0 #0b6; }
-    .confetti {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .confetti i {
-      position: absolute;
-      top: -20px;
-      font-size: 22px;
-      animation: fall 3.2s linear infinite;
-    }
-    @keyframes fall {
-      to { transform: translateY(110vh) rotate(360deg); }
-    }
+    html, body { background: #020617; }
+    #tools button { background: #fff; }
+    #tSun { background: #fde047; color: #78350f; }
+    #tRain { background: #38bdf8; color: #082f49; }
+    #tPlant { background: #86efac; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="index.html">← Home</a>
-  <div id="stars"></div>
-
-  <section id="start" class="screen on">
-    <div style="font-size:72px">🌍</div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="eraN">🔥 Hot rock</b><b id="stars">⭐ 0</b></div>
+  <div id="say">Tap Play to grow Earth</div>
+  <div class="dock" id="tools">
+    <button id="tSun"><span>☀️</span>Sun</button>
+    <button id="tRain"><span>🌧️</span>Rain</button>
+    <button id="tPlant"><span>🌱</span>Plant</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">🌍</div>
     <h1>Little Earth</h1>
-    <p class="sub">Tap the sparkles.<br>Help the world grow!</p>
-    <button class="btn" id="play">Play!</button>
-  </section>
-
-  <section id="game" class="screen">
-    <div id="hud">
-      <span id="step">1 / 12</span>
-      <span id="score">⭐ 0</span>
-    </div>
-    <div id="era-title">Hot rock</div>
-    <div id="era-line">Earth is a big glowing ball.</div>
-    <div class="stage">
-      <div id="earth" data-era="0">
-        <i class="lava"></i>
-        <i class="ocean"></i>
-        <i class="land"></i>
-        <i class="clouds"></i>
-        <i class="ash"></i>
-        <i class="shine"></i>
-      </div>
-      <div id="bits"></div>
-    </div>
-    <div id="bar-wrap"><div id="bar"></div></div>
-    <div id="hint">Tap the ⭐</div>
-  </section>
-
-  <section id="win" class="screen">
-    <div class="confetti" id="confetti"></div>
-    <div style="font-size:72px">🌏✨</div>
-    <h1>You made the world!</h1>
-    <p class="sub">From a hot rock to fish, frogs, dinos, and us.<br>That took a looooong time.</p>
-    <button class="btn ghost" id="again">Play again</button>
-  </section>
-
+    <p>Warm the rock. Then fill the sea!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="cut">
+    <div class="hero" id="cutE">🌊</div>
+    <h1 id="cutT">Seas!</h1>
+    <p id="cutP">Blue water wins.</p>
+    <button class="play g" id="cutGo">Next</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🎉</div>
+    <h1>Our Earth!</h1>
+    <p id="winP">You grew the globe.</p>
+    <button class="play g" id="again">Play again</button>
+  </div>
   <script>
-    const eras = [
-      { title: "Hot rock", line: "Earth starts red-hot.", hint: "Tap the ⭐", skin: "e-rock", emojis: ["⭐"], need: 4, say: "Sparkle!" },
-      { title: "Water!", line: "Rain fills the oceans.", hint: "Tap the 💧", skin: "e-water", emojis: ["💧"], need: 4, say: "Splash!" },
-      { title: "Tiny life", line: "Teeny tiny bugs wake up.", hint: "Tap the ✨", skin: "e-life", emojis: ["✨"], need: 4, say: "Glow!" },
-      { title: "Fish!", line: "The sea is full of swimmers.", hint: "Tap the fish", skin: "e-fish", emojis: ["🐟","🐠","🐡"], need: 5, say: "Swim!" },
-      { title: "Bugs!", line: "Little crawlers take the land.", hint: "Tap the bugs", skin: "e-life", emojis: ["🐛","🦋","🐞"], need: 5, say: "Buzz!" },
-      { title: "Frogs!", line: "Hop from water to land.", hint: "Tap the 🐸", skin: "e-water", emojis: ["🐸"], need: 5, say: "Hop!" },
-      { title: "Trees!", line: "Green things climb onto land.", hint: "Tap the 🌱", skin: "e-trees", emojis: ["🌱","🌳"], need: 5, say: "Grow!" },
-      { title: "Dinos!", line: "Giant friends stomp around.", hint: "Tap the dinos", skin: "e-dino", emojis: ["🦕","🦖"], need: 5, say: "Stomp!" },
-      { title: "Whoosh rock", line: "A space rock zooms by. Dinos wave bye!", hint: "Tap the ☄️", skin: "e-boom", emojis: ["☄️"], need: 4, say: "Whoosh!" },
-      { title: "Birds!", line: "Wings in the sky.", hint: "Tap the birds", skin: "e-animals", emojis: ["🐦","🐧","🦅"], need: 5, say: "Flap!" },
-      { title: "Animals!", line: "So many friends now.", hint: "Tap the animals", skin: "e-animals", emojis: ["🦊","🐻","🐰","🐘","🦒","🐱","🐶","🐷"], need: 8, say: "Boop!" },
-      { title: "People!", line: "This is Earth now. That's us!", hint: "Tap the 🏠", skin: "e-people", emojis: ["🏠"], need: 5, say: "Home!" }
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, era = 0, stars = 0, got = 0, tool = "sun", t = 0, last = 0;
+    var rot = 0, drag = 0, lastX = 0, moved = 0;
+    var life = [], flashes = [], rains = [];
+    var CUT = [
+      { e: "🌋", t: "Warm!", p: "The rock glows." },
+      { e: "🌊", t: "Seas!", p: "Blue water wins." },
+      { e: "🪷", t: "Plants!", p: "Lilies sit on waves." },
+      { e: "🐟", t: "Fish!", p: "Friends in water." },
+      { e: "🌿", t: "Kelp!", p: "Tall kelp in the sea." },
+      { e: "🦕", t: "Dinos!", p: "Big pals swim." },
+      { e: "🐦", t: "Birds!", p: "Wings over water." },
+      { e: "🦊", t: "Pals!", p: "Friends on waves." },
+      { e: "🧒", t: "Home!", p: "Kids come home." }
     ];
-
-    const $ = (id) => document.getElementById(id);
-    const earth = $("earth");
-    const bits = $("bits");
-    let i = 0, got = 0, stars = 0, spawnTimer;
-
-    function beep(freq, t) {
-      try {
-        const ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        const o = ac.createOscillator();
-        const g = ac.createGain();
-        o.type = "sine";
-        o.frequency.value = freq;
-        g.gain.setValueAtTime(0.12, ac.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + t);
-        o.connect(g); g.connect(ac.destination);
-        o.start(); o.stop(ac.currentTime + t);
-      } catch (e) {}
+    var ERAS = [
+      { n: "🔥 Hot rock", say: "Tap the globe! ☀️", need: 3, want: "sun" },
+      { n: "🌊 Seas", say: "Tap the sea! 🌧️", need: 3, want: "rain" },
+      { n: "🌱 Plants", say: "Tap to plant! 🌱", need: 3, want: "plant" },
+      { n: "🐟 Fish", say: "Tap the fish! ☀️", need: 3, want: "sun" },
+      { n: "🌿 Kelp", say: "Grow kelp! 🌱", need: 3, want: "plant" },
+      { n: "🦕 Dinos", say: "Boop pals! ☀️", need: 3, want: "sun" },
+      { n: "🐦 Birds", say: "Sun for wings! ☀️", need: 3, want: "sun" },
+      { n: "🦊 Animals", say: "Tap pals! ☀️", need: 3, want: "sun" },
+      { n: "🧒 People", say: "Friends! ☀️", need: 3, want: "sun" }
+    ];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-earth") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-
-    function show(id) {
-      document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"));
-      $(id).classList.add("on");
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      x.setTransform(d, 0, 0, d, 0, 0);
     }
-
-    function startGame() {
-      i = 0; got = 0; stars = 0;
-      $("score").textContent = "⭐ 0";
-      show("game");
-      loadEra();
-      beep(440, 0.12);
+    addEventListener("resize", resize); resize();
+    function save() { try { localStorage.setItem("alabryuu-earth", JSON.stringify({ stars: stars, era: era })); } catch (e) {} }
+    function hud() {
+      document.getElementById("eraN").textContent = ERAS[era] ? ERAS[era].n + "  " + got + "/" + ERAS[era].need : "🌍 Home";
+      document.getElementById("stars").textContent = "⭐ " + stars;
+      document.getElementById("say").textContent = ERAS[era] ? ERAS[era].say + "  " + got + "/" + ERAS[era].need : "Home!";
     }
-
-    function loadEra() {
-      const e = eras[i];
-      got = 0;
-      $("step").textContent = (i + 1) + " / " + eras.length;
-      $("era-title").textContent = e.title;
-      $("era-line").textContent = e.line;
-      $("hint").textContent = e.hint;
-      $("bar").style.width = "0%";
-      earth.dataset.era = String(i);
-      earth.classList.remove("morph");
-      void earth.offsetWidth;
-      earth.classList.add("morph");
-      setTimeout(() => earth.classList.remove("morph"), 1100);
-      bits.innerHTML = "";
-      clearInterval(spawnTimer);
-      spawn();
-      spawnTimer = setInterval(spawn, 700);
+    function cx() { return W * 0.5; }
+    function cy() { return H * 0.44; }
+    function R() { return Math.min(W, H) * 0.30; }
+    function spawnEraLife() {
+      life = [];
+      var kinds = { 2: ["🪷", 4], 3: ["🐟", 5], 4: ["🌿", 5], 5: ["🦕", 3], 6: ["🐦", 4], 7: ["🦊", 4], 8: ["🧒", 3] };
+      var spec = kinds[era];
+      if (!spec) return;
+      for (var i = 0; i < spec[1]; i++) life.push({ kind: spec[0], a: i * (Math.PI * 2 / spec[1]), bob: i });
     }
-
-    function spawn() {
-      const e = eras[i];
-      if (!e) return;
-      if (bits.children.length > 7) return;
-      const el = document.createElement("button");
-      el.className = "bit";
-      el.type = "button";
-      el.textContent = (e.emojis || [e.emoji])[Math.floor(Math.random() * (e.emojis || [e.emoji]).length)];
-      el.style.left = (8 + Math.random() * 72) + "%";
-      el.style.top = (8 + Math.random() * 72) + "%";
-      el.addEventListener("pointerdown", (ev) => {
-        ev.preventDefault();
-        catchBit(el);
-      });
-      bits.appendChild(el);
-      setTimeout(() => { if (el.parentNode && !el.classList.contains("gone")) el.remove(); }, 3200);
+    function progress(n) {
+      if (!play || !ERAS[era]) return;
+      got += n; stars += n; save(); hud();
+      if (got >= ERAS[era].need) {
+        play = false;
+        document.getElementById("cutE").textContent = CUT[era].e;
+        document.getElementById("cutT").textContent = CUT[era].t;
+        document.getElementById("cutP").textContent = CUT[era].p;
+        document.getElementById("cut").classList.remove("off");
+      }
     }
-
-    function catchBit(el) {
-      if (el.classList.contains("gone")) return;
-      el.classList.add("gone");
-      setTimeout(() => el.remove(), 260);
-      got++;
-      stars++;
-      $("score").textContent = "⭐ " + stars;
-      $("bar").style.width = Math.min(100, (got / eras[i].need) * 100) + "%";
-      $("hint").textContent = eras[i].say;
-      earth.classList.add("pop");
-      setTimeout(() => earth.classList.remove("pop"), 280);
-      beep(520 + got * 40, 0.1);
-      if (got >= eras[i].need) nextEra();
+    function applyTool(px, py) {
+      if (!play || !ERAS[era]) return;
+      var want = ERAS[era].want;
+      tool = want;
+      setTool(want);
+      if (px == null) { px = cx(); py = cy(); }
+      var dx = px - cx(), dy = py - cy();
+      if (tool === "sun") flashes.push({ x: px, y: py, life: 0.5 });
+      else if (tool === "rain") rains.push({ x: px, y: py - 40, life: 0.8 });
+      else life.push({ kind: era < 4 ? "🌱" : "🌿", a: rot + Math.atan2(dx, -dy), bob: t });
+      progress(1);
     }
-
-    function nextEra() {
-      clearInterval(spawnTimer);
-      bits.innerHTML = "";
-      beep(660, 0.15);
-      setTimeout(() => beep(880, 0.18), 120);
-      i++;
-      if (i >= eras.length) {
-        win();
+    function setTool(name) {
+      tool = name;
+      document.getElementById("tSun").classList.toggle("on", name === "sun");
+      document.getElementById("tRain").classList.toggle("on", name === "rain");
+      document.getElementById("tPlant").classList.toggle("on", name === "plant");
+    }
+    function start() {
+      play = true; era = 0; got = 0; setTool("sun"); life = []; flashes = []; rains = [];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("cut").classList.add("off");
+      document.getElementById("tools").classList.add("on");
+      hud();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("cutGo").onclick = function () {
+      document.getElementById("cut").classList.add("off");
+      era++;
+      if (era >= ERAS.length) {
+        document.getElementById("winP").textContent = "⭐ " + stars + "  The globe is home.";
+        document.getElementById("win").classList.remove("off");
+        document.getElementById("tools").classList.remove("on");
+        play = false;
       } else {
-        setTimeout(loadEra, 450);
+        got = 0; play = true; spawnEraLife();
+        setTool(ERAS[era].want);
+        hud(); save();
       }
-    }
-
-    function win() {
-      show("win");
-      const box = $("confetti");
-      box.innerHTML = "";
-      const bitsEmoji = ["⭐", "🌍", "🐟", "🌱", "🦕", "🦊", "🏠", "✨"];
-      for (let n = 0; n < 24; n++) {
-        const iel = document.createElement("i");
-        iel.textContent = bitsEmoji[n % bitsEmoji.length];
-        iel.style.left = (Math.random() * 100) + "%";
-        iel.style.animationDelay = (Math.random() * 2) + "s";
-        iel.style.animationDuration = (2.4 + Math.random() * 1.6) + "s";
-        box.appendChild(iel);
+    };
+    document.getElementById("tSun").onclick = function () { setTool("sun"); applyTool(cx(), cy()); };
+    document.getElementById("tRain").onclick = function () { setTool("rain"); applyTool(cx(), cy()); };
+    document.getElementById("tPlant").onclick = function () { setTool("plant"); applyTool(cx(), cy()); };
+    cv.addEventListener("pointerdown", function (e) { var p = kidPt(e, cv); drag = 1; lastX = p.x; moved = 0; });
+    addEventListener("pointermove", function (e) {
+      if (!drag) return;
+      var p = kidPt(e, cv);
+      var dx = p.x - lastX;
+      if (Math.abs(dx) > 14) { rot += dx * 0.012; lastX = p.x; moved = 1; }
+    });
+    addEventListener("pointerup", function (e) {
+      if (!drag) return;
+      drag = 0;
+      if (play && !moved) {
+        var p = kidPt(e, cv);
+        applyTool(p.x, p.y);
       }
-      beep(523, 0.15); setTimeout(() => beep(659, 0.15), 140); setTimeout(() => beep(784, 0.25), 280);
+    });
+    addEventListener("pointercancel", function () { drag = 0; });
+    function drawGlobe() {
+      var gx = cx(), gy = cy(), r = R();
+      x.save();
+      x.beginPath(); x.arc(gx, gy, r, 0, Math.PI * 2); x.clip();
+      if (era === 0) {
+        x.fillStyle = "#7c2d12"; x.fillRect(gx - r, gy - r, r * 2, r * 2);
+        for (var i = 0; i < 10; i++) {
+          var ang = rot + i * 0.7;
+          em(i % 2 ? "🔥" : "🪨", gx + Math.sin(ang) * r * 0.5, gy + Math.cos(ang * 1.1) * r * 0.45, 48);
+        }
+        em("🌋", gx, gy, 84);
+      } else {
+        x.fillStyle = "#0369a1"; x.fillRect(gx - r, gy - r, r * 2, r * 2);
+        for (var j = 0; j < 12; j++) {
+          var a2 = rot + j * 0.55;
+          em("🌊", gx + Math.sin(a2) * r * 0.58, gy + Math.cos(a2 * 0.9) * r * 0.46, 52);
+        }
+      }
+      x.restore();
+      x.beginPath(); x.arc(gx, gy, r, 0, Math.PI * 2);
+      x.strokeStyle = era === 0 ? "#ea580c" : "#7dd3fc"; x.lineWidth = 8; x.stroke();
     }
-
-    $("play").onclick = startGame;
-    $("again").onclick = startGame;
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      if (!drag) rot += dt * 0.15;
+      x.fillStyle = "#020617"; x.fillRect(0, 0, W, H);
+      var i;
+      for (i = 0; i < 14; i++) em("✨", (i * 73 + rot * 20) % W, (i * 41) % (H * 0.88), 18);
+      em("☀️", W * 0.14, 90, 56);
+      em("🌙", W * 0.88, 100, 48);
+      if (era >= 1) {
+        em("☁️", W * 0.22 + Math.sin(t) * 8, 140, 56);
+        em("☁️", W * 0.78, 160, 48);
+      }
+      drawGlobe();
+      for (i = 0; i < life.length; i++) {
+        var L = life[i], a = L.a + rot;
+        em(L.kind, cx() + Math.sin(a) * R() * 0.72, cy() + Math.cos(a) * R() * 0.40 + Math.sin(t * 2 + L.bob) * 4, 56);
+      }
+      for (i = flashes.length - 1; i >= 0; i--) {
+        flashes[i].life -= dt;
+        x.globalAlpha = Math.max(0, flashes[i].life * 2);
+        em("☀️", flashes[i].x, flashes[i].y, 64);
+        if (flashes[i].life <= 0) flashes.splice(i, 1);
+      }
+      for (i = rains.length - 1; i >= 0; i--) {
+        rains[i].life -= dt; rains[i].y += 70 * dt;
+        x.globalAlpha = Math.max(0, rains[i].life);
+        em("💧", rains[i].x, rains[i].y, 40);
+        if (rains[i].life <= 0) rains.splice(i, 1);
+      }
+      x.globalAlpha = 1;
+      requestAnimationFrame(loop);
+    }
+    hud();
+    requestAnimationFrame(loop);
+    if (/shot=ocean/.test(location.search)) { start(); era = 1; spawnEraLife(); setTool("rain"); hud(); }
+  })();
   </script>
 </body>
 </html>

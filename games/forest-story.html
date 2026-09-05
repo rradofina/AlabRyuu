@@ -4,48 +4,89 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Forest Story</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#14532d;touch-action:manipulation}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#86efac,#166534);padding:58px 16px 28px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    .card{max-width:420px;margin:0 auto;background:#fffbeb;border-radius:32px;padding:22px 18px 24px;box-shadow:0 12px 0 #365314}
-    .art{font-size:88px;line-height:1;margin:6px 0 10px}
-    h1{font-size:28px;margin-bottom:8px}
-    p{font-size:20px;line-height:1.4;min-height:4.2em}
-    .row{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-    .row button{background:#bbf7d0;color:#14532d;font-weight:800;font-size:20px;padding:14px 16px;border-radius:20px;box-shadow:0 6px 0 #15803d}
-    .row button:active{transform:translateY(3px);box-shadow:0 3px 0 #15803d}
+    html,body{background:#14532d}
+    .choice{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:40;display:none;gap:16px}
+    .choice.on{display:flex}
+    .choice button{min-width:150px;min-height:130px;border-radius:28px;background:#fff;color:#14532d;font-weight:900;font-size:18px;box-shadow:0 8px 0 #166534}
+    .choice button span{display:block;font-size:64px;line-height:1}
+    #scene{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px 170px;text-align:center}
+    #pic{font-size:110px;line-height:1;margin-bottom:12px}
+    #line{font-size:28px;font-weight:900;color:#fff;max-width:16ch;text-shadow:0 3px 0 #052e16}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="card">
-    <div class="art" id="art">🌲</div>
-    <h1 id="title">Forest Story</h1>
-    <p id="line"></p>
-    <div class="row" id="row"></div>
+  <div id="hud"><b id="st">⭐ 0</b></div>
+  <div id="scene">
+    <div id="pic">🌲</div>
+    <div id="line">A walk in the trees.</div>
+  </div>
+  <div class="choice" id="choice">
+    <button id="a"><span>🦊</span><b id="at">Help fox</b></button>
+    <button id="b"><span>🍓</span><b id="bt">Pick berries</b></button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">🦊</div>
+    <h1>Forest Story</h1>
+    <p>Pick a path. Help forest friends!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🌙</div>
+    <h1>Home by moonlight</h1>
+    <p id="wp">A kind walk.</p>
+    <button class="play g" id="again">Walk again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var pages={
-      start:{art:"🦊",t:"Pip the Fox",line:"One sunny morning, a little fox named Pip found a shiny gold leaf. It wiggled. “Follow me to a picnic!” it said.",next:[{l:"Follow the leaf 🍃",to:"leaf"},{l:"Follow a butterfly 🦋",to:"fly"}]},
-      leaf:{art:"🍃",t:"The Whisper Path",line:"The leaf bounced down a mossy path. Birds sang, “Pip, Pip, hello!” A squirrel dropped a berry hat on Pip’s head.",next:[{l:"Wear the berry hat",to:"hat"},{l:"Give it back",to:"give"}]},
-      fly:{art:"🦋",t:"Blue Wings",line:"The butterfly led Pip to a puddle that looked like a tiny sky. “Want to skip stones or look for frogs?” asked a turtle.",next:[{l:"Skip a stone",to:"stone"},{l:"Look for frogs",to:"frog"}]},
-      hat:{art:"🎩",t:"Berry Fancy",line:"Pip looked so fancy that bees danced a circle. “Come to our flower table!” they buzzed. Honey cakes waited on a stump.",next:[{l:"Sit and nibble",to:"endPicnic"}]},
-      give:{art:"🐿️",t:"Kind Pip",line:"The squirrel hugged Pip. “You are a good friend.” They shared acorn cookies under a tall oak.",next:[{l:"Share a cookie",to:"endPicnic"}]},
-      stone:{art:"🪨",t:"Plip Plop",line:"The stone made silver rings. A frog popped up wearing a leaf bow tie. “Party at the pond!”",next:[{l:"Go to the pond party",to:"endPond"}]},
-      frog:{art:"🐸",t:"Hidden Choir",line:"Three frogs sang a silly song about bugs that tickle. Pip laughed so hard the trees waved along.",next:[{l:"Sing with them",to:"endPond"}]},
-      endPicnic:{art:"🧺",t:"A Happy Picnic",line:"Friends sat in a circle: fox, squirrel, bees, and a sleepy owl. They ate berries and told jokes until the sun felt warm and sleepy. The end.",next:[{l:"Read again",to:"start"}]},
-      endPond:{art:"🎉",t:"Pond Party",line:"The pond sparkled. Frogs drummed lily pads. Pip taught everyone a fox jig. Nobody won. Everybody giggled. The end.",next:[{l:"Read again",to:"start"}]}
-    };
-    function show(id){
-      var p=pages[id];document.getElementById("art").textContent=p.art;document.getElementById("title").textContent=p.t;document.getElementById("line").textContent=p.line;
-      var row=document.getElementById("row");row.innerHTML="";
-      p.next.forEach(function(n){var b=document.createElement("button");b.textContent=n.l;b.onclick=function(){beep(id.indexOf("end")===0?880:520,.1);show(n.to);};row.appendChild(b);});
+  (function () {
+    var stars = 0, si = 0, flags = {};
+    var SCENES = [
+      { pic: "🌲", line: "A path in the trees.", a: { e: "🦊", t: "Help fox", next: 1, flag: "fox" }, b: { e: "🍓", t: "Pick berries", next: 2, flag: "berry" } },
+      { pic: "🦊", line: "Fox lost a sock!", a: { e: "🧦", t: "Give sock", next: 3, flag: "kind" }, b: { e: "🗺️", t: "Show map", next: 3, flag: "map" } },
+      { pic: "🍓", line: "Sweet red berries.", a: { e: "🐦", t: "Share birds", next: 3, flag: "share" }, b: { e: "🧺", t: "Fill basket", next: 3, flag: "basket" } },
+      { pic: "🌊", line: "A sparkly creek.", a: { e: "🪵", t: "Make bridge", next: 4, flag: "bridge" }, b: { e: "🐸", t: "Ask frog", next: 4, flag: "frog" } },
+      { pic: "🦉", line: "Owl says night comes.", a: { e: "🏡", t: "Walk home", next: 5, flag: "home" }, b: { e: "⭐", t: "Wish star", next: 5, flag: "wish" } },
+      { pic: "🌙", line: "The forest says thanks.", a: { e: "💛", t: "Wave bye", next: -1, flag: "bye" }, b: { e: "🎵", t: "Sing song", next: -1, flag: "song" } }
+    ];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-forest") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function hud() { document.getElementById("st").textContent = "⭐ " + stars; }
+    function show(i) {
+      si = i;
+      var s = SCENES[i];
+      document.getElementById("pic").textContent = s.pic;
+      document.getElementById("line").textContent = s.line;
+      document.getElementById("a").querySelector("span").textContent = s.a.e;
+      document.getElementById("at").textContent = s.a.t;
+      document.getElementById("b").querySelector("span").textContent = s.b.e;
+      document.getElementById("bt").textContent = s.b.t;
+      document.getElementById("choice").classList.add("on");
     }
-    show("start");
+    function pick(side) {
+      var s = SCENES[si], ch = s[side];
+      flags[ch.flag] = 1; stars++;
+      try { localStorage.setItem("alabryuu-forest", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {}
+      hud();
+      if (ch.next < 0) {
+        document.getElementById("choice").classList.remove("on");
+        document.getElementById("wp").textContent = "⭐ " + stars + "  Kind forest walk.";
+        document.getElementById("win").classList.remove("off");
+      } else show(ch.next);
+    }
+    function start() {
+      flags = {}; si = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      show(0); hud();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("a").onclick = function () { pick("a"); };
+    document.getElementById("b").onclick = function () { pick("b"); };
+    hud();
+  })();
   </script>
 </body>
 </html>

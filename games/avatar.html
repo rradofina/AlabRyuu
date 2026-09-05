@@ -4,83 +4,95 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>My Avatar</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#2a1144;color:#fff;touch-action:manipulation}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{background:radial-gradient(circle at 20% 0%,#db2777,transparent 42%),radial-gradient(circle at 90% 30%,#7c3aed,transparent 40%),#2a1144;padding:64px 16px 40px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.25);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(32px,8vw,46px);text-shadow:0 4px 0 #6b1d4a;margin-bottom:8px}
-    .sub{opacity:.85;margin-bottom:16px}
-    .preview{width:min(260px,80vw);margin:0 auto 18px;padding:22px 16px;border-radius:32px;background:#fff;color:#222;box-shadow:0 10px 0 #c4b5fd}
-    .face{font-size:92px;line-height:1}
-    .who{font-size:26px;font-weight:800;margin-top:6px}
-    .shirt{height:28px;border-radius:999px;margin:10px auto 0;width:70%}
-    label{display:block;font-weight:800;margin:14px 0 8px;font-size:18px}
-    input[type=text]{width:min(280px,86vw);font:inherit;font-size:22px;font-weight:800;text-align:center;padding:12px;border-radius:18px;border:0;background:#fff;color:#222}
-    .row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-    .pick{width:64px;height:64px;border-radius:20px;font-size:34px;background:rgba(255,255,255,.16)}
-    .pick.on{outline:4px solid #ffd166;background:#fff}
-    .swatch{width:52px;height:52px;border-radius:16px}
-    .swatch.on{outline:4px solid #fff}
-    .save{margin-top:22px;background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:16px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-    .save:active{transform:translateY(4px);box-shadow:0 3px 0 #e09f1f}
-    .ok{margin-top:12px;min-height:1.4em;font-weight:800}
+    html,body{background:#312e81;overflow:auto;touch-action:manipulation}
+    .wrap{min-height:100%;padding:70px 16px 24px;display:flex;flex-direction:column;align-items:center;gap:12px}
+    .me{font-size:110px;line-height:1;width:160px;height:160px;border-radius:40px;display:grid;place-items:center;box-shadow:0 10px 0 rgba(0,0,0,.25)}
+    h1{color:#fff;font-size:36px}
+    .row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:420px}
+    .row button{min-width:84px;min-height:84px;border-radius:22px;background:#fff;font-size:44px;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+    .row button.on{outline:5px solid #ffd166}
+    label{color:#fff;font-weight:800;font-size:20px}
+    input{font:800 22px Trebuchet MS,sans-serif;padding:12px 16px;border-radius:16px;border:0;width:220px;text-align:center}
+    .save{margin-top:8px}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>My Avatar</h1>
-  <p class="sub">Make your kid. Then play!</p>
-  <div class="preview" id="preview">
-    <div class="face" id="face">🧒</div>
-    <div class="who" id="who">Kid</div>
-    <div class="shirt" id="shirtbar"></div>
-    <div style="font-size:36px;margin-top:6px" id="petface">🐶</div>
+  <div class="wrap">
+    <div class="me" id="me" style="background:#ffd166">🧒</div>
+    <h1 id="who">Alab</h1>
+    <label>Name</label>
+    <input id="name" maxlength="12" value="Alab" />
+    <label>Hair</label>
+    <div class="row" id="hairs">
+      <button data-v="🧒">🧒</button>
+      <button data-v="👧">👧</button>
+      <button data-v="👦">👦</button>
+      <button data-v="👶">👶</button>
+    </div>
+    <label>Shirt</label>
+    <div class="row" id="shirts">
+      <button data-v="#ffd166" style="background:#ffd166">👕</button>
+      <button data-v="#86efac" style="background:#86efac">👕</button>
+      <button data-v="#93c5fd" style="background:#93c5fd">👕</button>
+      <button data-v="#f9a8d4" style="background:#f9a8d4">👕</button>
+    </div>
+    <label>Pet</label>
+    <div class="row" id="pets">
+      <button data-v="🐶">🐶</button>
+      <button data-v="🐱">🐱</button>
+      <button data-v="🦊">🦊</button>
+      <button data-v="🐼">🐼</button>
+    </div>
+    <button class="play save" id="save">That's me!</button>
   </div>
-  <label>Your name</label>
-  <input id="name" type="text" maxlength="12" placeholder="Alab" value="Alab" />
-  <label>Hair</label>
-  <div class="row" id="hairs"></div>
-  <label>Shirt color</label>
-  <div class="row" id="shirts"></div>
-  <label>Pet friend</label>
-  <div class="row" id="pets"></div>
-  <button class="save" id="save">Save & go home</button>
-  <p class="ok" id="ok"></p>
+  <div class="cover off" id="win">
+    <div class="hero" id="winE">🧒</div>
+    <h1 id="winT">That's you!</h1>
+    <p>Saved for the hub.</p>
+    <button class="play g" id="again">Change more</button>
+  </div>
   <script>
-    var hairs=["🧒","👧","👦","🦊","🐧","🐱"];
-    var shirts=["#ff6b6b","#ffd166","#4ecdc4","#45b7d1","#a78bfa","#f472b6"];
-    var pets=["🐶","🐱","🐰","🐢","🐥","🦄"];
-    var state={name:"Alab",hair:"🧒",shirt:"#ffd166",pet:"🐶"};
-    try{var s=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(s&&s.name)state=s;}catch(e){}
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    function render(){
-      document.getElementById("face").textContent=state.hair;
-      document.getElementById("who").textContent=state.name||"Kid";
-      document.getElementById("shirtbar").style.background=state.shirt;
-      document.getElementById("petface").textContent=state.pet;
-      document.getElementById("preview").style.boxShadow="0 10px 0 "+state.shirt;
-      document.querySelectorAll("#hairs .pick").forEach(function(b){b.classList.toggle("on",b.dataset.v===state.hair);});
-      document.querySelectorAll("#shirts .swatch").forEach(function(b){b.classList.toggle("on",b.dataset.v===state.shirt);});
-      document.querySelectorAll("#pets .pick").forEach(function(b){b.classList.toggle("on",b.dataset.v===state.pet);});
+  (function () {
+    var av = { name: "Alab", hair: "🧒", shirt: "#ffd166", pet: "🐶" };
+    try {
+      var raw = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null");
+      if (raw && raw.name) { av.name = raw.name; av.hair = raw.hair || av.hair; av.shirt = raw.shirt || av.shirt; av.pet = raw.pet || av.pet; }
+    } catch (e) {}
+    function paint() {
+      document.getElementById("me").textContent = av.hair;
+      document.getElementById("me").style.background = av.shirt;
+      document.getElementById("who").textContent = av.name + " " + av.pet;
+      document.getElementById("name").value = av.name;
+      mark("hairs", av.hair); mark("shirts", av.shirt); mark("pets", av.pet);
     }
-    var hr=document.getElementById("hairs");
-    hairs.forEach(function(h){var b=document.createElement("button");b.className="pick";b.dataset.v=h;b.textContent=h;b.onclick=function(){state.hair=h;beep(520,.08);render();};hr.appendChild(b);});
-    var sr=document.getElementById("shirts");
-    shirts.forEach(function(c){var b=document.createElement("button");b.className="swatch";b.dataset.v=c;b.style.background=c;b.onclick=function(){state.shirt=c;beep(440,.08);render();};sr.appendChild(b);});
-    var pr=document.getElementById("pets");
-    pets.forEach(function(h){var b=document.createElement("button");b.className="pick";b.dataset.v=h;b.textContent=h;b.onclick=function(){state.pet=h;beep(600,.08);render();};pr.appendChild(b);});
-    document.getElementById("name").value=state.name;
-    document.getElementById("name").oninput=function(){state.name=this.value.slice(0,12);render();};
-    document.getElementById("save").onclick=function(){
-      state.name=(state.name||"Kid").trim()||"Kid";
-      localStorage.setItem("alabryuu-avatar",JSON.stringify(state));
-      beep(660,.12);setTimeout(function(){beep(880,.16);},90);
-      document.getElementById("ok").textContent="Saved! Going home…";
-      setTimeout(function(){location.href="../index.html";},500);
+    function mark(id, val) {
+      [].forEach.call(document.getElementById(id).children, function (b) {
+        b.classList.toggle("on", b.getAttribute("data-v") === val);
+      });
+    }
+    function bind(id, key) {
+      document.getElementById(id).addEventListener("click", function (e) {
+        var b = e.target.closest("button");
+        if (!b) return;
+        av[key] = b.getAttribute("data-v");
+        paint();
+      });
+    }
+    bind("hairs", "hair"); bind("shirts", "shirt"); bind("pets", "pet");
+    document.getElementById("name").oninput = function () { av.name = this.value || "Alab"; paint(); };
+    document.getElementById("save").onclick = function () {
+      try { localStorage.setItem("alabryuu-avatar", JSON.stringify(av)); } catch (e) {}
+      document.getElementById("winE").textContent = av.hair;
+      document.getElementById("winT").textContent = av.name + "!";
+      document.getElementById("win").classList.remove("off");
     };
-    render();
+    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); };
+    paint();
+  })();
   </script>
 </body>
 </html>

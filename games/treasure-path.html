@@ -4,51 +4,104 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Treasure Path</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#431407;touch-action:manipulation}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fde68a,#f59e0b 55%,#92400e);padding:58px 16px 28px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    .card{max-width:420px;margin:0 auto;background:#fffbeb;border-radius:32px;padding:22px 16px;box-shadow:0 12px 0 #b45309}
-    .art{font-size:84px}
-    h1{font-size:28px;margin:8px 0}
-    p{font-size:20px;line-height:1.4;min-height:3.6em}
-    .row{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-    .row button{background:#fde68a;font-weight:800;font-size:20px;padding:16px;border-radius:22px;box-shadow:0 6px 0 #d97706}
-    .row button:active{transform:translateY(3px);box-shadow:0 3px 0 #d97706}
-    .stickers{font-size:42px;letter-spacing:8px;margin-top:8px}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#431407}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="card">
-    <div class="art" id="art">🗺️</div>
-    <h1 id="title">Treasure Path</h1>
-    <p id="line"></p>
-    <div class="stickers" id="st"></div>
-    <div class="row" id="row"></div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="st">⭐ 0</b></div>
+  <div id="say">Tap the glowing stone!</div>
+  <div class="cover" id="title">
+    <div class="hero">⭐</div>
+    <h1>Treasure Path</h1>
+    <p>Tap the next glowing stone.</p>
+    <button class="play" id="go">Walk</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">💎</div>
+    <h1>Treasure!</h1>
+    <p id="wp">You found it.</p>
+    <button class="play g" id="again">Walk again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var stars=0;
-    var pages={
-      start:{art:"🌉",t:"Two Bridges",line:"A kind map says the treasure is stickers and stars. One bridge is covered in flowers. One is a sleepy log that snores.",next:[{l:"Flower bridge 🌸",to:"cave",ok:1},{l:"Sleepy log 🪵",to:"log",ok:0}]},
-      log:{art:"😴",t:"Shhh",line:"The log is napping! It mumbles, “Try the flower bridge, friend.” Nothing scary. Just a yawn.",next:[{l:"Take the flower bridge",to:"cave",ok:1}]},
-      cave:{art:"🍪",t:"Cave of Snacks",line:"The cave smells like warm cookies. A glowing cookie path winks. A broccoli mountain waves hello too.",next:[{l:"Cookie glow path 🍪",to:"hill",ok:1},{l:"Broccoli mountain 🥦",to:"broc",ok:0}]},
-      broc:{art:"🥦",t:"Crunchy Friend",line:"The broccoli is proud and green. “I am a snack too! But the glow path is quicker.” It high-fives you.",next:[{l:"Follow the glow",to:"hill",ok:1}]},
-      hill:{art:"⛰️",t:"Kind Hill",line:"At the top, two chests wait. One hums a song. One is a pile of soft hats.",next:[{l:"Humming chest ⭐",to:"win",ok:1},{l:"Hat pile 🎩",to:"hats",ok:0}]},
-      hats:{art:"🎩",t:"Silly Hats",line:"You try on a tall hat. You look like a friendly wizard. The humming chest giggles, “Come open me!”",next:[{l:"Open the humming chest",to:"win",ok:1}]},
-      win:{art:"🎁",t:"Sticker Treasure",line:"Inside: gold stars, smile stickers, and a note: “You were kind on every path.” That is the real treasure.",next:[{l:"Walk again",to:"start",ok:0}]}
-    };
-    function show(id){
-      var p=pages[id];document.getElementById("art").textContent=p.art;document.getElementById("title").textContent=p.t;document.getElementById("line").textContent=p.line;
-      if(id==="start")stars=0;
-      document.getElementById("st").textContent=id==="win"?"⭐⭐⭐ 🌟 ⭐⭐⭐":"";
-      var row=document.getElementById("row");row.innerHTML="";
-      p.next.forEach(function(n){var b=document.createElement("button");b.textContent=n.l;b.onclick=function(){if(n.ok){stars++;beep(700,.1);}else beep(320,.1);if(n.to==="start")stars=0;show(n.to);};row.appendChild(b);});
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, step = 0, stars = 0, flags = {};
+    var stones = [];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-treasure") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    show("start");
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function layout() {
+      stones = [
+        { x: 0.22, y: 0.72, e: "🪨" },
+        { x: 0.50, y: 0.60, e: "🪨" },
+        { x: 0.30, y: 0.46, e: "🪨" },
+        { x: 0.62, y: 0.36, e: "🪨" },
+        { x: 0.48, y: 0.22, e: "💎" }
+      ];
+    }
+    function hud() { document.getElementById("st").textContent = "⭐ " + stars; }
+    function start() {
+      play = true; step = 0; flags = {}; layout();
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("say").textContent = "Tap the glowing stone!";
+      hud();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      var i, best = -1, bestD = 90 * 90;
+      for (i = 0; i < stones.length; i++) {
+        var dx = kidPt(e, cv).x - stones[i].x * W, dy = kidPt(e, cv).y - stones[i].y * H;
+        var d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      if (best < 0) { document.getElementById("say").textContent = "Tap a stone!"; return; }
+      if (best === step) {
+        stars++; flags["s" + step] = 1; step++;
+        try { localStorage.setItem("alabryuu-treasure", JSON.stringify({ stars: stars, scene: step, flags: flags })); } catch (err) {}
+        hud();
+        if (step >= stones.length) {
+          play = false;
+          document.getElementById("wp").textContent = "⭐ " + stars + "  Sparkly treasure!";
+          document.getElementById("win").classList.remove("off");
+        } else document.getElementById("say").textContent = "Yes! Next glow.";
+      } else {
+        document.getElementById("say").textContent = "Not that one. The glow!";
+      }
+    });
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#7c2d12"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#166534"; x.fillRect(0, H * 0.78, W, H * 0.22);
+      em("🌴", 40, H * 0.72, 64); em("🌴", W - 40, H * 0.70, 72);
+      for (var i = 0; i < stones.length; i++) {
+        var s = stones[i], px = s.x * W, py = s.y * H;
+        if (i === step && play) {
+          x.beginPath(); x.arc(px, py, 46 + Math.sin(t * 6) * 6, 0, Math.PI * 2);
+          x.fillStyle = "rgba(253,224,71,0.45)"; x.fill();
+        }
+        em(i < step ? "⭐" : s.e, px, py, i === stones.length - 1 ? 88 : 72);
+      }
+      if (play && step < stones.length) em("🧒", stones[Math.max(0, step - 1)].x * W, stones[Math.max(0, step - 1)].y * H - 50, 56);
+      requestAnimationFrame(loop);
+    }
+    layout();
+    requestAnimationFrame(loop);
+    hud();
+  })();
   </script>
 </body>
 </html>

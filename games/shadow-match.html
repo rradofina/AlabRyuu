@@ -4,56 +4,88 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Shadow Match</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#1e1b4b;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#c7d2fe,#fde68a);padding:56px 14px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(26px,7vw,40px)}
-    .msg{font-weight:800;margin:8px}
-    .hero{font-size:96px;margin:8px}
-    .row{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:16px}
-    .sh{width:96px;height:110px;border-radius:22px;background:#e2e8f0;font-size:64px;filter:grayscale(1) brightness(0.15);box-shadow:0 7px 0 #94a3b8}
-    .sh:active{transform:translateY(4px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,20,50,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#1e1b4b}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Shadow Match</h1>
-  <p class="msg" id="msg">Tap the matching shadow!</p>
-  <div class="hero" id="hero">🐘</div>
-  <div class="row" id="row"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🌙</div>
-    <h2>Shadow champ!</h2>
-    <button class="play" id="again">Match again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="rd">1/6</b></div>
+  <div id="say">Which one makes this shadow?</div>
+  <div class="cover" id="title">
+    <div class="hero">🌙</div>
+    <h1>Shadow Match</h1>
+    <p>Tap the friend that matches the shadow.</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">⭐</div>
+    <h1>Shadow star!</h1>
+    <p>Six matches.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var pals=["🐘","🦒","🐧","🦋","🐢","🐰"],score=0,need="";
-    function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-    function round(){
-      need=pals[Math.floor(Math.random()*pals.length)];
-      document.getElementById("hero").textContent=need;
-      var picks=shuffle(pals.filter(function(p){return p!==need;})).slice(0,2).concat([need]);
-      picks=shuffle(picks);
-      var row=document.getElementById("row");row.innerHTML="";
-      picks.forEach(function(p){
-        var b=document.createElement("button");b.className="sh";b.textContent=p;
-        b.onclick=function(){
-          if(p!==need){document.getElementById("msg").textContent="Not that shadow.";beep(180,.1);return;}
-          score++;beep(780,.1);document.getElementById("msg").textContent="Yes! "+score+"/6";
-          if(score>=6){document.getElementById("win").classList.add("on");beep(940,.2);} else setTimeout(round,350);
-        };
-        row.appendChild(b);
-      });
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, round = 0;
+    var ALL = ["🐘", "🦒", "🦆", "🍎", "⭐", "🦋"];
+    var choices = [], want = "🐘";
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    round();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function deal() {
+      want = ALL[round];
+      var pool = [want];
+      while (pool.length < 3) {
+        var e = ALL[(Math.random() * ALL.length) | 0];
+        if (pool.indexOf(e) < 0) pool.push(e);
+      }
+      pool.sort(function () { return Math.random() - 0.5; });
+      choices = pool.map(function (e, i) { return { e: e, x: 0.22 + i * 0.28, y: 0.68 }; });
+      document.getElementById("rd").textContent = (round + 1) + "/6";
+      document.getElementById("say").textContent = "Which one matches?";
+    }
+    function start() {
+      play = true; round = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      deal();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      choices.forEach(function (c) {
+        var dx = kidPt(e, cv).x - c.x * W, dy = kidPt(e, cv).y - c.y * H;
+        if (dx * dx + dy * dy < 55 * 55) {
+          if (c.e === want) {
+            round++;
+            if (round >= 6) { play = false; document.getElementById("win").classList.remove("off"); }
+            else deal();
+          } else document.getElementById("say").textContent = "Not that shadow. Try again!";
+        }
+      });
+    });
+    function loop() {
+      x.fillStyle = "#1e1b4b"; x.fillRect(0, 0, W, H);
+      em("🌙", W * 0.84, 80, 56);
+      x.save();
+      x.filter = "grayscale(1) brightness(0)";
+      em(want, W * 0.5, H * 0.34, 110);
+      x.restore();
+      choices.forEach(function (c) { em(c.e, c.x * W, c.y * H, 72); });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

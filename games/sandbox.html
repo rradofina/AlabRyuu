@@ -4,68 +4,118 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Sandbox</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#3b2100;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fde68a,#86efac 55%,#f59e0b);padding:56px 10px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px);color:#7c2d12}
-    .msg{font-weight:800;margin:8px}
-    .stamps{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:10px}
-    .stamps button{width:56px;height:56px;border-radius:16px;background:#fff7ed;font-size:28px;box-shadow:0 5px 0 #d97706}
-    .stamps button.on{outline:4px solid #3b2100;background:#fde68a}
-    .stamps button:active{transform:translateY(3px)}
-    .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:min(360px,94vw);margin:8px auto;background:#fbbf24;padding:8px;border-radius:20px;box-shadow:0 8px 0 #b45309}
-    .cell{aspect-ratio:1;border-radius:10px;background:#fef3c7;font-size:22px}
-    .cell:active{transform:scale(.94)}
-    .row{display:flex;justify-content:center;gap:10px;margin-top:12px}
-    .row button{background:#fff7ed;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 5px 0 #d97706}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(60,30,0,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    html,body{background:#fef3c7}
+    .dock button{min-width:72px;min-height:84px}
+    .dock button span{font-size:40px}
+    #say{color:#431407}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Sandbox</h1>
-  <p class="msg" id="msg">Pick a stamp. Tap the sand!</p>
-  <div class="stamps" id="stamps"></div>
-  <div class="grid" id="grid"></div>
-  <div class="row">
-    <button id="clear">Clear</button>
-    <button id="show">Show me!</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="ms">House</b><b id="bl">0/5</b><b id="st">⭐ 0</b></div>
+  <div id="say">TAP the sand to stamp!</div>
+  <div class="dock" id="dock">
+    <button data-k="tree" class="on"><span>🌳</span></button>
+    <button data-k="house"><span>🏠</span></button>
+    <button data-k="flower"><span>🌸</span></button>
+    <button data-k="water"><span>💧</span></button>
   </div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🏰</div>
-    <h2>What a world!</h2>
-    <button class="play" id="again">Build more</button>
+  <div class="cover" id="title">
+    <div class="hero">🧱</div>
+    <h1>Sandbox</h1>
+    <p>Stamp big things. Keep your town!</p>
+    <button class="play" id="go">Build</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🌟</div>
+    <h1>Builder star!</h1>
+    <p id="wp">A real little town.</p>
+    <button class="play g" id="again">Keep building</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var stamps=["🧱","🌳","🏠","⭐","🚗","🌸","🦕","🌈"],cur=0,placed=0;
-    var box=document.getElementById("stamps");
-    stamps.forEach(function(s,i){
-      var b=document.createElement("button");b.textContent=s;if(!i)b.className="on";
-      b.onclick=function(){cur=i;document.querySelectorAll(".stamps button").forEach(function(x){x.classList.toggle("on",x===b);});beep(420+i*40,.06);};
-      box.appendChild(b);
-    });
-    var grid=document.getElementById("grid");
-    for(var n=0;n<36;n++){
-      (function(){
-        var cell=document.createElement("button");cell.className="cell";
-        cell.onclick=function(){
-          if(cell.textContent===stamps[cur]){cell.textContent="";beep(200,.06);return;}
-          if(!cell.textContent)placed++;
-          cell.textContent=stamps[cur];beep(560,.07);
-          document.getElementById("msg").textContent="Nice! "+placed+" pieces.";
-        };
-        grid.appendChild(cell);
-      })();
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, mission = 0, placed = 0, stars = 0, tool = "tree";
+    var bits = [];
+    var JOBS = [
+      { n: "House", need: 5, say: "TAP the sand! Stamp trees and a house." },
+      { n: "Garden", need: 5, say: "TAP again! Flowers and water." },
+      { n: "Town", need: 6, say: "TAP more houses and trees!" }
+    ];
+    var EMO = { tree: "🌳", house: "🏠", flower: "🌸", water: "💧" };
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-sandbox") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    document.getElementById("clear").onclick=function(){document.querySelectorAll(".cell").forEach(function(x){x.textContent="";});placed=0;document.getElementById("msg").textContent="Fresh sand. Build again!";beep(240,.1);};
-    document.getElementById("show").onclick=function(){if(placed<6){document.getElementById("msg").textContent="Tap at least 6 stamps first!";beep(180,.1);return;}document.getElementById("win").classList.add("on");beep(880,.2);};
-    document.getElementById("again").onclick=function(){document.getElementById("win").classList.remove("on");};
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function hud() {
+      document.getElementById("ms").textContent = JOBS[Math.min(mission, JOBS.length - 1)].n;
+      document.getElementById("bl").textContent = placed + "/" + JOBS[Math.min(mission, JOBS.length - 1)].need;
+      document.getElementById("st").textContent = "⭐ " + stars;
+      document.getElementById("say").textContent = JOBS[Math.min(mission, JOBS.length - 1)].say;
+    }
+    function start() {
+      play = true; mission = 0; placed = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      hud();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off");
+      play = true; mission = 0; placed = 0; hud();
+      document.getElementById("dock").classList.add("on");
+    };
+    [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
+      b.onclick = function () {
+        tool = b.getAttribute("data-k");
+        [].forEach.call(document.querySelectorAll("#dock button"), function (el) { el.classList.toggle("on", el === b); });
+      };
+    });
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      var p = kidPt(e, cv);
+      if (p.y > H - 110) return;
+      if (p.x < 110 && p.y < 56) return;
+      bits.push({ k: tool, x: p.x, y: p.y });
+      placed++; stars++;
+      try { localStorage.setItem("alabryuu-sandbox", JSON.stringify({ stars: stars, mission: mission })); } catch (err) {}
+      hud();
+      if (placed >= JOBS[mission].need) {
+        mission++;
+        placed = 0;
+        if (mission >= JOBS.length) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("wp").textContent = "⭐ " + stars + "  Your town stays!";
+          document.getElementById("win").classList.remove("off");
+        } else {
+          document.getElementById("say").textContent = "Nice! " + JOBS[mission].say;
+          hud();
+        }
+      }
+    });
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#fde68a"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#ca8a04";
+      for (var i = 0; i < 10; i++) x.fillRect(0, H * 0.28 + i * 32, W, 6);
+      bits.forEach(function (b) { em(EMO[b.k] || "🌳", b.x, b.y, 64); });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

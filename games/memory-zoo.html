@@ -4,53 +4,88 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Memory Zoo</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#365314;touch-action:manipulation}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#bef264,#365314);padding:58px 12px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px);color:#fff;text-shadow:0 3px 0 #365314}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:380px;margin:16px auto}
-    .card{height:78px;border-radius:18px;background:#166534;box-shadow:0 6px 0 #14532d;font-size:36px;color:#fff}
-    .card:active{transform:translateY(3px)}
-    .card.on,.card.ok{background:#fefce8;color:#222}
-    .card.ok{opacity:.7}
-    .msg{font-weight:800;color:#fff;margin-top:8px}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(20,40,10,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    html,body{background:#14532d;overflow:auto;touch-action:manipulation}
+    .grid{position:fixed;left:50%;top:58%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:min(92vw,440px);z-index:2}
+    .card{min-height:92px;border-radius:20px;background:#166534;font-size:56px;box-shadow:0 6px 0 #052e16}
+    .card.on{background:#fff}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Memory Zoo</h1>
-  <p class="msg">Flip two friends!</p>
+  <div id="hud"><b id="pr">0/4</b></div>
+  <div id="say">Find two the same!</div>
   <div class="grid" id="grid"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🦁</div>
-    <h2>All matched!</h2>
-    <button class="play" id="again">Play again</button>
+  <div class="cover" id="title">
+    <div class="hero">🦁</div>
+    <h1>Memory Zoo</h1>
+    <p>Flip cards. Match the animals!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🎉</div>
+    <h1>Zoo match!</h1>
+    <p>All the pals found friends.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var animals=["🦁","🐘","🦒","🐧","🐼","🐸"],deck=animals.concat(animals);
-    for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=deck[i];deck[i]=deck[j];deck[j]=t;}
-    var open=[],lock=false,left=6,grid=document.getElementById("grid");
-    deck.forEach(function(a,idx){
-      var b=document.createElement("button");b.className="card";b.textContent="🌿";
-      b.onclick=function(){
-        if(lock||b.classList.contains("on")||b.classList.contains("ok"))return;
-        b.classList.add("on");b.textContent=a;beep(500,.06);open.push({b:b,a:a});
-        if(open.length===2){
-          lock=true;
-          if(open[0].a===open[1].a){open[0].b.classList.add("ok");open[1].b.classList.add("ok");beep(840,.12);left--;open=[];lock=false;if(!left){document.getElementById("win").classList.add("on");beep(990,.2);}}
-          else setTimeout(function(){open.forEach(function(o){o.b.classList.remove("on");o.b.textContent="🌿";});open=[];lock=false;beep(200,.08);},650);
-        }
-      };
-      grid.appendChild(b);
-    });
-    document.getElementById("again").onclick=function(){location.reload();};
+  (function () {
+    var ANIM = ["🦁", "🐘", "🦒", "🐧"];
+    var cards = [], open = [], lock = false, pairs = 0;
+    function shuffle(a) {
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = (Math.random() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+    function deal() {
+      cards = shuffle(ANIM.concat(ANIM).map(function (e, i) { return { e: e, id: i, open: 0, done: 0 }; }));
+      open = []; lock = false; pairs = 0;
+      var g = document.getElementById("grid");
+      g.innerHTML = "";
+      cards.forEach(function (c, i) {
+        var b = document.createElement("button");
+        b.className = "card";
+        b.textContent = "❓";
+        b.onclick = function () { flip(i, b); };
+        c.el = b;
+        g.appendChild(b);
+      });
+      document.getElementById("pr").textContent = "0/4";
+      document.getElementById("say").textContent = "Find two the same!";
+    }
+    function flip(i, b) {
+      var c = cards[i];
+      if (lock || c.open || c.done) return;
+      c.open = 1; b.textContent = c.e; b.classList.add("on");
+      open.push(c);
+      if (open.length < 2) return;
+      lock = true;
+      if (open[0].e === open[1].e) {
+        open[0].done = open[1].done = 1;
+        pairs++;
+        document.getElementById("pr").textContent = pairs + "/4";
+        document.getElementById("say").textContent = "Match! " + open[0].e;
+        open = []; lock = false;
+        if (pairs >= 4) document.getElementById("win").classList.remove("off");
+      } else {
+        document.getElementById("say").textContent = "Try again!";
+        setTimeout(function () {
+          open.forEach(function (o) { o.open = 0; o.el.textContent = "❓"; o.el.classList.remove("on"); });
+          open = []; lock = false;
+        }, 700);
+      }
+    }
+    function start() {
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      deal();
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+  })();
   </script>
 </body>
 </html>

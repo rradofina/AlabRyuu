@@ -4,62 +4,82 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Bubble Bath</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#7dd3fc;color:#0c4a6e;overflow:hidden;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;font-weight:800;background:#fff8;padding:8px 12px;border-radius:16px}
-    #tub{position:fixed;inset:0;background:linear-gradient(#7dd3fc 0 38%,#38bdf8 38% 70%,#0ea5e9 70%)}
-    .duck{position:fixed;bottom:18%;left:50%;transform:translateX(-50%);font-size:84px;pointer-events:none;animation:bob 1.6s ease-in-out infinite}
-    @keyframes bob{50%{transform:translateX(-50%) translateY(-10px)}}
-    .bub{position:absolute;font-size:42px;line-height:1}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,40,70,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#7dd3fc}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">🫧 0 / 12</div>
-  <div id="tub"></div>
-  <div class="duck">🦆</div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🛁</div>
-    <h2>Squeaky clean!</h2>
-    <button class="play" id="again">Splash again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="pp">🫧 0/12</b></div>
+  <div id="say">Pop bubbles. Wash the duck!</div>
+  <div class="cover" id="title">
+    <div class="hero">🛁</div>
+    <h1>Bubble Bath</h1>
+    <p>Pop 12 bubbles. Duck gets clean!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🦆</div>
+    <h1>Squeaky clean!</h1>
+    <p>The duck is shiny.</p>
+    <button class="play g" id="again">Bath again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var score=0,play=true,items=[],tub=document.getElementById("tub"),look=["🫧","⚪","💧"];
-    function spawn(){
-      if(!play)return;
-      var b=document.createElement("button");b.className="bub";b.textContent=look[Math.floor(Math.random()*look.length)];
-      var x=20+Math.random()*(innerWidth-60),y=innerHeight*0.78,sp=1.2+Math.random()*1.8,wob=Math.random()*6;
-      b.style.left=x+"px";b.style.top=y+"px";tub.appendChild(b);
-      var it={el:b,x:x,y:y,sp:sp,wob:wob,t:0,dead:false};
-      b.onclick=function(){
-        if(!play||it.dead)return;
-        it.dead=true;b.remove();score++;beep(640+score*20,.08);
-        document.getElementById("hud").textContent="🫧 "+score+" / 12";
-        if(score>=12){play=false;document.getElementById("win").classList.add("on");beep(900,.2);}
-      };
-      items.push(it);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, n = 0, bubbles = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    var acc=0;
-    function loop(){
-      acc++;if(play&&acc%22===0)spawn();
-      items.forEach(function(it){
-        if(it.dead)return;
-        it.t++;it.y-=it.sp;it.x+=Math.sin(it.t/12)*0.8;
-        it.el.style.top=it.y+"px";it.el.style.left=it.x+"px";
-        if(it.y<-40){it.dead=true;it.el.remove();}
-      });
-      items=items.filter(function(it){return !it.dead;});
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function spawn() { bubbles.push({ x: 40 + Math.random() * (W - 80), y: H * 0.72, vy: 40 + Math.random() * 50 }); }
+    function start() {
+      play = true; n = 0; bubbles = [];
+      for (var i = 0; i < 5; i++) bubbles.push({ x: 50 + i * 70, y: H * 0.35 + (i % 2) * 80, vy: 45 });
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("pp").textContent = "🫧 0/12";
+      document.getElementById("say").textContent = "Pop the bubbles!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      for (var i = bubbles.length - 1; i >= 0; i--) {
+        var dx = kidPt(e, cv).x - bubbles[i].x, dy = kidPt(e, cv).y - bubbles[i].y;
+        if (dx * dx + dy * dy < 70 * 70) {
+          bubbles.splice(i, 1); n++;
+          document.getElementById("pp").textContent = "🫧 " + n + "/12";
+          document.getElementById("say").textContent = "Pop!";
+          if (n >= 12) { play = false; document.getElementById("win").classList.remove("off"); }
+          return;
+        }
+      }
+    });
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#bae6fd"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#38bdf8"; x.fillRect(0, H * 0.58, W, H);
+      em("🛁", W * 0.5, H * 0.70, 96);
+      em(n >= 12 ? "🦆" : "🐥", W * 0.5, H * 0.58, 72);
+      if (play) {
+        if (bubbles.length < 6 && Math.random() < 0.06) spawn();
+        bubbles.forEach(function (b) { b.y -= b.vy * dt; });
+        bubbles = bubbles.filter(function (b) { return b.y > 40; });
+      }
+      bubbles.forEach(function (b) { em("🫧", b.x, b.y, 56); });
       requestAnimationFrame(loop);
     }
-    loop();
-    document.getElementById("again").onclick=function(){location.reload();};
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

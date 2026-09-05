@@ -4,51 +4,93 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Busy Bees</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;color:#713f12;touch-action:manipulation;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    body{min-height:100vh;background:linear-gradient(#fde047,#86efac);padding:56px 12px 24px;text-align:center}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    h1{font-size:clamp(28px,8vw,42px);color:#854d0e}
-    .msg{font-weight:800;margin:8px;font-size:22px}
-    .flower{font-size:96px;margin:8px}
-    .bees{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:16px}
-    .bees button{width:88px;height:88px;border-radius:50%;background:#fff;font-size:42px;box-shadow:0 6px 0 #ca8a04}
-    .bees button:active{transform:translateY(3px)}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(50,30,0,.84);z-index:8;gap:12px;color:#fff}
-    .win.on{display:flex}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:26px;padding:14px 28px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#fde047}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <h1>Busy Bees</h1>
-  <p class="msg" id="msg">Send the matching bee!</p>
-  <div class="flower" id="flower">🌸</div>
-  <div class="bees" id="bees"></div>
-  <div class="win" id="win">
-    <div style="font-size:72px">🍯</div>
-    <h2>Honey time!</h2>
-    <button class="play" id="again">Buzz again</button>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="nv">🍯 0/6</b></div>
+  <div id="say">Tap the matching flower. Then the hive!</div>
+  <div class="cover" id="title">
+    <div class="hero">🐝</div>
+    <h1>Busy Bees</h1>
+    <p>Match the flower color. Take nectar home!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🍯</div>
+    <h1>Honey time!</h1>
+    <p>Six trips to the hive.</p>
+    <button class="play g" id="again">Fly again</button>
   </div>
   <script>
-    function beep(f,d){try{var c=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);}catch(e){}}
-    var flowers=[{e:"🌸",n:"pink",c:"#f9a8d4"},{e:"🌻",n:"yellow",c:"#fde047"},{e:"🌼",n:"white",c:"#f8fafc"},{e:"🌺",n:"red",c:"#f87171"}];
-    var bees=[{e:"🐝",n:"yellow",c:"#fde047"},{e:"🐝",n:"pink",c:"#f9a8d4"},{e:"🐝",n:"white",c:"#f8fafc"},{e:"🐝",n:"red",c:"#f87171"}];
-    var need,score=0,box=document.getElementById("bees");
-    bees.forEach(function(bee){
-      var b=document.createElement("button");b.textContent="🐝";b.style.background=bee.c;
-      b.onclick=function(){
-        if(bee.n!==need.n){document.getElementById("msg").textContent="This flower wants the "+need.n+" bee.";beep(180,.1);return;}
-        score++;beep(760,.1);document.getElementById("msg").textContent="Buzz! "+score+"/8";
-        if(score>=8){document.getElementById("win").classList.add("on");beep(940,.2);} else next();
-      };
-      box.appendChild(b);
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, n = 0, want = "🌸", holding = 0;
+    var FLOW = ["🌸", "🌼", "🌺"];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function spots() {
+      return [
+        { e: FLOW[0], x: 0.22, y: 0.62 },
+        { e: FLOW[1], x: 0.50, y: 0.68 },
+        { e: FLOW[2], x: 0.78, y: 0.60 }
+      ];
+    }
+    function start() {
+      play = true; n = 0; holding = 0; want = FLOW[(Math.random() * 3) | 0];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("nv").textContent = "🍯 0/6";
+      document.getElementById("say").textContent = "Tap " + want + " then the hive!";
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      var hiveX = W * 0.78, hiveY = H * 0.28;
+      var hx = kidPt(e, cv).x - hiveX, hy = kidPt(e, cv).y - hiveY;
+      if (hx * hx + hy * hy < 55 * 55) {
+        if (holding) {
+          holding = 0; n++;
+          document.getElementById("nv").textContent = "🍯 " + n + "/6";
+          if (n >= 6) { play = false; document.getElementById("win").classList.remove("off"); }
+          else {
+            want = FLOW[(Math.random() * 3) | 0];
+            document.getElementById("say").textContent = "Now " + want + "!";
+          }
+        } else document.getElementById("say").textContent = "Get nectar first. Tap " + want;
+        return;
+      }
+      spots().forEach(function (s) {
+        var dx = kidPt(e, cv).x - s.x * W, dy = kidPt(e, cv).y - s.y * H;
+        if (dx * dx + dy * dy < 50 * 50) {
+          if (s.e === want) { holding = 1; document.getElementById("say").textContent = "Home to the hive!"; }
+          else document.getElementById("say").textContent = "Wrong flower. Want " + want;
+        }
+      });
     });
-    function next(){need=flowers[Math.floor(Math.random()*flowers.length)];document.getElementById("flower").textContent=need.e;}
-    next();
-    document.getElementById("again").onclick=function(){location.reload();};
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
+      em("☀️", 50, 80, 48);
+      em("🍯", W * 0.78, H * 0.28, 80);
+      spots().forEach(function (s) { em(s.e, s.x * W, s.y * H, 72); });
+      em("🐝", W * (holding ? 0.55 : 0.28), H * 0.40 + Math.sin(t * 4) * 8, 64);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>

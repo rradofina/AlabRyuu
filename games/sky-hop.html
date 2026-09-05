@@ -4,99 +4,177 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Sky Hop</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#7dd3fc;color:#0c4a6e;touch-action:manipulation;overflow:hidden;user-select:none}
-    button{background:transparent;border:0;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit;cursor:pointer}
-    .home{position:fixed;top:12px;left:12px;z-index:9;color:#fff;text-decoration:none;font-weight:800;font-size:18px;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:9;font-weight:800;background:rgba(255,255,255,.7);padding:8px 12px;border-radius:16px}
-    canvas{display:block;width:100%;height:100%;touch-action:none}
-    .cover{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(#38bdf8,#f9a8d4);z-index:8;gap:10px;text-align:center;padding:20px}
-    .cover.off{display:none}
-    .play{background:#ffd166;color:#3b2100;font-weight:800;font-size:28px;padding:14px 32px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-    h1{font-size:clamp(36px,10vw,56px);color:#fff;text-shadow:0 4px 0 #0369a1}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>html,body{background:#1d4ed8} #hud b{background:#1e3a8a}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud">⭐ 0 / 10 · L1</div>
   <canvas id="c"></canvas>
-  <div class="cover" id="start">
-    <div style="font-size:72px">☁️</div>
+  <div id="hud"><b id="info">High 0 · ★0</b></div>
+  <div id="say">Tap Hop!</div>
+  <div class="dock" id="tools">
+    <button id="hop"><span>⬆️</span>Hop</button>
+    <button id="flutter"><span>🪽</span>Flutter</button>
+    <button id="deco"><span>🌸</span>Pretty</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">🧚</div>
     <h1>Sky Hop</h1>
-    <p>Tap to jump. Grab 10 stars!</p>
+    <p>Hop the clouds. Climb forever!</p>
     <button class="play" id="go">Play</button>
   </div>
-  <div class="cover off" id="win">
-    <div style="font-size:72px">🌟</div>
-    <h1>Sky hero!</h1>
-    <p>You hopped every cloud.</p>
-    <button class="play" id="again">Play again</button>
-  </div>
   <script>
-    function beep(f,d,t){try{var ctx=window._ac||(window._ac=new(window.AudioContext||window.webkitAudioContext)());var o=ctx.createOscillator(),g=ctx.createGain();o.type=t||"sine";o.frequency.value=f;g.gain.value=.11;o.connect(g);g.connect(ctx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d);o.stop(ctx.currentTime+d);}catch(e){}}
-    var cv=document.getElementById("c"),x=cv.getContext("2d");
-    var W,H,stars=0,level=0,playing=false,won=false;
-    var kid={x:60,y:0,vy:0,w:36,h:44,on:false};var kidFace="🧒";try{var av=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(av&&av.hair)kidFace=av.hair;}catch(e){}
-    var plats=[],bits=[],cam=0;
-    var levels=[
-      [{x:0,y:0,w:140},{x:200,y:-70,w:110},{x:360,y:-20,w:120},{x:520,y:-90,w:110},{x:680,y:-40,w:160}],
-      [{x:0,y:0,w:120},{x:190,y:-80,w:90},{x:340,y:-20,w:90},{x:500,y:-110,w:100},{x:660,y:-50,w:90},{x:820,y:-130,w:140}],
-      [{x:0,y:0,w:110},{x:180,y:-60,w:80},{x:320,y:-130,w:80},{x:470,y:-40,w:90},{x:630,y:-100,w:80},{x:780,y:-20,w:90},{x:930,y:-90,w:150}]
-    ];
-    var starMap=[[180,-110],[390,-70],[560,-140],[220,-130],[540,-160],[700,-100],[860,-180],[200,-110],[500,-90],[800,-70]];
-    function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
-    resize();addEventListener("resize",resize);
-    function groundY(){return H*0.78;}
-    function loadLevel(){
-      var base=groundY();
-      plats=levels[level].map(function(p){return {x:p.x,y:base+p.y,w:p.w,h:22};});
-      bits=[];
-      var slice=starMap.slice(level===0?0:level===1?3:7, level===0?3:level===1?7:10);
-      slice.forEach(function(s,i){bits.push({x:s[0]+20,y:base+s[1],got:false});});
-      kid.x=40;kid.y=plats[0].y-kid.h;kid.vy=0;kid.on=true;cam=0;
+  (function () {
+    var LS = "alabryuu-sky";
+    var save = {};
+    try { save = JSON.parse(localStorage.getItem(LS) || "{}"); } catch (e) {}
+    var cv = document.getElementById("c"), ctx = cv.getContext("2d");
+    var W = 390, H = 700, T = 0, playing = false;
+    var clouds = [], on = 0, hopCount = 0, best = save.best || 0, stars = save.stars || 0, decorations = save.decos || 0;
+    var hopPhase = "idle", hopT = 0, flutterT = 0, stuck = 0;
+    var hopFrom = { x: 0, y: 0 }, hopTo = { x: 0, y: 0 };
+    var kid = { x: 0, y: 0 };
+    var camX = 0, camY = 0;
+    var cheers = ["Higher!", "Nice hop!", "Keep going!", "Up up!", "Whee!"];
+    function em(ch, px, py, s) {
+      ctx.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(ch, px, py);
     }
-    function jump(){if(!playing||won)return;if(kid.on){kid.vy=-13.2;kid.on=false;beep(620,.08,"square");}}
-    addEventListener("pointerdown",function(e){if(e.target.closest("a,button"))return;jump();});
-    function tick(){
-      if(!playing){requestAnimationFrame(tick);return;}
-      kid.vy+=0.55;kid.y+=kid.vy;kid.on=false;
-      plats.forEach(function(p){
-        var nx=kid.x+8,ny=kid.y+kid.h;
-        if(kid.vy>=0 && nx+kid.w-16>p.x && nx<p.x+p.w && ny>=p.y && ny<=p.y+p.h+kid.vy+6){
-          kid.y=p.y-kid.h;kid.vy=0;kid.on=true;
-        }
+    function resize() {
+      W = innerWidth; H = innerHeight;
+      var d = Math.min(devicePixelRatio || 1, 2);
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function sx(wx) { return wx - camX; }
+    function sy(wy) { return H * 0.62 - (wy - camY); }
+    function hud() { document.getElementById("info").textContent = "Hops " + hopCount + "  Best " + Math.max(best, hopCount); }
+    function persist() {
+      try { localStorage.setItem(LS, JSON.stringify({ hops: hopCount, best: best, stars: stars, decos: decorations })); } catch (e) {}
+      hud();
+    }
+    function cloudAt(idx) {
+      for (var i = 0; i < clouds.length; i++) if (clouds[i].i === idx) return clouds[i];
+      return null;
+    }
+    function spawnCloud(i) {
+      clouds.push({
+        i: i, x: i * 160, y: i * 40 + Math.sin(i * 0.9) * 30,
+        decos: [], star: i > 0 && i % 3 === 0 ? 1 : 0
       });
-      if(kid.x<plats[plats.length-1].x+80)kid.x+=2.15;
-      cam=Math.max(0,kid.x-W*0.28);
-      bits.forEach(function(s){
-        if(!s.got && Math.hypot(kid.x+18-s.x,kid.y+16-s.y)<34){s.got=true;stars++;beep(880,.1);document.getElementById("hud").textContent="⭐ "+stars+" / 10 · L"+(level+1);if(stars>=10){won=true;playing=false;document.getElementById("win").classList.remove("off");beep(990,.25);}}
-      });
-      if(kid.y>H+40){beep(160,.2);kid.x=40;kid.y=plats[0].y-kid.h;kid.vy=0;kid.on=true;cam=0;}
-      if(kid.x>plats[plats.length-1].x+plats[plats.length-1].w-20){
-        if(level<2){level++;beep(760,.12);loadLevel();document.getElementById("hud").textContent="⭐ "+stars+" / 10 · L"+(level+1);}
-        else if(stars>=10){won=true;playing=false;document.getElementById("win").classList.remove("off");beep(990,.25);}
-        else {stars=Math.min(stars,9);level=0;loadLevel();document.getElementById("hud").textContent="⭐ "+stars+" / 10 · grab more!";}
+    }
+    function ensureAhead() {
+      var last = clouds.length ? clouds[clouds.length - 1].i : -1;
+      for (var i = last + 1; i <= on + 10; i++) spawnCloud(i);
+    }
+    function recycleBehind() {
+      while (clouds.length && clouds[0].i < on - 3) clouds.shift();
+    }
+    function snapToCloud(idx) {
+      ensureAhead();
+      on = Math.max(0, idx);
+      hopPhase = "idle"; hopT = 0; flutterT = 0; stuck = 0;
+      var c = cloudAt(on) || clouds[0];
+      if (!c) return;
+      kid.x = c.x; kid.y = c.y + 18;
+    }
+    function build() {
+      clouds = []; on = 0; hopPhase = "idle";
+      ensureAhead(); snapToCloud(0);
+      camX = kid.x - W * 0.38; camY = kid.y - 20;
+      hud();
+      document.getElementById("say").textContent = "Tap Hop!";
+    }
+    function hop() {
+      if (!playing) return;
+      if (hopPhase !== "idle") {
+        if (stuck > 1.6) snapToCloud(on);
+        else return;
       }
-      draw();requestAnimationFrame(tick);
+      ensureAhead();
+      var here = cloudAt(on), next = cloudAt(on + 1);
+      if (!here || !next) { snapToCloud(on); document.getElementById("say").textContent = "Hop again!"; return; }
+      hopPhase = "air"; hopT = 0; stuck = 0;
+      hopFrom.x = here.x; hopFrom.y = here.y + 18;
+      hopTo.x = next.x; hopTo.y = next.y + 18;
+      hopCount++; if (hopCount > best) best = hopCount;
+      if (hopCount % 5 === 0) stars += 1;
+      persist();
+      document.getElementById("say").textContent = cheers[hopCount % cheers.length] + "  Hop " + hopCount;
     }
-    function draw(){
-      var g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#38bdf8");g.addColorStop(1,"#f9a8d4");
-      x.fillStyle=g;x.fillRect(0,0,W,H);
-      x.save();x.translate(-cam,0);
-      plats.forEach(function(p,i){
-        x.fillStyle=i%2?"#fff":"#e0f2fe";
-        round(p.x,p.y,p.w,p.h,12);x.fill();
-        x.font="18px Trebuchet MS";x.fillText("☁️",p.x+p.w/2-10,p.y+4);
-      });
-      bits.forEach(function(s){if(!s.got){x.font="28px serif";x.fillText("⭐",s.x-12,s.y+8);}});
-      x.font="40px serif";x.fillText(kidFace,kid.x,kid.y+kid.h-4);
-      x.restore();
+    function collectIfStar() {
+      var c = cloudAt(on);
+      if (c && c.star) { c.star = 0; stars++; persist(); document.getElementById("say").textContent = "Star!"; }
     }
-    function round(a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
-    document.getElementById("go").onclick=function(){document.getElementById("start").classList.add("off");stars=0;level=0;won=false;playing=true;loadLevel();beep(520,.1);};
-    document.getElementById("again").onclick=function(){document.getElementById("win").classList.add("off");document.getElementById("start").classList.remove("off");};
-    loadLevel();draw();tick();
+    document.getElementById("go").onclick = function () {
+      hopCount = 0; playing = true; build();
+      document.getElementById("title").classList.add("off");
+      document.getElementById("tools").classList.add("on");
+    };
+    document.getElementById("hop").onclick = hop;
+    document.getElementById("flutter").onclick = function () {
+      if (!playing || hopPhase !== "idle") return;
+      flutterT = 0.45;
+      document.getElementById("say").textContent = "Flutter!  Hop " + hopCount;
+    };
+    document.getElementById("deco").onclick = function () {
+      if (!playing) return;
+      var c = cloudAt(on);
+      if (!c) { snapToCloud(on); return; }
+      c.decos.push({ ox: (Math.random() - 0.5) * 50, oy: 8 });
+      decorations++; stars++; persist();
+      document.getElementById("say").textContent = "Pretty!  ★" + stars;
+    };
+    cv.addEventListener("pointerdown", function () { if (playing) hop(); });
+    function lerp(a, b, k) { return a + (b - a) * k; }
+    var last = performance.now();
+    function loop(now) {
+      var dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
+      ensureAhead();
+      var pad = cloudAt(on);
+      if (!pad) snapToCloud(on);
+      if (hopPhase !== "idle") stuck += dt;
+      if (stuck > 2) snapToCloud(on);
+      if (hopPhase === "air") {
+        hopT += dt;
+        var k = Math.min(1, hopT / 0.55);
+        var hang = Math.sin(k * Math.PI);
+        kid.x = lerp(hopFrom.x, hopTo.x, k);
+        kid.y = lerp(hopFrom.y, hopTo.y, k) + hang * 70;
+        if (k >= 1) {
+          hopPhase = "idle"; on++; ensureAhead(); recycleBehind();
+          snapToCloud(on); collectIfStar();
+        }
+      } else if (flutterT > 0) {
+        flutterT -= dt;
+        kid.y = (pad ? pad.y + 18 : kid.y) + Math.sin((1 - flutterT / 0.45) * Math.PI) * 30;
+      } else if (pad) {
+        kid.x = pad.x;
+        kid.y = pad.y + 18 + Math.sin(T * 3) * 4;
+      }
+      camX += (kid.x - W * 0.38 - camX) * 0.12;
+      camY += (kid.y - 24 - camY) * 0.12;
+      var g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#1e3a8a"); g.addColorStop(0.45, "#2563eb"); g.addColorStop(1, "#7dd3fc");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      em("☀️", W * 0.82, 80, 72);
+      var i;
+      for (i = 0; i < clouds.length; i++) {
+        var c = clouds[i], px = sx(c.x), py = sy(c.y + Math.sin(T * 1.4 + c.i) * 6);
+        if (px < -160 || px > W + 160) continue;
+        em("☁️", px, py, 92);
+        for (var d = 0; d < c.decos.length; d++) em("🌸", px + c.decos[d].ox, py + c.decos[d].oy, 36);
+        if (c.star) em("⭐", px + 40, py - 36, 40);
+      }
+      em(hopPhase === "air" || flutterT > 0 ? "🧚" : "🧒", sx(kid.x), sy(kid.y) - 28, 72);
+      requestAnimationFrame(loop);
+    }
+    build();
+    requestAnimationFrame(loop);
+  })();
   </script>
 </body>
 </html>
