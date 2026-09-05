@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Space Story</title>
-  <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,system-ui,sans-serif;background:#050714;color:#fdf4ff;touch-action:none;user-select:none}
     button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    canvas{display:block;width:100%;height:100%}
     .home{position:fixed;top:12px;left:12px;z-index:8;color:#082f49;text-decoration:none;font-weight:800;background:#67e8f9;padding:8px 14px;border-radius:999px}
     #dial{position:fixed;top:10px;right:10px;z-index:8;width:86px;height:86px;border-radius:50%;background:conic-gradient(#67e8f9,#a78bfa,#f0abfc,#67e8f9);padding:6px}
     #dial b{display:flex;align-items:center;justify-content:center;height:100%;border-radius:50%;background:#1e1b4e;font-size:13px;text-align:center}
@@ -28,6 +28,7 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
   <div id="dial"><b id="info">1 / 13</b></div>
   <div class="cockpit on" id="panel">
     <div class="who" id="who">Pip the Pilot</div>
@@ -46,143 +47,14 @@
   </div>
   <script>
   (function () {
-    if (!window.THREE) return;
-    var T = THREE, si = 0, camTarget = 0, t = 0, camUntil = 0;
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, T = 0, si = 0, play = false, shipX = 0.3, dest = 0.3;
     var flags = { helpedMoon: false, water: false, song: false, friend: "Pip" };
     try {
       var sv = JSON.parse(localStorage.getItem("alabryuu-space") || "{}");
       if (sv.flags) flags = Object.assign(flags, sv.flags);
       if (sv.scene) si = sv.scene;
     } catch (e) {}
-
-    var scene = new T.Scene();
-    var camera = new T.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 200);
-    camera.position.set(0, 0.6, 2.4);
-    var renderer = new T.WebGLRenderer({ antialias: true });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
-    renderer.setClearColor(0x050714, 1);
-    document.body.appendChild(renderer.domElement);
-    scene.add(new T.AmbientLight(0x4466aa, 0.55));
-    var sun = new T.DirectionalLight(0xffe8b0, 1); sun.position.set(8, 6, 4); scene.add(sun);
-
-    for (var i = 0; i < 160; i++) {
-      var s = new T.Mesh(new T.SphereGeometry(0.03, 6, 4), new T.MeshBasicMaterial({ color: 0xffffff }));
-      s.position.set((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 50, -20 - Math.random() * 80);
-      scene.add(s);
-    }
-    var planets = [];
-    var pal = [0xff8a5b, 0x7ec8ff, 0x8be38b, 0xffd84d, 0xc9a0ff, 0xff9ad5];
-    for (var p = 0; p < 6; p++) {
-      var pl = new T.Mesh(new T.SphereGeometry(1.1 + p * 0.12, 16, 12), new T.MeshLambertMaterial({ color: pal[p] }));
-      pl.position.set(p * 8 - 4, Math.sin(p) * 1.2, -14 - p * 3);
-      scene.add(pl); planets.push(pl);
-      var ring = new T.Mesh(new T.TorusGeometry(1.6 + p * 0.08, 0.05, 8, 24), new T.MeshBasicMaterial({ color: 0xffffff }));
-      ring.rotation.x = 1.2; pl.add(ring);
-    }
-
-    var ship = new T.Group();
-    var nose = new T.Mesh(new T.ConeGeometry(0.18, 0.55, 8), new T.MeshLambertMaterial({ color: 0xa78bfa }));
-    nose.rotation.x = Math.PI / 2; nose.position.z = -0.55; ship.add(nose);
-    var body = new T.Mesh(new T.SphereGeometry(0.28, 10, 8), new T.MeshLambertMaterial({ color: 0x7c3aed }));
-    body.scale.set(1, 0.55, 1.6); ship.add(body);
-    for (var w = -1; w <= 1; w += 2) {
-      var wing = new T.Mesh(new T.SphereGeometry(0.16, 8, 6), new T.MeshLambertMaterial({ color: 0xf0abfc }));
-      wing.scale.set(1.8, 0.2, 0.7); wing.position.set(w * 0.32, 0, 0.05); ship.add(wing);
-    }
-    var glow = new T.Mesh(new T.SphereGeometry(0.09, 8, 6), new T.MeshBasicMaterial({ color: 0x67e8f9 }));
-    glow.position.z = 0.42; ship.add(glow);
-    ship.position.set(-0.15, -0.35, 0.9); scene.add(ship);
-
-    var dash = new T.Group();
-    var rim = new T.Mesh(new T.TorusGeometry(1.15, 0.08, 8, 20, Math.PI), new T.MeshLambertMaterial({ color: 0x312e81 }));
-    rim.rotation.x = 1.2; rim.position.set(0, -0.35, 0.55); dash.add(rim);
-    for (var k = 0; k < 4; k++) {
-      var knob = new T.Mesh(new T.SphereGeometry(0.06, 8, 6), new T.MeshLambertMaterial({ color: 0xff6b6b }));
-      knob.position.set(-0.7 + k * 0.46, -0.22, 0.85); dash.add(knob);
-    }
-    scene.add(dash);
-
-    var buddy = new T.Group();
-    var suit = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), new T.MeshLambertMaterial({ color: 0x7c3aed }));
-    suit.scale.set(1, 1.15, 0.85); suit.position.y = 0.02; buddy.add(suit);
-    var helm = new T.Mesh(new T.SphereGeometry(0.15, 12, 10), new T.MeshLambertMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.35 }));
-    helm.position.y = 0.26; buddy.add(helm);
-    var face = new T.Mesh(new T.SphereGeometry(0.11, 10, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-    face.position.set(0, 0.25, 0.02); buddy.add(face);
-    var hair = new T.Mesh(new T.SphereGeometry(0.12, 8, 6), new T.MeshLambertMaterial({ color: 0x78350f }));
-    hair.position.set(0, 0.32, -0.02); buddy.add(hair);
-    var eyeL = new T.Mesh(new T.SphereGeometry(0.016, 6, 5), new T.MeshLambertMaterial({ color: 0x1e293b }));
-    eyeL.position.set(-0.035, 0.26, 0.11); buddy.add(eyeL);
-    var eyeR = eyeL.clone(); eyeR.position.x = 0.035; buddy.add(eyeR);
-    var arms = [], legs = [];
-    for (var side = -1; side <= 1; side += 2) {
-      var arm = new T.Group(); arm.position.set(side * 0.16, 0.08, 0);
-      var limb = new T.Mesh(new T.CylinderGeometry(0.024, 0.03, 0.2, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-      limb.position.y = -0.08; arm.add(limb);
-      var hand = new T.Mesh(new T.SphereGeometry(0.032, 6, 5), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-      hand.position.y = -0.18; arm.add(hand);
-      buddy.add(arm); arms.push(arm);
-      var leg = new T.Group(); leg.position.set(side * 0.06, -0.14, 0);
-      var thigh = new T.Mesh(new T.CylinderGeometry(0.03, 0.034, 0.16, 8), new T.MeshLambertMaterial({ color: 0x312e81 }));
-      thigh.position.y = -0.07; leg.add(thigh);
-      var boot = new T.Mesh(new T.SphereGeometry(0.04, 6, 5), new T.MeshLambertMaterial({ color: 0xf472b6 }));
-      boot.scale.set(1, 0.6, 1.4); boot.position.set(0, -0.17, 0.02); leg.add(boot);
-      buddy.add(leg); legs.push(leg);
-    }
-    buddy.position.set(0.62, 0.08, 1.2);
-    buddy.rotation.y = 0.25;
-    scene.add(buddy);
-
-    function makeFox() {
-      var g = new T.Group();
-      var b = new T.Mesh(new T.SphereGeometry(0.16, 8, 6), new T.MeshLambertMaterial({ color: 0xf97316 }));
-      b.scale.set(1.3, 0.7, 0.8); g.add(b);
-      var head = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshLambertMaterial({ color: 0xf97316 }));
-      head.position.set(0.14, 0.06, 0); g.add(head);
-      for (var e = -1; e <= 1; e += 2) {
-        var ear = new T.Mesh(new T.ConeGeometry(0.035, 0.1, 5), new T.MeshLambertMaterial({ color: 0xea580c }));
-        ear.position.set(0.12, 0.16, e * 0.05); g.add(ear);
-      }
-      return g;
-    }
-    function makeWBee() {
-      var g = new T.Group();
-      var b = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshLambertMaterial({ color: 0xfacc15 }));
-      b.scale.set(1.5, 0.8, 0.8); g.add(b);
-      var st = new T.Mesh(new T.TorusGeometry(0.08, 0.02, 6, 10), new T.MeshLambertMaterial({ color: 0x1c1917 }));
-      st.rotation.y = Math.PI / 2; g.add(st);
-      return g;
-    }
-    function makeWhale() {
-      var g = new T.Group();
-      var b = new T.Mesh(new T.SphereGeometry(0.22, 10, 8), new T.MeshLambertMaterial({ color: 0x94a3b8 }));
-      b.scale.set(1.8, 0.7, 0.8); g.add(b);
-      var tail = new T.Mesh(new T.SphereGeometry(0.1, 6, 5), new T.MeshLambertMaterial({ color: 0xcbd5e1 }));
-      tail.scale.set(1.6, 0.25, 0.8); tail.position.set(-0.32, 0.04, 0); g.add(tail);
-      return g;
-    }
-    function makeCat() {
-      var g = new T.Group();
-      var b = new T.Mesh(new T.SphereGeometry(0.14, 8, 6), new T.MeshLambertMaterial({ color: 0xfde68a }));
-      g.add(b);
-      for (var e = -1; e <= 1; e += 2) {
-        var ear = new T.Mesh(new T.ConeGeometry(0.04, 0.1, 5), new T.MeshLambertMaterial({ color: 0xfacc15 }));
-        ear.position.set(e * 0.07, 0.14, 0); g.add(ear);
-      }
-      return g;
-    }
-    function makeFish() {
-      var g = new T.Group();
-      var b = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshLambertMaterial({ color: 0x38bdf8 }));
-      b.scale.set(1.5, 0.7, 0.6); g.add(b);
-      var tail = new T.Mesh(new T.ConeGeometry(0.06, 0.12, 5), new T.MeshLambertMaterial({ color: 0x7dd3fc }));
-      tail.rotation.z = Math.PI / 2; tail.position.x = -0.16; g.add(tail);
-      return g;
-    }
-    var pals = { fox: makeFox(), bee: makeWBee(), whale: makeWhale(), cat: makeCat(), fish: makeFish() };
-    Object.keys(pals).forEach(function (k) { pals[k].visible = false; scene.add(pals[k]); });
-
     var SCENES = [
       { who: "Pip", say: "Stars look shy.", ch: [["Wave hello", { friend: "Pip" }], ["Sing a song", { song: true }]], pal: null },
       { who: "Moon Fox", say: "I lost my glow.", ch: [["Share lamp", { helpedMoon: true }], ["Draw a map", {}]], pal: "fox" },
@@ -198,86 +70,72 @@
       { who: "Home", say: "Cozy dock. Hug?", ch: [["Hug everyone", {}], ["Wave and rest", {}]], pal: null },
       { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }], ["Rest and smile", { end: true }]], pal: null }
     ];
-
-    function placePal(kind) {
-      Object.keys(pals).forEach(function (k) { pals[k].visible = false; });
-      if (!kind || !pals[kind]) return;
-      var dest = planets[Math.min(camTarget, planets.length - 1)];
-      pals[kind].visible = true;
-      pals[kind].position.copy(dest.position);
-      pals[kind].position.x += 1.6;
-      pals[kind].position.y += 1.1;
-    }
-
+    var PAL = ["#ff8a5b", "#7ec8ff", "#8be38b", "#ffd84d", "#c9a0ff", "#ff9ad5"];
+    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; cv.style.width = W + "px"; cv.style.height = H + "px"; x.setTransform(d, 0, 0, d, 0, 0); }
+    addEventListener("resize", resize); resize();
+    function save() { try { localStorage.setItem("alabryuu-space", JSON.stringify({ scene: si, flags: flags })); } catch (e) {} }
     function show() {
       var s = SCENES[Math.min(si, SCENES.length - 1)];
       if (si === 2) s.say = flags.helpedMoon ? "Fox smiles now." : "Fox still looks.";
       if (si === 6) s.say = flags.water ? "Green world grows." : "Dry world waits.";
       document.getElementById("who").textContent = s.who;
       document.getElementById("say").textContent = s.say;
-      document.getElementById("info").textContent = (si + 1) + " / " + SCENES.length;
-      placePal(s.pal);
+      document.getElementById("info").textContent = (si + 1) + " / 13";
+      dest = 0.18 + (si % 6) * 0.12;
       var box = document.getElementById("chs"); box.innerHTML = "";
       s.ch.forEach(function (pair) {
         var b = document.createElement("button"); b.textContent = pair[0];
         b.onclick = function () {
           Object.assign(flags, pair[1]);
           if (pair[1].end) {
-            document.getElementById("wp").textContent = "You flew with " + (flags.friend || "Pip") + (flags.helpedMoon ? " and helped Fox." : ".");
+            document.getElementById("wp").textContent = "You flew with " + flags.friend + (flags.helpedMoon ? " and helped Fox." : ".");
             document.getElementById("win").classList.remove("off");
             document.getElementById("panel").classList.remove("on");
             si = 0;
-          } else si++;
-          camTarget = Math.min(si, planets.length - 1);
-          camUntil = t + 2.6;
-          try { localStorage.setItem("alabryuu-space", JSON.stringify({ scene: si, flags: flags })); } catch (e) {}
-          if (!pair[1].end) show();
+          } else { si++; }
+          save(); if (!pair[1].end) show();
         };
         box.appendChild(b);
       });
     }
-    document.getElementById("go").onclick = function () {
+    function start() {
+      play = true; si = 0;
       document.getElementById("title").classList.add("off");
-      document.getElementById("panel").classList.add("on");
-    };
-    document.getElementById("again").onclick = function () {
       document.getElementById("win").classList.add("off");
       document.getElementById("panel").classList.add("on");
-      si = 0; show();
-    };
-    show();
-
-    var clock = new T.Clock();
-    function loop() {
-      requestAnimationFrame(loop);
-      t = clock.getElapsedTime();
-      planets.forEach(function (pl, i) { pl.rotation.y = t * 0.15 + i; });
-      arms.forEach(function (a, i) { a.rotation.z = (i ? 1 : -1) * (0.25 + Math.sin(t * 4 + i) * 0.55); });
-      legs.forEach(function (l, i) { l.rotation.x = Math.sin(t * 5 + i * 3) * 0.22; });
-      buddy.position.y = 0.08 + Math.sin(t * 3) * 0.03;
-      ship.position.x = -0.15 + Math.sin(t * 0.8) * 0.04;
-      ship.rotation.z = Math.sin(t * 1.1) * 0.06;
-      glow.scale.setScalar(0.8 + Math.abs(Math.sin(t * 8)) * 0.5);
-      Object.keys(pals).forEach(function (k) {
-        if (pals[k].visible) pals[k].rotation.y = t * 0.8;
-      });
-      var dest = planets[camTarget];
-      if (t < camUntil) {
-        ship.position.lerp(new T.Vector3(dest.position.x * 0.2, dest.position.y * 0.1 - 0.1, dest.position.z * 0.25 + 2), 0.03);
-        camera.position.lerp(new T.Vector3(dest.position.x * 0.32, dest.position.y * 0.22 + 0.5, Math.max(dest.position.z * 0.42, -11)), 0.035);
-        camera.lookAt(dest.position);
-      } else {
-        ship.position.lerp(new T.Vector3(-0.15, -0.35, 0.9), 0.04);
-        camera.position.lerp(new T.Vector3(0, 0.55, 2.5), 0.04);
-        camera.lookAt(dest.position.x * 0.15, dest.position.y * 0.1, -6);
-      }
-      renderer.render(scene, camera);
+      show();
     }
-    addEventListener("resize", function () {
-      camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-    });
-    loop();
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    function palCol(kind) {
+      return { fox: "#f97316", bee: "#fde047", whale: "#94a3b8", cat: "#fb7185", fish: "#38bdf8" }[kind] || "#fff";
+    }
+    function loop() {
+      T += 0.016; shipX += (dest - shipX) * 0.06;
+      x.fillStyle = "#050714"; x.fillRect(0, 0, W, H);
+      var i;
+      for (i = 0; i < 90; i++) {
+        x.fillStyle = "#fff"; x.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(T + i));
+        x.fillRect((i * 53) % W, (i * 37 + T * 8) % H, 2, 2);
+      }
+      x.globalAlpha = 1;
+      for (i = 0; i < 6; i++) {
+        var px = W * (0.18 + i * 0.13), py = H * (0.28 + Math.sin(T * 0.4 + i) * 0.04);
+        x.fillStyle = PAL[i]; x.beginPath(); x.arc(px, py, 28 + i * 3, 0, 6.3); x.fill();
+        if (i % 2) { x.strokeStyle = "#fff8"; x.lineWidth = 3; x.beginPath(); x.ellipse(px, py, 40, 8, 0.3, 0, 6.3); x.stroke(); }
+      }
+      var sx = W * shipX, sy = H * 0.52;
+      x.fillStyle = "#e2e8f0"; x.beginPath(); x.ellipse(sx, sy, 28, 12, 0, 0, 6.3); x.fill();
+      x.fillStyle = "#67e8f9"; x.beginPath(); x.arc(sx + 10, sy - 2, 7, 0, 6.3); x.fill();
+      x.fillStyle = "#f0abfc"; x.beginPath(); x.moveTo(sx - 28, sy); x.lineTo(sx - 40, sy + 10); x.lineTo(sx - 22, sy + 4); x.fill();
+      var s = SCENES[Math.min(si, SCENES.length - 1)];
+      if (s.pal) {
+        x.fillStyle = palCol(s.pal);
+        x.beginPath(); x.ellipse(sx + 70, sy + 8, 16, 10, 0, 0, 6.3); x.fill();
+      }
+      requestAnimationFrame(loop);
+    }
+    show(); loop();
   })();
   </script>
 </body>

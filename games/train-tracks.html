@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Train Tracks</title>
-  <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;overflow:hidden;font-family:Georgia,serif;background:#3f2a14;color:#fff7ed;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#431407;text-decoration:none;font-family:Trebuchet MS,sans-serif;font-weight:800;font-size:16px;background:#fde68a;padding:8px 14px;border-radius:4px;border:3px solid #b45309}
+    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
+    canvas{display:block;width:100%;height:100%}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#431407;text-decoration:none;font-family:Trebuchet MS,sans-serif;font-weight:800;background:#fde68a;padding:8px 14px;border-radius:4px;border:3px solid #b45309}
     .ticket{position:fixed;top:10px;right:10px;z-index:8;width:118px;background:#fef3c7;color:#7c2d12;border:4px dashed #b45309;padding:8px 10px;text-align:center;font-family:Trebuchet MS,sans-serif;font-weight:800;box-shadow:0 6px 0 #431407;pointer-events:none}
     .ticket small{display:block;font-size:11px;letter-spacing:1px}
     .ticket b{display:block;font-size:16px;margin-top:4px}
-    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;text-shadow:0 2px 0 #7c2d12;z-index:8;pointer-events:none}
+    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
     #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:6px;padding:10px;background:#78350f;flex-wrap:wrap;justify-content:center}
     #dock.on{display:flex}
     #dock button{min-width:56px;height:56px;border-radius:14px;background:#fed7aa;color:#431407;font-weight:800;font-size:20px;box-shadow:0 5px 0 #431407}
@@ -27,6 +27,7 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
   <div class="ticket"><small>YARD</small><b id="mp">Short run</b><b id="cg">Cargo 0</b><b id="st">Stars 0</b></div>
   <div id="say">Snap tracks. Then the train runs!</div>
   <div id="dock">
@@ -40,7 +41,7 @@
   </div>
   <div class="cover" id="title">
     <h1>Train Tracks</h1>
-    <p>3D rails that snap.<br>Wheels turn. Steam puffs.</p>
+    <p>Snap rails. Then Choo!</p>
     <button class="btn" id="play">Build</button>
   </div>
   <div class="cover off" id="win">
@@ -50,193 +51,40 @@
   </div>
   <script>
   (function () {
-    if (!window.THREE) return;
-    var T = THREE, play = false, running = false, mapI = 0, stars = 0, cargo = 0, piece = "H", t = 0;
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, running = false, mapI = 0, stars = 0, cargo = 0, piece = "H";
+    var tiles = {}, boxes = [], path = [], pathI = 0, origin = { x: 0, y: 0 }, cell = 56;
     var MAPS = [
-      { n: "Short run", w: 5, h: 4, start: [0, 2], goal: [4, 2], need: 2, verb: "straight" },
-      { n: "Hill loop", w: 5, h: 4, start: [0, 1], goal: [4, 3], need: 3, verb: "turn" },
-      { n: "River hop", w: 6, h: 4, start: [0, 0], goal: [5, 3], need: 3, verb: "bridge" },
-      { n: "Night yard", w: 6, h: 5, start: [0, 2], goal: [5, 2], need: 4, verb: "lights" },
-      { n: "Home station", w: 6, h: 5, start: [0, 4], goal: [5, 0], need: 4, verb: "home" }
+      { n: "Short run", w: 5, h: 4, start: [0, 2], goal: [4, 2], need: 2 },
+      { n: "Hill loop", w: 5, h: 4, start: [0, 1], goal: [4, 3], need: 3 },
+      { n: "River hop", w: 6, h: 4, start: [0, 0], goal: [5, 3], need: 3 },
+      { n: "Night yard", w: 6, h: 5, start: [0, 2], goal: [5, 2], need: 4 },
+      { n: "Home station", w: 6, h: 5, start: [0, 4], goal: [5, 0], need: 4 }
     ];
+    var SAYS = ["Lay a straight!", "Add a turn!", "Bridge the gap!", "Night lights on!", "Home station!"];
+    var GLYPH = { H: "═", V: "║", NE: "╚", NW: "╝", SE: "╔", SW: "╗" };
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-train") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-
-    var scene = new T.Scene();
-    scene.background = new T.Color(0x86efac);
-    scene.fog = new T.Fog(0x86efac, 18, 40);
-    var cam = new T.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 80);
-    cam.position.set(6, 11, 10);
-    var renderer = new T.WebGLRenderer({ antialias: true });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
-    document.body.appendChild(renderer.domElement);
-    scene.add(new T.HemisphereLight(0xffffff, 0x7c2d12, 0.85));
-    var sun = new T.DirectionalLight(0xfff1c1, 0.8); sun.position.set(6, 12, 4); scene.add(sun);
-
-    var ground = new T.Mesh(new T.PlaneGeometry(40, 40), new T.MeshLambertMaterial({ color: 0x4d7c0f }));
-    ground.rotation.x = -Math.PI / 2; scene.add(ground);
-    var gridG = new T.Group(); scene.add(gridG);
-    var tiles = {};
-    var boxes = [];
-    var cell = 1.6;
-
-    function key(x, y) { return x + "," + y; }
-    function worldPos(x, y) {
+    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); layout(); }
+    addEventListener("resize", resize);
+    function key(a, b) { return a + "," + b; }
+    function layout() {
       var m = MAPS[mapI];
-      return new T.Vector3((x - (m.w - 1) / 2) * cell, 0.05, (y - (m.h - 1) / 2) * cell);
+      cell = Math.min(64, Math.floor((W - 24) / m.w), Math.floor((H - 180) / m.h));
+      origin.x = (W - m.w * cell) / 2;
+      origin.y = 90 + (H - 200 - m.h * cell) / 2;
     }
-
-    function makeRail(kind) {
-      var g = new T.Group();
-      var tieM = new T.MeshLambertMaterial({ color: 0x7c2d12 });
-      var railM = new T.MeshLambertMaterial({ color: 0x78716c });
-      var curve = kind !== "H" && kind !== "V";
-      for (var i = 0; i < 4; i++) {
-        var tie = new T.Mesh(new T.BoxGeometry(1.15, 0.08, 0.16), tieM);
-        if (curve) {
-          var a = (i / 3) * Math.PI / 2;
-          tie.position.set(Math.sin(a) * 0.45, 0.04, Math.cos(a) * 0.45 - 0.2);
-          tie.rotation.y = a;
-        } else tie.position.set(0, 0.04, -0.5 + i * 0.35);
-        g.add(tie);
-      }
-      if (curve) {
-        var arc = new T.Mesh(new T.TorusGeometry(0.55, 0.045, 6, 10, Math.PI / 2), railM);
-        arc.rotation.x = Math.PI / 2; arc.position.set(0.28, 0.1, -0.28); g.add(arc);
-        var arc2 = new T.Mesh(new T.TorusGeometry(0.28, 0.045, 6, 10, Math.PI / 2), railM);
-        arc2.rotation.x = Math.PI / 2; arc2.position.set(0.14, 0.1, -0.14); g.add(arc2);
-        if (kind === "NE") g.rotation.y = 0;
-        if (kind === "NW") g.rotation.y = Math.PI / 2;
-        if (kind === "SE") g.rotation.y = -Math.PI / 2;
-        if (kind === "SW") g.rotation.y = Math.PI;
-      } else {
-        var r1 = new T.Mesh(new T.BoxGeometry(0.08, 0.08, 1.5), railM);
-        r1.position.set(-0.28, 0.1, 0); g.add(r1);
-        var r2 = r1.clone(); r2.position.x = 0.28; g.add(r2);
-        if (kind === "V") g.rotation.y = Math.PI / 2;
-      }
-      return g;
-    }
-    function makeCargo(kind) {
-      var g = new T.Group();
-      if (kind === 0) {
-        for (var i = 0; i < 5; i++) {
-          var n = new T.Mesh(new T.SphereGeometry(0.12, 7, 6), new T.MeshLambertMaterial({ color: i % 2 ? 0x44403c : 0x1c1917 }));
-          n.position.set((i % 3 - 1) * 0.1, 0.12 + (i % 2) * 0.08, (Math.floor(i / 3) - 0.3) * 0.1);
-          g.add(n);
-        }
-      } else if (kind === 1) {
-        var bar = new T.Mesh(new T.CylinderGeometry(0.14, 0.14, 0.28, 10), new T.MeshLambertMaterial({ color: 0xb45309 }));
-        bar.position.y = 0.16; g.add(bar);
-        var lid = new T.Mesh(new T.CylinderGeometry(0.15, 0.15, 0.04, 10), new T.MeshLambertMaterial({ color: 0xfde68a }));
-        lid.position.y = 0.32; g.add(lid);
-      } else {
-        var sack = new T.Mesh(new T.SphereGeometry(0.16, 8, 6), new T.MeshLambertMaterial({ color: 0xca8a04 }));
-        sack.scale.set(1, 0.85, 1); sack.position.y = 0.16; g.add(sack);
-        var top = new T.Mesh(new T.ConeGeometry(0.06, 0.1, 6), new T.MeshLambertMaterial({ color: 0x92400e }));
-        top.position.y = 0.32; g.add(top);
-      }
-      return g;
-    }
-    function makeStation(gold) {
-      var g = new T.Group();
-      var house = new T.Mesh(new T.CylinderGeometry(0.28, 0.32, 0.4, 8), new T.MeshLambertMaterial({ color: gold ? 0xf59e0b : 0x22c55e }));
-      house.position.y = 0.28; g.add(house);
-      var roof = new T.Mesh(new T.ConeGeometry(0.38, 0.28, 8), new T.MeshLambertMaterial({ color: gold ? 0xfde047 : 0x166534 }));
-      roof.position.y = 0.58; g.add(roof);
-      return g;
-    }
-
-    function rebuildGrid() {
-      boxes.forEach(function (b) { scene.remove(b); });
-      while (gridG.children.length) gridG.remove(gridG.children[0]);
-      tiles = {}; boxes = [];
-      var m = MAPS[mapI];
-      for (var y = 0; y < m.h; y++) {
-        for (var x = 0; x < m.w; x++) {
-          var pad = new T.Mesh(new T.BoxGeometry(1.45, 0.06, 1.45), new T.MeshLambertMaterial({ color: 0x65a30d }));
-          var p = worldPos(x, y); pad.position.copy(p);
-          pad.userData = { gx: x, gy: y };
-          gridG.add(pad);
-        }
-      }
-      var start = makeStation(false);
-      start.position.copy(worldPos(m.start[0], m.start[1])); gridG.add(start);
-      var goal = makeStation(true);
-      goal.position.copy(worldPos(m.goal[0], m.goal[1])); gridG.add(goal);
-      for (var i = 0; i < m.need; i++) {
-        var box = makeCargo(i % 3);
-        var gx = 1 + (i % (m.w - 2)), gy = (i + 1) % m.h;
-        box.position.copy(worldPos(gx, gy)); box.position.y = 0.12;
-        box.userData = { gx: gx, gy: gy, got: 0 };
-        scene.add(box); boxes.push(box);
-      }
-      placePiece(m.start[0], m.start[1], "H");
+    function cellCenter(gx, gy) { return { x: origin.x + gx * cell + cell / 2, y: origin.y + gy * cell + cell / 2 }; }
+    function rebuild() {
+      tiles = {}; boxes = []; cargo = 0; running = false; path = []; pathI = 0;
+      var m = MAPS[mapI], i;
+      tiles[key(m.start[0], m.start[1])] = "H";
+      for (i = 0; i < m.need; i++) boxes.push({ gx: 1 + (i % (m.w - 2)), gy: (i + 1) % m.h, got: 0 });
       document.getElementById("mp").textContent = m.n;
       document.getElementById("cg").textContent = "Cargo 0/" + m.need;
       document.getElementById("st").textContent = "Stars " + stars;
-      document.getElementById("say").textContent = ["Lay a straight!", "Add a turn!", "Bridge the gap!", "Night lights on!", "Home station!"][mapI];
-      cam.position.set(m.w * 0.7, 9 + m.h * 0.3, 8);
-      cam.lookAt(0, 0, 0);
+      document.getElementById("say").textContent = SAYS[mapI];
+      layout();
     }
-
-    function placePiece(x, y, kind) {
-      var k = key(x, y);
-      if (tiles[k] && tiles[k].mesh) gridG.remove(tiles[k].mesh);
-      var mesh = makeRail(kind);
-      var p = worldPos(x, y);       mesh.position.copy(p); mesh.position.y = 0.08;
-      mesh.userData = { gx: x, gy: y };
-      mesh.traverse(function (o) { o.userData.gx = x; o.userData.gy = y; });
-      gridG.add(mesh);
-      tiles[k] = { kind: kind, mesh: mesh, x: x, y: y };
-    }
-
-    var train = new T.Group();
-    var boiler = new T.Mesh(new T.CylinderGeometry(0.22, 0.22, 0.98, 12), new T.MeshLambertMaterial({ color: 0xdc2626 }));
-    boiler.rotation.x = Math.PI / 2; boiler.position.set(0, 0.44, 0.14); train.add(boiler);
-    var band = new T.Mesh(new T.TorusGeometry(0.23, 0.028, 6, 14), new T.MeshLambertMaterial({ color: 0xfde047 }));
-    band.position.set(0, 0.44, 0.14); train.add(band);
-    var cab = new T.Mesh(new T.BoxGeometry(0.5, 0.44, 0.42), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
-    cab.position.set(0, 0.54, -0.5); train.add(cab);
-    var roof = new T.Mesh(new T.BoxGeometry(0.56, 0.06, 0.48), new T.MeshLambertMaterial({ color: 0x1e3a8a }));
-    roof.position.set(0, 0.78, -0.5); train.add(roof);
-    for (var s = -1; s <= 1; s += 2) {
-      var win = new T.Mesh(new T.BoxGeometry(0.02, 0.16, 0.16), new T.MeshLambertMaterial({ color: 0x7dd3fc }));
-      win.position.set(s * 0.26, 0.6, -0.5); train.add(win);
-    }
-    var winF = new T.Mesh(new T.BoxGeometry(0.22, 0.16, 0.02), new T.MeshLambertMaterial({ color: 0x7dd3fc }));
-    winF.position.set(0, 0.6, -0.28); train.add(winF);
-    var stack = new T.Mesh(new T.CylinderGeometry(0.07, 0.1, 0.34, 8), new T.MeshLambertMaterial({ color: 0x1c1917 }));
-    stack.position.set(0, 0.76, 0.4); train.add(stack);
-    var lip = new T.Mesh(new T.CylinderGeometry(0.13, 0.1, 0.07, 8), new T.MeshLambertMaterial({ color: 0x44403c }));
-    lip.position.set(0, 0.95, 0.4); train.add(lip);
-    var dome = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshLambertMaterial({ color: 0xf59e0b }));
-    dome.position.set(0, 0.68, 0.06); train.add(dome);
-    var lamp = new T.Mesh(new T.SphereGeometry(0.07, 8, 6), new T.MeshBasicMaterial({ color: 0xfde047 }));
-    lamp.position.set(0, 0.44, 0.66); train.add(lamp);
-    var cow = new T.Mesh(new T.ConeGeometry(0.26, 0.34, 4), new T.MeshLambertMaterial({ color: 0xa8a29e }));
-    cow.rotation.x = Math.PI / 2; cow.position.set(0, 0.16, 0.66); train.add(cow);
-    var tender = new T.Mesh(new T.BoxGeometry(0.44, 0.28, 0.4), new T.MeshLambertMaterial({ color: 0x44403c }));
-    tender.position.set(0, 0.32, -0.98); train.add(tender);
-    var wheels = [];
-    [[0.26, 0.34, 0.16], [0.26, -0.08, 0.16], [-0.26, 0.34, 0.16], [-0.26, -0.08, 0.16], [0.26, -0.5, 0.12], [-0.26, -0.5, 0.12]].forEach(function (p) {
-      var hub = new T.Group();
-      hub.position.set(p[0], p[2], p[1]);
-      var tire = new T.Mesh(new T.TorusGeometry(p[2] * 0.92, 0.035, 6, 10), new T.MeshLambertMaterial({ color: 0x1c1917 }));
-      tire.rotation.y = Math.PI / 2; hub.add(tire);
-      var cap = new T.Mesh(new T.CylinderGeometry(0.04, 0.04, 0.06, 8), new T.MeshLambertMaterial({ color: 0xfde047 }));
-      cap.rotation.z = Math.PI / 2; hub.add(cap);
-      train.add(hub); wheels.push(hub);
-    });
-    var steam = [];
-    for (var si = 0; si < 8; si++) {
-      var puff = new T.Mesh(new T.SphereGeometry(0.08, 6, 6), new T.MeshLambertMaterial({ color: 0xf8fafc, transparent: true, opacity: 0.5 }));
-      puff.position.set(0, 0.98, 0.4); train.add(puff); steam.push(puff);
-    }
-    scene.add(train);
-    var path = [];
-    var pathI = 0;
-
     function outs(kind) {
       if (kind === "H") return [[1, 0], [-1, 0]];
       if (kind === "V") return [[0, 1], [0, -1]];
@@ -246,125 +94,104 @@
       return [[-1, 0], [0, 1]];
     }
     function buildPath() {
-      var m = MAPS[mapI];
-      path = [];
-      var x = m.start[0], y = m.start[1], px = -1, py = y;
-      for (var step = 0; step < 40; step++) {
-        path.push(worldPos(x, y));
-        if (x === m.goal[0] && y === m.goal[1] && step > 0) return true;
-        var tile = tiles[key(x, y)];
-        if (!tile) return false;
-        var nexts = outs(tile.kind);
-        var nx = x, ny = y, ok = false;
-        for (var i = 0; i < nexts.length; i++) {
-          var cx = x + nexts[i][0], cy = y + nexts[i][1];
+      var m = MAPS[mapI]; path = [];
+      var gx = m.start[0], gy = m.start[1], px = -1, py = gy, step;
+      for (step = 0; step < 40; step++) {
+        path.push(cellCenter(gx, gy));
+        if (gx === m.goal[0] && gy === m.goal[1] && step > 0) return true;
+        var tile = tiles[key(gx, gy)]; if (!tile) return false;
+        var nexts = outs(tile), nx = gx, ny = gy, ok = false, i;
+        for (i = 0; i < nexts.length; i++) {
+          var cx = gx + nexts[i][0], cy = gy + nexts[i][1];
           if (cx === px && cy === py) continue;
           nx = cx; ny = cy; ok = true; break;
         }
         if (!ok) return false;
-        px = x; py = y; x = nx; y = ny;
+        px = gx; py = gy; gx = nx; gy = ny;
       }
       return false;
     }
-
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.frequency.value = f; g.gain.value = 0.09; o.connect(g); g.connect(ac.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-
-    var ray = new T.Raycaster(), mouse = new T.Vector2();
-    renderer.domElement.addEventListener("pointerdown", function (ev) {
+    cv.addEventListener("pointerdown", function (e) {
       if (!play || running) return;
-      mouse.x = (ev.clientX / innerWidth) * 2 - 1;
-      mouse.y = -(ev.clientY / innerHeight) * 2 + 1;
-      ray.setFromCamera(mouse, cam);
-      var hits = ray.intersectObjects(gridG.children, true);
-      if (!hits.length) return;
-      var obj = hits[0].object;
-      while (obj && (obj.userData.gx == null) && obj.parent) obj = obj.parent;
-      var u = obj && obj.userData;
-      if (!u || u.gx == null) return;
-      placePiece(u.gx, u.gy, piece);
-      beep(500, 0.05);
+      var gx = Math.floor((e.clientX - origin.x) / cell), gy = Math.floor((e.clientY - origin.y) / cell);
+      var m = MAPS[mapI];
+      if (gx < 0 || gy < 0 || gx >= m.w || gy >= m.h) return;
+      tiles[key(gx, gy)] = piece;
     });
-
     [].forEach.call(document.querySelectorAll("#dock button[data-p]"), function (b) {
       b.onclick = function () {
         piece = b.getAttribute("data-p");
-        [].forEach.call(document.querySelectorAll("#dock button[data-p]"), function (x) { x.classList.toggle("on", x === b); });
+        [].forEach.call(document.querySelectorAll("#dock button[data-p]"), function (el) { el.classList.toggle("on", el === b); });
       };
     });
     document.getElementById("goBtn").onclick = function () {
       if (!play) return;
-      if (buildPath()) { running = true; pathI = 0; cargo = 0; beep(280, 0.15); }
-      else { document.getElementById("say").textContent = "Snap to the gold!"; beep(180, 0.1); }
+      if (buildPath()) { running = true; pathI = 0; cargo = 0; }
+      else document.getElementById("say").textContent = "Snap to the gold!";
     };
-
     function start() {
-      play = true; running = false; mapI = 0; cargo = 0;
+      play = true; mapI = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
-      rebuildGrid();
+      rebuild();
     }
     document.getElementById("play").onclick = start;
     document.getElementById("again").onclick = start;
-
-    var clock = new T.Clock();
-    function tick() {
-      var dt = Math.min(0.033, clock.getDelta());
-      t += dt;
-      wheels.forEach(function (w) { if (running) w.rotation.x += dt * 8; });
-      steam.forEach(function (p, i) {
-        p.position.y = 0.98 + ((t * 0.6 + i * 0.12) % 0.8);
-        p.material.opacity = running ? 0.45 : 0.12;
-        p.scale.setScalar(0.6 + ((t + i) % 1));
+    resize();
+    function loop() {
+      t += 0.016;
+      var m = MAPS[mapI];
+      x.fillStyle = mapI === 3 ? "#1c1917" : "#86efac"; x.fillRect(0, 0, W, H);
+      var gx, gy, k;
+      for (gy = 0; gy < m.h; gy++) {
+        for (gx = 0; gx < m.w; gx++) {
+          var p = cellCenter(gx, gy);
+          x.fillStyle = "#65a30d"; x.fillRect(p.x - cell * 0.42, p.y - cell * 0.42, cell * 0.84, cell * 0.84);
+          k = tiles[key(gx, gy)];
+          if (k) { x.fillStyle = "#44403c"; x.font = "bold " + (cell * 0.55) + "px Trebuchet MS"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(GLYPH[k], p.x, p.y); }
+        }
+      }
+      var s = cellCenter(m.start[0], m.start[1]), g = cellCenter(m.goal[0], m.goal[1]);
+      x.fillStyle = "#22c55e"; x.beginPath(); x.arc(s.x, s.y - cell * 0.4, 10, 0, 6.3); x.fill();
+      x.fillStyle = "#f59e0b"; x.beginPath(); x.arc(g.x, g.y - cell * 0.4, 10, 0, 6.3); x.fill();
+      boxes.forEach(function (b) {
+        if (b.got) return;
+        var p = cellCenter(b.gx, b.gy);
+        x.fillStyle = "#b45309"; x.beginPath(); x.arc(p.x, p.y, 8, 0, 6.3); x.fill();
       });
+      var tx = s.x, ty = s.y;
       if (running && path.length) {
-        pathI += dt * 2.2;
+        pathI += 0.045;
         var i0 = Math.min(path.length - 2, Math.floor(pathI));
-        var k = pathI - i0;
-        var a = path[i0], b = path[i0 + 1];
-        train.position.lerpVectors(a, b, k); train.position.y = 0.12;
-        train.lookAt(b.x, 0.12, b.z);
-        boxes.forEach(function (box) {
-          if (!box.userData.got && train.position.distanceTo(box.position) < 0.8) {
-            box.userData.got = 1; box.visible = false; cargo++; stars++;
-            document.getElementById("cg").textContent = "Cargo " + cargo + "/" + MAPS[mapI].need;
+        var k2 = pathI - i0;
+        tx = path[i0].x + (path[i0 + 1].x - path[i0].x) * k2;
+        ty = path[i0].y + (path[i0 + 1].y - path[i0].y) * k2;
+        boxes.forEach(function (b) {
+          if (b.got) return;
+          var p = cellCenter(b.gx, b.gy);
+          if (Math.hypot(tx - p.x, ty - p.y) < 18) {
+            b.got = 1; cargo++; stars++;
+            document.getElementById("cg").textContent = "Cargo " + cargo + "/" + m.need;
             document.getElementById("st").textContent = "Stars " + stars;
             try { localStorage.setItem("alabryuu-train", JSON.stringify({ stars: stars })); } catch (e) {}
-            beep(720, 0.07);
           }
         });
         if (pathI >= path.length - 1) {
-          running = false;
-          mapI++;
+          running = false; mapI++;
           if (mapI >= MAPS.length) {
-            play = false;
-            document.getElementById("dock").classList.remove("on");
+            play = false; document.getElementById("dock").classList.remove("on");
             document.getElementById("wp").textContent = "⭐ " + stars + "  Wheels never stopped.";
             document.getElementById("win").classList.remove("off");
-          } else rebuildGrid();
+          } else rebuild();
         }
-      } else {
-        var m = MAPS[mapI];
-        train.position.copy(worldPos(m.start[0], m.start[1])); train.position.y = 0.12;
       }
-      cam.position.x = 6 + Math.sin(t * 0.2) * 0.3;
-      cam.lookAt(train.position.x, 0, train.position.z);
-      renderer.render(scene, cam);
-      requestAnimationFrame(tick);
+      x.fillStyle = "#dc2626"; x.fillRect(tx - 16, ty - 10, 32, 18);
+      x.fillStyle = "#1d4ed8"; x.fillRect(tx - 18, ty - 18, 14, 10);
+      x.fillStyle = "#1c1917"; x.beginPath(); x.arc(tx - 10, ty + 10, 5, 0, 6.3); x.arc(tx + 10, ty + 10, 5, 0, 6.3); x.fill();
+      requestAnimationFrame(loop);
     }
-    addEventListener("resize", function () {
-      cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-    });
-    rebuildGrid();
-    requestAnimationFrame(tick);
+    requestAnimationFrame(loop);
   })();
   </script>
 </body>

@@ -4,29 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Ocean Clean</title>
-  <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,system-ui,sans-serif;background:#082f49;color:#ecfeff;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#082f49;text-decoration:none;font-weight:800;background:#7dd3fc;padding:8px 14px;border-radius:40% 40% 50% 50%}
-    .buoy{position:fixed;top:10px;right:10px;z-index:8;width:108px;background:#f97316;color:#fff7ed;border-radius:50% 50% 16px 16px;padding:14px 8px 10px;text-align:center;font-weight:800;box-shadow:0 8px 0 #9a3412;pointer-events:none}
-    .buoy b{display:block;font-size:13px}
-    #say{position:fixed;left:10px;right:10px;bottom:118px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
-    #dock{position:fixed;left:0;right:0;bottom:8px;z-index:8;display:none;justify-content:center;gap:14px;padding:0 12px}
+    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,sans-serif;background:#0369a1;color:#fff;touch-action:none;user-select:none}
+    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
+    canvas{display:block;width:100%;height:100%}
+    .home{position:fixed;top:12px;left:12px;z-index:8;color:#082f49;text-decoration:none;font-weight:800;background:#67e8f9;padding:8px 14px;border-radius:999px}
+    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
+    #hud b{display:inline-block;background:#fff;color:#0369a1;padding:6px 10px;border-radius:999px;margin-left:6px}
+    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
+    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;padding:10px;justify-content:center}
     #dock.on{display:flex}
-    #dock button{width:86px;height:86px;border-radius:50%;font-weight:800;font-size:15px;background:#7dd3fc;color:#082f49;box-shadow:0 0 0 6px #38bdf855}
-    #dock button.on{background:#fde047;color:#422006}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#38bdf8,#0c4a6e)}
+    #dock button{min-width:88px;height:64px;border-radius:18px;background:#67e8f9;color:#082f49;font-weight:800;font-size:18px}
+    #dock button.on{outline:4px solid #fff}
+    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#38bdf8,#0369a1)}
     .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,52px)}
-    .btn{background:#fde047;color:#422006;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #ca8a04}
+    h1{font-size:clamp(32px,8vw,50px)}
+    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div class="buoy"><b id="rf">Sunny bay</b><b id="tr">Trash 0</b><b id="st">Stars 0</b></div>
-  <div id="say">Tap trash. Fish swim. Boat floats!</div>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="rf">Sunny bay</b><b id="tr">Trash 0</b><b id="st">Stars 0</b></div>
+  <div id="say">Tap the trash!</div>
   <div id="dock">
     <button id="net" class="on">Net</button>
     <button id="feed">Feed</button>
@@ -34,18 +35,19 @@
   </div>
   <div class="cover" id="title">
     <h1>Ocean Clean</h1>
-    <p>3D sea. Schools of fish.<br>Trash floats. Boat on top.</p>
+    <p>Pick up trash. Feed fish.<br>Steer the boat.</p>
     <button class="btn" id="go">Dive</button>
   </div>
   <div class="cover off" id="win">
     <h1>Clean sea!</h1>
-    <p id="wp">Five reefs.</p>
+    <p id="wp">⭐ 0</p>
     <button class="btn" id="again">Dive again</button>
   </div>
   <script>
   (function () {
-    if (!window.THREE) return;
-    var T = THREE, play = false, reef = 0, got = 0, stars = 0, tool = "net", t = 0;
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, reef = 0, got = 0, stars = 0, tool = "net", boatX = 0.5;
+    var trash = [], fish = [];
     var REEFS = [
       { n: "Sunny bay", need: 6, night: 0 },
       { n: "Coral street", need: 7, night: 0 },
@@ -53,251 +55,75 @@
       { n: "Storm swell", need: 8, night: 0 },
       { n: "Home reef", need: 6, night: 0 }
     ];
+    var SAYS = ["Tap the trash!", "Feed the fish!", "Night glow net!", "Steer the boat!", "Home reef!"];
+    var KINDS = ["#38bdf8", "#f8fafc", "#a8a29e", "#fde047"];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-ocean") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-
-    var scene = new T.Scene();
-    var cam = new T.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 80);
-    cam.position.set(0, 1.2, 8);
-    var renderer = new T.WebGLRenderer({ antialias: true });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
-    document.body.appendChild(renderer.domElement);
-    scene.add(new T.HemisphereLight(0x7dd3fc, 0x082f49, 0.9));
-    var sun = new T.DirectionalLight(0xfff1c1, 0.7); sun.position.set(4, 10, 6); scene.add(sun);
-
-    var floor = new T.Mesh(new T.PlaneGeometry(40, 40), new T.MeshLambertMaterial({ color: 0xd6b57a }));
-    floor.rotation.x = -Math.PI / 2; floor.position.y = -3.2; scene.add(floor);
-    var water = new T.Mesh(new T.PlaneGeometry(40, 40), new T.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.18 }));
-    water.rotation.x = -Math.PI / 2; water.position.y = 2.4; scene.add(water);
-
-    var boat = new T.Group();
-    var hull = new T.Mesh(new T.CylinderGeometry(0.18, 0.32, 1.85, 10), new T.MeshLambertMaterial({ color: 0xf97316 }));
-    hull.rotation.z = Math.PI / 2; hull.position.y = 2.5; boat.add(hull);
-    var prow = new T.Mesh(new T.ConeGeometry(0.2, 0.48, 8), new T.MeshLambertMaterial({ color: 0xea580c }));
-    prow.rotation.z = -Math.PI / 2; prow.position.set(1.12, 2.52, 0); boat.add(prow);
-    var deck = new T.Mesh(new T.BoxGeometry(1.45, 0.08, 0.52), new T.MeshLambertMaterial({ color: 0xfde68a }));
-    deck.position.set(0, 2.68, 0); boat.add(deck);
-    var cabin = new T.Mesh(new T.BoxGeometry(0.45, 0.32, 0.4), new T.MeshLambertMaterial({ color: 0xffffff }));
-    cabin.position.set(-0.28, 2.88, 0); boat.add(cabin);
-    var boatWin = new T.Mesh(new T.BoxGeometry(0.16, 0.12, 0.02), new T.MeshLambertMaterial({ color: 0x7dd3fc }));
-    boatWin.position.set(-0.16, 2.92, 0.21); boat.add(boatWin);
-    var mast = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.65, 6), new T.MeshLambertMaterial({ color: 0x92400e }));
-    mast.position.set(0.28, 3.05, 0); boat.add(mast);
-    scene.add(boat);
-
-    var diver = new T.Group();
-    var body = new T.Mesh(new T.SphereGeometry(0.18, 10, 8), new T.MeshLambertMaterial({ color: 0x22c55e }));
-    body.scale.set(1, 1.2, 0.7); diver.add(body);
-    var head = new T.Mesh(new T.SphereGeometry(0.12, 8, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-    head.position.y = 0.22; diver.add(head);
-    var mask = new T.Mesh(new T.BoxGeometry(0.16, 0.08, 0.05), new T.MeshLambertMaterial({ color: 0x1e293b }));
-    mask.position.set(0, 0.23, 0.1); diver.add(mask);
-    var lens = new T.Mesh(new T.BoxGeometry(0.12, 0.05, 0.02), new T.MeshLambertMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.75 }));
-    lens.position.set(0, 0.23, 0.13); diver.add(lens);
-    var strap = new T.Mesh(new T.BoxGeometry(0.14, 0.02, 0.1), new T.MeshLambertMaterial({ color: 0x334155 }));
-    strap.position.set(0, 0.24, 0.02); diver.add(strap);
-    var tank = new T.Mesh(new T.CylinderGeometry(0.09, 0.095, 0.4, 10), new T.MeshLambertMaterial({ color: 0xbae6fd }));
-    tank.position.set(-0.12, 0.08, -0.18); diver.add(tank);
-    var tankBand = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 0.055, 10), new T.MeshLambertMaterial({ color: 0xf97316 }));
-    tankBand.position.set(-0.12, 0.08, -0.18); diver.add(tankBand);
-    var valve = new T.Mesh(new T.CylinderGeometry(0.032, 0.036, 0.09, 6), new T.MeshLambertMaterial({ color: 0x64748b }));
-    valve.position.set(-0.12, 0.3, -0.18); diver.add(valve);
-    var hose = new T.Mesh(new T.CylinderGeometry(0.014, 0.014, 0.3, 6), new T.MeshLambertMaterial({ color: 0x334155 }));
-    hose.position.set(-0.06, 0.24, -0.02); hose.rotation.z = 0.75; hose.rotation.x = 0.35; diver.add(hose);
-    var fins = [];
-    var hips = [];
-    for (var s = -1; s <= 1; s += 2) {
-      var hip = new T.Group();
-      hip.position.set(s * 0.08, -0.16, 0);
-      var calf = new T.Mesh(new T.CylinderGeometry(0.03, 0.04, 0.2, 7), new T.MeshLambertMaterial({ color: 0x166534 }));
-      calf.position.y = -0.1; hip.add(calf);
-      var ankle = new T.Group();
-      ankle.position.set(0, -0.2, 0);
-      var fin = new T.Mesh(new T.SphereGeometry(0.12, 8, 6), new T.MeshLambertMaterial({ color: 0xffe135 }));
-      fin.scale.set(0.7, 0.18, 2.1); fin.position.set(0, 0, -0.18);
-      ankle.add(fin);
-      hip.add(ankle);
-      diver.add(hip);
-      hips.push(hip); fins.push(ankle);
-    }
-    diver.position.set(0, 0.4, 3);
-    diver.rotation.y = 0.95;
-    scene.add(diver);
-
-    var fish = [], trash = [], coral = [];
-    function makeTrash(kind) {
-      var g = new T.Group();
-      g.userData = { got: 0 };
-      if (kind === 0) {
-        var bot = new T.Mesh(new T.CylinderGeometry(0.07, 0.08, 0.28, 10), new T.MeshLambertMaterial({ color: 0x5eead4, transparent: true, opacity: 0.8 }));
-        g.add(bot);
-        var neck = new T.Mesh(new T.CylinderGeometry(0.028, 0.036, 0.1, 8), new T.MeshLambertMaterial({ color: 0x99f6e4, transparent: true, opacity: 0.85 }));
-        neck.position.y = 0.18; g.add(neck);
-        var cap = new T.Mesh(new T.CylinderGeometry(0.034, 0.034, 0.04, 8), new T.MeshLambertMaterial({ color: 0xf97316 }));
-        cap.position.y = 0.24; g.add(cap);
-      } else if (kind === 1) {
-        var can = new T.Mesh(new T.CylinderGeometry(0.08, 0.08, 0.18, 12), new T.MeshLambertMaterial({ color: 0xef4444 }));
-        g.add(can);
-        var rim = new T.Mesh(new T.CylinderGeometry(0.084, 0.084, 0.02, 12), new T.MeshLambertMaterial({ color: 0xe2e8f0 }));
-        rim.position.y = 0.09; g.add(rim);
-        var stripe = new T.Mesh(new T.BoxGeometry(0.02, 0.08, 0.14), new T.MeshLambertMaterial({ color: 0xfde047 }));
-        stripe.position.set(0.07, 0, 0); g.add(stripe);
-      } else if (kind === 2) {
-        var bagCols = [0xf5f5f4, 0xf9a8d4, 0xbbf7d0];
-        for (var b = 0; b < 5; b++) {
-          var blob = new T.Mesh(new T.SphereGeometry(0.09 + (b % 3) * 0.015, 8, 6), new T.MeshLambertMaterial({ color: bagCols[b % 3] }));
-          blob.position.set((b % 2) * 0.09 - 0.04, (b % 3) * 0.05 - 0.04, ((b * 0.08) % 0.14) - 0.06);
-          blob.scale.set(1.15, 0.65 + (b % 2) * 0.25, 0.95);
-          g.add(blob);
-        }
-        var handle = new T.Mesh(new T.TorusGeometry(0.055, 0.012, 6, 10), new T.MeshLambertMaterial({ color: 0xe7e5e4 }));
-        handle.position.y = 0.16; g.add(handle);
-      } else {
-        var ring = new T.Mesh(new T.TorusGeometry(0.16, 0.014, 6, 16), new T.MeshLambertMaterial({ color: 0xfb923c }));
-        g.add(ring);
-        for (var n = 0; n < 4; n++) {
-          var cord = new T.Mesh(new T.CylinderGeometry(0.008, 0.008, 0.32, 5), new T.MeshLambertMaterial({ color: 0xfdba74 }));
-          cord.rotation.z = n * Math.PI / 4; g.add(cord);
-        }
-        var floater = new T.Mesh(new T.SphereGeometry(0.045, 6, 6), new T.MeshLambertMaterial({ color: 0xfacc15 }));
-        floater.position.set(0.16, 0, 0); g.add(floater);
-      }
-      return g;
-    }
-    function makeFish(col) {
-      var g = new T.Group();
-      var b = new T.Mesh(new T.SphereGeometry(0.12, 8, 6), new T.MeshLambertMaterial({ color: col }));
-      b.scale.set(1.4, 0.7, 0.6); g.add(b);
-      var tail = new T.Mesh(new T.ConeGeometry(0.08, 0.16, 6), new T.MeshLambertMaterial({ color: col }));
-      tail.rotation.z = Math.PI / 2; tail.position.x = -0.16; g.add(tail);
-      g.userData = { tail: tail, u: Math.random() * 6, r: 2 + Math.random() * 3 };
-      return g;
-    }
-    function spawnWorld() {
-      fish.forEach(function (f) { scene.remove(f); });
-      trash.forEach(function (o) { scene.remove(o); });
-      coral.forEach(function (c) { scene.remove(c); });
-      fish = []; trash = []; coral = []; got = 0;
-      var r = REEFS[reef];
-      scene.background = new T.Color(r.night ? 0x082f49 : 0x0ea5e9);
-      scene.fog = new T.Fog(scene.background, 10, 28);
-      for (var i = 0; i < 14; i++) {
-        var f = makeFish([0xf97316, 0xfde047, 0x38bdf8, 0xa78bfa][i % 4]);
-        scene.add(f); fish.push(f);
-      }
-      for (var j = 0; j < r.need + 3; j++) {
-        var bag = makeTrash(j % 4);
-        bag.position.set((Math.random() - 0.5) * 8, -1 + Math.random() * 3, (Math.random() - 0.5) * 8);
-        bag.rotation.set(Math.random() * 0.6, Math.random() * 6, Math.random() * 0.5);
-        scene.add(bag); trash.push(bag);
-      }
-      for (var k = 0; k < 8; k++) {
-        var c = new T.Mesh(new T.ConeGeometry(0.18, 0.7, 6), new T.MeshLambertMaterial({ color: 0xfb7185 }));
-        c.position.set((Math.random() - 0.5) * 10, -2.8, (Math.random() - 0.5) * 10);
-        scene.add(c); coral.push(c);
-      }
-      document.getElementById("rf").textContent = r.n;
-      document.getElementById("tr").textContent = "Trash " + got + "/" + r.need;
+    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
+    addEventListener("resize", resize); resize();
+    function spawn() {
+      var m = REEFS[reef], i; trash = []; fish = []; got = 0;
+      for (i = 0; i < m.need + 3; i++) trash.push({ x: 0.15 + Math.random() * 0.7, y: 0.35 + Math.random() * 0.4, got: 0, col: KINDS[i % 4] });
+      for (i = 0; i < 10; i++) fish.push({ x: Math.random(), y: 0.35 + Math.random() * 0.4, vx: 0.06 + Math.random() * 0.05, col: ["#fb7185", "#fde047", "#86efac", "#67e8f9"][i % 4] });
+      document.getElementById("rf").textContent = m.n;
+      document.getElementById("tr").textContent = "Trash 0/" + m.need;
       document.getElementById("st").textContent = "Stars " + stars;
-      document.getElementById("say").textContent = ["Tap the trash!", "Feed the fish!", "Night glow net!", "Steer the boat!", "Home reef!"][reef];
+      document.getElementById("say").textContent = SAYS[reef];
     }
-
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.frequency.value = f; g.gain.value = 0.09; o.connect(g); g.connect(ac.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function save() { try { localStorage.setItem("alabryuu-ocean", JSON.stringify({ stars: stars })); } catch (e) {} }
-
-    var ray = new T.Raycaster(), mouse = new T.Vector2();
-    renderer.domElement.addEventListener("pointerdown", function (ev) {
-      if (!play) return;
-      mouse.x = (ev.clientX / innerWidth) * 2 - 1;
-      mouse.y = -(ev.clientY / innerHeight) * 2 + 1;
-      ray.setFromCamera(mouse, cam);
-      if (tool === "boat") { boat.position.x = mouse.x * 4; beep(300, 0.05); return; }
-      if (tool === "feed") { fish.forEach(function (f) { f.userData.r = 1.2; }); stars++; save(); beep(700, 0.06); return; }
-      var hits = ray.intersectObjects(trash, true);
-      if (hits.length) {
-        var o = hits[0].object;
-        while (o && trash.indexOf(o) < 0) o = o.parent;
-        if (o && !o.userData.got) {
-          o.userData.got = 1; o.visible = false; got++; stars++;
-          document.getElementById("tr").textContent = "Trash " + got + "/" + REEFS[reef].need;
-          document.getElementById("st").textContent = "Stars " + stars;
-          save(); beep(640, 0.07);
-          if (got >= REEFS[reef].need) {
-            reef++;
-            if (reef >= REEFS.length) {
-              play = false;
-              document.getElementById("dock").classList.remove("on");
-              document.getElementById("wp").textContent = "⭐ " + stars;
-              document.getElementById("win").classList.remove("off");
-            } else spawnWorld();
-          }
-        }
-      }
-    });
-
-    function setTool(n) {
-      tool = n;
-      document.getElementById("net").classList.toggle("on", n === "net");
-      document.getElementById("feed").classList.toggle("on", n === "feed");
-      document.getElementById("boat").classList.toggle("on", n === "boat");
-    }
-    document.getElementById("net").onclick = function () { setTool("net"); };
-    document.getElementById("feed").onclick = function () { setTool("feed"); };
-    document.getElementById("boat").onclick = function () { setTool("boat"); };
-
     function start() {
-      play = true; reef = 0;
+      play = true; reef = 0; tool = "net";
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
-      setTool("net"); spawnWorld();
+      spawn();
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-
-    var clock = new T.Clock();
-    function tick() {
-      var dt = Math.min(0.033, clock.getDelta());
-      t += dt;
-      boat.position.y = Math.sin(t * 1.4) * 0.08;
-      boat.rotation.z = Math.sin(t * 1.2) * 0.05;
-      hips.forEach(function (h, i) { h.rotation.x = Math.sin(t * 8 + i * Math.PI) * 0.7; });
-      fins.forEach(function (f, i) { f.rotation.x = 0.35 + Math.sin(t * 8 + i * Math.PI) * 0.55; });
-      diver.position.x = Math.sin(t * 0.4) * 1.2;
-      diver.position.y = 0.2 + Math.sin(t * 1.1) * 0.2;
-      diver.position.z = 3 + Math.cos(t * 0.35) * 0.4;
-      diver.rotation.x = Math.sin(t * 1.1) * 0.12;
-      fish.forEach(function (f, i) {
-        var u = f.userData;
-        var a = t * 0.7 + u.u + i * 0.2;
-        f.position.set(Math.cos(a) * u.r, -0.4 + Math.sin(a * 2) * 0.6, Math.sin(a) * u.r);
-        f.lookAt(f.position.x + Math.cos(a + 0.2), f.position.y, f.position.z + Math.sin(a + 0.2));
-        u.tail.rotation.y = Math.sin(t * 10 + i) * 0.5;
+    document.getElementById("net").onclick = function () { tool = "net"; this.classList.add("on"); document.getElementById("feed").classList.remove("on"); document.getElementById("boat").classList.remove("on"); };
+    document.getElementById("feed").onclick = function () { tool = "feed"; this.classList.add("on"); document.getElementById("net").classList.remove("on"); document.getElementById("boat").classList.remove("on"); };
+    document.getElementById("boat").onclick = function () { tool = "boat"; this.classList.add("on"); document.getElementById("net").classList.remove("on"); document.getElementById("feed").classList.remove("on"); };
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      if (tool === "boat") { boatX = e.clientX / W; return; }
+      if (tool === "feed") { stars++; document.getElementById("st").textContent = "Stars " + stars; fish.forEach(function (f) { f.x += (e.clientX / W - f.x) * 0.3; }); return; }
+      trash.forEach(function (o) {
+        if (o.got) return;
+        if (Math.hypot(e.clientX - o.x * W, e.clientY - o.y * H) < 36) {
+          o.got = 1; got++; stars++;
+          document.getElementById("tr").textContent = "Trash " + got + "/" + REEFS[reef].need;
+          document.getElementById("st").textContent = "Stars " + stars;
+          try { localStorage.setItem("alabryuu-ocean", JSON.stringify({ stars: stars })); } catch (err) {}
+        }
       });
-      trash.forEach(function (o, i) {
-        o.position.y += Math.sin(t * 1.5 + i) * 0.003;
-        o.rotation.z = Math.sin(t + i) * 0.3;
-      });
-      coral.forEach(function (c, i) { c.rotation.z = Math.sin(t * 1.2 + i) * 0.08; });
-      cam.position.lerp(new T.Vector3(diver.position.x * 0.3, 1.4, 8), 0.05);
-      cam.lookAt(0, 0.2, 0);
-      renderer.render(scene, cam);
-      requestAnimationFrame(tick);
-    }
-    addEventListener("resize", function () {
-      cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
+      if (got >= REEFS[reef].need) {
+        reef++;
+        if (reef >= REEFS.length) {
+          play = false; document.getElementById("dock").classList.remove("on");
+          document.getElementById("wp").textContent = "⭐ " + stars;
+          document.getElementById("win").classList.remove("off");
+        } else spawn();
+      }
     });
-    scene.background = new T.Color(0x0ea5e9);
-    spawnWorld();
-    requestAnimationFrame(tick);
+    function loop() {
+      t += 0.016;
+      var night = REEFS[reef] && REEFS[reef].night;
+      var g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, night ? "#0f172a" : "#7dd3fc"); g.addColorStop(1, "#0369a1");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#0ea5e9"; x.fillRect(0, H * 0.22, W, 8);
+      x.fillStyle = "#f59e0b"; x.fillRect(boatX * W - 30, H * 0.18, 60, 16);
+      x.fillStyle = "#fff"; x.fillRect(boatX * W - 4, H * 0.1, 6, 16);
+      fish.forEach(function (f) {
+        f.x += f.vx * 0.008; if (f.x > 1.1) f.x = -0.1;
+        x.fillStyle = f.col; x.beginPath(); x.ellipse(f.x * W, f.y * H + Math.sin(t * 3 + f.x) * 4, 12, 6, 0, 0, 6.3); x.fill();
+      });
+      trash.forEach(function (o) {
+        if (o.got) return;
+        x.fillStyle = o.col; x.fillRect(o.x * W - 8, o.y * H - 6, 16, 12);
+      });
+      x.fillStyle = "#fb7185"; x.beginPath(); x.arc(boatX * W, H * 0.42, 10, 0, 6.3); x.fill();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
   })();
   </script>
 </body>

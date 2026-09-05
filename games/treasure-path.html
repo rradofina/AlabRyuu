@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Treasure Path</title>
-  <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;overflow:hidden;font-family:Georgia,"Palatino Linotype",serif;background:#1c1917;color:#fff7ed;touch-action:none;user-select:none}
     button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    canvas{display:block;width:100%;height:100%}
     .home{position:fixed;top:12px;left:12px;z-index:8;color:#431407;text-decoration:none;font-family:Trebuchet MS,sans-serif;font-weight:800;background:#fde68a;padding:8px 14px;border-radius:6px 18px 6px 18px;border:3px solid #b45309}
     #compass{position:fixed;top:10px;right:10px;z-index:8;width:92px;height:92px;border-radius:50%;background:radial-gradient(#fde68a,#b45309);border:5px solid #7c2d12;box-shadow:0 6px 0 #431407;display:flex;align-items:center;justify-content:center;font-family:Trebuchet MS,sans-serif;font-weight:800;color:#431407;text-align:center;font-size:13px;line-height:1.15}
     #pathdots{position:fixed;top:112px;right:18px;z-index:8;display:flex;flex-direction:column;gap:6px}
@@ -28,6 +28,7 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
   <div id="compass">Beat<br><b id="sc">1</b></div>
   <div id="pathdots"></div>
   <div class="map on" id="panel">
@@ -47,152 +48,14 @@
   </div>
   <script>
   (function () {
-    if (!window.THREE) return;
-    var T = THREE, play = false, si = 0, stars = 0, t = 0;
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, T = 0, si = 0, stars = 0, kidX = 0.2, destX = 0.2;
     var flags = { friend: "Pip", cave: false, boat: false, kind: 0, lantern: false };
     try {
       var sv = JSON.parse(localStorage.getItem("alabryuu-treasure") || "{}");
       if (sv.stars) stars = sv.stars;
       if (sv.flags) flags = Object.assign(flags, sv.flags);
     } catch (e) {}
-
-    var scene = new T.Scene();
-    scene.background = new T.Color(0x7dd3fc);
-    scene.fog = new T.Fog(0x7dd3fc, 14, 36);
-    var cam = new T.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 80);
-    var renderer = new T.WebGLRenderer({ antialias: true });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
-    document.body.appendChild(renderer.domElement);
-    scene.add(new T.HemisphereLight(0xfff1c1, 0x7c2d12, 0.75));
-    var sun = new T.DirectionalLight(0xfff1c1, 0.85); sun.position.set(6, 10, 4); scene.add(sun);
-    var lamp = new T.PointLight(0xfde047, 0.2, 8); scene.add(lamp);
-
-    var island = new T.Mesh(new T.CylinderGeometry(8, 9, 1.2, 20), new T.MeshLambertMaterial({ color: 0xca8a04 }));
-    island.position.y = -0.6; scene.add(island);
-    var grass = new T.Mesh(new T.CylinderGeometry(7.4, 7.4, 0.2, 20), new T.MeshLambertMaterial({ color: 0x65a30d }));
-    grass.position.y = 0.05; scene.add(grass);
-    var water = new T.Mesh(new T.PlaneGeometry(40, 40), new T.MeshLambertMaterial({ color: 0x38bdf8 }));
-    water.rotation.x = -Math.PI / 2; water.position.y = -0.9; scene.add(water);
-    for (var i = 0; i < 10; i++) {
-      var tree = new T.Group();
-      var tr = new T.Mesh(new T.CylinderGeometry(0.1, 0.14, 1.1, 6), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
-      tr.position.y = 0.6; tree.add(tr);
-      var lf = new T.Mesh(new T.SphereGeometry(0.55, 8, 6), new T.MeshLambertMaterial({ color: 0x166534 }));
-      lf.position.y = 1.3; tree.add(lf);
-      var a = i / 10 * Math.PI * 2;
-      tree.position.set(Math.cos(a) * 5.4, 0, Math.sin(a) * 5.4);
-      scene.add(tree);
-    }
-    var cave = new T.Mesh(new T.SphereGeometry(1.4, 12, 8), new T.MeshLambertMaterial({ color: 0x44403c }));
-    cave.scale.set(1, 0.7, 1.1); cave.position.set(-3.2, 0.5, -2.4); scene.add(cave);
-    var hole = new T.Mesh(new T.CircleGeometry(0.55, 12), new T.MeshLambertMaterial({ color: 0x1c1917 }));
-    hole.rotation.y = 0.6; hole.position.set(-2.1, 0.55, -1.6); scene.add(hole);
-    var chest = new T.Group();
-    var box = new T.Mesh(new T.BoxGeometry(0.7, 0.4, 0.45), new T.MeshLambertMaterial({ color: 0xb45309 }));
-    box.position.y = 0.25; chest.add(box);
-    var lid = new T.Mesh(new T.BoxGeometry(0.72, 0.12, 0.46), new T.MeshLambertMaterial({ color: 0xf59e0b }));
-    lid.position.set(0, 0.5, 0); chest.add(lid);
-    var lock = new T.Mesh(new T.SphereGeometry(0.06, 6, 5), new T.MeshLambertMaterial({ color: 0xfde047 }));
-    lock.position.set(0, 0.28, 0.24); chest.add(lock);
-    chest.position.set(2.4, 0, -1.6); scene.add(chest);
-    var boat = new T.Group();
-    var hull = new T.Mesh(new T.CylinderGeometry(0.16, 0.28, 1.5, 8), new T.MeshLambertMaterial({ color: 0x92400e }));
-    hull.rotation.z = Math.PI / 2; boat.add(hull);
-    var prow = new T.Mesh(new T.ConeGeometry(0.18, 0.4, 7), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
-    prow.rotation.z = -Math.PI / 2; prow.position.x = 0.9; boat.add(prow);
-    var mast = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.7, 6), new T.MeshLambertMaterial({ color: 0xfde68a }));
-    mast.position.y = 0.4; boat.add(mast);
-    var sail = new T.Mesh(new T.ConeGeometry(0.22, 0.5, 3), new T.MeshLambertMaterial({ color: 0xfef3c7 }));
-    sail.position.set(0.12, 0.55, 0); sail.rotation.z = 0.4; boat.add(sail);
-    boat.position.set(6.6, -0.35, 1.2); scene.add(boat);
-
-    function makeKid(shirt, hairC) {
-      var g = new T.Group();
-      var torso = new T.Mesh(new T.SphereGeometry(0.2, 10, 8), new T.MeshLambertMaterial({ color: shirt }));
-      torso.scale.set(1, 1.2, 0.8); torso.position.y = 0.7; g.add(torso);
-      var head = new T.Group(); head.position.y = 1.05; g.add(head);
-      head.add(new T.Mesh(new T.SphereGeometry(0.15, 10, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 })));
-      var hair = new T.Mesh(new T.SphereGeometry(0.16, 8, 6), new T.MeshLambertMaterial({ color: hairC }));
-      hair.position.set(0, 0.08, -0.02); head.add(hair);
-      var eye = new T.Mesh(new T.SphereGeometry(0.02, 6, 5), new T.MeshLambertMaterial({ color: 0x1e293b }));
-      eye.position.set(0.05, 0.02, 0.13); head.add(eye);
-      var eyeR = eye.clone(); eyeR.position.x = -0.05; head.add(eyeR);
-      var arms = [], legs = [];
-      for (var s = -1; s <= 1; s += 2) {
-        var sh = new T.Group(); sh.position.set(s * 0.2, 0.8, 0);
-        var arm = new T.Mesh(new T.CylinderGeometry(0.032, 0.038, 0.26, 7), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-        arm.position.y = -0.12; sh.add(arm);
-        var hand = new T.Mesh(new T.SphereGeometry(0.04, 6, 5), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-        hand.position.y = -0.26; sh.add(hand);
-        g.add(sh); arms.push(sh);
-        var hip = new T.Group(); hip.position.set(s * 0.08, 0.46, 0);
-        var thigh = new T.Mesh(new T.CylinderGeometry(0.04, 0.045, 0.26, 7), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
-        thigh.position.y = -0.12; hip.add(thigh);
-        var shoe = new T.Mesh(new T.SphereGeometry(0.055, 6, 5), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
-        shoe.scale.set(1, 0.55, 1.35); shoe.position.set(0, -0.28, 0.03); hip.add(shoe);
-        g.add(hip); legs.push(hip);
-      }
-      var lantern = new T.Group();
-      var cage = new T.Mesh(new T.CylinderGeometry(0.045, 0.05, 0.1, 8), new T.MeshLambertMaterial({ color: 0xb45309 }));
-      lantern.add(cage);
-      var glow = new T.Mesh(new T.SphereGeometry(0.05, 8, 6), new T.MeshBasicMaterial({ color: 0xfde047 }));
-      lantern.add(glow);
-      lantern.position.set(0, -0.28, 0.04); lantern.visible = false;
-      arms[1].add(lantern);
-      g.userData = { torso: torso, head: head, arms: arms, legs: legs, lantern: lantern };
-      return g;
-    }
-    function makeCrab() {
-      var g = new T.Group();
-      var body = new T.Mesh(new T.SphereGeometry(0.16, 10, 8), new T.MeshLambertMaterial({ color: 0xf97316 }));
-      body.scale.set(1.5, 0.55, 1.1); body.position.y = 0.14; g.add(body);
-      for (var s = -1; s <= 1; s += 2) {
-        var claw = new T.Mesh(new T.SphereGeometry(0.07, 6, 5), new T.MeshLambertMaterial({ color: 0xea580c }));
-        claw.scale.set(1.3, 0.6, 0.8); claw.position.set(s * 0.22, 0.16, 0.12); g.add(claw);
-        var eye = new T.Mesh(new T.SphereGeometry(0.03, 6, 5), new T.MeshLambertMaterial({ color: 0x1e293b }));
-        eye.position.set(s * 0.06, 0.24, 0.1); g.add(eye);
-      }
-      g.position.set(1.8, 0, 2.2); scene.add(g); return g;
-    }
-    function makeOwl() {
-      var g = new T.Group();
-      var body = new T.Mesh(new T.SphereGeometry(0.18, 10, 8), new T.MeshLambertMaterial({ color: 0x92400e }));
-      body.scale.set(0.9, 1.2, 0.85); body.position.y = 0.28; g.add(body);
-      var face = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshLambertMaterial({ color: 0xfde68a }));
-      face.position.set(0, 0.38, 0.1); g.add(face);
-      var beak = new T.Mesh(new T.ConeGeometry(0.03, 0.08, 5), new T.MeshLambertMaterial({ color: 0xf59e0b }));
-      beak.rotation.x = Math.PI / 2; beak.position.set(0, 0.34, 0.2); g.add(beak);
-      for (var s = -1; s <= 1; s += 2) {
-        var tuft = new T.Mesh(new T.ConeGeometry(0.04, 0.1, 5), new T.MeshLambertMaterial({ color: 0x78350f }));
-        tuft.position.set(s * 0.1, 0.52, 0); g.add(tuft);
-        var wing = new T.Mesh(new T.SphereGeometry(0.08, 6, 5), new T.MeshLambertMaterial({ color: 0x7c2d12 }));
-        wing.scale.set(0.4, 1, 0.7); wing.position.set(s * 0.16, 0.26, 0); g.add(wing);
-      }
-      g.position.set(-1.6, 0.9, -3.4); scene.add(g); return g;
-    }
-    function makeBee() {
-      var g = new T.Group();
-      var body = new T.Mesh(new T.SphereGeometry(0.08, 8, 6), new T.MeshLambertMaterial({ color: 0xfacc15 }));
-      body.scale.set(1.4, 0.8, 0.8); g.add(body);
-      var stripe = new T.Mesh(new T.TorusGeometry(0.07, 0.018, 6, 10), new T.MeshLambertMaterial({ color: 0x1c1917 }));
-      stripe.rotation.y = Math.PI / 2; g.add(stripe);
-      var wing = new T.Mesh(new T.SphereGeometry(0.07, 6, 5), new T.MeshLambertMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.7 }));
-      wing.scale.set(1.4, 0.2, 0.8); wing.position.set(0.04, 0.08, 0); g.add(wing);
-      g.position.set(0.4, 1.4, 1.2); scene.add(g); return g;
-    }
-
-    var hero = makeKid(0xf97316, 0x5a3a22); scene.add(hero);
-    var pal = makeKid(0x38bdf8, 0x78350f); pal.position.set(0.75, 0, 0.4); scene.add(pal);
-    var crab = makeCrab();
-    var owl = makeOwl();
-    var bee = makeBee();
-    var look = new T.Vector3(0, 0.4, 0);
-    var walking = 0;
-
-    var dots = document.getElementById("pathdots");
-    for (var d = 0; d < 11; d++) { var el = document.createElement("i"); dots.appendChild(el); }
-
     var SCENES = [
       { who: "Pip", say: "A map wiggles!", ch: [["Follow map", { path: "map" }], ["Ask the boat", { boat: true }]] },
       { who: "Map", say: "Two soft paths.", ch: [["Cave glow", { cave: true }], ["Beach walk", {}]] },
@@ -206,10 +69,11 @@
       { who: "All", say: "Cozy gold. Hug?", ch: [["Hug everyone", {}], ["Sit and rest", {}]] },
       { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }]] }
     ];
-
-    function save() {
-      try { localStorage.setItem("alabryuu-treasure", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {}
-    }
+    var dots = document.getElementById("pathdots");
+    for (var d = 0; d < 11; d++) { var iel = document.createElement("i"); dots.appendChild(iel); }
+    function resize() { var dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px"; x.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    addEventListener("resize", resize); resize();
+    function save() { try { localStorage.setItem("alabryuu-treasure", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {} }
     function show() {
       var s = SCENES[Math.min(si, SCENES.length - 1)];
       if (si === 2) s.say = flags.cave ? "Dark but kind." : "Sand tickles.";
@@ -217,91 +81,51 @@
       document.getElementById("who").textContent = s.who;
       document.getElementById("say").textContent = s.say;
       document.getElementById("sc").textContent = (si + 1) + "/11";
-      [].forEach.call(dots.children, function (n, i) { n.className = i <= si ? "on" : ""; });
-      var box = document.getElementById("chs");
-      box.innerHTML = "";
+      [].forEach.call(dots.children, function (el, i) { el.classList.toggle("on", i <= si); });
+      destX = flags.cave ? 0.22 : (si > 7 ? 0.78 : (flags.boat ? 0.62 : 0.4));
+      var box = document.getElementById("chs"); box.innerHTML = "";
       s.ch.forEach(function (pair) {
-        var b = document.createElement("button");
-        b.textContent = pair[0];
+        var b = document.createElement("button"); b.textContent = pair[0];
         b.onclick = function () {
           Object.assign(flags, pair[1]);
-          walking = 1;
-          if (pair[1].kind) stars += 1;
           if (pair[1].end) {
-            document.getElementById("wp").textContent = "You walked with " + (flags.friend || "Pip") + (flags.kind ? " and helped Crab." : ".");
+            document.getElementById("wp").textContent = "You walked with " + flags.friend + (flags.kind ? " and helped Crab." : ".");
             document.getElementById("win").classList.remove("off");
-            document.getElementById("panel").classList.remove("on");
             si = 0;
-          } else { si++; stars++; }
-          save();
-          if (!pair[1].end) show();
+          } else { si++; stars++; if (flags.kind) stars++; }
+          save(); if (!pair[1].end) show();
         };
         box.appendChild(b);
       });
     }
-
     function start() {
-      play = true; si = 0; walking = 0;
-      document.getElementById("title").classList.add("off");
+      si = 0; document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("panel").classList.add("on");
       show();
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-
-    var clock = new T.Clock();
-    function poseWalk(p, on) {
-      var u = p.userData;
-      var step = Math.sin(t * (on ? 10 : 3));
-      u.legs[0].rotation.x = step * (on ? 0.85 : 0.12);
-      u.legs[1].rotation.x = -step * (on ? 0.85 : 0.12);
-      u.arms[0].rotation.x = -step * (on ? 0.55 : 0.1);
-      u.arms[1].rotation.x = step * (on ? 0.55 : 0.1);
-      u.head.rotation.y = Math.sin(t * 2) * 0.18;
+    function loop() {
+      T += 0.016; kidX += (destX - kidX) * 0.05;
+      var night = flags.lantern && flags.cave;
+      var g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, night ? "#0b132b" : "#7dd3fc"); g.addColorStop(1, "#ca8a04");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#38bdf8"; x.fillRect(0, H * 0.72, W, H * 0.28);
+      x.fillStyle = "#65a30d"; x.beginPath(); x.ellipse(W * 0.5, H * 0.7, W * 0.46, 48, 0, 0, 6.3); x.fill();
+      x.fillStyle = "#7c2d12";
+      for (var i = 0; i < 6; i++) { x.fillRect(40 + i * 70, H * 0.52, 10, 40); x.fillStyle = "#166534"; x.beginPath(); x.arc(45 + i * 70, H * 0.52, 18, 0, 6.3); x.fill(); x.fillStyle = "#7c2d12"; }
+      if (si >= 3) { x.fillStyle = "#ef4444"; x.beginPath(); x.ellipse(W * 0.28, H * 0.68, 14, 8, 0, 0, 6.3); x.fill(); }
+      if (si >= 5) { x.fillStyle = "#f8fafc"; x.beginPath(); x.arc(W * 0.72, H * 0.42, 12, 0, 6.3); x.fill(); }
+      x.fillStyle = "#b45309"; x.fillRect(W * 0.76, H * 0.6, 28, 22);
+      if (si > 8) { x.fillStyle = "#fde047"; x.beginPath(); x.ellipse(W * 0.8, H * 0.58, 16, 6, -0.4, 0, 6.3); x.fill(); }
+      var kx = W * kidX, ky = H * 0.64 + Math.sin(T * 8) * 2;
+      x.fillStyle = "#fb7185"; x.beginPath(); x.arc(kx, ky - 18, 8, 0, 6.3); x.fill();
+      x.fillStyle = "#38bdf8"; x.fillRect(kx - 7, ky - 10, 14, 16);
+      requestAnimationFrame(loop);
     }
-    function tick() {
-      var dt = Math.min(0.033, clock.getDelta());
-      t += dt;
-      var dest = flags.cave ? cave.position : (si > 7 ? chest.position : (flags.boat ? boat.position : new T.Vector3(0.2, 0, 0.4)));
-      var dx = dest.x * 0.4 - hero.position.x, dz = dest.z * 0.4 - hero.position.z;
-      var dist = Math.sqrt(dx * dx + dz * dz);
-      var on = walking && dist > 0.08;
-      if (on) {
-        hero.position.x += dx * 0.04;
-        hero.position.z += dz * 0.04;
-        hero.rotation.y = Math.atan2(dx, dz);
-      } else walking = 0;
-      pal.position.x = hero.position.x + 0.75;
-      pal.position.z = hero.position.z + 0.35;
-      pal.rotation.y = hero.rotation.y;
-      poseWalk(hero, on); poseWalk(pal, on);
-      hero.userData.lantern.visible = !!flags.lantern;
-      pal.userData.lantern.visible = !!flags.lantern;
-      lamp.position.copy(hero.position); lamp.position.y = 1.1;
-      lamp.intensity = flags.lantern ? 1.5 : 0.15;
-      scene.background.set(flags.lantern && flags.cave ? 0x1c1917 : 0x7dd3fc);
-      chest.children[1].rotation.x = si > 8 ? -0.85 : 0;
-      boat.position.y = -0.5 + Math.sin(t) * 0.06;
-      crab.rotation.y = t * 0.4;
-      crab.position.x = 1.8 + Math.sin(t * 0.8) * 0.25;
-      owl.rotation.y = Math.sin(t * 0.6) * 0.4;
-      bee.position.y = 1.3 + Math.sin(t * 5) * 0.12;
-      bee.position.x = 0.4 + Math.cos(t * 1.4) * 0.5;
-      crab.visible = si >= 3;
-      owl.visible = si >= 5;
-      cam.position.lerp(new T.Vector3(hero.position.x + 3.2, 4.2, hero.position.z + 6), 0.05);
-      look.lerp(hero.position, 0.08); look.y = 0.5;
-      cam.lookAt(look);
-      renderer.render(scene, cam);
-      requestAnimationFrame(tick);
-    }
-    addEventListener("resize", function () {
-      cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-    });
-    show();
-    requestAnimationFrame(tick);
+    show(); loop();
   })();
   </script>
 </body>

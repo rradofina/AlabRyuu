@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Soccer Kick</title>
-  <script src="../vendor/three.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,system-ui,sans-serif;background:#14532d;color:#ecfccb;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,sans-serif;background:#14532d;color:#ecfccb;touch-action:none;user-select:none}
+    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
+    canvas{display:block;width:100%;height:100%}
     .home{position:fixed;top:12px;left:12px;z-index:8;color:#14532d;text-decoration:none;font-weight:800;background:#fde047;padding:8px 14px;border-radius:4px}
     .scarf{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:8;min-width:210px;background:repeating-linear-gradient(90deg,#16a34a 0 14px,#fff 14px 20px,#dc2626 20px 34px,#fff 34px 40px);padding:8px 18px 10px;border-radius:0 0 16px 16px;text-align:center;box-shadow:0 6px 0 #14532d;pointer-events:none}
     .scarf b{display:block;background:#14532d;color:#fde047;padding:4px 10px;font-size:15px}
-    #say{position:fixed;left:10px;right:10px;bottom:108px;text-align:center;font-weight:800;text-shadow:0 2px 0 #14532d;z-index:8;pointer-events:none}
-    #bar{position:fixed;left:22%;right:22%;bottom:18px;z-index:8;height:22px;background:#14532d;border-radius:6px 18px 6px 18px;overflow:hidden;box-shadow:inset 0 0 0 3px #fde047;transform:skewX(-12deg)}
+    #say{position:fixed;left:10px;right:10px;bottom:108px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
+    #bar{position:fixed;left:22%;right:22%;bottom:18px;z-index:8;height:22px;background:#14532d;border-radius:6px;overflow:hidden;box-shadow:inset 0 0 0 3px #fde047}
     #fill{height:100%;width:0;background:linear-gradient(90deg,#86efac,#fde047,#f97316)}
     .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#22c55e,#14532d)}
     .cover.off{display:none}
@@ -23,12 +23,13 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
   <div class="scarf"><b id="hf">Friendly</b><b id="sc">Home 0 – 0 Away</b></div>
   <div id="say">Hold to power. Let go to kick!</div>
   <div id="bar"><div id="fill"></div></div>
   <div class="cover" id="title">
     <h1>Soccer Kick</h1>
-    <p>3D pitch. Run-up. Spinning ball.<br>Goalie dives.</p>
+    <p>Hold. Kick. Goalie dives.</p>
     <button class="btn" id="go">Kick off</button>
   </div>
   <div class="cover off" id="win">
@@ -38,227 +39,97 @@
   </div>
   <script>
   (function () {
-    if (!window.THREE) return;
-    var T = THREE, play = false, match = 0, goals = 0, misses = 0, stars = 0, t = 0;
-    var holding = 0, power = 0, phase = "ready", kickT = 0;
-    var kickAim = new T.Vector3();
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, match = 0, goals = 0, misses = 0, stars = 0;
+    var phase = "ready", power = 0, holding = 0, kickT = 0, lastPX = 0.5;
+    var ball = { x: 0.5, y: 0.72, vx: 0, vy: 0 }, goalie = 0.5;
     var MATCH = [
-      { n: "Friendly", verb: "kick", need: 2, dive: 0.6 },
-      { n: "Windy", verb: "curve", need: 2, dive: 0.7, wind: 1 },
-      { n: "Night lights", verb: "aim", need: 3, dive: 0.8, night: 1 },
-      { n: "Rain pitch", verb: "chip", need: 3, dive: 0.75, rain: 1 },
-      { n: "Cup final", verb: "home", need: 3, dive: 0.85 }
+      { n: "Friendly", need: 2, dive: 0.6 },
+      { n: "Windy", need: 2, dive: 0.7, wind: 1 },
+      { n: "Night lights", need: 3, dive: 0.8, night: 1 },
+      { n: "Rain pitch", need: 3, dive: 0.75, rain: 1 },
+      { n: "Cup final", need: 3, dive: 0.85 }
     ];
+    var SAYS = ["Hold, then kick!", "Wind curves it!", "Aim the tap!", "Chip the rain!", "Cup kick!"];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-soccer") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-
-    var scene = new T.Scene();
-    var cam = new T.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 80);
-    var renderer = new T.WebGLRenderer({ antialias: true });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
-    document.body.appendChild(renderer.domElement);
-    scene.add(new T.HemisphereLight(0xffffff, 0x14532d, 0.8));
-    var sun = new T.DirectionalLight(0xfff1c1, 0.9); sun.position.set(-4, 10, 6); scene.add(sun);
-
-    var pitch = new T.Mesh(new T.PlaneGeometry(18, 28), new T.MeshLambertMaterial({ color: 0x22c55e }));
-    pitch.rotation.x = -Math.PI / 2; scene.add(pitch);
-    var stripe = new T.Mesh(new T.PlaneGeometry(0.08, 28), new T.MeshBasicMaterial({ color: 0xecfccb }));
-    stripe.rotation.x = -Math.PI / 2; stripe.position.y = 0.01; scene.add(stripe);
-    var box = new T.Mesh(new T.PlaneGeometry(8, 5), new T.MeshBasicMaterial({ color: 0x4ade80 }));
-    box.rotation.x = -Math.PI / 2; box.position.set(0, 0.015, -9); scene.add(box);
-
-    var goal = new T.Group();
-    var postM = new T.MeshLambertMaterial({ color: 0xf8fafc });
-    var pL = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 2.2, 8), postM); pL.position.set(-2.2, 1.1, -12); goal.add(pL);
-    var pR = pL.clone(); pR.position.x = 2.2; goal.add(pR);
-    var bar = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 4.5, 8), postM); bar.rotation.z = Math.PI / 2; bar.position.set(0, 2.2, -12); goal.add(bar);
-    var net = new T.Mesh(new T.PlaneGeometry(4.4, 2.1), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 }));
-    net.position.set(0, 1.05, -12.4); goal.add(net);
-    scene.add(goal);
-
-    function kid(col) {
-      var g = new T.Group();
-      var body = new T.Mesh(new T.SphereGeometry(0.22, 10, 8), new T.MeshLambertMaterial({ color: col }));
-      body.scale.set(1, 1.2, 0.8); body.position.y = 0.7; g.add(body);
-      var head = new T.Mesh(new T.SphereGeometry(0.16, 10, 8), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-      head.position.y = 1.05; g.add(head);
-      var hair = new T.Mesh(new T.SphereGeometry(0.17, 8, 6), new T.MeshLambertMaterial({ color: 0x5a3a22 }));
-      hair.position.set(0, 1.14, -0.02); g.add(hair);
-      var eye = new T.Mesh(new T.SphereGeometry(0.02, 6, 5), new T.MeshLambertMaterial({ color: 0x1e293b }));
-      eye.position.set(0.05, 1.06, 0.13); g.add(eye);
-      var eyeR = eye.clone(); eyeR.position.x = -0.05; g.add(eyeR);
-      var legs = [], arms = [];
-      for (var s = -1; s <= 1; s += 2) {
-        var sh = new T.Group(); sh.position.set(s * 0.2, 0.82, 0);
-        var arm = new T.Mesh(new T.CylinderGeometry(0.032, 0.038, 0.26, 7), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-        arm.position.y = -0.12; sh.add(arm);
-        var hand = new T.Mesh(new T.SphereGeometry(0.04, 6, 5), new T.MeshLambertMaterial({ color: 0xffe0b0 }));
-        hand.position.y = -0.26; sh.add(hand);
-        g.add(sh); arms.push(sh);
-        var hip = new T.Group(); hip.position.set(s * 0.09, 0.48, 0);
-        var thigh = new T.Mesh(new T.CylinderGeometry(0.04, 0.05, 0.26, 7), new T.MeshLambertMaterial({ color: 0x1d4ed8 }));
-        thigh.position.y = -0.12; hip.add(thigh);
-        var foot = new T.Mesh(new T.SphereGeometry(0.07, 7, 6), new T.MeshLambertMaterial({ color: 0x111827 }));
-        foot.scale.set(1, 0.55, 1.45); foot.position.set(0, -0.28, 0.04); hip.add(foot);
-        g.add(hip); legs.push(hip);
-      }
-      g.userData = { body: body, head: head, legs: legs, arms: arms };
-      return g;
-    }
-    var player = kid(0xf97316); player.position.set(0, 0, 4); scene.add(player);
-    var goalie = kid(0xfde047); goalie.position.set(0, 0, -11.2); scene.add(goalie);
-    var ball = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), new T.MeshLambertMaterial({ color: 0xf8fafc }));
-    var patch = new T.Mesh(new T.SphereGeometry(0.162, 8, 6), new T.MeshLambertMaterial({ color: 0x111827 }));
-    patch.scale.set(0.4, 1, 0.4); ball.add(patch);
-    ball.position.set(0.15, 0.16, 3.2); scene.add(ball);
-    var ballV = new T.Vector3();
-    var rain = [];
-    for (var i = 0; i < 20; i++) {
-      var d = new T.Mesh(new T.BoxGeometry(0.03, 0.18, 0.03), new T.MeshBasicMaterial({ color: 0x7dd3fc }));
-      d.position.set((Math.random() - 0.5) * 12, 4, (Math.random() - 0.5) * 16);
-      scene.add(d); rain.push(d);
-    }
-
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.frequency.value = f; g.gain.value = 0.1; o.connect(g); g.connect(ac.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function save() { try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {} }
-    function setMatchLook() {
-      var m = MATCH[match];
-      scene.background = new T.Color(m.night ? 0x0f172a : 0x7dd3fc);
-      scene.fog = new T.Fog(scene.background, 20, 50);
-      document.getElementById("hf").textContent = m.n;
-      document.getElementById("sc").textContent = "Home " + goals + " – " + misses + " Away";
-      document.getElementById("say").textContent = ["Hold, then kick!", "Wind curves it!", "Aim the tap!", "Chip the rain!", "Cup kick!"][match];
-      resetKick();
-    }
+    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
+    addEventListener("resize", resize); resize();
     function resetKick() {
       phase = "ready"; power = 0; kickT = 0; holding = 0;
-      player.position.set(0, 0, 4);
-      ball.position.set(0.15, 0.16, 3.2); ballV.set(0, 0, 0);
-      goalie.position.set(0, 0, -11.2); goalie.rotation.z = 0;
-      goalie.userData.body.rotation.z = 0;
-      goalie.userData.arms.forEach(function (a) { a.rotation.z = 0; });
+      ball.x = 0.5; ball.y = 0.72; ball.vx = 0; ball.vy = 0; goalie = 0.5;
       document.getElementById("fill").style.width = "0%";
+    }
+    function setMatch() {
+      var m = MATCH[match];
+      document.getElementById("hf").textContent = m.n;
+      document.getElementById("sc").textContent = "Home " + goals + " – " + misses + " Away";
+      document.getElementById("say").textContent = SAYS[match];
+      resetKick();
     }
     function start() {
       play = true; match = 0; goals = 0; misses = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      setMatchLook();
+      setMatch();
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-
-    var lastX = innerWidth / 2;
-    function onDown(ev) {
-      if (ev && ev.clientX != null) lastX = ev.clientX;
-      if (play && phase === "ready") { holding = 1; phase = "power"; }
-    }
-    function onUp(ev) {
+    function onDown(e) { if (e.clientX != null) lastPX = e.clientX / W; if (play && phase === "ready") { holding = 1; phase = "power"; } }
+    function onUp(e) {
       if (!play || phase !== "power") return;
       holding = 0; phase = "run"; kickT = 0;
-      var cx = ev && ev.clientX != null ? ev.clientX : lastX;
-      var nx = (cx / innerWidth) * 2 - 1;
-      kickAim.set(nx * 3.2 + (MATCH[match].wind ? Math.sin(t) * 1.2 : 0), 1.2 + power * 2.2, -10 - power * 8);
-      beep(240, 0.08);
+      if (e && e.clientX != null) lastPX = e.clientX / W;
     }
-    renderer.domElement.addEventListener("pointerdown", onDown);
+    cv.addEventListener("pointerdown", onDown);
     addEventListener("pointerup", onUp);
     addEventListener("pointercancel", onUp);
 
-    var clock = new T.Clock();
-    function tick() {
-      var dt = Math.min(0.033, clock.getDelta());
-      t += dt;
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
       var m = MATCH[match];
-      if (holding) {
-        power = (Math.sin(t * 4) * 0.5 + 0.5);
-        document.getElementById("fill").style.width = (power * 100) + "%";
-      }
+      if (holding) { power = Math.sin(t * 4) * 0.5 + 0.5; document.getElementById("fill").style.width = (power * 100) + "%"; }
       if (phase === "run") {
         kickT += dt;
-        var runK = Math.min(1, kickT / 0.5);
-        player.position.z = 4.2 - runK * 0.95;
-        player.userData.body.rotation.x = 0.14;
-        var step = Math.sin(kickT * 24);
-        player.userData.legs[0].rotation.x = step * 0.9;
-        player.userData.legs[1].rotation.x = -step * 0.9;
-        player.userData.arms[0].rotation.x = -step * 0.6;
-        player.userData.arms[1].rotation.x = step * 0.6;
-        if (kickT > 0.42) {
-          var swing = (kickT - 0.42) / 0.18;
-          player.userData.legs[0].rotation.x = 0.4;
-          player.userData.legs[1].rotation.x = swing < 0.4 ? -1.45 : -1.45 + (swing - 0.4) * 4.4;
-          player.userData.body.rotation.x = -0.22;
-          player.userData.arms[0].rotation.x = -0.8;
-          player.userData.arms[1].rotation.x = 0.9;
-        }
-        if (kickT >= 0.6) {
+        if (kickT >= 0.35) {
           phase = "fly";
-          ballV.copy(kickAim);
-          beep(520, 0.06);
+          var nx = (lastPX * 2 - 1) + (m.wind ? Math.sin(t) * 0.2 : 0);
+          ball.vx = nx * 0.55; ball.vy = -0.55 - power * 0.7;
         }
-      } else if (phase !== "fly") {
-        player.userData.legs.forEach(function (hip, i) {
-          hip.rotation.x = Math.sin(t * 5 + i * 3) * 0.15;
-        });
-        player.userData.body.rotation.x = 0;
       }
       if (phase === "fly") {
-        player.userData.legs[0].rotation.x += (0.25 - player.userData.legs[0].rotation.x) * 8 * dt;
-        player.userData.legs[1].rotation.x += (-0.2 - player.userData.legs[1].rotation.x) * 6 * dt;
-        player.userData.body.rotation.x += (0 - player.userData.body.rotation.x) * 5 * dt;
-        ballV.y -= 9 * dt;
-        ball.position.addScaledVector(ballV, dt);
-        ball.rotation.x += dt * 10; ball.rotation.y += dt * 6;
-        var dive = Math.max(-2, Math.min(2, ball.position.x)) * m.dive;
-        goalie.position.x += (dive - goalie.position.x) * 4 * dt;
-        goalie.position.y = Math.min(0.55, Math.abs(dive) * 0.28);
-        goalie.rotation.z = -dive * 0.55;
-        goalie.userData.body.rotation.z = -dive * 0.2;
-        goalie.userData.arms[0].rotation.z = 1.1 + dive * 0.3;
-        goalie.userData.arms[1].rotation.z = -1.1 + dive * 0.3;
-        goalie.userData.legs[0].rotation.x = 0.6;
-        goalie.userData.legs[1].rotation.x = -0.3;
-        if (ball.position.z < -12) {
-          var inGoal = Math.abs(ball.position.x) < 2.1 && ball.position.y < 2.2 && Math.abs(ball.position.x - goalie.position.x) > 0.55;
-          if (inGoal) { goals++; stars++; beep(880, 0.12); document.getElementById("say").textContent = "GOAL!"; }
-          else { misses++; beep(160, 0.1); document.getElementById("say").textContent = "Try again!"; }
+        ball.x += ball.vx * dt * 1.4; ball.y += ball.vy * dt;
+        ball.vy += 0.9 * dt;
+        goalie += ((ball.x - goalie) * m.dive - (goalie - 0.5) * 0.1) * dt * 6;
+        goalie = Math.max(0.28, Math.min(0.72, goalie));
+        if (ball.y < 0.22) {
+          var inGoal = Math.abs(ball.x - 0.5) < 0.28 && Math.abs(ball.x - goalie) > 0.08;
+          if (inGoal) { goals++; stars++; document.getElementById("say").textContent = "GOAL!"; }
+          else { misses++; document.getElementById("say").textContent = "Try again!"; }
           document.getElementById("sc").textContent = "Home " + goals + " – " + misses + " Away";
-          save();
+          try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {}
           if (goals >= m.need) {
             match++;
             if (match >= MATCH.length) {
               play = false;
               document.getElementById("wp").textContent = "⚽ " + goals + "  ★ " + stars;
               document.getElementById("win").classList.remove("off");
-            } else setMatchLook();
-          } else setTimeout(resetKick, 700);
-          phase = "wait";
+            } else setMatch();
+          } else { phase = "wait"; setTimeout(resetKick, 700); }
         }
-        if (ball.position.y < 0.16) { ball.position.y = 0.16; ballV.y *= -0.35; }
       }
-      rain.forEach(function (d) {
-        d.visible = !!m.rain;
-        d.position.y -= 9 * dt; if (d.position.y < 0) d.position.y = 5;
-      });
-      cam.position.lerp(new T.Vector3(player.position.x * 0.2, 2.4, player.position.z + 6), 0.08);
-      cam.lookAt(0, 0.8, -8);
-      renderer.render(scene, cam);
-      requestAnimationFrame(tick);
+      x.fillStyle = m.night ? "#0f172a" : "#7dd3fc"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#22c55e"; x.fillRect(0, H * 0.28, W, H * 0.72);
+      x.strokeStyle = "#ecfccb"; x.lineWidth = 3; x.strokeRect(W * 0.22, H * 0.28, W * 0.56, H * 0.22);
+      x.fillStyle = "#f8fafc"; x.fillRect(W * 0.22, H * 0.16, 8, H * 0.16); x.fillRect(W * 0.78 - 8, H * 0.16, 8, H * 0.16); x.fillRect(W * 0.22, H * 0.16, W * 0.56, 8);
+      x.fillStyle = "#fde047"; x.beginPath(); x.arc(W * goalie, H * 0.24, 16, 0, 6.3); x.fill();
+      x.fillStyle = "#f97316"; x.beginPath(); x.arc(W * 0.5, H * 0.78, 18, 0, 6.3); x.fill();
+      x.fillStyle = "#f8fafc"; x.beginPath(); x.arc(W * ball.x, H * ball.y, 10, 0, 6.3); x.fill();
+      x.fillStyle = "#111"; x.beginPath(); x.arc(W * ball.x + 3, H * ball.y - 2, 3, 0, 6.3); x.fill();
+      if (m.rain) { x.strokeStyle = "#7dd3fc"; for (var i = 0; i < 14; i++) { var rx = (i * 50 + t * 80) % W; x.beginPath(); x.moveTo(rx, (i * 40 + t * 200) % H); x.lineTo(rx - 4, (i * 40 + t * 200) % H + 10); x.stroke(); } }
+      requestAnimationFrame(loop);
     }
-    addEventListener("resize", function () {
-      cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-    });
-    scene.background = new T.Color(0x7dd3fc);
-    requestAnimationFrame(tick);
+    requestAnimationFrame(loop);
   })();
   </script>
 </body>
