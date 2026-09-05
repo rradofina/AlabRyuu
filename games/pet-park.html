@@ -96,7 +96,7 @@
       if(asleep){
         if(zzz.length<3)zzz.push({x:cx+18+zzz.length*10,y:cy-16-zzz.length*8,life:1.4,s:10});
         if(Math.random()<0.1)zzz.push({x:cx+20,y:cy-20,life:1.4,s:10});
-        for(var i=0;i<zzz.length;i++){x.fillStyle="rgba(30,27,75,"+zzz[i].life+")";x.font="800 18px Trebuchet MS";x.textAlign="left";x.fillText("z",zzz[i].x,zzz[i].y);}
+        for(var i=0;i<zzz.length;i++){x.globalAlpha=zzz[i].life;em("💤",zzz[i].x,zzz[i].y,18);x.globalAlpha=1;}
       }
     }
     function meter(label,val,mx0,my0,col){
@@ -200,9 +200,7 @@
 
     var flowers=[],rain=[],hearts=[];
     function drawPond(){
-      ellipse(W*0.72,H*0.66,50,16,"#38bdf8");
-      x.strokeStyle="rgba(255,255,255,.45)";x.lineWidth=2;
-      x.beginPath();x.ellipse(W*0.72,H*0.66,20+Math.sin(T*3)*6,6,0,0,6.28);x.stroke();
+      em("🌊",W*0.72,H*0.66,40);
     }
     function drawFlowers(){
       if(!flowers.length){for(var i=0;i<8;i++)flowers.push({x:rnd(0.08,0.9),y:rnd(0.62,0.8),c:["#fb7185","#fde047","#a78bfa","#fff"][i%4]});}
@@ -213,19 +211,15 @@
       }
     }
     function drawBench(){
-      x.fillStyle="#92400e";round(W*0.18,H*0.56,70,10,3,"#92400e");
-      x.fillRect(W*0.2,H*0.66,8,16);x.fillRect(W*0.32,H*0.66,8,16);
+      em("🪑",W*0.26,H*0.58,40);
     }
     function drawFence(){
-      x.strokeStyle="#14532d";x.lineWidth=3;
-      x.beginPath();x.moveTo(0,H*0.6);x.lineTo(W,H*0.6);x.stroke();
-      for(var i=0;i<12;i++){x.fillStyle="#166534";x.fillRect(i*W/11,H*0.56,6,20);}
+      for(var i=0;i<8;i++) em("🚧",i*W/8+20,H*0.58,22);
     }
     function drawRain(){
       if(day!==2)return;
-      if(rain.length<30)rain.push({x:rnd(0,W),y:-10,vy:220});
-      x.strokeStyle="rgba(186,230,253,.7)";x.lineWidth=2;
-      for(var i=rain.length-1;i>=0;i--){rain[i].y+=rain[i].vy*0.016;x.beginPath();x.moveTo(rain[i].x,rain[i].y);x.lineTo(rain[i].x-3,rain[i].y+10);x.stroke();if(rain[i].y>H)rain.splice(i,1);}
+      if(rain.length<12)rain.push({x:rnd(0,W),y:-10,vy:220});
+      for(var i=rain.length-1;i>=0;i--){rain[i].y+=rain[i].vy*0.016;em("💧",rain[i].x,rain[i].y,16);if(rain[i].y>H)rain.splice(i,1);}
     }
     function drawHearts(){
       if((hunger>0.85||play>0.85)&&Math.random()<0.05)hearts.push({x:W*0.46+rnd(-10,10),y:H*0.46,life:1});

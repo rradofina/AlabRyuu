@@ -343,14 +343,8 @@
     }
     function drawCabin() {
       var cx = W * 0.16, cy = H * 0.8;
-      g.fillStyle = "#1e293b";
-      g.fillRect(cx - 28, cy - 22, 56, 28);
-      g.beginPath(); g.moveTo(cx - 34, cy - 22); g.lineTo(cx, cy - 46); g.lineTo(cx + 34, cy - 22); g.fill();
-      var glow = 0.35 + 0.25 * Math.sin(t * 3);
-      g.fillStyle = "rgba(253,224,71," + glow + ")";
-      g.fillRect(cx - 8, cy - 10, 12, 10);
-      g.fillStyle = "#0f172a";
-      g.fillRect(cx + 16, cy - 50, 7, 16);
+      em("🏠", cx, cy - 8, 48);
+      em("🪵", cx + 22, cy - 28, 18);
     }
     function drawOwl(ox, oy) { em("🦉", ox, oy + Math.sin(t * 2 + ox) * 2, 28); }
     function drawHills() {
@@ -366,12 +360,7 @@
       g.fillRect(0, H * 0.88, W, H * 0.12);
       for (i = 0; i < 8; i++) {
         var tx = (i * 160 + t * 6) % (W + 80) - 40;
-        g.fillStyle = "#0f172a";
-        g.beginPath();
-        g.moveTo(tx, H * 0.88);
-        g.lineTo(tx + 10, H * 0.74 + Math.sin(t + i) * 3);
-        g.lineTo(tx + 20, H * 0.88);
-        g.fill();
+        em("🌲", tx + 10, H * 0.8 + Math.sin(t + i) * 3, 28);
       }
       drawCabin();
       drawOwl(W * 0.22, H * 0.76);
@@ -486,9 +475,9 @@
       for (i = 0; i < clouds.length; i++) {
         var c = clouds[i];
         var cx = ((c.x % 1.4) * W);
-        g.fillStyle = "rgba(255,255,255," + c.a + ")";
-        g.beginPath(); g.ellipse(cx, c.y * H, c.w, 18, 0, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.ellipse(cx + 30, c.y * H - 8, c.w * 0.55, 16, 0, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = c.a;
+        em("☁️", cx, c.y * H, 34);
+        g.globalAlpha = 1;
       }
     }
     function drawWorld() {

@@ -358,8 +358,7 @@
       grd.addColorStop(0, c[0]); grd.addColorStop(0.38, c[1]); grd.addColorStop(1, c[2]);
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
       var sunX = lerp(W * 0.15, W * 0.85, day), sunY = lerp(70, 160, Math.sin(day * Math.PI));
-      g.fillStyle = day < 0.7 ? "#fde047" : "#fb923c";
-      g.beginPath(); g.arc(sunX, sunY, 26, 0, 6.28); g.fill();
+      em(day < 0.7 ? "☀️" : "🌇", sunX, sunY, 36);
       motes.forEach(function (m) {
         g.globalAlpha = 0.18 + 0.1 * Math.sin(t + m.ph);
         oval(m.x * W, m.y * H + Math.sin(t * 0.8 + m.ph) * 4, m.r, m.r, "#fff");

@@ -259,19 +259,6 @@
     function drawSunPath() {
       var s = STAGES[Math.min(stage, 4)];
       sunA = s.dusk ? 1.1 : 0.35;
-      var sx = W * (0.15 + (s.dusk ? 0.65 : 0));
-      var sy = H * (s.dusk ? 0.22 : 0.14);
-      if (!s.rain) {
-        g.fillStyle = s.dusk ? "rgba(251,146,60,.2)" : "rgba(253,224,71,.18)";
-        for (var i = 0; i < 8; i++) {
-          var a = t * 0.4 + i * 0.785;
-          g.beginPath();
-          g.moveTo(sx + Math.cos(a) * 34, sy + Math.sin(a) * 34);
-          g.lineTo(sx + Math.cos(a) * 52, sy + Math.sin(a) * 52);
-          g.strokeStyle = s.dusk ? "rgba(251,146,60,.35)" : "rgba(253,224,71,.4)";
-          g.lineWidth = 3; g.stroke();
-        }
-      }
     }
     function drawJuice() {
       for (var i = 0; i < juice.length; i++) {
@@ -289,23 +276,14 @@
       var grd = g.createLinearGradient(0, 0, 0, H);
       grd.addColorStop(0, top); grd.addColorStop(0.45, midc); grd.addColorStop(1, "#4d7c0f");
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      if (s.dusk) {
-        g.fillStyle = "rgba(254,243,199,.45)";
-        g.beginPath(); g.arc(W * 0.8, H * 0.18, 36, 0, Math.PI * 2); g.fill();
-      } else if (!s.rain) {
-        g.fillStyle = "#fde047";
-        g.beginPath(); g.arc(W * 0.16, H * 0.14, 28, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "rgba(253,224,71,.25)";
-        g.beginPath(); g.arc(W * 0.16, H * 0.14, 48, 0, Math.PI * 2); g.fill();
-      }
+      if (s.dusk) em("🌇", W * 0.8, H * 0.18, 40);
+      else if (s.rain) em("🌧️", W * 0.16, H * 0.14, 36);
+      else em("☀️", W * 0.16, H * 0.14, 40);
       var i;
       for (i = 0; i < clouds.length; i++) {
         var c = clouds[i];
         var cx = ((c.x + t * c.s * 0.006) % 1.3) * W - 40;
-        g.fillStyle = s.rain ? "rgba(100,116,139,.65)" : "rgba(255,255,255,.85)";
-        g.beginPath(); g.ellipse(cx, c.y * H, c.w, 18, 0, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.ellipse(cx + 28, c.y * H - 10, c.w * 0.55, 16, 0, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.ellipse(cx - 24, c.y * H - 4, c.w * 0.4, 14, 0, 0, Math.PI * 2); g.fill();
+        em(s.rain ? "☁️" : "☁️", cx, c.y * H, 36);
       }
       g.fillStyle = "#365314";
       g.beginPath(); g.ellipse(W * 0.2, H * 0.78, W * 0.5, 70, 0, 0, Math.PI * 2); g.fill();

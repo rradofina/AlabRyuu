@@ -282,12 +282,7 @@
         var r = reeds[i];
         var rx = r.side ? W - r.x * W * 0.15 : r.x * W * 0.15;
         var sway = Math.sin(t * 1.7 + r.ph) * 9;
-        g.strokeStyle = "#365314"; g.lineWidth = 4;
-        g.beginPath(); g.moveTo(rx, H * 0.82);
-        g.quadraticCurveTo(rx + sway, H * 0.82 - r.h * 0.5, rx + sway * 1.2, H * 0.82 - r.h);
-        g.stroke();
-        g.fillStyle = "#4d7c0f";
-        g.beginPath(); g.ellipse(rx + sway * 1.2, H * 0.82 - r.h - 4, 5, 9, 0, 0, Math.PI * 2); g.fill();
+        em("🌾", rx + sway, H * 0.82 - r.h * 0.45, 28);
       }
     }
     function update(dt) {

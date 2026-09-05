@@ -180,13 +180,7 @@
       var grd = g.createLinearGradient(0, 0, 0, H);
       grd.addColorStop(0, top); grd.addColorStop(0.34, mid); grd.addColorStop(1, "#0284c7");
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      if (pond < 4) {
-        g.fillStyle = pond === 3 ? "#fdba74" : "#fde047";
-        g.beginPath(); g.arc(W * 0.82, H * 0.14, 26, 0, Math.PI * 2); g.fill();
-      } else {
-        g.fillStyle = "#fef3c7";
-        g.beginPath(); g.arc(W * 0.8, H * 0.12, 20, 0, Math.PI * 2); g.fill();
-      }
+      em(pond === 4 ? "🌙" : pond === 3 ? "🌇" : "☀️", W * 0.82, H * 0.14, 36);
       g.fillStyle = pond === 4 ? "#0c4a6e" : "#0284c7";
       g.beginPath(); g.moveTo(0, H * 0.34);
       var i;

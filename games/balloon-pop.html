@@ -267,17 +267,13 @@
       grd.addColorStop(0.5, wave === 4 ? "#7c3aed" : "#f9a8d4");
       grd.addColorStop(1, "#86efac");
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      if (wave !== 4) {
-        g.fillStyle = "#fde047";
-        g.beginPath(); g.arc(W * 0.84, H * 0.16, 24, 0, Math.PI * 2); g.fill();
-      }
+      if (wave !== 4) em("☀️", W * 0.84, H * 0.16, 36);
+      else em("🌙", W * 0.84, H * 0.16, 32);
       var i, c, cx;
       for (i = 0; i < clouds.length; i++) {
         c = clouds[i];
         cx = ((c.x + t * 0.03) % 1.3) * W - 20;
-        g.fillStyle = "rgba(255,255,255,.85)";
-        g.beginPath(); g.ellipse(cx, c.y * H, c.w, 14, 0, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.ellipse(cx + 20, c.y * H - 8, c.w * 0.45, 12, 0, 0, Math.PI * 2); g.fill();
+        em("☁️", cx, c.y * H, 32);
       }
       g.strokeStyle = "#fde047"; g.lineWidth = 3;
       g.beginPath();

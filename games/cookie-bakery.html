@@ -62,23 +62,13 @@
     }
     function drawBaker(px,py,sc,arm){
       x.save();x.translate(px,py);x.scale(sc,sc);
-      ellipse(0,52,28,10,"rgba(60,20,0,.18)");
-      x.fillStyle="#7c2d12";round(-18,18,36,34,8,"#7c2d12");
-      x.fillStyle=AV.shirt;round(-16,20,32,18,6,AV.shirt);
-      x.fillStyle="#fff7ed";round(-20,22,40,28,6,"#fff7ed");
-      x.fillStyle="#fecaca";round(-8,28,16,10,4,"#fecaca");
-      x.fillStyle="#7c2d12";x.font="800 9px Trebuchet MS";x.textAlign="center";x.fillText(AV.name,-0,36);
-      em("🧑‍🍳",0,4,32);
-      x.font="18px serif";x.textAlign="center";x.textBaseline="middle";x.fillText(AV.hair,0,4);
-      x.fillStyle="#fff";round(-14,-16,28,10,4,"#fff");
-      x.save();x.translate(-22,26);x.rotate(-.4+arm);round(-6,-4,22,8,4,"#fde68a");x.restore();
-      x.save();x.translate(22,26);x.rotate(.3-arm*.5);round(-16,-4,22,8,4,"#fde68a");x.restore();
-      x.fillStyle="#44403c";round(-14,50,12,14,3,"#44403c");round(2,50,12,14,3,"#44403c");
+      em("🧑‍🍳",0,4,48);
+      if(arm) em("👋",22,-8+Math.sin(T*8)*3,18);
+      x.fillStyle="#7c2d12";x.font="800 11px Trebuchet MS";x.textAlign="center";x.fillText(AV.name,0,36);
       x.restore();
     }
     function drawClock(cx,cy){
-      ellipse(cx,cy,22,22,"#fff7ed");x.strokeStyle="#7c2d12";x.lineWidth=3;x.beginPath();x.arc(cx,cy,22,0,6.28);x.stroke();
-      x.save();x.translate(cx,cy);x.rotate(T*0.15);x.strokeStyle="#b45309";x.beginPath();x.moveTo(0,0);x.lineTo(0,-14);x.stroke();x.restore();
+      em("🕐",cx,cy,36);
     }
     function drawRecipe(rx,ry){
       x.save();x.translate(rx,ry);x.rotate(-0.08);
@@ -89,21 +79,16 @@
     }
     function drawRollingPin(px,py){
       x.save();x.translate(px,py);x.rotate(Math.sin(T)*0.1);
-      x.fillStyle="#a8a29e";round(-46,-5,16,10,4,"#a8a29e");round(30,-5,16,10,4,"#a8a29e");
-      x.fillStyle="#d97706";round(-32,-8,64,16,6,"#d97706");
+      em("🥖",0,0,36);
       x.restore();
     }
     function drawTherm(ox,oy,warm){
-      round(ox,oy,12,46,6,"#e7e5e4");
-      x.fillStyle="#ef4444";round(ox+3,oy+40-warm*32,6,6+warm*32,3,"#ef4444");
-      ellipse(ox+6,oy+42,7,7,warm>0.55?"#f59e0b":"#ef4444");
+      em(warm>0.55?"🌡️":"🌡️",ox+6,oy+20,32);
     }
     function drawCustomer(cx,cy){
-      ellipse(cx,cy+40,16,6,"rgba(0,0,0,.15)");
-      x.fillStyle="#93c5fd";round(cx-14,cy+4,28,24,6,"#93c5fd");
-      x.font="28px serif";x.textAlign="center";x.fillText("🧒",cx,cy-4);
-      x.fillStyle="#fffbeb";round(cx+20,cy-30,64,28,8,"#fffbeb");
-      x.fillStyle="#7c2d12";x.font="800 11px Trebuchet MS";x.fillText("yum please",cx+52,cy-16);
+      em("🧒",cx,cy,36);
+      em("💬",cx+28,cy-28,22);
+      x.fillStyle="#7c2d12";x.font="800 11px Trebuchet MS";x.textAlign="center";x.fillText("yum please",cx+52,cy-16);
     }
     function drawFlourDust(){
       if(Math.random()<0.2)bits.push({k:"flour",x:rnd(20,W-20),y:H*0.2,vx:rnd(-8,8),vy:rnd(10,30),life:1.8,max:1.8,col:"#fff7ed",sz:rnd(2,4),r:0});
