@@ -325,103 +325,21 @@
       for (i = 0; i < constel.length; i++) if (constel[i].lit) lit++;
       if ((score >= n.need && lit >= constel.length) || score >= n.need + 6) nextNight();
     }
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
     function drawStar(x, y, r, rot, col, glow) {
-      g.save();
-      g.translate(x, y); g.rotate(rot);
-      if (glow) {
-        g.fillStyle = glow;
-        g.globalAlpha = 0.35;
-        g.beginPath(); g.arc(0, 0, r * 2.2, 0, Math.PI * 2); g.fill();
-        g.globalAlpha = 1;
-      }
-      g.fillStyle = col;
-      g.beginPath();
-      for (var i = 0; i < 5; i++) {
-        var a = -Math.PI / 2 + i * Math.PI * 2 / 5;
-        var b = a + Math.PI / 5;
-        g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-        g.lineTo(Math.cos(b) * r * 0.42, Math.sin(b) * r * 0.42);
-      }
-      g.closePath(); g.fill();
-      g.fillStyle = "rgba(255,255,255,.7)";
-      g.beginPath(); g.arc(-r * 0.18, -r * 0.18, r * 0.18, 0, Math.PI * 2); g.fill();
-      g.restore();
+      em("⭐", x, y, Math.max(18, r * 2.4));
     }
     function drawMoon(mx, my, r) {
-      var pulse = 1 + Math.sin(t * 1.4) * 0.03;
-      g.save();
-      g.translate(mx, my);
-      var grd = g.createRadialGradient(0, 0, r * 0.2, 0, 0, r * 1.8);
-      grd.addColorStop(0, "rgba(254,243,199,.35)");
-      grd.addColorStop(1, "rgba(254,243,199,0)");
-      g.fillStyle = grd;
-      g.beginPath(); g.arc(0, 0, r * 1.8 * pulse, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#fef3c7";
-      g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#fde68a";
-      g.beginPath(); g.arc(-r * 0.25, -r * 0.1, r * 0.22, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(r * 0.28, r * 0.18, r * 0.14, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(r * 0.05, -r * 0.35, r * 0.1, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#1e1b4b";
-      var blink = (Math.sin(t * 3) > 0.92) ? 1 : 3;
-      g.beginPath(); g.ellipse(-r * 0.22, -r * 0.08, 3, blink, 0, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(r * 0.2, -r * 0.08, 3, blink, 0, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#b45309"; g.lineWidth = 2;
-      g.beginPath(); g.arc(0, r * 0.18, r * 0.28, 0.15, Math.PI - 0.15); g.stroke();
+      em("🌙", mx, my, Math.max(36, r * 2.2));
       if (moonSlow > 0) {
         g.strokeStyle = "rgba(253,230,138,.7)"; g.lineWidth = 3;
-        g.beginPath(); g.arc(0, 0, r + 10 + Math.sin(t * 8) * 3, 0, Math.PI * 2); g.stroke();
+        g.beginPath(); g.arc(mx, my, r + 10 + Math.sin(t * 8) * 3, 0, Math.PI * 2); g.stroke();
       }
-      g.restore();
     }
     function drawKid(kx, ky) {
       var bob = Math.sin(t * 3) * 3;
-      var sw = swing > 0 ? Math.sin(swing * Math.PI) * 0.9 : Math.sin(t * 2) * 0.12;
-      g.save();
-      g.translate(kx, ky + bob);
-      g.fillStyle = "rgba(0,0,0,.18)";
-      g.beginPath(); g.ellipse(0, 34, 24, 6, 0, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#1e1b4b"; g.lineWidth = 6; g.lineCap = "round";
-      var step = Math.sin(t * 4) * 5;
-      g.beginPath(); g.moveTo(-8, 10); g.lineTo(-10 + step, 32); g.stroke();
-      g.beginPath(); g.moveTo(8, 10); g.lineTo(10 - step, 32); g.stroke();
-      g.fillStyle = "#334155";
-      g.beginPath(); g.ellipse(-10 + step, 33, 6, 3, 0, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(10 - step, 33, 6, 3, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#7c3aed";
-      g.beginPath();
-      if (g.roundRect) g.roundRect(-15, -8, 30, 24, 8);
-      else g.rect(-15, -8, 30, 24);
-      g.fill();
-      g.fillStyle = "#fde68a";
-      g.beginPath(); g.arc(0, -22, 14, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#422006";
-      g.beginPath(); g.ellipse(0, -32, 14, 8, 0, Math.PI, 0, true); g.fill();
-      g.beginPath(); g.arc(-12, -22, 5, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(12, -22, 5, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#1e1b4b";
-      g.beginPath(); g.arc(-4, -22, 1.8, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(4, -22, 1.8, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#fb7185";
-      g.beginPath(); g.arc(-7, -17, 2.2, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(7, -17, 2.2, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#b45309"; g.lineWidth = 1.6;
-      g.beginPath(); g.arc(0, -18, 4.5, 0.2, Math.PI - 0.2); g.stroke();
-      g.save();
-      g.translate(12, -4);
-      g.rotate(-0.7 + sw);
-      g.strokeStyle = "#a16207"; g.lineWidth = 4;
-      g.beginPath(); g.moveTo(0, 0); g.lineTo(38, -28); g.stroke();
-      g.strokeStyle = "#fde68a"; g.lineWidth = 2.5;
-      g.beginPath(); g.arc(48, -36, 14, 0, Math.PI * 2); g.stroke();
-      g.strokeStyle = "rgba(253,230,138,.45)"; g.lineWidth = 1;
-      var i;
-      for (i = 0; i < 5; i++) {
-        var a = i * Math.PI * 2 / 5;
-        g.beginPath(); g.moveTo(48, -36); g.lineTo(48 + Math.cos(a) * 13, -36 + Math.sin(a) * 13); g.stroke();
-      }
-      g.restore();
-      g.restore();
+      em("🧒", kx, ky + bob, 56);
+      em("⭐", kx + 28, ky - 18 + bob, 20);
     }
     function drawCabin() {
       var cx = W * 0.16, cy = H * 0.8;
@@ -434,25 +352,7 @@
       g.fillStyle = "#0f172a";
       g.fillRect(cx + 16, cy - 50, 7, 16);
     }
-    function drawOwl(ox, oy) {
-      var blink = Math.sin(t * 2.4 + ox) > 0.88;
-      g.save(); g.translate(ox, oy + Math.sin(t * 2 + ox) * 2);
-      g.fillStyle = "#1e1b4b";
-      g.beginPath(); g.ellipse(0, 0, 11, 13, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#fde68a";
-      if (blink) {
-        g.fillRect(-7, -2, 5, 1.5); g.fillRect(2, -2, 5, 1.5);
-      } else {
-        g.beginPath(); g.arc(-4.5, -1, 3.2, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.arc(4.5, -1, 3.2, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "#1e1b4b";
-        g.beginPath(); g.arc(-4.5, -1, 1.3, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.arc(4.5, -1, 1.3, 0, Math.PI * 2); g.fill();
-      }
-      g.fillStyle = "#fbbf24";
-      g.beginPath(); g.moveTo(0, 2); g.lineTo(-3, 6); g.lineTo(3, 6); g.fill();
-      g.restore();
-    }
+    function drawOwl(ox, oy) { em("🦉", ox, oy + Math.sin(t * 2 + ox) * 2, 28); }
     function drawHills() {
       var i;
       for (i = 0; i < hills.length; i++) {

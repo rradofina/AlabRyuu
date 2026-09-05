@@ -207,14 +207,7 @@
     function drawPad(p) {
       var xy = padXY(p);
       var x = xy.x, y = xy.y;
-      g.fillStyle = p.done ? "#86efac" : "#16a34a";
-      g.beginPath(); g.ellipse(x, y, p.r, p.r * 0.62, 0, 0.2, Math.PI * 2 - 0.3); g.fill();
-      g.fillStyle = p.done ? "#bbf7d0" : "#22c55e";
-      g.beginPath(); g.ellipse(x - 4, y - 2, p.r * 0.55, p.r * 0.3, 0, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#14532d"; g.lineWidth = 1.4;
-      g.beginPath(); g.moveTo(x, y); g.lineTo(x + p.r * 0.55, y - 2); g.stroke();
-      g.beginPath(); g.moveTo(x, y); g.lineTo(x - p.r * 0.3, y + p.r * 0.25); g.stroke();
-      g.beginPath(); g.moveTo(x, y); g.lineTo(x + p.r * 0.15, y + p.r * 0.3); g.stroke();
+      em(p.done ? "✅" : "🟢", x, y, p.r * 1.6);
       if (p.reed) {
         var sway = Math.sin(t * 1.8 + p.ph) * 6;
         g.strokeStyle = "#365314"; g.lineWidth = 5;
@@ -229,6 +222,7 @@
       g.fillStyle = "#14532d";
       g.font = "bold 32px Trebuchet MS"; g.textAlign = "center"; g.textBaseline = "middle";
       g.fillText(p.ch, x, y - 2);
+      em("🔤", x + p.r * 0.55, y - p.r * 0.55, 16);
       if (mode === "play" && p.need && !p.done && WORDS[stage].w[nextI] === p.ch) {
         g.strokeStyle = "rgba(253,224,71,.9)"; g.lineWidth = 4;
         g.beginPath(); g.ellipse(x, y, p.r + 7 + Math.sin(t * 6) * 3, p.r * 0.7 + 4, 0, 0, Math.PI * 2); g.stroke();
@@ -257,49 +251,21 @@
       if (frog.shake > 0) x += Math.sin(t * 28) * 5;
       return { x: x, y: y, squash: squash, stretch: stretch, fold: fold, air: air };
     }
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
     function drawFrog() {
       var p = frogPose();
       g.save();
       g.translate(p.x, p.y);
       g.scale(p.stretch, p.squash);
       if (frog.shake > 0) g.rotate(Math.sin(t * 20) * 0.25);
-      var fold = p.fold;
-      g.fillStyle = "#4d7c0f";
-      g.beginPath(); g.ellipse(-16, 12 + fold * 4, 9, 5 - fold * 2, -0.5 + fold * 0.8, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(16, 12 + fold * 4, 9, 5 - fold * 2, 0.5 - fold * 0.8, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#365314"; g.lineWidth = 3;
-      g.beginPath();
-      g.moveTo(-10, 8);
-      g.quadraticCurveTo(-22, 6 + fold * 8, -20, 16 - fold * 6);
-      g.stroke();
-      g.beginPath();
-      g.moveTo(10, 8);
-      g.quadraticCurveTo(22, 6 + fold * 8, 20, 16 - fold * 6);
-      g.stroke();
-      g.fillStyle = "#65a30d";
-      g.beginPath(); g.ellipse(0, 6, 18, 13, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#84cc16";
-      g.beginPath(); g.ellipse(0, 4, 10, 7, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#65a30d";
-      g.beginPath(); g.ellipse(-8, -10, 7, 8, 0, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(8, -10, 7, 8, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#4d7c0f";
-      g.fillRect(-9, -18, 2.4, 8); g.fillRect(7, -18, 2.4, 8);
-      g.fillStyle = "#fde047";
-      g.beginPath(); g.arc(-8, -20, 5, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(8, -20, 5, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#14532d";
-      var look = frog.look;
-      g.beginPath(); g.arc(-8 + look, -20, 2.2, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(8 + look, -20, 2.2, 0, Math.PI * 2); g.fill();
+      em("🐸", 0, 0, 52);
       g.restore();
     }
     function drawBg() {
       var grd = g.createLinearGradient(0, 0, 0, H);
       grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.32, "#38bdf8"); grd.addColorStop(1, "#0ea5e9");
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      g.fillStyle = "#fde047";
-      g.beginPath(); g.arc(W * 0.84, H * 0.13, 22, 0, Math.PI * 2); g.fill();
+      em("☀️", W * 0.84, H * 0.13, 36);
       g.fillStyle = "#0284c7";
       g.beginPath(); g.moveTo(0, H * 0.3);
       var i;

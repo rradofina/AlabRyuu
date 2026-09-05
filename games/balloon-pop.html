@@ -235,59 +235,18 @@
         beep(200, 0.08, "sine");
       }
     }
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
     function drawBalloon(b) {
       var bob = Math.sin(t * 2.2 + b.ph) * 8;
       var sway = Math.sin(t * 1.4 + b.ph) * 6;
       var x = b.x + sway, y = b.y + bob;
-      g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.6;
-      g.beginPath(); g.moveTo(x, y + b.r * 1.12);
-      g.quadraticCurveTo(x + Math.sin(t * 2 + b.ph) * 10, y + b.r + 28, x + Math.sin(t + b.ph) * 6, y + b.r + 46);
-      g.stroke();
-      if (b.rain) {
-        var rg = ["#ef4444", "#fb923c", "#facc15", "#22c55e", "#3b82f6", "#a78bfa"], i;
-        for (i = 0; i < 6; i++) {
-          g.fillStyle = rg[i];
-          g.beginPath(); g.ellipse(x, y, b.r - i * 2, b.r * 1.16 - i * 2, 0, 0, Math.PI * 2); g.fill();
-        }
-      } else {
-        g.fillStyle = b.hex;
-        g.beginPath(); g.ellipse(x, y, b.r, b.r * 1.16, 0, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "rgba(255,255,255,.5)";
-        g.beginPath(); g.ellipse(x - b.r * 0.32, y - b.r * 0.34, b.r * 0.2, b.r * 0.3, -0.4, 0, Math.PI * 2); g.fill();
-      }
-      g.fillStyle = b.rain ? "#6d28d9" : b.hex;
-      g.beginPath(); g.moveTo(x - 5, y + b.r * 1.08); g.lineTo(x + 5, y + b.r * 1.08); g.lineTo(x, y + b.r * 1.28); g.fill();
+      em(b.rain ? "🌈" : "🎈", x, y, b.r * 2.4);
     }
     function drawKid() {
       var tip = pinTip();
-      var shx = kidX + 10, shy = kidY - 48;
       var hop = hold ? 0 : Math.abs(Math.sin(t * 3)) * 3;
-      var elx = shx + Math.cos(aim) * 22, ely = shy - hop + Math.sin(aim) * 22;
-      var hnx = shx + Math.cos(aim) * 40, hny = shy - hop + Math.sin(aim) * 40;
-      g.fillStyle = "#7c2d12";
-      g.beginPath(); g.ellipse(kidX - 12, kidY + 6, 8, 4, 0, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(kidX + 14, kidY + 6, 8, 4, 0, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#fdba74"; g.lineWidth = 7; g.lineCap = "round";
-      g.beginPath(); g.moveTo(kidX - 8, kidY - 20 - hop); g.lineTo(kidX - 12, kidY + 2); g.stroke();
-      g.beginPath(); g.moveTo(kidX + 8, kidY - 20 - hop); g.lineTo(kidX + 14, kidY + 2); g.stroke();
-      g.fillStyle = "#7c3aed";
-      g.beginPath(); g.roundRect ? (g.roundRect(kidX - 16, kidY - 54 - hop, 32, 38, 10), g.fill()) : g.fillRect(kidX - 16, kidY - 54 - hop, 32, 38);
-      g.fillStyle = "#fde047";
-      g.fillRect(kidX - 16, kidY - 28 - hop, 32, 6);
-      g.fillStyle = "#fdba74";
-      g.beginPath(); g.arc(kidX, kidY - 66 - hop, 15, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#422006";
-      g.beginPath(); g.ellipse(kidX - 2, kidY - 76 - hop, 15, 7, -0.2, Math.PI, 0.2); g.fill();
-      g.fillStyle = "#1e1b4b";
-      g.beginPath(); g.arc(kidX - 5, kidY - 68 - hop, 2.1, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(kidX + 6, kidY - 68 - hop, 2.1, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#e2e8f0";
-      g.beginPath(); g.arc(kidX, kidY - 62 - hop, 5, 0.2, Math.PI - 0.2); g.stroke();
-      g.strokeStyle = "#fdba74"; g.lineWidth = 7;
-      g.beginPath(); g.moveTo(kidX - 12, shy - hop); g.lineTo(kidX - 28, shy + 10 - hop); g.stroke();
-      g.beginPath(); g.moveTo(shx, shy - hop); g.lineTo(elx, ely); g.lineTo(hnx, hny); g.stroke();
-      g.fillStyle = "#fdba74";
-      g.beginPath(); g.arc(hnx, hny, 6, 0, Math.PI * 2); g.fill();
+      var hnx = kidX + Math.cos(aim) * 40, hny = kidY - 48 - hop + Math.sin(aim) * 40;
+      em("🧒", kidX, kidY - 40 - hop, 56);
       if (hold) {
         var reach = pokeReach();
         g.strokeStyle = "rgba(253,224,71,.45)"; g.lineWidth = 3;
@@ -300,12 +259,7 @@
       }
       g.strokeStyle = "#92400e"; g.lineWidth = 6;
       g.beginPath(); g.moveTo(hnx, hny); g.lineTo(tip.x, tip.y); g.stroke();
-      g.fillStyle = pokeFlash > 0 ? "#fde047" : "#e2e8f0";
-      g.beginPath();
-      g.moveTo(tip.x, tip.y);
-      g.lineTo(tip.x - Math.cos(aim) * 14 - Math.sin(aim) * 5, tip.y - Math.sin(aim) * 14 + Math.cos(aim) * 5);
-      g.lineTo(tip.x - Math.cos(aim) * 14 + Math.sin(aim) * 5, tip.y - Math.sin(aim) * 14 - Math.cos(aim) * 5);
-      g.closePath(); g.fill();
+      em("📍", tip.x, tip.y, 22);
     }
     function drawBg() {
       var grd = g.createLinearGradient(0, 0, 0, H);

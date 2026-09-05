@@ -181,11 +181,7 @@
       g.translate(L.x, L.y);
       g.rotate(-0.3 + sway);
       if (!L.open) {
-        g.fillStyle = G.leaf;
-        g.beginPath(); g.ellipse(0, 0, L.r, L.r * 0.7, 0, 0, 6.28); g.fill();
-        g.strokeStyle = "#14532d"; g.lineWidth = 2; g.beginPath(); g.moveTo(-L.r * 0.6, 0); g.lineTo(L.r * 0.5, 0); g.stroke();
-        g.fillStyle = "#4ade80"; g.beginPath(); g.ellipse(-L.r * 0.2, -L.r * 0.15, 8, 5, 0, 0, 6.28); g.fill();
-        oval(L.r * 0.15, L.r * 0.1, 5, 3, "#16a34a");
+        em("🍃", 0, 0, L.r * 1.8);
       } else {
         g.fillStyle = "#fefce8";
         g.beginPath(); g.ellipse(0, 0, L.r * 0.7, L.r * 0.45, 0, 0, 6.28); g.fill();
@@ -193,93 +189,13 @@
       g.restore();
     }
 
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
+    function bugEm(kind) {
+      return kind === "ladybug" ? "🐞" : kind === "beetle" ? "🪲" : kind === "butterfly" ? "🦋" : kind === "bee" ? "🐝" : kind === "ant" ? "🐜" : kind === "cricket" ? "🦗" : kind === "glow" ? "✨" : "🐛";
+    }
     function drawBug(kind, s) {
       s = s || 1;
-      g.save();
-      g.scale(s, s);
-      var i, flap;
-      if (kind === "ladybug") {
-        g.strokeStyle = "#1c1917"; g.lineWidth = 1.6; g.lineCap = "round";
-        g.beginPath();
-        g.moveTo(-6, 4); g.lineTo(-10, 8);
-        g.moveTo(6, 4); g.lineTo(10, 8);
-        g.moveTo(-8, 0); g.lineTo(-12, 2);
-        g.moveTo(8, 0); g.lineTo(12, 2);
-        g.stroke();
-        oval(0, 2, 10, 8, "#ef4444");
-        oval(-8, -2, 5, 4.5, "#1c1917");
-        dot(-3, 0, 2, "#1c1917");
-        dot(4, 2, 2.2, "#1c1917");
-        dot(2, -3, 1.6, "#1c1917");
-        g.strokeStyle = "#1c1917"; g.lineWidth = 1.2;
-        g.beginPath(); g.moveTo(-8, -6); g.quadraticCurveTo(-10, -12, -6, -12);
-        g.moveTo(-6, -6); g.quadraticCurveTo(-4, -12, -2, -10); g.stroke();
-      } else if (kind === "beetle") {
-        g.strokeStyle = "#1c1917"; g.lineWidth = 1.6;
-        g.beginPath();
-        g.moveTo(-7, 4); g.lineTo(-11, 9);
-        g.moveTo(7, 4); g.lineTo(11, 9);
-        g.moveTo(-8, 0); g.lineTo(-13, 2);
-        g.moveTo(8, 0); g.lineTo(13, 2);
-        g.stroke();
-        oval(0, 2, 11, 8, "#0f766e");
-        oval(0, 2, 8, 5, "#14b8a6");
-        oval(-8, -2, 4.5, 4, "#134e4a");
-        g.strokeStyle = "#134e4a"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(-8, -4); g.lineTo(-14, -10); g.stroke();
-      } else if (kind === "butterfly") {
-        flap = 0.7 + Math.sin(t * 14) * 0.3;
-        oval(-10, -2, 9 * flap, 8, "#a78bfa");
-        oval(10, -2, 9 * flap, 8, "#c4b5fd");
-        oval(-8, 6, 6 * flap, 5, "#f9a8d4");
-        oval(8, 6, 6 * flap, 5, "#fbcfe8");
-        oval(0, 2, 2.4, 9, "#3f2a14");
-        dot(0, -6, 2, "#3f2a14");
-        g.strokeStyle = "#3f2a14"; g.lineWidth = 1.2;
-        g.beginPath(); g.moveTo(-1, -8); g.lineTo(-4, -14); g.moveTo(1, -8); g.lineTo(4, -14); g.stroke();
-      } else if (kind === "bee") {
-        flap = 0.6 + Math.sin(t * 16) * 0.3;
-        oval(-7, -4, 6 * flap, 4, "rgba(255,255,255,.75)");
-        oval(7, -4, 6 * flap, 4, "rgba(255,255,255,.75)");
-        oval(0, 2, 9, 6, "#facc15");
-        g.fillStyle = "#1c1917";
-        g.fillRect(-4, -3, 2.4, 10);
-        g.fillRect(1, -3, 2.4, 10);
-        oval(8, 0, 3, 3, "#1c1917");
-      } else if (kind === "ant") {
-        oval(-8, 2, 4, 3.2, "#1c1917");
-        oval(0, 2, 5, 3.6, "#292524");
-        oval(8, 1, 4, 3.2, "#1c1917");
-        g.strokeStyle = "#1c1917"; g.lineWidth = 1.4;
-        g.beginPath();
-        g.moveTo(-4, 4); g.lineTo(-8, 9);
-        g.moveTo(0, 5); g.lineTo(0, 10);
-        g.moveTo(4, 4); g.lineTo(8, 9);
-        g.moveTo(8, -2); g.quadraticCurveTo(10, -8, 6, -10);
-        g.moveTo(8, -2); g.quadraticCurveTo(14, -8, 12, -10);
-        g.stroke();
-      } else if (kind === "cricket") {
-        oval(0, 2, 9, 5, "#65a30d");
-        oval(8, 0, 4, 3.4, "#4d7c0f");
-        g.strokeStyle = "#365314"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(-4, 4); g.quadraticCurveTo(-12, -6, -2, 10); g.stroke();
-        g.beginPath(); g.moveTo(2, 4); g.quadraticCurveTo(12, -4, 6, 10); g.stroke();
-        g.strokeStyle = "#365314"; g.lineWidth = 1.2;
-        g.beginPath(); g.moveTo(10, -2); g.lineTo(14, -8); g.stroke();
-      } else if (kind === "glow") {
-        g.globalAlpha = 0.35;
-        oval(0, 0, 14, 10, "#bef264");
-        g.globalAlpha = 1;
-        oval(0, 2, 8, 5, "#eab308");
-        oval(0, 2, 5, 3, "#fde047");
-        dot(5, 0, 1.2, "#1c1917");
-      } else {
-        for (i = 0; i < 4; i++) oval(-10 + i * 6, 2 + Math.sin(t * 8 + i) * 1.2, 5, 4, i % 2 ? "#4ade80" : "#22c55e");
-        oval(10, 0, 4, 3.4, "#166534");
-        g.strokeStyle = "#14532d"; g.lineWidth = 1.2;
-        g.beginPath(); g.moveTo(12, -2); g.lineTo(16, -7); g.moveTo(12, -2); g.lineTo(16, -4); g.stroke();
-      }
-      g.restore();
+      em(bugEm(kind), 0, 0, 28 * s);
     }
 
     function drawBugs() {
@@ -341,7 +257,7 @@
         g.save();
         g.translate(50 + i * 48, H * 0.5 + Math.sin(t * 2 + i) * 8);
         g.rotate(Math.sin(t * 1.5 + i) * 0.2);
-        g.fillStyle = "#22c55e"; g.beginPath(); g.ellipse(0, 0, 26, 18, 0, 0, 6.28); g.fill();
+        em("🍃", 0, 0, 40);
         g.restore();
       }
       g.save();

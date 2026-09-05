@@ -123,207 +123,21 @@
       }
     }
 
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
+    function toyEm(kind) {
+      return {
+        giraffe: "🦒", tree: "🌳", bike: "🚲", flamingo: "🦩", palm: "🌴", boat: "⛵",
+        cow: "🐄", tractor: "🚜", sunflower: "🌻", bus: "🚌", statue: "🗿", dog: "🐶",
+        owl: "🦉", cactus: "🌵", rocket: "🚀", apple: "🍎", star: "⭐", balloon: "🎈"
+      }[kind] || "🦆";
+    }
     function drawToy(kind, shadow, sc) {
       sc = sc || 1;
       g.save();
-      g.scale(sc, sc);
-      var c = function (col) { return ink(col, shadow); };
-      var i;
-      if (kind === "giraffe") {
-        g.fillStyle = c("#b45309");
-        g.fillRect(-14, 18, 5, 22); g.fillRect(-4, 18, 5, 22);
-        g.fillRect(8, 18, 5, 22); g.fillRect(16, 18, 5, 22);
-        oval(2, 10, 22, 12, c("#fbbf24"));
-        g.fillStyle = c("#fbbf24");
-        g.fillRect(12, -28, 8, 36);
-        oval(20, -34, 10, 8, c("#fbbf24"));
-        oval(16, -42, 3, 5, c("#b45309"));
-        oval(22, -42, 3, 5, c("#b45309"));
-        if (!shadow) {
-          oval(-4, 6, 4, 3, "#b45309");
-          oval(8, 12, 4, 3, "#b45309");
-          oval(18, 4, 3, 2.5, "#b45309");
-          oval(22, -36, 4, 3, "#fde68a");
-          dot(24, -36, 1.4, "#1c1917");
-        }
-      } else if (kind === "tree") {
-        g.fillStyle = c("#854d0e");
-        g.fillRect(-8, 8, 16, 32);
-        oval(0, -6, 28, 22, c("#16a34a"));
-        oval(-14, 4, 16, 14, c("#15803d"));
-        oval(14, 6, 15, 13, c("#22c55e"));
-        if (!shadow) oval(-6, -10, 8, 6, "#4ade80");
-      } else if (kind === "bike") {
-        g.strokeStyle = c("#1d4ed8"); g.lineWidth = 4;
-        g.beginPath(); g.arc(-18, 16, 14, 0, 6.28); g.stroke();
-        g.beginPath(); g.arc(20, 16, 14, 0, 6.28); g.stroke();
-        g.beginPath();
-        g.moveTo(-18, 16); g.lineTo(4, 16); g.lineTo(16, 2); g.lineTo(-6, 2); g.closePath();
-        g.moveTo(4, 16); g.lineTo(-6, 2);
-        g.moveTo(16, 2); g.lineTo(22, -8);
-        g.moveTo(-6, 2); g.lineTo(-12, -6);
-        g.stroke();
-        g.fillStyle = c("#ef4444");
-        g.beginPath(); g.arc(22, -10, 5, 0, 6.28); g.fill();
-      } else if (kind === "flamingo") {
-        g.strokeStyle = c("#fb7185"); g.lineWidth = 4; g.lineCap = "round";
-        g.beginPath(); g.moveTo(0, 38); g.lineTo(2, 10); g.stroke();
-        oval(6, 2, 16, 8, c("#fb7185"));
-        g.strokeStyle = c("#fb7185"); g.lineWidth = 5;
-        g.beginPath(); g.moveTo(-8, 0); g.quadraticCurveTo(-22, -18, -6, -22); g.stroke();
-        oval(-4, -24, 7, 5, c("#fb7185"));
-        if (!shadow) {
-          g.fillStyle = "#1c1917";
-          g.beginPath(); g.moveTo(-10, -24); g.lineTo(-18, -22); g.lineTo(-10, -20); g.fill();
-          dot(-2, -26, 1.3, "#1c1917");
-        }
-      } else if (kind === "palm") {
-        g.fillStyle = c("#b45309");
-        g.beginPath();
-        g.moveTo(-6, 38); g.quadraticCurveTo(10, 10, 0, -8);
-        g.lineTo(8, -8); g.quadraticCurveTo(18, 12, 6, 38); g.fill();
-        g.strokeStyle = c("#16a34a"); g.lineWidth = 5; g.lineCap = "round";
-        for (i = 0; i < 6; i++) {
-          var a = -2.4 + i * 0.8;
-          g.beginPath(); g.moveTo(4, -8); g.quadraticCurveTo(4 + Math.cos(a) * 16, -16, 4 + Math.cos(a) * 28, -8 + Math.sin(a) * 16); g.stroke();
-        }
-      } else if (kind === "boat") {
-        g.fillStyle = c("#fff");
-        g.beginPath(); g.moveTo(2, -28); g.lineTo(2, 8); g.lineTo(24, 8); g.closePath(); g.fill();
-        g.fillStyle = c("#1d4ed8");
-        g.beginPath(); g.moveTo(-28, 12); g.lineTo(28, 12); g.lineTo(18, 28); g.lineTo(-18, 28); g.closePath(); g.fill();
-        g.strokeStyle = c("#854d0e"); g.lineWidth = 3;
-        g.beginPath(); g.moveTo(2, -28); g.lineTo(2, 12); g.stroke();
-      } else if (kind === "cow") {
-        g.fillStyle = c("#3f2a14");
-        g.fillRect(-16, 16, 5, 16); g.fillRect(-6, 16, 5, 16);
-        g.fillRect(8, 16, 5, 16); g.fillRect(16, 16, 5, 16);
-        oval(0, 8, 24, 14, c("#f5f0e6"));
-        oval(22, -4, 10, 8, c("#f5f0e6"));
-        if (!shadow) {
-          oval(-8, 4, 6, 5, "#7c4a1e");
-          oval(8, 10, 5, 4, "#7c4a1e");
-          oval(28, -2, 5, 3.5, "#fda4af");
-          g.fillStyle = "#f5f0e6";
-          g.beginPath(); g.moveTo(16, -10); g.lineTo(18, -18); g.lineTo(22, -8); g.fill();
-          g.beginPath(); g.moveTo(22, -10); g.lineTo(26, -18); g.lineTo(28, -8); g.fill();
-          dot(26, -6, 1.4, "#1c1917");
-        }
-      } else if (kind === "tractor") {
-        dot(-10, 22, 16, c("#1c1917"));
-        if (!shadow) dot(-10, 22, 8, "#78716c");
-        dot(20, 26, 10, c("#1c1917"));
-        g.fillStyle = c("#16a34a");
-        g.fillRect(-18, -4, 40, 22);
-        g.fillRect(-4, -22, 22, 20);
-        if (!shadow) {
-          g.fillStyle = "#7dd3fc";
-          g.fillRect(0, -18, 14, 10);
-        }
-      } else if (kind === "sunflower") {
-        for (i = 0; i < 10; i++) {
-          var p = i * 0.628;
-          oval(Math.cos(p) * 16, Math.sin(p) * 16 - 8, 7, 10, c("#facc15"));
-        }
-        oval(0, -8, 12, 12, c("#854d0e"));
-        g.fillStyle = c("#16a34a");
-        g.fillRect(-3, 4, 6, 32);
-        oval(10, 16, 8, 4, c("#22c55e"));
-      } else if (kind === "bus") {
-        g.fillStyle = c("#eab308");
-        g.beginPath();
-        g.moveTo(-34, -8); g.lineTo(30, -8); g.lineTo(34, 8); g.lineTo(30, 22); g.lineTo(-34, 22); g.closePath();
-        g.fill();
-        if (!shadow) {
-          g.fillStyle = "#7dd3fc";
-          g.fillRect(-26, -2, 12, 10); g.fillRect(-8, -2, 12, 10); g.fillRect(10, -2, 12, 10);
-        }
-        dot(-18, 26, 7, c("#1c1917"));
-        dot(18, 26, 7, c("#1c1917"));
-      } else if (kind === "statue") {
-        oval(0, -22, 8, 8, c("#a8a29e"));
-        g.fillStyle = c("#94a3b8");
-        g.fillRect(-8, -14, 16, 22);
-        g.fillRect(-18, -8, 12, 5);
-        g.fillRect(8, -18, 5, 16);
-        oval(12, -22, 5, 5, c("#fde047"));
-        g.fillRect(-12, 8, 24, 28);
-      } else if (kind === "dog") {
-        g.fillStyle = c("#b45309");
-        g.fillRect(-10, 16, 5, 16); g.fillRect(6, 16, 5, 16);
-        oval(0, 8, 16, 10, c("#d97706"));
-        oval(16, 2, 9, 7, c("#d97706"));
-        oval(12, -6, 4, 6, c("#b45309"));
-        oval(20, -4, 4, 6, c("#b45309"));
-        if (!shadow) {
-          oval(20, 4, 4, 2.6, "#fda4af");
-          dot(18, 0, 1.3, "#1c1917");
-        }
-        g.strokeStyle = c("#b45309"); g.lineWidth = 4;
-        g.beginPath(); g.moveTo(-14, 6); g.quadraticCurveTo(-22, -4, -16, 12); g.stroke();
-      } else if (kind === "owl") {
-        oval(0, 4, 16, 20, c("#b45309"));
-        g.fillStyle = c("#92400e");
-        g.beginPath(); g.moveTo(-10, -10); g.lineTo(-6, -22); g.lineTo(-2, -8); g.fill();
-        g.beginPath(); g.moveTo(10, -10); g.lineTo(6, -22); g.lineTo(2, -8); g.fill();
-        if (!shadow) {
-          oval(-6, 0, 6, 6, "#fde68a");
-          oval(6, 0, 6, 6, "#fde68a");
-          dot(-6, 0, 2.4, "#1c1917");
-          dot(6, 0, 2.4, "#1c1917");
-          g.fillStyle = "#ea580c";
-          g.beginPath(); g.moveTo(-3, 8); g.lineTo(0, 14); g.lineTo(3, 8); g.fill();
-        }
-      } else if (kind === "cactus") {
-        g.fillStyle = c("#16a34a");
-        g.beginPath();
-        g.moveTo(-10, 36); g.lineTo(-10, -16); g.quadraticCurveTo(0, -28, 10, -16); g.lineTo(10, 36); g.fill();
-        g.fillRect(-24, -4, 16, 8);
-        g.fillRect(10, 4, 16, 8);
-        g.beginPath(); g.arc(-24, 0, 6, 0, 6.28); g.fill();
-        g.beginPath(); g.arc(26, 8, 6, 0, 6.28); g.fill();
-        if (!shadow) {
-          g.strokeStyle = "#14532d"; g.lineWidth = 1;
-          g.beginPath(); g.moveTo(-4, -10); g.lineTo(-4, 20); g.moveTo(4, -8); g.lineTo(4, 22); g.stroke();
-        }
-      } else if (kind === "rocket") {
-        g.fillStyle = c("#e2e8f0");
-        g.beginPath(); g.moveTo(0, -34); g.lineTo(16, 8); g.lineTo(-16, 8); g.closePath(); g.fill();
-        g.fillStyle = c("#ef4444");
-        g.beginPath(); g.moveTo(-16, 8); g.lineTo(-22, 24); g.lineTo(-6, 12); g.fill();
-        g.beginPath(); g.moveTo(16, 8); g.lineTo(22, 24); g.lineTo(6, 12); g.fill();
-        if (!shadow) {
-          oval(0, -4, 5, 5, "#38bdf8");
-          g.fillStyle = "#fb923c";
-          g.beginPath(); g.moveTo(-6, 10); g.lineTo(0, 22); g.lineTo(6, 10); g.fill();
-        }
-      } else if (kind === "apple") {
-        oval(0, 4, 16, 14, c("#ef4444"));
-        g.strokeStyle = c("#166534"); g.lineWidth = 3;
-        g.beginPath(); g.moveTo(0, -8); g.lineTo(6, -18); g.stroke();
-        oval(8, -14, 6, 3, c("#22c55e"));
-      } else if (kind === "star") {
-        g.fillStyle = c("#fde047");
-        g.beginPath();
-        for (i = 0; i < 5; i++) {
-          var a1 = -Math.PI / 2 + i * 1.256, a2 = a1 + 0.628;
-          var cmd = i ? "lineTo" : "moveTo";
-          g[cmd](Math.cos(a1) * 22, Math.sin(a1) * 22);
-          g.lineTo(Math.cos(a2) * 10, Math.sin(a2) * 10);
-        }
-        g.closePath(); g.fill();
-      } else if (kind === "balloon") {
-        oval(0, -8, 14, 18, c("#fb7185"));
-        g.strokeStyle = c("#e2e8f0"); g.lineWidth = 2;
-        g.beginPath(); g.moveTo(0, 10); g.quadraticCurveTo(-6, 22, 0, 32); g.stroke();
-      } else {
-        oval(0, 4, 16, 10, c("#facc15"));
-        oval(12, -4, 8, 7, c("#facc15"));
-        oval(20, -2, 6, 3, c("#ea580c"));
-      }
+      if (shadow) { g.filter = "grayscale(1) brightness(0)"; g.globalAlpha = 0.55; }
+      em(toyEm(kind), 0, 0, 56 * sc);
       g.restore();
     }
-
     function drawSky() {
       var S = SCENES[scene] || SCENES[0];
       var grd = g.createLinearGradient(0, 0, 0, H);
@@ -334,10 +148,8 @@
       var ang = mode === "title" ? t * 0.2 : sun.a;
       var sx = W * 0.5 + Math.cos(ang) * W * 0.38;
       var sy = H * 0.18 + Math.sin(ang) * 40;
-      g.fillStyle = (S && S.night && mode === "play") ? "#f8fafc" : "#fde047";
-      g.beginPath(); g.arc(sx, sy, S && S.night && mode === "play" ? 18 : 26, 0, 6.28); g.fill();
+      em((S && S.night && mode === "play") ? "🌙" : "☀️", sx, sy, 36);
       if (S && S.night && mode === "play") {
-        g.fillStyle = "#020617"; g.beginPath(); g.arc(sx + 8, sy - 4, 14, 0, 6.28); g.fill();
         var i; g.fillStyle = "#fff";
         for (i = 0; i < 24; i++) { g.globalAlpha = 0.4 + 0.4 * Math.sin(t + i); g.fillRect((i * 53) % W, 16 + (i * 29) % 90, 2, 2); }
         g.globalAlpha = 1;

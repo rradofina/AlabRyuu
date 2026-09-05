@@ -69,15 +69,11 @@
       { who: "Pip", say: "Hugs in a pile.", ch: [["Group hug", {}], ["Share snacks", {}]] },
       { who: "Pip", say: "The end. Soft.", ch: [["Play again", { end: true }]] }
     ];
-    function body(px, py, col, phase, hide) {
-      x.save(); x.translate(px, py); x.globalAlpha = hide ? 0.55 : 1;
-      var leg = Math.sin(phase) * 8;
-      x.strokeStyle = "#134e4a"; x.lineWidth = 4; x.lineCap = "round";
-      x.beginPath(); x.moveTo(-5, 6); x.lineTo(-5 + leg, 18); x.stroke();
-      x.beginPath(); x.moveTo(5, 6); x.lineTo(5 - leg, 18); x.stroke();
-      x.fillStyle = col; x.beginPath(); x.ellipse(0, 0, 14, 11, 0, 0, 6.3); x.fill();
-      x.fillStyle = "#ffe0b0"; x.beginPath(); x.arc(8, -14, 9, 0, 6.3); x.fill();
-      x.fillStyle = "#111"; x.beginPath(); x.arc(11, -15, 1.4, 0, 6.3); x.fill();
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+    function palEm(name) { return name === "Fox" ? "🦊" : name === "Duck" ? "🦆" : "🐸"; }
+    function body(px, py, ch, phase, hide) {
+      x.save(); x.globalAlpha = hide ? 0.45 : 1;
+      em(ch, px, py + Math.sin(phase) * 4, hide ? 36 : 48);
       x.restore();
     }
     function draw() {
@@ -88,12 +84,12 @@
       x.fillStyle = g; x.fillRect(0, 0, W, H);
       x.fillStyle = night ? "#14532d" : "#4ade80";
       x.fillRect(0, H * 0.7, W, H * 0.3);
-      x.fillStyle = "#166534";
-      for (var i = 0; i < 6; i++) { x.beginPath(); x.ellipse(40 + i * 70, H * 0.72, 34, 18, 0, 0, 6.3); x.fill(); }
+      var i;
+      for (i = 0; i < 6; i++) em("🌳", 40 + i * 70, H * 0.7, 42);
       pals.forEach(function (p, i) {
-        body(p.hx * W, p.hy * H, p.col, T * 7 + i, p.hid);
+        body(p.hx * W, p.hy * H, palEm(p.name), T * 7 + i, p.hid);
       });
-      body(W * 0.18, H * 0.66, "#fb7185", T * 8, 0);
+      body(W * 0.18, H * 0.66, "🧒", T * 8, 0);
     }
     function save() { try { localStorage.setItem("alabryuu-hide", JSON.stringify({ stars: stars, flags: flags })); } catch (e) {} }
     function show() {

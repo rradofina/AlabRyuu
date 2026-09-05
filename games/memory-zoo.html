@@ -234,239 +234,30 @@
       bits = bits.filter(function (b) { return b.life > 0; });
     }
 
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
+    function zooEm(kind) {
+      return {
+        lion: "🦁", panda: "🐼", bunny: "🐰", fox: "🦊", monkey: "🐵", frog: "🐸",
+        parrot: "🦜", tiger: "🐯", penguin: "🐧", seal: "🦭", polar: "🐻‍❄️", owl: "🦉",
+        fish: "🐟", giraffe: "🦒", zebra: "🦓", elephant: "🐘", hippo: "🦛",
+        raccoon: "🦝", wolf: "🐺", bat: "🦇"
+      }[kind] || "⭐";
+    }
     function drawFace(kind, s) {
       s = s || 1;
-      g.save();
-      g.scale(s, s);
-      if (kind === "lion") {
-        oval(0, 2, 18, 16, "#ea580c");
-        var i;
-        for (i = 0; i < 10; i++) {
-          var a = i * 0.628;
-          oval(Math.cos(a) * 16, Math.sin(a) * 14, 6, 5, "#c2410c");
-        }
-        oval(0, 2, 13, 12, "#fbbf24");
-        oval(0, 8, 7, 5, "#fde68a");
-        eye(-5, 0, 2.4); eye(5, 0, 2.4);
-        dot(0, 6, 1.6, "#1c1917");
-      } else if (kind === "panda") {
-        oval(-11, -12, 6, 6, "#1c1917");
-        oval(11, -12, 6, 6, "#1c1917");
-        oval(0, 2, 16, 15, "#fff");
-        oval(-6, 0, 5, 4.5, "#1c1917");
-        oval(6, 0, 5, 4.5, "#1c1917");
-        eye(-6, 0, 2); eye(6, 0, 2);
-        oval(0, 8, 5, 3.5, "#fff");
-        dot(0, 7, 1.5, "#1c1917");
-      } else if (kind === "bunny") {
-        oval(-7, -16, 4, 10, "#fff7ed");
-        oval(7, -16, 4, 10, "#fff7ed");
-        oval(-7, -16, 2, 6, "#fda4af");
-        oval(7, -16, 2, 6, "#fda4af");
-        oval(0, 2, 14, 13, "#fff7ed");
-        eye(-4, 0, 2.2); eye(4, 0, 2.2);
-        oval(0, 6, 3, 2.4, "#fda4af");
-      } else if (kind === "fox") {
-        g.fillStyle = "#f97316";
-        g.beginPath(); g.moveTo(-12, -4); g.lineTo(-10, -18); g.lineTo(-2, -6); g.fill();
-        g.beginPath(); g.moveTo(12, -4); g.lineTo(10, -18); g.lineTo(2, -6); g.fill();
-        oval(-8, -10, 2, 4, "#fda4af"); oval(8, -10, 2, 4, "#fda4af");
-        oval(0, 2, 14, 12, "#f97316");
-        oval(0, 7, 8, 6, "#fff7ed");
-        eye(-5, 0, 2); eye(5, 0, 2);
-        oval(0, 6, 3, 2.2, "#fdba74");
-        dot(0, 6, 1.3, "#1c1917");
-      } else if (kind === "monkey") {
-        oval(-13, -2, 6, 7, "#92400e");
-        oval(13, -2, 6, 7, "#92400e");
-        oval(0, 2, 14, 13, "#b45309");
-        oval(0, 6, 9, 7, "#fde68a");
-        eye(-4, 0, 2.2); eye(4, 0, 2.2);
-        oval(0, 8, 3.5, 2.4, "#b45309");
-      } else if (kind === "frog") {
-        oval(0, 6, 15, 11, "#22c55e");
-        oval(-8, -6, 6, 6, "#4ade80");
-        oval(8, -6, 6, 6, "#4ade80");
-        eye(-8, -6, 2.6); eye(8, -6, 2.6);
-        oval(0, 10, 6, 3, "#166534");
-      } else if (kind === "parrot") {
-        oval(0, 2, 13, 14, "#22c55e");
-        oval(-2, -2, 8, 8, "#ef4444");
-        g.fillStyle = "#f97316";
-        g.beginPath(); g.moveTo(6, 2); g.lineTo(18, 6); g.lineTo(6, 10); g.closePath(); g.fill();
-        eye(-2, -2, 2.4);
-        oval(-4, 10, 6, 4, "#3b82f6");
-      } else if (kind === "tiger") {
-        oval(-11, -12, 5, 7, "#f97316");
-        oval(11, -12, 5, 7, "#f97316");
-        oval(0, 2, 15, 14, "#fb923c");
-        g.fillStyle = "#1c1917";
-        g.fillRect(-10, -4, 3, 10); g.fillRect(7, -4, 3, 10); g.fillRect(-2, -8, 3, 6);
-        oval(0, 8, 7, 5, "#fff7ed");
-        eye(-5, 0, 2.2); eye(5, 0, 2.2);
-        dot(0, 6, 1.5, "#1c1917");
-      } else if (kind === "penguin") {
-        oval(0, 2, 13, 16, "#1e293b");
-        oval(0, 6, 9, 11, "#fff");
-        oval(-8, 0, 4, 6, "#1e293b");
-        oval(8, 0, 4, 6, "#1e293b");
-        g.fillStyle = "#ea580c";
-        g.beginPath(); g.moveTo(-2, 4); g.lineTo(8, 6); g.lineTo(-2, 8); g.closePath(); g.fill();
-        eye(-4, -2, 2); eye(3, -2, 2);
-      } else if (kind === "seal") {
-        oval(0, 4, 16, 12, "#94a3b8");
-        oval(10, 2, 8, 7, "#cbd5e1");
-        eye(8, 0, 2); eye(14, 0, 2);
-        oval(16, 4, 4, 2.4, "#64748b");
-        g.strokeStyle = "#1c1917"; g.lineWidth = 1;
-        g.beginPath(); g.moveTo(14, 6); g.lineTo(20, 8); g.moveTo(14, 7); g.lineTo(20, 10); g.stroke();
-      } else if (kind === "polar") {
-        oval(-11, -12, 5, 6, "#fff");
-        oval(11, -12, 5, 6, "#fff");
-        oval(0, 2, 15, 14, "#fff");
-        oval(0, 8, 7, 5, "#e2e8f0");
-        eye(-5, 0, 2.2); eye(5, 0, 2.2);
-        oval(0, 6, 3.5, 2.6, "#1c1917");
-      } else if (kind === "owl") {
-        oval(0, 2, 14, 15, "#b45309");
-        g.fillStyle = "#92400e";
-        g.beginPath(); g.moveTo(-10, -8); g.lineTo(-6, -18); g.lineTo(-2, -8); g.fill();
-        g.beginPath(); g.moveTo(10, -8); g.lineTo(6, -18); g.lineTo(2, -8); g.fill();
-        oval(-6, 0, 6, 6, "#fde68a");
-        oval(6, 0, 6, 6, "#fde68a");
-        eye(-6, 0, 2.6); eye(6, 0, 2.6);
-        g.fillStyle = "#ea580c";
-        g.beginPath(); g.moveTo(-3, 8); g.lineTo(0, 14); g.lineTo(3, 8); g.fill();
-      } else if (kind === "fish") {
-        oval(0, 2, 14, 9, "#38bdf8");
-        g.fillStyle = "#0284c7";
-        g.beginPath(); g.moveTo(-12, 2); g.lineTo(-22, -8); g.lineTo(-22, 12); g.closePath(); g.fill();
-        oval(2, -4, 5, 4, "#7dd3fc");
-        eye(6, 0, 2.2);
-        oval(10, 4, 3, 2, "#fb7185");
-      } else if (kind === "giraffe") {
-        oval(0, 2, 12, 16, "#fbbf24");
-        oval(-4, -4, 4, 3, "#b45309");
-        oval(5, 4, 4, 3, "#b45309");
-        oval(-6, -16, 3, 4, "#b45309");
-        oval(6, -16, 3, 4, "#b45309");
-        eye(-4, -2, 2); eye(4, -2, 2);
-        oval(0, 8, 5, 3, "#fde68a");
-      } else if (kind === "zebra") {
-        oval(0, 2, 14, 13, "#fff");
-        g.fillStyle = "#1c1917";
-        g.fillRect(-10, -6, 3, 16); g.fillRect(-2, -8, 3, 18); g.fillRect(6, -6, 3, 16);
-        oval(-10, -12, 4, 6, "#1c1917");
-        oval(10, -12, 4, 6, "#1c1917");
-        eye(-4, 0, 2); eye(4, 0, 2);
-        oval(0, 8, 4, 2.6, "#fda4af");
-      } else if (kind === "elephant") {
-        oval(-16, 0, 8, 10, "#94a3b8");
-        oval(16, 0, 8, 10, "#94a3b8");
-        oval(0, 2, 15, 13, "#cbd5e1");
-        oval(0, 14, 4, 10, "#94a3b8");
-        eye(-5, -2, 2.2); eye(5, -2, 2.2);
-      } else if (kind === "hippo") {
-        oval(0, 2, 16, 12, "#94a3b8");
-        oval(0, 8, 12, 7, "#cbd5e1");
-        oval(-8, -8, 4, 4, "#94a3b8");
-        oval(8, -8, 4, 4, "#94a3b8");
-        eye(-5, -2, 2); eye(5, -2, 2);
-        oval(-4, 8, 1.6, 1.6, "#1c1917");
-        oval(4, 8, 1.6, 1.6, "#1c1917");
-      } else if (kind === "raccoon") {
-        oval(-10, -12, 5, 5, "#78716c");
-        oval(10, -12, 5, 5, "#78716c");
-        oval(0, 2, 14, 13, "#a8a29e");
-        oval(-6, 2, 5, 4, "#1c1917");
-        oval(6, 2, 5, 4, "#1c1917");
-        eye(-6, 2, 2); eye(6, 2, 2);
-        oval(0, 8, 5, 3, "#fff");
-        dot(0, 7, 1.3, "#1c1917");
-      } else if (kind === "wolf") {
-        g.fillStyle = "#64748b";
-        g.beginPath(); g.moveTo(-12, -2); g.lineTo(-8, -18); g.lineTo(-2, -4); g.fill();
-        g.beginPath(); g.moveTo(12, -2); g.lineTo(8, -18); g.lineTo(2, -4); g.fill();
-        oval(0, 2, 14, 12, "#94a3b8");
-        oval(0, 8, 7, 5, "#e2e8f0");
-        eye(-5, 0, 2); eye(5, 0, 2);
-        dot(0, 6, 1.4, "#1c1917");
-      } else if (kind === "bat") {
-        oval(-16, 4, 10, 6, "#4c1d95");
-        oval(16, 4, 10, 6, "#4c1d95");
-        oval(0, 2, 10, 9, "#6d28d9");
-        g.fillStyle = "#6d28d9";
-        g.beginPath(); g.moveTo(-6, -6); g.lineTo(-4, -14); g.lineTo(0, -6); g.fill();
-        g.beginPath(); g.moveTo(6, -6); g.lineTo(4, -14); g.lineTo(0, -6); g.fill();
-        eye(-3, 0, 2); eye(3, 0, 2);
-      } else {
-        oval(0, 0, 14, 14, "#fde047");
-        eye(-4, -2, 2); eye(4, -2, 2);
-      }
-      g.restore();
+      em(zooEm(kind), 0, 0, 36 * s);
     }
 
-    function drawPaw() {
-      oval(0, 4, 8, 7, "#bbf7d0");
-      oval(-10, -4, 4.5, 5.5, "#bbf7d0");
-      oval(-3, -8, 4.5, 5.5, "#bbf7d0");
-      oval(4, -8, 4.5, 5.5, "#bbf7d0");
-      oval(11, -4, 4.5, 5.5, "#bbf7d0");
-    }
+    function drawPaw() { em("🐾", 0, 0, 22); }
 
     function drawPerson(kind, walk, wave) {
       var lift = Math.abs(walk) * 3;
-      g.strokeStyle = "#3f2a14"; g.lineWidth = 3.4; g.lineCap = "round";
-      g.beginPath();
-      g.moveTo(-5, 10); g.lineTo(-6 + walk * 5, 20);
-      g.moveTo(5, 10); g.lineTo(6 - walk * 5, 20);
-      g.stroke();
-      if (kind === "keeper") {
-        oval(0, 2, 9, 8, "#16a34a");
-        g.fillStyle = "#854d0e";
-        g.beginPath(); g.ellipse(0, -10, 12, 4, 0, 0, 6.28); g.fill();
-        g.fillRect(-6, -16, 12, 8);
-        oval(0, -8, 6, 6, "#fde68a");
-        eye(-2, -8, 1.2); eye(2, -8, 1.2);
-        if (wave > 0) {
-          g.strokeStyle = "#fde68a"; g.lineWidth = 3;
-          g.beginPath(); g.moveTo(8, 0); g.lineTo(16, -10 - Math.sin(t * 10) * 3); g.stroke();
-        } else {
-          g.strokeStyle = "#fde68a"; g.lineWidth = 3;
-          g.beginPath(); g.moveTo(-8, 2); g.lineTo(-12, 10);
-          g.moveTo(8, 2); g.lineTo(12, 10); g.stroke();
-        }
-      } else {
-        oval(0, 2, 8, 8, "#38bdf8");
-        oval(0, -8, 6, 6, "#fed7aa");
-        g.fillStyle = "#1c1917";
-        g.beginPath(); g.arc(0, -10, 6, Math.PI, 0); g.fill();
-        eye(-2, -8, 1.2); eye(2, -8, 1.2);
-        g.strokeStyle = "#fed7aa"; g.lineWidth = 3;
-        g.beginPath(); g.moveTo(-8, 2); g.lineTo(-11, 10);
-        g.moveTo(8, 2); g.lineTo(12, 8 + Math.sin(t * 6) * 2); g.stroke();
-      }
-      g.translate(0, -lift);
+      em(kind === "keeper" ? "🧒" : "🧑", 0, -lift, 32);
+      if (kind === "keeper" && wave > 0) em("👋", 16, -18 - Math.sin(t * 10) * 3, 16);
     }
 
     function drawTree(x, y, kind) {
-      if (kind === "palm") {
-        g.strokeStyle = "#854d0e"; g.lineWidth = 4;
-        g.beginPath(); g.moveTo(x, y + 10); g.quadraticCurveTo(x + 4, y - 4, x, y - 14); g.stroke();
-        var i;
-        for (i = 0; i < 5; i++) {
-          var a = -1.4 + i * 0.7;
-          g.strokeStyle = "#16a34a"; g.lineWidth = 3;
-          g.beginPath(); g.moveTo(x, y - 14); g.lineTo(x + Math.cos(a) * 14, y - 14 + Math.sin(a) * 8); g.stroke();
-        }
-      } else if (kind === "pine") {
-        g.fillStyle = "#854d0e"; g.fillRect(x - 2, y, 4, 10);
-        g.fillStyle = "#166534";
-        g.beginPath(); g.moveTo(x, y - 18); g.lineTo(x + 10, y + 2); g.lineTo(x - 10, y + 2); g.fill();
-      } else {
-        g.fillStyle = "#854d0e"; g.fillRect(x - 2, y, 4, 10);
-        oval(x, y - 6, 10, 9, "#16a34a");
-      }
+      em(kind === "palm" ? "🌴" : kind === "pine" ? "🌲" : "🌳", x, y - 8, 22);
     }
 
     function drawCloud(c) {
@@ -475,14 +266,7 @@
       oval(c.x + 12 * c.s, c.y + 2, 11 * c.s, 8 * c.s, "rgba(255,255,255,.8)");
     }
 
-    function drawBird(b) {
-      g.save();
-      g.translate(b.x, b.y + Math.sin(t * 4 + b.ph) * 4);
-      g.strokeStyle = "#1c1917"; g.lineWidth = 2;
-      var flap = Math.sin(t * 8 + b.ph) * 6;
-      g.beginPath(); g.moveTo(-8, flap); g.quadraticCurveTo(0, -4, 8, -flap); g.stroke();
-      g.restore();
-    }
+    function drawBird(b) { em("🐦", b.x, b.y + Math.sin(t * 4 + b.ph) * 4, 16); }
 
     function drawSky() {
       var E = ENCS[stage] || ENCS[0];
@@ -491,12 +275,12 @@
       else { grd.addColorStop(0, E.sky[0]); grd.addColorStop(0.4, E.sky[1]); grd.addColorStop(1, E.grass); }
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
       if (mode !== "title" && E.night) {
-        g.fillStyle = "#fde68a"; g.beginPath(); g.arc(W - 50, 64, 16, 0, 6.28); g.fill();
+        em("🌙", W - 50, 64, 28);
         var i; g.fillStyle = "#fff";
         for (i = 0; i < 20; i++) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t + i); g.fillRect((i * 73) % W, 20 + (i * 17) % 70, 2, 2); }
         g.globalAlpha = 1;
       } else {
-        g.fillStyle = "#fde047"; g.beginPath(); g.arc(W - 54, 68, 22, 0, 6.28); g.fill();
+        em("☀️", W - 54, 68, 32);
       }
       clouds.forEach(function (c) {
         g.globalAlpha = E && E.night ? 0.2 : 0.85;

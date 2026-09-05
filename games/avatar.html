@@ -218,6 +218,11 @@
     }
     addEventListener("resize", resize); resize();
 
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+    function emOn(ctx,ch,px,py,s){ ctx.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(ch,px,py); }
+    function hairEm(kind) { return kind === "curl" ? "👧" : kind === "puffs" ? "👦" : kind === "bangs" ? "👱" : kind === "spikes" ? "😄" : "🧒"; }
+    function petEm(kind) { return kind === "cat" ? "🐱" : kind === "bunny" ? "🐰" : kind === "bird" ? "🐦" : "🐶"; }
+    function hatEm(kind) { return kind === "bow" ? "🎀" : kind === "flower" ? "🌸" : kind === "crown" ? "👑" : "🧢"; }
     function oval(ctx, cx, cy, rx, ry, col) {
       ctx.fillStyle = col;
       ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
@@ -234,6 +239,8 @@
     }
 
     function drawHairShape(ctx, kind, ox, oy) {
+      emOn(ctx, hairEm(kind), ox, oy, 36);
+      return;
       var col = HAIR_COL[kind] || "#5c3317";
       ctx.fillStyle = col;
       ctx.strokeStyle = col;
@@ -296,6 +303,8 @@
     }
 
     function drawHatShape(ctx, kind, ox, oy, bob) {
+      emOn(ctx, hatEm(kind), ox, oy - 28 + (bob || 0), 28);
+      return;
       var y = oy - 28 + (bob || 0);
       if (kind === "cap") {
         oval(ctx, ox, y + 4, 22, 10, "#2563eb");
@@ -343,10 +352,12 @@
     }
 
     function drawPetAt(ctx, kind, px, py, sc, time, moving) {
+      var hop = moving ? Math.abs(Math.sin(time * 8)) * 10 : Math.abs(Math.sin(time * 4)) * 4;
+      emOn(ctx, petEm(kind), px, py - hop, 42 * (sc || 1));
+      return;
       ctx.save();
       ctx.translate(px, py);
       ctx.scale(sc, sc);
-      var hop = moving ? Math.abs(Math.sin(time * 8)) * 10 : Math.abs(Math.sin(time * 4)) * 4;
       var step = moving ? Math.sin(time * 8) : Math.sin(time * 4) * 0.4;
       ctx.translate(0, -hop);
       if (kind === "dog") {
@@ -438,12 +449,27 @@
       var waving = pose === "wave" || waveT > 0;
       var phase = time * (walking ? 9 : 3);
       var bob = walking ? Math.abs(Math.sin(phase)) * 3 : Math.sin(time * 3) * 3;
-      var swing = walking ? Math.sin(phase) : 0;
+      sc = sc || 1;
+      ctx.save();
+      ctx.translate(px, py + bob);
+      ctx.fillStyle = av.shirt;
+      ctx.beginPath(); ctx.ellipse(0, 18 * sc, 22 * sc, 16 * sc, 0, 0, Math.PI * 2); ctx.fill();
+      emOn(ctx, hairEm(av.hair), 0, 0, 56 * sc);
+      if (av.hat) emOn(ctx, hatEm(av.hat), 0, -34 * sc, 24 * sc);
+      if (waving) emOn(ctx, "👋", 28 * sc, -8 * sc + Math.sin(time * 8) * 4, 18 * sc);
+      ctx.fillStyle = "#831843";
+      ctx.font = "bold 16px Trebuchet MS";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(av.name, 0, -48 * sc);
+      ctx.restore();
+      return;
       ctx.save();
       ctx.translate(px, py + bob);
       ctx.scale(sc * (faceRight ? 1 : 1), sc);
       var skin = "#ffe0b0";
       var shirt = av.shirt;
+      var swing = walking ? Math.sin(phase) : 0;
 
       drawLimb(ctx, -11, 24, walking ? swing * 0.55 : 0.08, 16, 14, skin, "#831843", faceRight ? 1 : 0);
       drawLimb(ctx, 11, 24, walking ? -swing * 0.55 : -0.08, 16, 14, skin, "#831843", faceRight ? 1 : 0);
@@ -494,17 +520,7 @@
     }
 
     function drawCrowdPerson(ctx, px, py, sc, ph, col) {
-      ctx.save();
-      ctx.translate(px, py + Math.sin(t * 4 + ph) * 6 * sc);
-      ctx.scale(sc, sc);
-      disc(ctx, 0, -28, 10, col);
-      oval(ctx, 0, -8, 12, 16, col);
-      ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-6, 6); ctx.lineTo(-8, 20); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(6, 6); ctx.lineTo(8, 20); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(-12, -12); ctx.lineTo(-16, -22 + Math.sin(t * 5 + ph) * 4); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(12, -12); ctx.lineTo(16, -24 + Math.cos(t * 5 + ph) * 4); ctx.stroke();
-      ctx.restore();
+      emOn(ctx, "🧒", px, py + Math.sin(t * 4 + ph) * 6 * sc, 28 * (sc || 1));
     }
 
     function drawRoom() {

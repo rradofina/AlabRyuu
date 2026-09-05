@@ -168,25 +168,10 @@
       trail.push({ x: x, y: y, life: 10 });
       ripples.push({ x: x, y: y, r: 4, life: 0.5 });
     }
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
     function drawDuck(x, y, a, big, baby, foot) {
-      var s = big ? 1.15 : 0.78;
-      var pad = Math.sin(foot) * (big ? 5 : 4);
-      g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s);
-      g.strokeStyle = "#b45309"; g.lineWidth = 2.4; g.lineCap = "round";
-      g.beginPath(); g.moveTo(-8, 8); g.lineTo(-14, 16 + pad); g.lineTo(-6, 16 + pad); g.stroke();
-      g.beginPath(); g.moveTo(6, 8); g.lineTo(4, 16 - pad); g.lineTo(12, 16 - pad); g.stroke();
-      g.fillStyle = baby ? "#fde047" : "#eab308";
-      g.beginPath(); g.ellipse(0, 0, 20, 13, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = baby ? "#facc15" : "#ca8a04";
-      g.beginPath(); g.ellipse(-4, -6 + Math.sin(foot) * 1.5, 8, 6, -0.4, 0, Math.PI * 2); g.fill();
-      g.fillStyle = baby ? "#fde047" : "#eab308";
-      g.beginPath(); g.arc(16, -6, 9, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#ea580c";
-      g.beginPath(); g.ellipse(26, -5, 7, 3.4, 0.1, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#1c1917";
-      if (Math.sin(t * 2.6 + x) > 0.92) g.fillRect(16, -9, 5, 1.3);
-      else { g.beginPath(); g.arc(18, -8, 1.8, 0, Math.PI * 2); g.fill(); }
-      g.restore();
+      var bob = Math.sin(foot) * 3;
+      em(big ? "🦆" : "🐤", x, y + bob, big ? 48 : 32);
     }
     function drawBg() {
       var p = PONDS[Math.min(pond, 4)];
@@ -330,11 +315,7 @@
         var bx = ((u.x + Math.sin(t * 0.4 + u.ph) * 0.1) % 1) * W;
         var by = u.y * H + Math.sin(t * 2 + u.ph) * 8;
         var fl = 0.4 + 0.6 * Math.abs(Math.sin(t * 12 + u.ph));
-        g.fillStyle = pond === 4 ? "rgba(253,224,71,.75)" : "#365314";
-        g.beginPath(); g.ellipse(bx - 5, by, 5 * fl, 2.4, -0.3, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.ellipse(bx + 5, by, 5 * fl, 2.4, 0.3, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "#14532d";
-        g.fillRect(bx - 1, by - 3, 2, 6);
+        em(pond === 4 ? "✨" : "🦟", bx, by, 16);
       }
     }
     function loop(now) {

@@ -331,14 +331,12 @@
       g.beginPath(); g.moveTo(-18, 0); g.quadraticCurveTo(-24, -8 + walk * 4, -16, 6); g.stroke();
     }
 
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
+    function palEm(kind) {
+      return kind === "cow" ? "🐄" : kind === "pig" ? "🐷" : kind === "duck" ? "🦆" : kind === "sheep" ? "🐑" : kind === "horse" ? "🐴" : kind === "chicken" ? "🐔" : "🐐";
+    }
     function drawPal(kind, walk) {
-      if (kind === "cow") drawCow(walk);
-      else if (kind === "pig") drawPig(walk);
-      else if (kind === "duck") drawDuck(walk);
-      else if (kind === "sheep") drawSheep(walk);
-      else if (kind === "horse") drawHorse(walk);
-      else if (kind === "chicken") drawChicken(walk);
-      else if (kind === "goat") drawGoat(walk);
+      em(palEm(kind), 0, Math.sin((walk || 0)) * 2, 48);
     }
 
     function drawHeart(hx, hy) {
@@ -351,26 +349,7 @@
     }
 
     function drawSnack(kind, x, y) {
-      if (kind === "cow" || kind === "sheep") {
-        oval(x, y, 10, 5, "#fde047");
-        g.strokeStyle = "#ca8a04"; g.lineWidth = 1;
-        g.beginPath(); g.moveTo(x - 8, y - 2); g.lineTo(x + 6, y + 2); g.stroke();
-      } else if (kind === "pig") {
-        g.fillStyle = "#fb923c";
-        g.beginPath(); g.moveTo(x, y - 10); g.lineTo(x + 7, y + 8); g.lineTo(x - 7, y + 8); g.fill();
-        oval(x, y - 10, 3, 3, "#22c55e");
-      } else if (kind === "duck") {
-        oval(x, y, 8, 5, "#facc15");
-        g.fillStyle = "#65a30d";
-        for (var i = -1; i <= 1; i++) {
-          g.beginPath(); g.ellipse(x + i * 4, y - 2, 2, 4, 0, 0, 6.28); g.fill();
-        }
-      } else {
-        g.fillStyle = "#ef4444";
-        g.beginPath(); g.arc(x, y, 8, 0, 6.28); g.fill();
-        g.strokeStyle = "#166534"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(x, y - 8); g.lineTo(x + 4, y - 14); g.stroke();
-      }
+      em(kind === "cow" || kind === "sheep" ? "🌾" : kind === "pig" ? "🥕" : kind === "duck" ? "🌽" : "🍎", x, y, 24);
     }
 
     function drawFarm() {
@@ -386,12 +365,9 @@
         oval(m.x * W, m.y * H + Math.sin(t * 0.8 + m.ph) * 4, m.r, m.r, "#fff");
         g.globalAlpha = 1;
       });
-      g.fillStyle = "#b91c1c";
-      g.beginPath(); g.moveTo(barn.x, barn.y + 40); g.lineTo(barn.x + barn.w / 2, barn.y); g.lineTo(barn.x + barn.w, barn.y + 40); g.fill();
-      g.fillStyle = "#fef3c7"; g.fillRect(barn.x + 8, barn.y + 40, barn.w - 16, barn.h);
-      g.fillStyle = "#7c2d12"; g.fillRect(barn.x + barn.w * 0.35, barn.y + 70, barn.w * 0.3, barn.h - 30);
+      em("🏠", barn.x + barn.w / 2, barn.y + 50, 72);
       g.fillStyle = "#fff"; g.font = "bold 12px Trebuchet MS"; g.textAlign = "center";
-      g.fillText("BARN", barn.x + barn.w / 2, barn.y + 58);
+      g.fillText("BARN", barn.x + barn.w / 2, barn.y + 90);
       var i;
       g.strokeStyle = "#854d0e"; g.lineWidth = 4;
       g.beginPath(); g.moveTo(barn.x + barn.w, H * 0.4); g.lineTo(W - 10, H * 0.4); g.stroke();
@@ -418,7 +394,7 @@
           g.font = "bold 14px Trebuchet MS"; g.fillStyle = "#fff"; g.textAlign = "center";
           g.fillText(a.name + "!", a.x, a.y - 36);
         }
-        if (a.fed) drawHeart(a.x + 22, a.y - 22);
+        if (a.fed) em("❤️", a.x + 22, a.y - 22, 18);
       });
       snacks.forEach(function (s) {
         var x = lerp(s.x, s.tx, s.p), y = lerp(s.y, s.ty, s.p) - Math.sin(s.p * Math.PI) * 40;

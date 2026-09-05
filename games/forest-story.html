@@ -70,24 +70,12 @@
       { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }]] }
     ];
 
-    function walkBody(px, py, col, phase, scale) {
-      x.save();
-      x.translate(px, py); x.scale(scale || 1, scale || 1);
-      var leg = Math.sin(phase) * 10;
-      x.strokeStyle = "#3f2a14"; x.lineWidth = 5; x.lineCap = "round";
-      x.beginPath(); x.moveTo(-6, 8); x.lineTo(-6 + leg, 22); x.stroke();
-      x.beginPath(); x.moveTo(6, 8); x.lineTo(6 - leg, 22); x.stroke();
-      x.beginPath(); x.moveTo(-12, -2); x.lineTo(-18 - leg * 0.3, 6); x.stroke();
-      x.beginPath(); x.moveTo(12, -2); x.lineTo(18 + leg * 0.3, 6); x.stroke();
-      x.fillStyle = col;
-      x.beginPath(); x.ellipse(0, 0, 16, 13, 0, 0, 6.3); x.fill();
-      x.fillStyle = "#ffe0b0";
-      x.beginPath(); x.arc(10, -16, 11, 0, 6.3); x.fill();
-      x.fillStyle = "#5a3a22";
-      x.beginPath(); x.ellipse(8, -22, 10, 6, 0, 0, 6.3); x.fill();
-      x.fillStyle = "#1c1917";
-      x.beginPath(); x.arc(14, -17, 1.6, 0, 6.3); x.fill();
-      x.restore();
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+
+    function walkBody(px, py, who, phase, scale) {
+      var bob = Math.sin(phase) * 4;
+      var ch = who === "Owl" ? "🦉" : (who === "Pip" ? "🧒" : "🦊");
+      em(ch, px, py + bob, 48 * (scale || 1));
     }
 
     function draw() {
@@ -99,25 +87,23 @@
       x.fillStyle = g; x.fillRect(0, 0, W, H);
       for (var i = 0; i < 8; i++) {
         var tx = (i / 8) * W + Math.sin(T * 0.4 + i) * 6;
-        x.fillStyle = "#7c2d12"; x.fillRect(tx, H * 0.42, 18, H * 0.4);
-        x.fillStyle = night ? "#14532d" : "#22c55e";
-        x.beginPath(); x.arc(tx + 9, H * 0.42, 38, 0, 6.3); x.fill();
+        em("🌲", tx + 9, H * 0.48, 64);
       }
       if (night) {
         for (var f = 0; f < 12; f++) {
-          x.fillStyle = "rgba(253,224,71," + (0.4 + Math.sin(T * 4 + f) * 0.3) + ")";
-          x.beginPath(); x.arc((f * 73 + T * 20) % W, H * 0.3 + Math.sin(T + f) * 20, 3, 0, 6.3); x.fill();
+          em("✨", (f * 73 + T * 20) % W, H * 0.3 + Math.sin(T + f) * 20, 16);
         }
       }
       var baseY = H * 0.62;
-      walkBody(W * 0.38 + Math.sin(T * 2) * 8, baseY, "#f97316", T * 8, 1.4);
-      walkBody(W * 0.58 + Math.sin(T * 2 + 1) * 6, baseY + 6, flags.friend === "Owl" ? "#a78bfa" : "#38bdf8", T * 8 + 1, 1.2);
+      walkBody(W * 0.38 + Math.sin(T * 2) * 8, baseY, "Pip", T * 8, 1.4);
+      walkBody(W * 0.58 + Math.sin(T * 2 + 1) * 6, baseY + 6, flags.friend === "Owl" ? "Owl" : "Fox", T * 8 + 1, 1.2);
       x.fillStyle = "#fff";
       x.beginPath();
       var bx = W * 0.38 + 30, by = baseY - 70;
       x.moveTo(bx, by); x.quadraticCurveTo(bx + 80, by - 40, bx + 140, by);
       x.quadraticCurveTo(bx + 80, by + 30, bx, by); x.fill();
-      x.fillStyle = "#3f2a14"; x.font = "900 20px Verdana"; x.fillText(SCENES[Math.min(si, SCENES.length - 1)].say, bx + 16, by + 6);
+      x.fillStyle = "#3f2a14"; x.font = "900 20px Verdana"; x.textAlign = "left"; x.textBaseline = "alphabetic";
+      x.fillText(SCENES[Math.min(si, SCENES.length - 1)].say, bx + 16, by + 6);
     }
 
     function save() { try { localStorage.setItem("alabryuu-forest", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {} }

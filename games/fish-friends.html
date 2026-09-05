@@ -199,74 +199,24 @@
       beep(620, 0.06);
       say("Yum flakes!");
     }
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
+    function fishFace(f) {
+      if (f.col === "#fb7185" || f.col === "#c084fc") return "🐠";
+      if (f.col === "#4ade80") return "🐡";
+      return "🐟";
+    }
     function drawFish(f) {
-      var face = f.vx >= 0 ? 1 : -1;
-      var wag = Math.sin(t * (f.hungry ? 14 : 8) + f.wag) * (f.hungry ? 9 : 5);
-      g.save();
-      g.translate(f.x, f.y);
-      g.scale(face, 1);
-      g.rotate(Math.atan2(f.vy, Math.abs(f.vx) + 8) * 0.45);
-      g.fillStyle = f.col;
-      g.beginPath();
-      g.moveTo(-f.s - 12, wag);
-      g.lineTo(-f.s + 2, -8);
-      g.lineTo(-f.s + 2, 8);
-      g.closePath(); g.fill();
-      g.beginPath(); g.ellipse(0, 0, f.s, f.s * 0.55, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = f.col2;
-      g.beginPath(); g.ellipse(4, 0, f.s * 0.38, f.s * 0.32, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = f.col;
-      g.beginPath(); g.moveTo(-2, -f.s * 0.5); g.lineTo(6, -f.s * 0.95); g.lineTo(10, -f.s * 0.4); g.fill();
-      g.beginPath(); g.ellipse(2, f.s * 0.28, 8, 4, 0.4, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#fff";
-      g.beginPath(); g.arc(f.s * 0.48, -4, 4.2, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#0f172a";
-      if (Math.sin(t * 2.4 + f.wag) > 0.92) g.fillRect(f.s * 0.38, -5, 6, 1.4);
-      else { g.beginPath(); g.arc(f.s * 0.55, -4, 1.8, 0, Math.PI * 2); g.fill(); }
-      if (f.hungry) {
-        g.fillStyle = "#9f1239";
-        g.beginPath(); g.ellipse(f.s * 0.62, 5, 6 + Math.sin(t * 8) * 1.5, 3.4, 0, 0, Math.PI * 2); g.fill();
-      } else {
-        g.strokeStyle = "#0f172a"; g.lineWidth = 1.6;
-        g.beginPath(); g.arc(f.s * 0.45, 5, 3.2, 0.2, Math.PI - 0.2); g.stroke();
-      }
-      g.restore();
+      var bob = Math.sin(t * (f.hungry ? 14 : 8) + f.wag) * 3;
+      em(fishFace(f), f.x, f.y + bob, f.s * 2.2);
+      if (f.hungry) em("😋", f.x + 18, f.y - 14, 14);
     }
     function drawSnail(sn) {
       var step = Math.sin(t * 4 + sn.ph);
       var x = ((sn.x + t * 0.018 * sn.dir) % 1 + 1) % 1 * (W - 40) + 20;
       var y = H * 0.86 + Math.abs(step) * -1.5;
-      g.save(); g.translate(x, y); if (sn.dir < 0) g.scale(-1, 1);
-      g.fillStyle = "#d6d3d1";
-      g.beginPath(); g.ellipse(8, 8, 12, 5, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#a8a29e";
-      g.beginPath(); g.arc(0, 2, 11, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#78716c"; g.lineWidth = 2;
-      g.beginPath(); g.arc(0, 2, 7, 0.4, 4.2); g.stroke();
-      g.strokeStyle = "#d6d3d1"; g.lineWidth = 2;
-      g.beginPath(); g.moveTo(16, 4); g.lineTo(22, -6 + step * 2); g.moveTo(18, 4); g.lineTo(24, -4 + step * 2); g.stroke();
-      g.fillStyle = "#0f172a";
-      g.beginPath(); g.arc(22, -6 + step * 2, 1.4, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(24, -4 + step * 2, 1.4, 0, Math.PI * 2); g.fill();
-      g.restore();
+      em("🐌", x, y, 26);
     }
-    function drawCastle() {
-      var cx = W * 0.22, cy = H * 0.78;
-      g.fillStyle = "#a8a29e";
-      g.fillRect(cx - 36, cy - 8, 72, 40);
-      g.fillRect(cx - 32, cy - 40, 20, 34);
-      g.fillRect(cx + 12, cy - 48, 20, 42);
-      g.fillStyle = "#78716c";
-      var i;
-      for (i = 0; i < 4; i++) g.fillRect(cx - 36 + i * 18, cy - 16, 10, 8);
-      g.fillRect(cx - 32, cy - 48, 8, 8);
-      g.fillRect(cx - 20, cy - 48, 8, 8);
-      g.fillRect(cx + 12, cy - 56, 8, 8);
-      g.fillRect(cx + 24, cy - 56, 8, 8);
-      g.fillStyle = day ? "#0c4a6e" : "#082f49";
-      g.beginPath(); g.arc(cx, cy + 16, 12, Math.PI, 0); g.fill();
-      g.fillRect(cx + 16, cy - 36, 6, 8);
-    }
+    function drawCastle() { em("🏰", W * 0.22, H * 0.76, 56); }
     function drawJar() {
       var x = jar.x, y = jar.y;
       g.fillStyle = "rgba(253,186,116,.35)";
@@ -311,9 +261,7 @@
         g.beginPath(); g.moveTo(px, H * 0.9);
         g.quadraticCurveTo(px + sway, H * 0.9 - p.h * 0.5, px + sway * 1.2, H * 0.9 - p.h);
         g.stroke();
-        g.fillStyle = p.c;
-        g.beginPath(); g.ellipse(px + sway * 1.2, H * 0.9 - p.h, 10, 16, sway * 0.04, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.ellipse(px + sway * 0.6, H * 0.9 - p.h * 0.55, 8, 12, -0.4, 0, Math.PI * 2); g.fill();
+        em("🌿", px + sway * 1.2, H * 0.9 - p.h, 28);
       }
       drawCastle();
       for (i = 0; i < snails.length; i++) drawSnail(snails[i]);
@@ -395,9 +343,7 @@
       }
       for (i = 0; i < fishes.length; i++) drawFish(fishes[i]);
       for (i = 0; i < flakes.length; i++) {
-        g.save(); g.translate(flakes[i].x, flakes[i].y); g.rotate(flakes[i].rot);
-        g.fillStyle = "#fdba74"; g.fillRect(-flakes[i].r, -2, flakes[i].r * 2, 4);
-        g.restore();
+        em("🍪", flakes[i].x, flakes[i].y, 14);
       }
       drawJar();
       if (grab) {
