@@ -63,6 +63,7 @@
     ];
     var SAYS = ["Lay a straight!", "Add a turn!", "Bridge the gap!", "Night lights on!", "Home station!"];
     var GLYPH = { H: "═", V: "║", NE: "╚", NW: "╝", SE: "╔", SW: "╗" };
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-train") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); layout(); }
     addEventListener("resize", resize);
@@ -149,16 +150,16 @@
           var p = cellCenter(gx, gy);
           x.fillStyle = "#65a30d"; x.fillRect(p.x - cell * 0.42, p.y - cell * 0.42, cell * 0.84, cell * 0.84);
           k = tiles[key(gx, gy)];
-          if (k) { x.fillStyle = "#44403c"; x.font = "bold " + (cell * 0.55) + "px Trebuchet MS"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(GLYPH[k], p.x, p.y); }
+          if (k) em(GLYPH[k], p.x, p.y, cell * 0.55);
         }
       }
       var s = cellCenter(m.start[0], m.start[1]), g = cellCenter(m.goal[0], m.goal[1]);
-      x.fillStyle = "#22c55e"; x.beginPath(); x.arc(s.x, s.y - cell * 0.4, 10, 0, 6.3); x.fill();
-      x.fillStyle = "#f59e0b"; x.beginPath(); x.arc(g.x, g.y - cell * 0.4, 10, 0, 6.3); x.fill();
+      em("🏠", s.x, s.y - cell * 0.42, 28);
+      em("🏠", g.x, g.y - cell * 0.42, 28);
       boxes.forEach(function (b) {
         if (b.got) return;
         var p = cellCenter(b.gx, b.gy);
-        x.fillStyle = "#b45309"; x.beginPath(); x.arc(p.x, p.y, 8, 0, 6.3); x.fill();
+        em("📦", p.x, p.y, 26);
       });
       var tx = s.x, ty = s.y;
       if (running && path.length) {
@@ -186,9 +187,7 @@
           } else rebuild();
         }
       }
-      x.fillStyle = "#dc2626"; x.fillRect(tx - 16, ty - 10, 32, 18);
-      x.fillStyle = "#1d4ed8"; x.fillRect(tx - 18, ty - 18, 14, 10);
-      x.fillStyle = "#1c1917"; x.beginPath(); x.arc(tx - 10, ty + 10, 5, 0, 6.3); x.arc(tx + 10, ty + 10, 5, 0, 6.3); x.fill();
+      em("🚂", tx, ty, 36);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

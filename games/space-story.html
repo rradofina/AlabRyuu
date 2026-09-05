@@ -71,6 +71,9 @@
       { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }], ["Rest and smile", { end: true }]], pal: null }
     ];
     var PAL = ["#ff8a5b", "#7ec8ff", "#8be38b", "#ffd84d", "#c9a0ff", "#ff9ad5"];
+    var PLANETS = ["🪐", "🌍", "🌕", "🌎", "🌑", "🌕"];
+    var PAL_EM = { fox: "🦊", bee: "🐝", whale: "🐋", cat: "🐱", fish: "🐟" };
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; cv.style.width = W + "px"; cv.style.height = H + "px"; x.setTransform(d, 0, 0, d, 0, 0); }
     addEventListener("resize", resize); resize();
     function save() { try { localStorage.setItem("alabryuu-space", JSON.stringify({ scene: si, flags: flags })); } catch (e) {} }
@@ -114,24 +117,20 @@
       T += 0.016; shipX += (dest - shipX) * 0.06;
       x.fillStyle = "#050714"; x.fillRect(0, 0, W, H);
       var i;
-      for (i = 0; i < 90; i++) {
-        x.fillStyle = "#fff"; x.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(T + i));
-        x.fillRect((i * 53) % W, (i * 37 + T * 8) % H, 2, 2);
+      for (i = 0; i < 22; i++) {
+        x.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(T + i));
+        em("⭐", (i * 53) % W, (i * 37 + T * 8) % H, 12 + (i % 3) * 2);
       }
       x.globalAlpha = 1;
       for (i = 0; i < 6; i++) {
         var px = W * (0.18 + i * 0.13), py = H * (0.28 + Math.sin(T * 0.4 + i) * 0.04);
-        x.fillStyle = PAL[i]; x.beginPath(); x.arc(px, py, 28 + i * 3, 0, 6.3); x.fill();
-        if (i % 2) { x.strokeStyle = "#fff8"; x.lineWidth = 3; x.beginPath(); x.ellipse(px, py, 40, 8, 0.3, 0, 6.3); x.stroke(); }
+        em(PLANETS[i], px, py, 40 + i * 4);
       }
       var sx = W * shipX, sy = H * 0.52;
-      x.fillStyle = "#e2e8f0"; x.beginPath(); x.ellipse(sx, sy, 28, 12, 0, 0, 6.3); x.fill();
-      x.fillStyle = "#67e8f9"; x.beginPath(); x.arc(sx + 10, sy - 2, 7, 0, 6.3); x.fill();
-      x.fillStyle = "#f0abfc"; x.beginPath(); x.moveTo(sx - 28, sy); x.lineTo(sx - 40, sy + 10); x.lineTo(sx - 22, sy + 4); x.fill();
+      em("🚀", sx, sy, 48);
       var s = SCENES[Math.min(si, SCENES.length - 1)];
       if (s.pal) {
-        x.fillStyle = palCol(s.pal);
-        x.beginPath(); x.ellipse(sx + 70, sy + 8, 16, 10, 0, 0, 6.3); x.fill();
+        em(PAL_EM[s.pal] || "🦊", sx + 70, sy + 8, 36);
       }
       requestAnimationFrame(loop);
     }

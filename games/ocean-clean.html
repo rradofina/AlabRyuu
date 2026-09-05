@@ -57,6 +57,9 @@
     ];
     var SAYS = ["Tap the trash!", "Feed the fish!", "Night glow net!", "Steer the boat!", "Home reef!"];
     var KINDS = ["#38bdf8", "#f8fafc", "#a8a29e", "#fde047"];
+    var TRASH_EM = ["🧴", "🗑️", "🧴", "🗑️"];
+    var FISH_EM = ["🐠", "🐟", "🐠", "🐡"];
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-ocean") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
     addEventListener("resize", resize); resize();
@@ -110,17 +113,16 @@
       g.addColorStop(0, night ? "#0f172a" : "#7dd3fc"); g.addColorStop(1, "#0369a1");
       x.fillStyle = g; x.fillRect(0, 0, W, H);
       x.fillStyle = "#0ea5e9"; x.fillRect(0, H * 0.22, W, 8);
-      x.fillStyle = "#f59e0b"; x.fillRect(boatX * W - 30, H * 0.18, 60, 16);
-      x.fillStyle = "#fff"; x.fillRect(boatX * W - 4, H * 0.1, 6, 16);
-      fish.forEach(function (f) {
+      em("🚤", boatX * W, H * 0.16, 44);
+      fish.forEach(function (f, fi) {
         f.x += f.vx * 0.008; if (f.x > 1.1) f.x = -0.1;
-        x.fillStyle = f.col; x.beginPath(); x.ellipse(f.x * W, f.y * H + Math.sin(t * 3 + f.x) * 4, 12, 6, 0, 0, 6.3); x.fill();
+        em(FISH_EM[fi % FISH_EM.length], f.x * W, f.y * H + Math.sin(t * 3 + f.x) * 4, 28);
       });
-      trash.forEach(function (o) {
+      trash.forEach(function (o, ti) {
         if (o.got) return;
-        x.fillStyle = o.col; x.fillRect(o.x * W - 8, o.y * H - 6, 16, 12);
+        em(TRASH_EM[ti % TRASH_EM.length], o.x * W, o.y * H, 28);
       });
-      x.fillStyle = "#fb7185"; x.beginPath(); x.arc(boatX * W, H * 0.42, 10, 0, 6.3); x.fill();
+      em("🤿", boatX * W, H * 0.42, 32);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

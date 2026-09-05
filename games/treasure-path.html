@@ -71,6 +71,7 @@
     ];
     var dots = document.getElementById("pathdots");
     for (var d = 0; d < 11; d++) { var iel = document.createElement("i"); dots.appendChild(iel); }
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     function resize() { var dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px"; x.setTransform(dpr, 0, 0, dpr, 0, 0); }
     addEventListener("resize", resize); resize();
     function save() { try { localStorage.setItem("alabryuu-treasure", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {} }
@@ -114,15 +115,13 @@
       x.fillStyle = g; x.fillRect(0, 0, W, H);
       x.fillStyle = "#38bdf8"; x.fillRect(0, H * 0.72, W, H * 0.28);
       x.fillStyle = "#65a30d"; x.beginPath(); x.ellipse(W * 0.5, H * 0.7, W * 0.46, 48, 0, 0, 6.3); x.fill();
-      x.fillStyle = "#7c2d12";
-      for (var i = 0; i < 6; i++) { x.fillRect(40 + i * 70, H * 0.52, 10, 40); x.fillStyle = "#166534"; x.beginPath(); x.arc(45 + i * 70, H * 0.52, 18, 0, 6.3); x.fill(); x.fillStyle = "#7c2d12"; }
-      if (si >= 3) { x.fillStyle = "#ef4444"; x.beginPath(); x.ellipse(W * 0.28, H * 0.68, 14, 8, 0, 0, 6.3); x.fill(); }
-      if (si >= 5) { x.fillStyle = "#f8fafc"; x.beginPath(); x.arc(W * 0.72, H * 0.42, 12, 0, 6.3); x.fill(); }
-      x.fillStyle = "#b45309"; x.fillRect(W * 0.76, H * 0.6, 28, 22);
-      if (si > 8) { x.fillStyle = "#fde047"; x.beginPath(); x.ellipse(W * 0.8, H * 0.58, 16, 6, -0.4, 0, 6.3); x.fill(); }
+      em("🏝️", W * 0.5, H * 0.58, 72);
+      for (var i = 0; i < 6; i++) em("🌴", 45 + i * 70, H * 0.5, 36);
+      if (si >= 3) em("🦀", W * 0.28, H * 0.68, 32);
+      if (si >= 5) em("🦉", W * 0.72, H * 0.42, 32);
+      em("🧰", W * 0.8, H * 0.62, 36);
       var kx = W * kidX, ky = H * 0.64 + Math.sin(T * 8) * 2;
-      x.fillStyle = "#fb7185"; x.beginPath(); x.arc(kx, ky - 18, 8, 0, 6.3); x.fill();
-      x.fillStyle = "#38bdf8"; x.fillRect(kx - 7, ky - 10, 14, 16);
+      em("🧒", kx, ky - 10, 36);
       requestAnimationFrame(loop);
     }
     show(); loop();

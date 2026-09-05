@@ -56,6 +56,7 @@
       { n: "Star Highway", night: 1, need: 6, spd: 13 }
     ];
     var SAYS = ["Steer with taps!", "Tunnel lights!", "Splash the rain!", "Hold BOOST!", "Home lights!"];
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-zoom") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
     addEventListener("resize", resize); resize();
@@ -118,11 +119,10 @@
       x.strokeStyle = "#f8fafc"; x.setLineDash([16, 18]); x.lineWidth = 4;
       x.beginPath(); x.moveTo(W * 0.5, (t * 80) % 40); x.lineTo(W * 0.5, H); x.stroke();
       x.setLineDash([]);
-      bits.forEach(function (c) { if (c.got) return; x.fillStyle = "#fde047"; x.beginPath(); x.arc(laneX(c.x), c.y, 10, 0, 6.3); x.fill(); });
-      cars.forEach(function (c) { x.fillStyle = "#ef4444"; x.fillRect(laneX(c.x) - 18, c.y, 36, 50); });
+      bits.forEach(function (c) { if (c.got) return; em("🪙", laneX(c.x), c.y, 28); });
+      cars.forEach(function (c) { em("🚙", laneX(c.x), c.y + 20, 40); });
       var cy = H * 0.76;
-      x.fillStyle = "#38bdf8"; x.fillRect(laneX(lane) - 20, cy, 40, 54);
-      x.fillStyle = "#fde047"; x.fillRect(laneX(lane) - 12, cy + 8, 24, 14);
+      em("🚗", laneX(lane), cy + 22, 48);
       if (m.n.indexOf("Rain") >= 0) {
         x.strokeStyle = "#bae6fd";
         for (var i = 0; i < 16; i++) { var rx = (i * 40 + t * 120) % W, ry = (i * 70 + t * 300) % H; x.beginPath(); x.moveTo(rx, ry); x.lineTo(rx - 6, ry + 14); x.stroke(); }

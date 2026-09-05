@@ -217,99 +217,30 @@
       ctx.fillStyle = fill;
       ctx.fill();
     }
+    function em(ch,px,py,s){ ctx.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(ch,px,py); }
     function drawCloud(c, t) {
       var bob = Math.sin(t * 1.4 + c.i) * 6;
       var px = sx(c.x);
       var py = sy(c.y + bob);
       if (px < -140 || px > W + 140 || py < -80 || py > H + 80) return;
-      ctx.save();
-      ctx.shadowColor = "rgba(22,50,74,0.12)";
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 6;
-      for (var i = 0; i < c.lobs.length; i++) {
-        var lob = c.lobs[i];
-        ellipse(px + lob.ox, py + lob.oy, lob.rx, lob.ry, c.tint);
-      }
-      ctx.restore();
-      ctx.strokeStyle = "rgba(255,255,255,0.65)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.ellipse(px, py + 8, 62, 18, 0, Math.PI * 1.1, Math.PI * 1.85);
-      ctx.stroke();
+      em("☁️", px, py, 78);
       for (var d = 0; d < c.decos.length; d++) {
         var fl = c.decos[d];
-        var fx = px + fl.ox, fy = py + fl.oy;
-        ctx.fillStyle = fl.col;
-        for (var p = 0; p < 5; p++) {
-          var a = p * 1.26;
-          ellipse(fx + Math.cos(a) * 7, fy + Math.sin(a) * 6, 6, 5, fl.col);
-        }
-        ellipse(fx, fy, 4, 4, "#fde047");
+        em("🌸", px + fl.ox, py + fl.oy, 26);
       }
       if (c.star) {
-        drawStar(px + 36, py - 28, 10, "#fde047");
+        em("⭐", px + 36, py - 28, 28);
       }
-    }
-    function drawStar(x, y, r, col) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(T * 1.2);
-      ctx.fillStyle = col;
-      ctx.beginPath();
-      for (var i = 0; i < 5; i++) {
-        var a = -Math.PI / 2 + i * Math.PI * 2 / 5;
-        var b = a + Math.PI / 5;
-        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-        ctx.lineTo(Math.cos(b) * r * 0.42, Math.sin(b) * r * 0.42);
-      }
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
     }
     function drawKid() {
       var px = sx(kid.x);
       var py = sy(kid.y);
       var sq = kid.squash;
-      var wing = kid.wing;
       ctx.save();
       ctx.translate(px, py);
       ctx.rotate(kid.lean);
-      // wings
-      ctx.fillStyle = "#fff3a8";
-      ctx.save();
-      ctx.translate(-18, -28 * sq);
-      ctx.rotate(-wing);
-      ellipse(0, 0, 22, 10, "#fff3a8");
-      ctx.restore();
-      ctx.save();
-      ctx.translate(18, -28 * sq);
-      ctx.rotate(wing);
-      ellipse(0, 0, 22, 10, "#fff3a8");
-      ctx.restore();
-      // legs
-      ctx.strokeStyle = "#ffe0b0";
-      ctx.lineWidth = 7;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(-7, -8);
-      ctx.lineTo(-8 - kid.knee * 4, 10 + kid.knee * 4);
-      ctx.moveTo(7, -8);
-      ctx.lineTo(8 + kid.knee * 4, 10 + kid.knee * 4);
-      ctx.stroke();
-      ctx.fillStyle = "#5a3a22";
-      ellipse(-8 - kid.knee * 4, 12 + kid.knee * 4, 7, 4, "#5a3a22");
-      ellipse(8 + kid.knee * 4, 12 + kid.knee * 4, 7, 4, "#5a3a22");
-      // body
-      ellipse(0, -22 * sq, 16, 18 * sq, "#ff8a5b");
-      // head
-      ellipse(4, -46 * sq, 14, 13, "#ffe0b0");
-      ellipse(2, -54 * sq, 15, 8, "#5a3a22");
-      ellipse(10, -47 * sq, 2, 2.2, "#16324a");
-      ctx.strokeStyle = "#e11d48";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(10, -43 * sq, 4, 0.2, 2.6);
-      ctx.stroke();
+      var flying = hopPhase === "air" || hopPhase === "takeoff" || flutterT > 0;
+      em(flying ? "🧚" : "🧒", 0, -22 * sq, 34 + 12 * sq);
       ctx.restore();
     }
     function drawSky(t) {
@@ -321,22 +252,21 @@
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
       // sun
-      ellipse(W * 0.82, 70, 38, 38, "#ffe08a");
       ellipse(W * 0.82, 70, 52, 52, "rgba(255,224,138,0.28)");
+      em("☀️", W * 0.82, 70, 48);
       // far puffs
-      ctx.globalAlpha = 0.35;
+      ctx.globalAlpha = 0.45;
       for (var i = 0; i < 8; i++) {
         var fx = ((i * 160 - camX * 0.25) % (W + 180)) - 40;
         var fy = 80 + (i % 3) * 70 + Math.sin(t + i) * 6;
-        ellipse(fx, fy, 50, 18, "#fff");
-        ellipse(fx + 30, fy + 6, 36, 14, "#fff");
+        em("☁️", fx, fy, 36);
       }
       ctx.globalAlpha = 1;
       // twinkles
-      for (var s = 0; s < 18; s++) {
+      for (var s = 0; s < 12; s++) {
         var tw = 0.4 + 0.6 * Math.abs(Math.sin(t * 3 + s));
-        ctx.globalAlpha = tw * 0.8;
-        drawStar(((s * 97 - camX * 0.15) % (W + 40)), (s * 53 + camY * 0.08) % (H * 0.7), 4 + (s % 3), "#fff7cc");
+        ctx.globalAlpha = tw * 0.85;
+        em("⭐", ((s * 97 - camX * 0.15) % (W + 40)), (s * 53 + camY * 0.08) % (H * 0.7), 14 + (s % 3) * 2);
       }
       ctx.globalAlpha = 1;
     }

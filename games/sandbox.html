@@ -29,15 +29,15 @@
   <div id="hud"><b id="ms">House</b><b id="bl">0/6</b><b id="st">⭐ 0</b></div>
   <div id="say">Put a cottage and logs!</div>
   <div id="dock">
-    <button data-k="wood" class="on">Wood</button>
-    <button data-k="grass">Grass</button>
-    <button data-k="water">Water</button>
-    <button data-k="stone">Rock</button>
-    <button data-k="gold">Gold</button>
-    <button data-k="tree">Tree</button>
-    <button data-k="flower">Flower</button>
-    <button data-k="house">House</button>
-    <button data-k="fence">Fence</button>
+    <button data-k="wood" class="on">🪵</button>
+    <button data-k="grass">🌱</button>
+    <button data-k="water">💧</button>
+    <button data-k="stone">🪨</button>
+    <button data-k="gold">🥇</button>
+    <button data-k="tree">🌳</button>
+    <button data-k="flower">🌸</button>
+    <button data-k="house">🏠</button>
+    <button data-k="fence">🚧</button>
   </div>
   <div class="cover" id="title">
     <h1>Sandbox</h1>
@@ -62,6 +62,8 @@
       { n: "Home town", need: 8, say: "Houses, trees, fences!" }
     ];
     var COL = { wood: "#b45309", grass: "#22c55e", water: "#38bdf8", stone: "#78716c", gold: "#f59e0b", tree: "#166534", flower: "#fb7185", house: "#f97316", fence: "#92400e" };
+    var EMO = { wood: "🪵", grass: "🌱", water: "💧", stone: "🪨", gold: "🥇", tree: "🌳", flower: "🌸", house: "🏠", fence: "🚧" };
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-sandbox") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
     addEventListener("resize", resize); resize();
@@ -108,14 +110,9 @@
       x.fillStyle = "#ca8a04";
       for (var i = 0; i < 8; i++) x.fillRect(0, H * 0.35 + i * 28, W, 8);
       bits.forEach(function (b) {
-        x.fillStyle = COL[b.k] || "#b45309";
-        if (b.k === "tree") { x.fillRect(b.x - 4, b.y - 8, 8, 18); x.beginPath(); x.arc(b.x, b.y - 14, 12, 0, 6.3); x.fill(); }
-        else if (b.k === "house") { x.fillRect(b.x - 14, b.y - 8, 28, 20); x.fillStyle = "#b91c1c"; x.beginPath(); x.moveTo(b.x - 16, b.y - 8); x.lineTo(b.x, b.y - 24); x.lineTo(b.x + 16, b.y - 8); x.fill(); }
-        else if (b.k === "flower") { x.beginPath(); x.arc(b.x, b.y, 8, 0, 6.3); x.fill(); x.fillStyle = "#fde047"; x.beginPath(); x.arc(b.x, b.y, 3, 0, 6.3); x.fill(); }
-        else x.fillRect(b.x - 10, b.y - 8, 20, 16);
+        em(EMO[b.k] || "🪵", b.x, b.y, b.k === "house" || b.k === "tree" ? 40 : 32);
       });
-      x.fillStyle = "#fb7185"; x.beginPath(); x.arc(kid.x * W, kid.y * H - 16, 8, 0, 6.3); x.fill();
-      x.fillStyle = "#38bdf8"; x.fillRect(kid.x * W - 7, kid.y * H - 8, 14, 16);
+      em("🧒", kid.x * W, kid.y * H - 10, 36);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
