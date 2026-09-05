@@ -39,6 +39,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), g = cv.getContext("2d");
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
     var W, H, last = 0, t = 0, mode = "title", stars = 0, station = 0;
     var cars = [], nextN = 1, maxN = 4, cargo = [], smoke = [], coupled = 0, wave = 0;
     var av = { name: "Kid", shirt: "#f472b6" };
@@ -217,6 +218,11 @@
 
     function drawPerson(px, py, opt) {
       opt = opt || {};
+      em(opt.wave ? "👋" : "🧑‍✈️", px, py - 8, 36);
+      g.fillStyle = "#fff";
+      g.font = "bold 10px Trebuchet MS"; g.textAlign = "center";
+      g.fillText(av.name, px, py + 28);
+      return;
       var coat = opt.coat || av.shirt;
       var waveA = opt.wave ? Math.sin(t * 10) * 18 : 8;
       g.save();
@@ -248,6 +254,8 @@
     }
 
     function drawEngine(ex, ey, rolling) {
+      em("🚂", ex, ey - 8, 78);
+      return;
       var rot = rolling ? t * 6 : t * 2;
       g.save();
       g.translate(ex, ey);
@@ -293,6 +301,9 @@
     }
 
     function drawCargoIcon(kind, x, y) {
+      var map = { crate: "📦", mail: "✉️", carrot: "🥕", flower: "🌸", fish: "🐟", apple: "🍎", log: "🪵", crown: "👑", gift: "🎁", star: "⭐" };
+      em(map[kind] || "⭐", x, y, 28);
+      return;
       g.save();
       g.translate(x, y);
       if (kind === "crate") {
@@ -360,8 +371,7 @@
         g.fillRect(-32, 6, 8, 6);
         g.fillStyle = c.col;
         roundFill(-30, -24, 60, 38, 8);
-        g.fillStyle = "rgba(255,255,255,.22)";
-        roundFill(-24, -18, 22, 10, 4);
+        em("🚃", 0, -6, 42);
         g.fillStyle = "#fff";
         g.font = "bold 22px Trebuchet MS"; g.textAlign = "center"; g.textBaseline = "middle";
         g.fillText(c.n, 0, -4);
@@ -393,6 +403,7 @@
         g.translate(x + 70 + i * 66, railY());
         g.fillStyle = CAR_COLS[i - 1];
         roundFill(-26, -20, 52, 34, 8);
+        em("🚃", 0, -4, 36);
         g.fillStyle = "#fff"; g.font = "bold 18px Trebuchet MS"; g.textAlign = "center";
         g.fillText(i, 0, -2);
         drawWheel(-14, 18, 7, t * 6);

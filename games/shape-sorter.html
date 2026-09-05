@@ -41,6 +41,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     var W, H, last = 0, t = 0, play = false, box = 0;
     var shapes = [], holes = [], drag = null, offx = 0, offy = 0;
     var rot = 0, rotWant = 0, lid = 0, lidOpen = 0, conf = [], stars = [];
@@ -226,26 +227,17 @@
     }
 
     function drawShape(s, hole) {
+      var EMO = { circ: "🔵", sq: "🟨", tri: "🔺", star: "⭐", heart: "❤️" };
       x.save();
       x.translate(s.x, s.y);
       x.rotate(s.rot || 0);
       x.scale(s.sc || 1, s.sc || 1);
       if (hole) {
-        x.fillStyle = "#0f172a";
-        pathKind(s.kind, 22); x.fill();
-        x.fillStyle = "rgba(255,255,255,.08)";
-        pathKind(s.kind, 16); x.fill();
-        x.strokeStyle = "rgba(0,0,0,.35)"; x.lineWidth = 3;
-        pathKind(s.kind, 22); x.stroke();
-        x.fillStyle = "rgba(255,255,255,.12)";
-        x.beginPath(); x.moveTo(-18, -18); x.lineTo(-10, -24); x.lineTo(4, -16); x.fill();
+        x.globalAlpha = 0.4;
+        em(EMO[s.kind] || "🔺", 0, 0, 44);
+        x.globalAlpha = 1;
       } else {
-        x.fillStyle = COL[s.kind];
-        pathKind(s.kind, 24); x.fill();
-        x.strokeStyle = "rgba(255,255,255,.5)"; x.lineWidth = 3;
-        pathKind(s.kind, 24); x.stroke();
-        x.fillStyle = "rgba(255,255,255,.35)";
-        x.beginPath(); x.ellipse(-6, -8, 8, 5, -0.4, 0, Math.PI * 2); x.fill();
+        em(EMO[s.kind] || "🔺", 0, 0, 50);
       }
       x.restore();
     }

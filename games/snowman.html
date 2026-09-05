@@ -52,6 +52,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     var W, H, last = 0, t = 0, play = false, friend = 0;
     var balls = [], flakes = [], spark = [], gusts = [];
     var drag = null, wind = 0, windT = 0, hatOff = 0, hat = { x: 0, y: 0, vx: 0, vy: 0 };
@@ -247,8 +248,7 @@
       var g = x.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#f8fafc");
       x.fillStyle = g; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#fde047";
-      x.beginPath(); x.arc(W * 0.16, 70, 20, 0, Math.PI * 2); x.fill();
+      em("☀️", W * 0.16, 70, 40);
       x.fillStyle = "#fff";
       x.fillRect(0, ground, W, H - ground);
       x.fillStyle = "#e0f2fe";
@@ -259,30 +259,17 @@
     }
 
     function drawBall(b) {
-      var grd = x.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.3, 4, b.x, b.y, b.r);
-      grd.addColorStop(0, "#fff"); grd.addColorStop(1, "#cbd5e1");
-      x.fillStyle = grd;
-      x.beginPath(); x.arc(b.x, b.y, b.r, 0, Math.PI * 2); x.fill();
-      x.strokeStyle = "rgba(148,163,184,.5)"; x.lineWidth = 2;
-      x.beginPath(); x.arc(b.x, b.y, b.r, 0, Math.PI * 2); x.stroke();
+      em("⚪", b.x, b.y, b.r * 2.15);
     }
 
     function drawFace(top) {
       if (!allStacked()) return;
-      x.fillStyle = "#1e293b";
-      x.beginPath(); x.arc(top.x - 7, top.y - 4, 3, 0, Math.PI * 2); x.fill();
-      x.beginPath(); x.arc(top.x + 7, top.y - 4, 3, 0, Math.PI * 2); x.fill();
-      x.beginPath(); x.arc(top.x, top.y + 8, 6, 0.15, Math.PI - 0.15); x.stroke();
-      if (acc.nose) {
-        x.fillStyle = "#f97316";
-        x.beginPath(); x.moveTo(top.x, top.y); x.lineTo(top.x + 18, top.y + 4); x.lineTo(top.x, top.y + 6); x.fill();
-      }
+      em("😄", top.x, top.y, Math.max(22, top.r * 1.4));
+      if (acc.nose) em("🥕", top.x + 12, top.y + 4, 18);
     }
 
     function drawHatAt(px, py, r) {
-      x.fillStyle = "#1e293b";
-      x.fillRect(px - r * 0.7, py - 8, r * 1.4, 8);
-      x.fillRect(px - r * 0.38, py - 28, r * 0.76, 22);
+      em("🎩", px, py - 10, Math.max(28, r * 1.6));
     }
 
     function draw() {
@@ -290,9 +277,8 @@
       var i, f;
       for (i = 0; i < flakes.length; i++) {
         f = flakes[i];
-        x.globalAlpha = 0.7;
-        x.fillStyle = "#fff";
-        x.beginPath(); x.arc(f.x, f.y, f.s, 0, Math.PI * 2); x.fill();
+        x.globalAlpha = 0.85;
+        em("❄️", f.x, f.y, Math.max(10, f.s * 3));
       }
       x.globalAlpha = 1;
       var sorted = balls.slice().sort(function (a, b) { return a.y - b.y; });
@@ -301,27 +287,17 @@
       if (allStacked()) {
         mid = sorted[1]; top = sorted[0];
         if (acc.arms) {
-          x.strokeStyle = "#92400e"; x.lineWidth = 4;
-          x.beginPath(); x.moveTo(base.x - base.r + 4, base.y - 8); x.lineTo(base.x - base.r - 28, base.y - 22 + Math.sin(t * 2) * 4); x.stroke();
-          x.beginPath(); x.moveTo(base.x + base.r - 4, base.y - 8); x.lineTo(base.x + base.r + 28, base.y - 18 + Math.cos(t * 2) * 4); x.stroke();
+          em("🪵", base.x - base.r - 16, base.y - 16 + Math.sin(t * 2) * 4, 22);
+          em("🪵", base.x + base.r + 16, base.y - 14 + Math.cos(t * 2) * 4, 22);
         }
       }
       for (i = 0; i < balls.length; i++) drawBall(balls[i]);
       if (allStacked()) {
         top = sorted[0]; mid = sorted[1];
         drawFace(top);
-        if (acc.scarf) {
-          x.strokeStyle = FRIENDS[friend] ? FRIENDS[friend].scarf : "#ef4444";
-          x.lineWidth = 8; x.lineCap = "round";
-          x.beginPath(); x.arc(top.x, top.y + top.r - 2, top.r * 0.7, 0.2, Math.PI - 0.2); x.stroke();
-          x.fillStyle = x.strokeStyle;
-          x.fillRect(top.x + 8, top.y + top.r, 8, 22);
-        }
-        if (acc.btn && mid) {
-          x.fillStyle = "#1e293b";
-          x.beginPath(); x.arc(mid.x, mid.y - 6, 3, 0, Math.PI * 2); x.fill();
-          x.beginPath(); x.arc(mid.x, mid.y + 6, 3, 0, Math.PI * 2); x.fill();
-        }
+        if (acc.scarf) em("🧣", top.x, top.y + top.r + 4, 28);
+        if (acc.btn && mid) em("🔘", mid.x, mid.y, 18);
+        if (acc.hat && acc.scarf && acc.nose && acc.btn && acc.arms) em("⛄", base.x, mid.y, Math.max(64, base.r * 2.6));
         if (acc.hat && !hatOff) drawHatAt(top.x, top.y - top.r, top.r);
       }
       if (hatOff) drawHatAt(hat.x, hat.y, 16);
