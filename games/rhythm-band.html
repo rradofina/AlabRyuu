@@ -39,21 +39,24 @@
   </div>
   <script>
   (function () {
-    var seq = [], listen = false, step = 0, round = 0, ICONS = ["🥁", "🎺", "🎸", "🎹"];
+    var seq = [], listen = false, step = 0, gen = 0, ICONS = ["🥁", "🎺", "🎸", "🎹"];
     var btns = [].slice.call(document.querySelectorAll("#pads button"));
     function light(i) {
       btns[i].classList.add("lit");
       document.getElementById("face").textContent = ICONS[i];
-      document.getElementById("say").textContent = "Watch " + ICONS[i];
       setTimeout(function () { btns[i].classList.remove("lit"); }, 700);
     }
     function playSeq() {
+      var my = ++gen;
       listen = false; step = 0;
       document.getElementById("say").textContent = "Watch the glow...";
       var i = 0;
       function tick() {
-        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn! Tap the same."; return; }
-        light(seq[i]); i++; setTimeout(tick, 1100);
+        if (my !== gen) return;
+        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn! Tap " + ICONS[seq[0]]; return; }
+        light(seq[i]);
+        document.getElementById("say").textContent = "Watch " + ICONS[seq[i]] + "  (" + (i + 1) + "/" + seq.length + ")";
+        i++; setTimeout(tick, 1100);
       }
       setTimeout(tick, 700);
     }
@@ -78,6 +81,7 @@
         light(i);
         if (i === seq[step]) {
           step++;
+          if (step < seq.length) document.getElementById("say").textContent = "Yes! Next " + ICONS[seq[step]];
           if (step >= seq.length) {
             if (seq.length >= 5) {
               listen = false;
