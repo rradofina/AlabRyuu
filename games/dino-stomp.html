@@ -57,6 +57,7 @@
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dino") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
     addEventListener("resize", resize); resize();
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     function save() { try { localStorage.setItem("alabryuu-dino", JSON.stringify({ stars: stars })); } catch (e) {} }
     function hud() {
       document.getElementById("val").textContent = VAL[valley].n;
@@ -131,18 +132,14 @@
       x.fillStyle = night ? "#14532d" : "#4ade80"; x.fillRect(0, gY, W, H - gY);
       rain.forEach(function (r) { r.y += 260 * dt; if (r.y > H) r.y = -10; x.strokeStyle = "#bae6fd"; x.beginPath(); x.moveTo(r.x, r.y); x.lineTo(r.x - 4, r.y + 12); x.stroke(); });
       if (!(VAL[valley] && VAL[valley].rain)) rain.length = 0;
-      blooms.forEach(function (f) { if (f.got) return; x.fillStyle = "#fde047"; x.beginPath(); x.arc(f.x, gY - 18, 8, 0, 6.3); x.fill(); });
+      blooms.forEach(function (f) { if (f.got) return; em("🌼", f.x, gY - 18, 28); });
       logs.forEach(function (o) {
         if (o.smash) return;
-        x.fillStyle = o.boss ? "#365314" : "#92400e";
-        x.fillRect(o.x, gY - (o.boss ? 70 : 28), o.boss ? 70 : 46, o.boss ? 70 : 28);
+        em("🪵", o.x + (o.boss ? 35 : 23), gY - (o.boss ? 36 : 18), o.boss ? 64 : 42);
       });
       var dx = 110, dy = gY - 20 + dino.y;
-      x.fillStyle = "#65a30d"; x.beginPath(); x.ellipse(dx, dy - 18, 34, 18, 0, 0, 6.3); x.fill();
-      x.fillStyle = "#4d7c0f"; x.beginPath(); x.arc(dx + 28, dy - 30, 12, 0, 6.3); x.fill();
-      x.fillStyle = "#14532d";
-      x.fillRect(dx - 18, dy, 8, 16 + (dino.pose === "crouch" ? -6 : 0));
-      x.fillRect(dx + 6, dy, 8, 16 + (dino.pose === "stomp" ? 6 : 0));
+      var dsz = dino.pose === "stomp" ? 58 : (dino.pose === "crouch" ? 40 : 50);
+      em("🦕", dx, dy - 18, dsz);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

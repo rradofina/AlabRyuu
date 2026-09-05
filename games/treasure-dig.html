@@ -56,6 +56,8 @@
       { n: "Home vault", need: 4, night: 0, floor: "#b45309" }
     ];
     var SAYS = ["Tap dirt. Scoop!", "Crystals wink!", "Hold the lamp!", "Brush the bone!", "Open the big chest!"];
+    var LOOT = ["🪙", "🐚", "💎", "📦", "🦴"];
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dig") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
     addEventListener("resize", resize); resize();
@@ -113,14 +115,12 @@
       var m = CAVES[caveI] || CAVES[0];
       x.fillStyle = m.night && !lampOn ? "#1c1917" : m.floor; x.fillRect(0, 0, W, H);
       x.fillStyle = "#44403c"; x.fillRect(0, 0, W, H * 0.2);
-      mounds.forEach(function (o) {
-        x.fillStyle = o.open ? "#fde047" : "#92400e";
-        x.beginPath(); x.ellipse(o.x * W, o.y * H, 28, 16, 0, 0, 6.3); x.fill();
+      mounds.forEach(function (o, i) {
+        em(o.open ? LOOT[i % LOOT.length] : "⛰️", o.x * W, o.y * H, 36);
       });
-      if (vault) {
-        x.fillStyle = "#b45309"; x.fillRect(W * 0.5 - 28, H * 0.22, 56, 36);
-        x.fillStyle = "#f59e0b"; x.fillRect(W * 0.5 - 28, H * 0.22, 56, 10);
-      }
+      if (vault) em("🧰", W * 0.5, H * 0.28, 52);
+      em("🧒", W * 0.18, H * 0.82, 36);
+      em("⛏️", W * 0.28, H * 0.8, 28);
       if (m.night && lampOn) { x.fillStyle = "rgba(253,224,71,0.15)"; x.beginPath(); x.arc(W * 0.5, H * 0.5, 160, 0, 6.3); x.fill(); }
       requestAnimationFrame(loop);
     }

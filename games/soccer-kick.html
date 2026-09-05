@@ -51,6 +51,7 @@
       { n: "Cup final", need: 3, dive: 0.85 }
     ];
     var SAYS = ["Hold, then kick!", "Wind curves it!", "Aim the tap!", "Chip the rain!", "Cup kick!"];
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-soccer") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
     addEventListener("resize", resize); resize();
@@ -121,11 +122,10 @@
       x.fillStyle = m.night ? "#0f172a" : "#7dd3fc"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#22c55e"; x.fillRect(0, H * 0.28, W, H * 0.72);
       x.strokeStyle = "#ecfccb"; x.lineWidth = 3; x.strokeRect(W * 0.22, H * 0.28, W * 0.56, H * 0.22);
-      x.fillStyle = "#f8fafc"; x.fillRect(W * 0.22, H * 0.16, 8, H * 0.16); x.fillRect(W * 0.78 - 8, H * 0.16, 8, H * 0.16); x.fillRect(W * 0.22, H * 0.16, W * 0.56, 8);
-      x.fillStyle = "#fde047"; x.beginPath(); x.arc(W * goalie, H * 0.24, 16, 0, 6.3); x.fill();
-      x.fillStyle = "#f97316"; x.beginPath(); x.arc(W * 0.5, H * 0.78, 18, 0, 6.3); x.fill();
-      x.fillStyle = "#f8fafc"; x.beginPath(); x.arc(W * ball.x, H * ball.y, 10, 0, 6.3); x.fill();
-      x.fillStyle = "#111"; x.beginPath(); x.arc(W * ball.x + 3, H * ball.y - 2, 3, 0, 6.3); x.fill();
+      em("🥅", W * 0.5, H * 0.2, 72);
+      em("🧤", W * goalie, H * 0.24, 36);
+      em("🧒", W * 0.5, H * 0.78, 40);
+      em("⚽", W * ball.x, H * ball.y, 28);
       if (m.rain) { x.strokeStyle = "#7dd3fc"; for (var i = 0; i < 14; i++) { var rx = (i * 50 + t * 80) % W; x.beginPath(); x.moveTo(rx, (i * 40 + t * 200) % H); x.lineTo(rx - 4, (i * 40 + t * 200) % H + 10); x.stroke(); } }
       requestAnimationFrame(loop);
     }
