@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Little Earth</title>
   <link rel="stylesheet" href="kid.css" />
+  <script src="kid.js"></script>
   <style>
     html, body { background: #020617; }
     #tools button { background: #fff; }
@@ -59,15 +60,15 @@
       { e: "🧒", t: "Home!", p: "Kids come home." }
     ];
     var ERAS = [
-      { n: "🔥 Hot rock", say: "Tap the rock with ☀️", need: 4, want: "sun" },
-      { n: "🌊 Seas", say: "Rain on the sea!", need: 4, want: "rain" },
-      { n: "🌱 Plants", say: "Plant little seeds!", need: 5, want: "plant" },
-      { n: "🐟 Fish", say: "Tap the fish!", need: 5, want: "sun" },
-      { n: "🌿 Kelp", say: "Grow tall kelp!", need: 5, want: "plant" },
-      { n: "🦕 Dinos", say: "Boop big pals!", need: 5, want: "sun" },
-      { n: "🐦 Birds", say: "Sun for wings!", need: 5, want: "sun" },
-      { n: "🦊 Animals", say: "Tap swimming pals!", need: 5, want: "sun" },
-      { n: "🧒 People", say: "Friends on waves!", need: 5, want: "sun" }
+      { n: "🔥 Hot rock", say: "Tap the globe! ☀️", need: 3, want: "sun" },
+      { n: "🌊 Seas", say: "Tap the sea! 🌧️", need: 3, want: "rain" },
+      { n: "🌱 Plants", say: "Tap to plant! 🌱", need: 3, want: "plant" },
+      { n: "🐟 Fish", say: "Tap the fish! ☀️", need: 3, want: "sun" },
+      { n: "🌿 Kelp", say: "Grow kelp! 🌱", need: 3, want: "plant" },
+      { n: "🦕 Dinos", say: "Boop pals! ☀️", need: 3, want: "sun" },
+      { n: "🐦 Birds", say: "Sun for wings! ☀️", need: 3, want: "sun" },
+      { n: "🦊 Animals", say: "Tap pals! ☀️", need: 3, want: "sun" },
+      { n: "🧒 People", say: "Friends! ☀️", need: 3, want: "sun" }
     ];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-earth") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function em(ch, px, py, s) {
@@ -84,9 +85,9 @@
     addEventListener("resize", resize); resize();
     function save() { try { localStorage.setItem("alabryuu-earth", JSON.stringify({ stars: stars, era: era })); } catch (e) {} }
     function hud() {
-      document.getElementById("eraN").textContent = ERAS[era] ? ERAS[era].n : "🌍 Home";
+      document.getElementById("eraN").textContent = ERAS[era] ? ERAS[era].n + "  " + got + "/" + ERAS[era].need : "🌍 Home";
       document.getElementById("stars").textContent = "⭐ " + stars;
-      document.getElementById("say").textContent = ERAS[era] ? ERAS[era].say : "Home!";
+      document.getElementById("say").textContent = ERAS[era] ? ERAS[era].say + "  " + got + "/" + ERAS[era].need : "Home!";
     }
     function cx() { return W * 0.5; }
     function cy() { return H * 0.44; }
@@ -110,16 +111,12 @@
       }
     }
     function applyTool(px, py) {
-      var dx = px - cx(), dy = py - cy(), hitR = R() * 1.4;
-      if (dx * dx + dy * dy > hitR * hitR) {
-        document.getElementById("say").textContent = "Tap the big globe!";
-        return;
-      }
+      if (!play || !ERAS[era]) return;
       var want = ERAS[era].want;
-      if (tool !== want) {
-        document.getElementById("say").textContent = "Try the " + (want === "sun" ? "☀️ Sun" : want === "rain" ? "🌧️ Rain" : "🌱 Plant") + " button!";
-        return;
-      }
+      tool = want;
+      setTool(want);
+      if (px == null) { px = cx(); py = cy(); }
+      var dx = px - cx(), dy = py - cy();
       if (tool === "sun") flashes.push({ x: px, y: py, life: 0.5 });
       else if (tool === "rain") rains.push({ x: px, y: py - 40, life: 0.8 });
       else life.push({ kind: era < 4 ? "🌱" : "🌿", a: rot + Math.atan2(dx, -dy), bob: t });
@@ -155,16 +152,24 @@
         hud(); save();
       }
     };
-    document.getElementById("tSun").onclick = function () { setTool("sun"); };
-    document.getElementById("tRain").onclick = function () { setTool("rain"); };
-    document.getElementById("tPlant").onclick = function () { setTool("plant"); };
-    cv.addEventListener("pointerdown", function (e) { drag = 1; lastX = e.clientX; moved = 0; });
+    document.getElementById("tSun").onclick = function () { setTool("sun"); applyTool(cx(), cy()); };
+    document.getElementById("tRain").onclick = function () { setTool("rain"); applyTool(cx(), cy()); };
+    document.getElementById("tPlant").onclick = function () { setTool("plant"); applyTool(cx(), cy()); };
+    cv.addEventListener("pointerdown", function (e) { var p = kidPt(e, cv); drag = 1; lastX = p.x; moved = 0; });
     addEventListener("pointermove", function (e) {
       if (!drag) return;
-      var dx = e.clientX - lastX;
-      if (Math.abs(dx) > 14) { rot += dx * 0.012; lastX = e.clientX; moved = 1; }
+      var p = kidPt(e, cv);
+      var dx = p.x - lastX;
+      if (Math.abs(dx) > 14) { rot += dx * 0.012; lastX = p.x; moved = 1; }
     });
-    addEventListener("pointerup", function (e) { if (!drag) return; drag = 0; if (play && !moved) applyTool(e.clientX, e.clientY); });
+    addEventListener("pointerup", function (e) {
+      if (!drag) return;
+      drag = 0;
+      if (play && !moved) {
+        var p = kidPt(e, cv);
+        applyTool(p.x, p.y);
+      }
+    });
     addEventListener("pointercancel", function () { drag = 0; });
     function drawGlobe() {
       var gx = cx(), gy = cy(), r = R();

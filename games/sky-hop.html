@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Sky Hop</title>
   <link rel="stylesheet" href="../kid.css" />
-  <style>html,body{background:#7ec8ff}</style>
+  <script src="../kid.js"></script>
+  <style>html,body{background:#1d4ed8} #hud b{background:#1e3a8a}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
   <div id="hud"><b id="info">High 0 · ★0</b></div>
   <div id="say">Tap Hop!</div>
-  <div class="dock on" id="tools">
+  <div class="dock" id="tools">
     <button id="hop"><span>⬆️</span>Hop</button>
     <button id="flutter"><span>🪽</span>Flutter</button>
     <button id="deco"><span>🌸</span>Pretty</button>
@@ -50,7 +51,7 @@
     addEventListener("resize", resize); resize();
     function sx(wx) { return wx - camX; }
     function sy(wy) { return H * 0.62 - (wy - camY); }
-    function hud() { document.getElementById("info").textContent = "High " + Math.max(best, hopCount) + " · ★" + stars; }
+    function hud() { document.getElementById("info").textContent = "Hops " + hopCount + "  Best " + Math.max(best, hopCount); }
     function persist() {
       try { localStorage.setItem(LS, JSON.stringify({ hops: hopCount, best: best, stars: stars, decos: decorations })); } catch (e) {}
       hud();
@@ -102,7 +103,7 @@
       hopCount++; if (hopCount > best) best = hopCount;
       if (hopCount % 5 === 0) stars += 1;
       persist();
-      document.getElementById("say").textContent = cheers[hopCount % cheers.length];
+      document.getElementById("say").textContent = cheers[hopCount % cheers.length] + "  Hop " + hopCount;
     }
     function collectIfStar() {
       var c = cloudAt(on);
@@ -111,12 +112,13 @@
     document.getElementById("go").onclick = function () {
       hopCount = 0; playing = true; build();
       document.getElementById("title").classList.add("off");
+      document.getElementById("tools").classList.add("on");
     };
     document.getElementById("hop").onclick = hop;
     document.getElementById("flutter").onclick = function () {
       if (!playing || hopPhase !== "idle") return;
       flutterT = 0.45;
-      document.getElementById("say").textContent = "Whee!";
+      document.getElementById("say").textContent = "Flutter!  Hop " + hopCount;
     };
     document.getElementById("deco").onclick = function () {
       if (!playing) return;
@@ -124,7 +126,7 @@
       if (!c) { snapToCloud(on); return; }
       c.decos.push({ ox: (Math.random() - 0.5) * 50, oy: 8 });
       decorations++; stars++; persist();
-      document.getElementById("say").textContent = "Pretty!";
+      document.getElementById("say").textContent = "Pretty!  ★" + stars;
     };
     cv.addEventListener("pointerdown", function () { if (playing) hop(); });
     function lerp(a, b, k) { return a + (b - a) * k; }
@@ -156,9 +158,9 @@
       camX += (kid.x - W * 0.38 - camX) * 0.12;
       camY += (kid.y - 24 - camY) * 0.12;
       var g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, "#4aa8e8"); g.addColorStop(1, "#f9a8d4");
+      g.addColorStop(0, "#1e3a8a"); g.addColorStop(0.45, "#2563eb"); g.addColorStop(1, "#7dd3fc");
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-      em("☀️", W * 0.82, 80, 64);
+      em("☀️", W * 0.82, 80, 72);
       var i;
       for (i = 0; i < clouds.length; i++) {
         var c = clouds[i], px = sx(c.x), py = sy(c.y + Math.sin(T * 1.4 + c.i) * 6);

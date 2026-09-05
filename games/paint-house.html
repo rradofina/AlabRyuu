@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Paint House</title>
   <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>html,body{background:#fef3c7} .dock button{min-width:72px;min-height:84px}</style>
 </head>
 <body>
@@ -95,16 +96,16 @@
       }
     }
     cv.addEventListener("pointerdown", function (e) {
-      if (!play || e.clientY > H - 110) return;
-      drawing = 1; lastX = e.clientX; lastY = e.clientY;
-      blob(e.clientX, e.clientY);
+      if (!play || kidPt(e, cv).y > H - 110) return;
+      drawing = 1; lastX = kidPt(e, cv).x; lastY = kidPt(e, cv).y;
+      blob(kidPt(e, cv).x, kidPt(e, cv).y);
       try { cv.setPointerCapture(e.pointerId); } catch (err) {}
     });
     cv.addEventListener("pointermove", function (e) {
       if (!drawing || !play) return;
-      if (inHouse(e.clientX, e.clientY)) {
+      if (inHouse(kidPt(e, cv).x, kidPt(e, cv).y)) {
         x.strokeStyle = color; x.lineWidth = 28; x.lineCap = "round";
-        x.beginPath(); x.moveTo(lastX, lastY); x.lineTo(e.clientX, e.clientY); x.stroke();
+        x.beginPath(); x.moveTo(lastX, lastY); x.lineTo(kidPt(e, cv).x, kidPt(e, cv).y); x.stroke();
         painted++;
         document.getElementById("pc").textContent = "🎨 " + painted;
         if (painted >= 40) {
@@ -113,7 +114,7 @@
           document.getElementById("win").classList.remove("off");
         }
       }
-      lastX = e.clientX; lastY = e.clientY;
+      lastX = kidPt(e, cv).x; lastY = kidPt(e, cv).y;
     });
     addEventListener("pointerup", function () { drawing = 0; });
     resize();

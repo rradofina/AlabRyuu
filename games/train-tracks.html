@@ -5,27 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Train Tracks</title>
   <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>html,body{background:#334155}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
   <div id="hud"><b id="pc">🛤️ 0/3</b></div>
-  <div id="say">Tap empty spots. Lay 3 tracks!</div>
+  <div id="say">Tap a gap. Put a track!</div>
   <div class="dock" id="dock">
+    <button id="lay"><span>🛤️</span>Put track</button>
     <button id="goTrain"><span>🚂</span>Go</button>
   </div>
   <div class="cover" id="title">
     <div class="hero">🛤️</div>
     <h1>Train Tracks</h1>
-    <p>Fill the gaps. Then send the train!</p>
+    <p>Put 3 tracks. Then Go!</p>
     <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
     <div class="hero">🚂</div>
     <h1>Choo choo!</h1>
     <p>The train made it home.</p>
-    <button class="play g" id="again">Build again</button>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
@@ -40,63 +42,80 @@
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);
       W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      x.setTransform(d, 0, 0, d, 0, 0);
     }
     addEventListener("resize", resize); resize();
     function start() {
       play = true; laid = 0; riding = 0; train = 0;
       slots = [
-        { x: 0.22, y: 0.48, on: 1, lock: 1 },
-        { x: 0.40, y: 0.48, on: 0, lock: 0 },
-        { x: 0.58, y: 0.48, on: 0, lock: 0 },
-        { x: 0.76, y: 0.48, on: 0, lock: 0 },
+        { x: 0.18, y: 0.48, on: 1, lock: 1 },
+        { x: 0.38, y: 0.48, on: 0, lock: 0 },
+        { x: 0.56, y: 0.48, on: 0, lock: 0 },
+        { x: 0.74, y: 0.48, on: 0, lock: 0 },
         { x: 0.90, y: 0.48, on: 1, lock: 1 }
       ];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
       document.getElementById("pc").textContent = "🛤️ 0/3";
-      document.getElementById("say").textContent = "Tap the empty spots!";
+      document.getElementById("say").textContent = "Tap Put track! Or tap a black gap.";
+    }
+    function layOne() {
+      if (!play || riding) return;
+      var i;
+      for (i = 0; i < slots.length; i++) {
+        if (!slots[i].on && !slots[i].lock) {
+          slots[i].on = 1; laid++;
+          document.getElementById("pc").textContent = "🛤️ " + laid + "/3";
+          document.getElementById("say").textContent = laid >= 3 ? "Tap Go!" : "Nice! " + laid + "/3";
+          if (laid >= 3) choo();
+          return;
+        }
+      }
+    }
+    function choo() {
+      if (!play || riding || laid < 3) {
+        if (play && laid < 3) document.getElementById("say").textContent = "Need 3 tracks!";
+        return;
+      }
+      riding = 1; train = 0;
+      document.getElementById("say").textContent = "Choo choo!";
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    document.getElementById("goTrain").onclick = function () {
-      if (!play) return;
-      if (laid < 3) { document.getElementById("say").textContent = "Lay all 3 tracks first!"; return; }
-      riding = 1; train = 0;
-      document.getElementById("say").textContent = "Choo choo!";
-    };
+    document.getElementById("lay").onclick = layOne;
+    document.getElementById("goTrain").onclick = choo;
     cv.addEventListener("pointerdown", function (e) {
       if (!play || riding) return;
+      var p = kidPt(e, cv), hit = 0;
       slots.forEach(function (s) {
         if (s.lock || s.on) return;
-        var dx = e.clientX - s.x * W, dy = e.clientY - s.y * H;
-        if (dx * dx + dy * dy < 50 * 50) {
-          s.on = 1; laid++;
-          document.getElementById("pc").textContent = "🛤️ " + laid + "/3";
-          document.getElementById("say").textContent = laid >= 3 ? "Tap Go!" : "Nice track!";
-        }
+        if (kidHit(p.x, p.y, s.x * W, s.y * H, 80)) hit = 1;
       });
+      if (hit || true) layOne();
     });
     function loop() {
       t += 0.016;
       x.fillStyle = "#64748b"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.62, W, H);
-      em("🏠", W * 0.90, H * 0.36, 64);
-      slots.forEach(function (s) { em(s.on ? "🛤️" : "⬛", s.x * W, s.y * H, 56); });
-      if (!slots.length) {
-        em("🚂", W * 0.18, H * 0.36, 64);
-      } else if (riding) {
-        train += 0.012;
-        var i = Math.min(slots.length - 1, Math.floor(train * slots.length));
-        em("🚂", slots[i].x * W, slots[i].y * H - 40, 64);
-        if (train >= 1) {
-          riding = 0; play = false; stars++;
-          try { localStorage.setItem("alabryuu-train", JSON.stringify({ stars: stars })); } catch (e) {}
-          document.getElementById("dock").classList.remove("on");
-          document.getElementById("win").classList.remove("off");
-        }
-      } else em("🚂", slots[0].x * W, slots[0].y * H - 40, 64);
+      em("🏠", W * 0.90, H * 0.34, 72);
+      if (!slots.length) em("🚂", W * 0.16, H * 0.36, 72);
+      else {
+        slots.forEach(function (s) { em(s.on ? "🛤️" : "⬛", s.x * W, s.y * H, 72); });
+        if (riding) {
+          train += 0.014;
+          var i = Math.min(slots.length - 1, Math.floor(train * slots.length));
+          em("🚂", slots[i].x * W, slots[i].y * H - 48, 72);
+          if (train >= 1) {
+            riding = 0; play = false; stars++;
+            try { localStorage.setItem("alabryuu-train", JSON.stringify({ stars: stars })); } catch (e) {}
+            document.getElementById("dock").classList.remove("on");
+            document.getElementById("win").classList.remove("off");
+          }
+        } else em("🚂", slots[0].x * W, slots[0].y * H - 48, 72);
+      }
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

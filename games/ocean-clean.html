@@ -5,29 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Ocean Clean</title>
   <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>html,body{background:#0369a1}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
   <div id="hud"><b id="tr">🗑️ 0/8</b></div>
-  <div id="say">Tap trash. Leave the fish!</div>
+  <div id="say">Tap the trash!</div>
   <div class="cover" id="title">
     <div class="hero">🌊</div>
     <h1>Ocean Clean</h1>
-    <p>Pick up 8 bits of trash. Not the fish!</p>
-    <button class="play" id="go">Clean</button>
+    <p>Tap 8 bits of trash. Not the fish!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
     <div class="hero">🐠</div>
     <h1>Sparkly sea!</h1>
     <p>The fish are happy.</p>
-    <button class="play g" id="again">Clean again</button>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, last = 0, play = false, n = 0, stars = 0, bits = [];
+    var W, H, t = 0, play = false, n = 0, stars = 0, bits = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-ocean") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function em(ch, px, py, s) {
       x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
@@ -36,51 +37,58 @@
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);
       W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      x.setTransform(d, 0, 0, d, 0, 0);
     }
     addEventListener("resize", resize); resize();
-    function spawn(kind) {
-      bits.push({
-        e: kind, trash: kind !== "🐟" && kind !== "🐠",
-        x: 40 + Math.random() * (W - 80), y: 120 + Math.random() * (H - 220)
-      });
-    }
     function start() {
-      play = true; n = 0; bits = [];
-      var i;
-      for (i = 0; i < 8; i++) spawn(["🧴", "🥤", "🛍️", "👟"][i % 4]);
-      spawn("🐟"); spawn("🐠"); spawn("🐟");
+      play = true; n = 0;
+      bits = [
+        { e: "🧴", trash: 1, x: 0.22, y: 0.32 },
+        { e: "🥤", trash: 1, x: 0.55, y: 0.30 },
+        { e: "🛍️", trash: 1, x: 0.80, y: 0.38 },
+        { e: "👟", trash: 1, x: 0.30, y: 0.50 },
+        { e: "🧴", trash: 1, x: 0.68, y: 0.52 },
+        { e: "🥤", trash: 1, x: 0.18, y: 0.66 },
+        { e: "🛍️", trash: 1, x: 0.48, y: 0.68 },
+        { e: "👟", trash: 1, x: 0.78, y: 0.64 },
+        { e: "🐟", trash: 0, x: 0.42, y: 0.40 },
+        { e: "🐠", trash: 0, x: 0.62, y: 0.72 }
+      ];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("tr").textContent = "🗑️ 0/8";
-      document.getElementById("say").textContent = "Tap trash. Leave the fish!";
+      document.getElementById("say").textContent = "Tap the trash!";
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      for (var i = bits.length - 1; i >= 0; i--) {
-        var b = bits[i], dx = e.clientX - b.x, dy = e.clientY - b.y;
-        if (dx * dx + dy * dy < 50 * 50) {
-          if (b.trash) {
-            bits.splice(i, 1); n++; stars++;
-            try { localStorage.setItem("alabryuu-ocean", JSON.stringify({ stars: stars })); } catch (err) {}
-            document.getElementById("tr").textContent = "🗑️ " + n + "/8";
-            document.getElementById("say").textContent = "Got it!";
-            if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
-          } else document.getElementById("say").textContent = "That's a friend! Tap trash.";
-          return;
-        }
+      var p = kidPt(e, cv), i, best = -1, bestD = 85 * 85;
+      for (i = 0; i < bits.length; i++) {
+        var dx = p.x - bits[i].x * W, dy = p.y - bits[i].y * H, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
       }
+      if (best < 0) {
+        for (i = 0; i < bits.length; i++) if (bits[i].trash) { best = i; break; }
+      }
+      if (best < 0) return;
+      var b = bits[best];
+      if (b.trash) {
+        bits.splice(best, 1); n++; stars++;
+        try { localStorage.setItem("alabryuu-ocean", JSON.stringify({ stars: stars })); } catch (err) {}
+        document.getElementById("tr").textContent = "🗑️ " + n + "/8";
+        document.getElementById("say").textContent = "Got it!  " + n + "/8";
+        if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
+      } else document.getElementById("say").textContent = "That's a fish! Tap trash.";
     });
-    function loop(now) {
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+    function loop() {
+      t += 0.016;
       x.fillStyle = "#0ea5e9"; x.fillRect(0, 0, W, H);
-      em("🪸", 40, H * 0.8, 56); em("🪸", W - 40, H * 0.76, 64);
+      em("🪸", 40, H * 0.82, 64); em("🪸", W - 40, H * 0.78, 72);
       bits.forEach(function (b, i) {
-        b.y += Math.sin(t * 2 + i) * 0.3;
-        em(b.e, b.x, b.y, 56);
+        em(b.e, b.x * W, b.y * H + Math.sin(t * 2 + i) * 4, 72);
       });
       requestAnimationFrame(loop);
     }

@@ -5,26 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Soccer Kick</title>
   <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="gl">⚽ 0/5</b></div>
-  <div id="say">Tap Kick when the goal is open!</div>
+  <div id="hud"><b id="gl">⚽ 0–0</b></div>
+  <div id="say">Tap Kick! Or tap the ball.</div>
   <div class="dock" id="dock">
     <button id="kick"><span>👟</span>Kick</button>
   </div>
   <div class="cover" id="title">
     <div class="hero">⚽</div>
     <h1>Soccer Kick</h1>
-    <p>Kick when the gloves move away!</p>
+    <p>Tap Kick. Score 3 goals!</p>
     <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
     <div class="hero">🏆</div>
     <h1>Goal hero!</h1>
-    <p>Five goals. Crowd goes wow.</p>
+    <p>You scored!</p>
     <button class="play g" id="again">Play again</button>
   </div>
   <script>
@@ -39,7 +40,9 @@
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);
       W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      x.setTransform(d, 0, 0, d, 0, 0);
     }
     addEventListener("resize", resize); resize();
     function start() {
@@ -47,45 +50,46 @@
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
-      document.getElementById("gl").textContent = "⚽ 0/5";
-      document.getElementById("say").textContent = "Tap Kick when gloves move away!";
+      document.getElementById("gl").textContent = "⚽ 0–0";
+      document.getElementById("say").textContent = "Tap Kick! Or tap the ball.";
+    }
+    function kick() {
+      if (!play || kicking) return;
+      kicking = 1;
+      document.getElementById("say").textContent = "Kick!";
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    document.getElementById("kick").onclick = function () {
-      if (!play || kicking) return;
-      kicking = 1;
-    };
+    document.getElementById("kick").onclick = kick;
+    cv.addEventListener("pointerdown", kick);
+    addEventListener("keydown", function (e) {
+      if (e.code === "Space" || e.key === " " || e.key === "Enter") { e.preventDefault(); kick(); }
+    });
     function loop(now) {
       if (!last) last = now;
       var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
-      keeper = Math.sin(t * 1.6);
+      keeper = Math.sin(t * 1.4);
       x.fillStyle = "#4ade80"; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#86efac"; x.fillRect(W * 0.22, 80, W * 0.56, 90);
-      em("🥅", W * 0.5, 120, 88);
-      em("🧤", W * 0.5 + keeper * 90, 150, 56);
+      x.fillStyle = "#86efac"; x.fillRect(W * 0.18, 70, W * 0.64, 110);
+      em("🥅", W * 0.5, 120, 96);
+      em("🧤", W * 0.5 + keeper * 100, 155, 56);
       if (play && kicking) {
-        ballY -= 1.4 * dt;
+        ballY -= 1.8 * dt;
         if (ballY < 0.22) {
-          var blocked = Math.abs(keeper) < 0.28;
           kicking = 0; ballY = 0.78;
-          if (blocked) {
-            document.getElementById("say").textContent = "Saved! Wait for an open goal.";
-          } else {
-            goals++; stars++;
-            try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {}
-            document.getElementById("gl").textContent = "⚽ " + goals + "/5";
-            document.getElementById("say").textContent = "GOAL!";
-            if (goals >= 5) {
-              play = false;
-              document.getElementById("dock").classList.remove("on");
-              document.getElementById("win").classList.remove("off");
-            }
+          goals++; stars++;
+          try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {}
+          document.getElementById("gl").textContent = "⚽ " + goals + "–0";
+          document.getElementById("say").textContent = "GOAL!  " + goals + "/3";
+          if (goals >= 3) {
+            play = false;
+            document.getElementById("dock").classList.remove("on");
+            document.getElementById("win").classList.remove("off");
           }
         }
       }
-      em("⚽", W * 0.5, ballY * H, 64);
-      em("🧒", W * 0.5, H * 0.86, 56);
+      em("⚽", W * 0.5, ballY * H, 80);
+      em("🧒", W * 0.5, H * 0.86, 64);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

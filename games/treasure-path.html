@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Treasure Path</title>
   <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>html,body{background:#431407}</style>
 </head>
 <body>
@@ -63,7 +64,7 @@
       if (!play) return;
       var i, best = -1, bestD = 90 * 90;
       for (i = 0; i < stones.length; i++) {
-        var dx = e.clientX - stones[i].x * W, dy = e.clientY - stones[i].y * H;
+        var dx = kidPt(e, cv).x - stones[i].x * W, dy = kidPt(e, cv).y - stones[i].y * H;
         var d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }

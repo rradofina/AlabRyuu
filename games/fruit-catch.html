@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Fruit Catch</title>
   <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>html,body{background:#14532d}</style>
 </head>
 <body>
@@ -53,11 +54,11 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointermove", function (e) {
       if (!play) return;
-      basket = Math.max(0.12, Math.min(0.88, e.clientX / W));
+      basket = Math.max(0.12, Math.min(0.88, kidPt(e, cv).x / W));
     });
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      basket = Math.max(0.12, Math.min(0.88, e.clientX / W));
+      basket = Math.max(0.12, Math.min(0.88, kidPt(e, cv).x / W));
     });
     function loop(now) {
       if (!last) last = now;

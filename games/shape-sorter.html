@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Shape Sorter</title>
   <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
   <style>html,body{background:#1e3a5f}</style>
 </head>
 <body>
@@ -66,13 +67,13 @@
       drag = -1;
       bits.forEach(function (b, i) {
         if (b.done) return;
-        var dx = e.clientX - b.x * W, dy = e.clientY - b.y * H;
+        var dx = kidPt(e, cv).x - b.x * W, dy = kidPt(e, cv).y - b.y * H;
         if (dx * dx + dy * dy < 50 * 50) drag = i;
       });
     });
     cv.addEventListener("pointermove", function (e) {
       if (drag < 0 || !play) return;
-      bits[drag].x = e.clientX / W; bits[drag].y = e.clientY / H;
+      bits[drag].x = kidPt(e, cv).x / W; bits[drag].y = kidPt(e, cv).y / H;
     });
     addEventListener("pointerup", function () {
       if (drag < 0 || !play) return;
