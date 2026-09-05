@@ -39,7 +39,8 @@
     }
     addEventListener("resize", resize); resize();
     function start() {
-      play = true; n = 0; bugX = 0.18; bits = [];
+      play = true; n = 0; bugX = 0.18;
+      placeBits();
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("lv").textContent = "🍃 0/8";
@@ -47,13 +48,27 @@
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
+    function placeBits() {
+      bits = [
+        { e: "🍃", x: 0.28, y: 0.36 },
+        { e: "🍃", x: 0.62, y: 0.34 },
+        { e: "🪨", x: 0.45, y: 0.48 },
+        { e: "🍃", x: 0.78, y: 0.50 },
+        { e: "🍃", x: 0.22, y: 0.58 },
+        { e: "🪨", x: 0.70, y: 0.66 },
+        { e: "🍃", x: 0.40, y: 0.70 },
+        { e: "🍃", x: 0.58, y: 0.58 },
+        { e: "🍃", x: 0.85, y: 0.36 },
+        { e: "🍃", x: 0.12, y: 0.46 }
+      ];
+    }
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
       for (var i = bits.length - 1; i >= 0; i--) {
-        var b = bits[i], dx = e.clientX - b.x, dy = e.clientY - b.y;
-        if (dx * dx + dy * dy < 48 * 48) {
+        var b = bits[i], dx = e.clientX - b.x * W, dy = e.clientY - b.y * H;
+        if (dx * dx + dy * dy < 70 * 70) {
           if (b.e === "🍃") {
-            bits.splice(i, 1); n++; bugX = Math.min(0.8, bugX + 0.06);
+            bits.splice(i, 1); n++; bugX = Math.min(0.8, bugX + 0.07);
             document.getElementById("lv").textContent = "🍃 " + n + "/8";
             document.getElementById("say").textContent = "Yum! Growing.";
             if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
@@ -68,17 +83,10 @@
       if (!last) last = now;
       var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
       x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.7, W, H);
+      x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.78, W, H);
       em("🌳", 40, 100, 64);
-      if (play) {
-        if (bits.length < 5 && Math.random() < 0.04) {
-          bits.push({ e: Math.random() < 0.72 ? "🍃" : "🪨", x: W + 20, y: 140 + Math.random() * (H * 0.45) });
-        }
-        bits.forEach(function (b) { b.x -= 90 * dt; });
-        bits = bits.filter(function (b) { return b.x > -40; });
-      }
-      bits.forEach(function (b) { em(b.e, b.x, b.y, 56); });
-      em(n >= 8 ? "🦋" : "🐛", bugX * W, H * 0.62, 40 + n * 6);
+      bits.forEach(function (b) { em(b.e, b.x * W, b.y * H, 64); });
+      em(n >= 8 ? "🦋" : "🐛", bugX * W, H * 0.70, 48 + n * 6);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

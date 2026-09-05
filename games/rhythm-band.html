@@ -44,17 +44,18 @@
     function light(i) {
       btns[i].classList.add("lit");
       document.getElementById("face").textContent = ICONS[i];
-      setTimeout(function () { btns[i].classList.remove("lit"); }, 420);
+      document.getElementById("say").textContent = "Watch " + ICONS[i];
+      setTimeout(function () { btns[i].classList.remove("lit"); }, 700);
     }
     function playSeq() {
       listen = false; step = 0;
-      document.getElementById("say").textContent = "Watch...";
+      document.getElementById("say").textContent = "Watch the glow...";
       var i = 0;
       function tick() {
-        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn!"; return; }
-        light(seq[i]); i++; setTimeout(tick, 620);
+        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn! Tap the same."; return; }
+        light(seq[i]); i++; setTimeout(tick, 1100);
       }
-      setTimeout(tick, 400);
+      setTimeout(tick, 700);
     }
     function nextRound() {
       seq.push((Math.random() * 4) | 0);

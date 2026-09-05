@@ -61,27 +61,30 @@
       play = true; bunny = { r: 0, c: 0 };
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("say").textContent = "Drag the bunny to 🥕";
+      document.getElementById("say").textContent = "Tap the next path square!";
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    cv.addEventListener("pointerdown", function (e) {
-      if (!play) return;
-      var p = at(e.clientX, e.clientY);
-      if (p && p.r === bunny.r && p.c === bunny.c) drag = 1;
-    });
-    cv.addEventListener("pointermove", function (e) {
-      if (!play || !drag) return;
-      var p = at(e.clientX, e.clientY);
-      if (!p || !GRID[p.r][p.c]) { document.getElementById("say").textContent = "Stay on the path!"; return; }
+    function tryStep(p) {
+      if (!p || !GRID[p.r][p.c]) { document.getElementById("say").textContent = "Stay on the light path!"; return; }
       var adj = Math.abs(p.r - bunny.r) + Math.abs(p.c - bunny.c);
-      if (adj <= 1) {
-        bunny = p;
+      if (adj === 0) { drag = 1; return; }
+      if (adj === 1) {
+        bunny = p; drag = 1;
+        document.getElementById("say").textContent = "Hop! To the carrot.";
         if (p.r === 4 && p.c === 4) {
           play = false; drag = 0;
           document.getElementById("win").classList.remove("off");
         }
-      }
+      } else document.getElementById("say").textContent = "Tap the next square.";
+    }
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      tryStep(at(e.clientX, e.clientY));
+    });
+    cv.addEventListener("pointermove", function (e) {
+      if (!play || !drag) return;
+      tryStep(at(e.clientX, e.clientY));
     });
     addEventListener("pointerup", function () { drag = 0; });
     function loop() {

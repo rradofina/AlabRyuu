@@ -52,6 +52,10 @@
       document.getElementById("win").classList.add("off");
       document.getElementById("got").textContent = "0/8";
       document.getElementById("say").textContent = "Pop the red ones! 🔴";
+      for (var i = 0; i < 5; i++) {
+        var e = i < 2 ? "🔴" : SET[(1 + i) % SET.length].e;
+        balls.push({ e: e, x: 50 + i * 70, y: H * 0.35 + (i % 3) * 90, vy: 28 + i * 4 });
+      }
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
@@ -59,7 +63,7 @@
       if (!play) return;
       for (var i = balls.length - 1; i >= 0; i--) {
         var dx = e.clientX - balls[i].x, dy = e.clientY - balls[i].y;
-        if (dx * dx + dy * dy < 50 * 50) {
+        if (dx * dx + dy * dy < 72 * 72) {
           if (balls[i].e === want) {
             balls.splice(i, 1); n++;
             document.getElementById("got").textContent = n + "/8";
@@ -83,7 +87,7 @@
         balls.forEach(function (b) { b.y -= b.vy * dt; });
         balls = balls.filter(function (b) { return b.y > -40; });
       }
-      balls.forEach(function (b) { em(b.e, b.x, b.y, 64); });
+      balls.forEach(function (b) { em(b.e, b.x, b.y, 80); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

@@ -41,7 +41,9 @@
     function spawn() { stars.push({ x: 40 + Math.random() * (W - 80), y: -40, s: 90 + Math.random() * 50 }); }
     function start() {
       play = true; n = 0; stars = [];
-      spawn(); spawn();
+      stars.push({ x: W * 0.3, y: H * 0.28, s: 70 });
+      stars.push({ x: W * 0.7, y: H * 0.42, s: 80 });
+      stars.push({ x: W * 0.5, y: H * 0.18, s: 60 });
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("got").textContent = "⭐ 0/10";
@@ -53,7 +55,7 @@
       if (!play) return;
       for (var i = stars.length - 1; i >= 0; i--) {
         var dx = e.clientX - stars[i].x, dy = e.clientY - stars[i].y;
-        if (dx * dx + dy * dy < 55 * 55) {
+        if (dx * dx + dy * dy < 72 * 72) {
           stars.splice(i, 1); n++;
           document.getElementById("got").textContent = "⭐ " + n + "/10";
           document.getElementById("say").textContent = "Got one!";

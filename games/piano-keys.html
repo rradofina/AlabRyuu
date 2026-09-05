@@ -55,18 +55,20 @@
     }
     function light(i) {
       btns[i].classList.add("lit"); beep(i);
-      setTimeout(function () { btns[i].classList.remove("lit"); }, 320);
+      document.getElementById("face").textContent = String(i + 1);
+      document.getElementById("say").textContent = "Watch key " + (i + 1);
+      setTimeout(function () { btns[i].classList.remove("lit"); }, 650);
     }
     function playSong() {
       listen = false; step = 0; seq = SONGS[song];
       document.getElementById("rd").textContent = "Song " + (song + 1);
-      document.getElementById("say").textContent = "Watch...";
+      document.getElementById("say").textContent = "Watch the yellow keys...";
       var i = 0;
       function tick() {
-        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn!"; return; }
-        light(seq[i]); i++; setTimeout(tick, 500);
+        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn! Tap the same."; return; }
+        light(seq[i]); i++; setTimeout(tick, 950);
       }
-      setTimeout(tick, 400);
+      setTimeout(tick, 700);
     }
     function start() {
       song = 0;

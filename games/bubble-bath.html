@@ -41,6 +41,7 @@
     function spawn() { bubbles.push({ x: 40 + Math.random() * (W - 80), y: H * 0.72, vy: 40 + Math.random() * 50 }); }
     function start() {
       play = true; n = 0; bubbles = [];
+      for (var i = 0; i < 5; i++) bubbles.push({ x: 50 + i * 70, y: H * 0.35 + (i % 2) * 80, vy: 45 });
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("pp").textContent = "🫧 0/12";
@@ -52,7 +53,7 @@
       if (!play) return;
       for (var i = bubbles.length - 1; i >= 0; i--) {
         var dx = e.clientX - bubbles[i].x, dy = e.clientY - bubbles[i].y;
-        if (dx * dx + dy * dy < 48 * 48) {
+        if (dx * dx + dy * dy < 70 * 70) {
           bubbles.splice(i, 1); n++;
           document.getElementById("pp").textContent = "🫧 " + n + "/12";
           document.getElementById("say").textContent = "Pop!";

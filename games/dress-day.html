@@ -13,9 +13,9 @@
   <div id="hud"><b id="wx">☀️</b><b id="rd">1/3</b></div>
   <div id="say">What do we wear in sun?</div>
   <div class="dock" id="dock">
-    <button id="a"><span>😎</span>Sunny</button>
-    <button id="b"><span>🧥</span>Rain</button>
-    <button id="c"><span>🧤</span>Snow</button>
+    <button id="sunwear"><span>😎</span>Sunny</button>
+    <button id="rainwear"><span>🧥</span>Rain</button>
+    <button id="snowwear"><span>🧤</span>Snow</button>
   </div>
   <div class="cover" id="title">
     <div class="hero">👗</div>
@@ -78,9 +78,9 @@
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    document.getElementById("a").onclick = function () { pick("a"); };
-    document.getElementById("b").onclick = function () { pick("b"); };
-    document.getElementById("c").onclick = function () { pick("c"); };
+    document.getElementById("sunwear").onclick = function () { pick("a"); };
+    document.getElementById("rainwear").onclick = function () { pick("b"); };
+    document.getElementById("snowwear").onclick = function () { pick("c"); };
     function loop() {
       var d = DAYS[Math.min(round, 2)];
       x.fillStyle = d.w === "☀️" ? "#7dd3fc" : (d.w === "🌧️" ? "#64748b" : "#e0f2fe");

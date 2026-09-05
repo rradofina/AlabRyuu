@@ -42,6 +42,8 @@
     function spawn() { fruit.push({ e: KINDS[(Math.random() * KINDS.length) | 0], x: 0.15 + Math.random() * 0.7, y: -0.05, vy: 0.28 + Math.random() * 0.12 }); }
     function start() {
       play = true; n = 0; fruit = []; basket = 0.5;
+      fruit.push({ e: "🍎", x: 0.3, y: 0.15, vy: 0.32 });
+      fruit.push({ e: "🍌", x: 0.7, y: 0.02, vy: 0.28 });
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("got").textContent = "🍉 0/10";

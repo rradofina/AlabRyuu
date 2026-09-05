@@ -13,9 +13,9 @@
   <div id="hud"><b id="od">Order</b></div>
   <div id="say">Stack the scoops we ask!</div>
   <div class="dock" id="dock">
-    <button id="v"><span>🍦</span>Vanilla</button>
-    <button id="c"><span>🍫</span>Choco</button>
-    <button id="s"><span>🍓</span>Berry</button>
+    <button id="van"><span>🍦</span>Vanilla</button>
+    <button id="choc"><span>🍫</span>Choco</button>
+    <button id="ber"><span>🍓</span>Berry</button>
   </div>
   <div class="cover" id="title">
     <div class="hero">🍦</div>
@@ -71,14 +71,14 @@
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    document.getElementById("v").onclick = function () { add("v"); };
-    document.getElementById("c").onclick = function () { add("c"); };
-    document.getElementById("s").onclick = function () { add("s"); };
+    document.getElementById("van").onclick = function () { add("v"); };
+    document.getElementById("choc").onclick = function () { add("c"); };
+    document.getElementById("ber").onclick = function () { add("s"); };
     function loop() {
       x.fillStyle = "#fda4af"; x.fillRect(0, 0, W, H);
       em("🏪", 50, 110, 56);
-      em("🧇", W * 0.5, H * 0.62, 72);
-      stack.forEach(function (s, i) { em(s, W * 0.5, H * 0.52 - i * 40, 64); });
+      em("🧇", W * 0.5, H * 0.64, 88);
+      stack.forEach(function (s, i) { em(s, W * 0.5, H * 0.52 - i * 44, 72); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
