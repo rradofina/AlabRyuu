@@ -82,9 +82,22 @@
       var b = houseBox();
       return px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h && py < H - 120;
     }
+    function blob(px, py) {
+      if (!inHouse(px, py)) return;
+      x.fillStyle = color;
+      x.beginPath(); x.arc(px, py, 18, 0, Math.PI * 2); x.fill();
+      painted++;
+      document.getElementById("pc").textContent = "🎨 " + painted;
+      if (painted >= 24) {
+        play = false; drawing = 0;
+        document.getElementById("dock").classList.remove("on");
+        document.getElementById("win").classList.remove("off");
+      }
+    }
     cv.addEventListener("pointerdown", function (e) {
       if (!play || e.clientY > H - 110) return;
       drawing = 1; lastX = e.clientX; lastY = e.clientY;
+      blob(e.clientX, e.clientY);
       try { cv.setPointerCapture(e.pointerId); } catch (err) {}
     });
     cv.addEventListener("pointermove", function (e) {

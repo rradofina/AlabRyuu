@@ -84,9 +84,11 @@
       x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.62, W, H);
       em("🏠", W * 0.90, H * 0.36, 64);
       slots.forEach(function (s) { em(s.on ? "🛤️" : "⬛", s.x * W, s.y * H, 56); });
-      if (riding) {
+      if (!slots.length) {
+        em("🚂", W * 0.18, H * 0.36, 64);
+      } else if (riding) {
         train += 0.012;
-        var i = Math.min(4, Math.floor(train * 5));
+        var i = Math.min(slots.length - 1, Math.floor(train * slots.length));
         em("🚂", slots[i].x * W, slots[i].y * H - 40, 64);
         if (train >= 1) {
           riding = 0; play = false; stars++;

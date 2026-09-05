@@ -61,7 +61,7 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var i, best = -1, bestD = 70 * 70;
+      var i, best = -1, bestD = 90 * 90;
       for (i = 0; i < stones.length; i++) {
         var dx = e.clientX - stones[i].x * W, dy = e.clientY - stones[i].y * H;
         var d = dx * dx + dy * dy;
@@ -92,7 +92,7 @@
           x.beginPath(); x.arc(px, py, 46 + Math.sin(t * 6) * 6, 0, Math.PI * 2);
           x.fillStyle = "rgba(253,224,71,0.45)"; x.fill();
         }
-        em(i < step ? "⭐" : s.e, px, py, i === stones.length - 1 ? 80 : 64);
+        em(i < step ? "⭐" : s.e, px, py, i === stones.length - 1 ? 88 : 72);
       }
       if (play && step < stones.length) em("🧒", stones[Math.max(0, step - 1)].x * W, stones[Math.max(0, step - 1)].y * H - 50, 56);
       requestAnimationFrame(loop);
