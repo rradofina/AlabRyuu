@@ -117,6 +117,7 @@
       var gx = Math.floor((e.clientX - origin.x) / cell), gy = Math.floor((e.clientY - origin.y) / cell);
       var m = MAPS[mapI];
       if (gx < 0 || gy < 0 || gx >= m.w || gy >= m.h) return;
+      if ((gx === m.start[0] && gy === m.start[1]) || (gx === m.goal[0] && gy === m.goal[1])) return;
       tiles[key(gx, gy)] = piece;
     });
     [].forEach.call(document.querySelectorAll("#dock button[data-p]"), function (b) {

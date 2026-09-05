@@ -31,7 +31,7 @@
   <canvas id="c"></canvas>
   <div id="compass">Beat<br><b id="sc">1</b></div>
   <div id="pathdots"></div>
-  <div class="map on" id="panel">
+  <div class="map" id="panel">
     <div class="who" id="who">Pip</div>
     <p class="say" id="say">A map wiggles. Walk?</p>
     <div class="chs" id="chs"></div>
@@ -124,7 +124,7 @@
       em("🧒", kx, ky - 10, 36);
       requestAnimationFrame(loop);
     }
-    show(); loop();
+    loop();
   })();
   </script>
 </body>

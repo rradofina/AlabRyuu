@@ -178,7 +178,7 @@
       { n: "Hair", kind: "hair", hint: "Pick hair." },
       { n: "Shirt", kind: "shirt", hint: "Pick a shirt." },
       { n: "Pet", kind: "pet", hint: "Pick a pet." },
-      { n: "Hat", kind: "hat", hint: "Hold Smile." },
+      { n: "Hat", kind: "hat", hint: "Pick a hat. Hold Wave if you like." },
       { n: "Parade", kind: "parade", hint: "Walk! Tap for dots." }
     ];
 
@@ -672,7 +672,7 @@
         b.appendChild(lab);
         b.onclick = function () {
           if (kind === "hat") {
-            if (!hatOn) { say("Hold Smile first!"); beep(200, 0.08); return; }
+            hatOn = 1;
             av.hat = o.id; av.pose = "wave";
           } else {
             av[kind] = o.id;
@@ -710,7 +710,7 @@
       }
     };
     document.getElementById("next").onclick = function () {
-      if (stage === 4 && !hatOn) { say("Hold Smile to unlock."); return; }
+      if (stage === 4 && !hatOn) { hatOn = 1; }
       if (stage < 5) {
         stage++;
         if (stage === 5) {

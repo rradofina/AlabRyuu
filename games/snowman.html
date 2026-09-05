@@ -154,8 +154,11 @@
     function tryStack(b) {
       var sorted = balls.slice().sort(function (a, c) { return c.r - a.r; });
       if (b === sorted[0]) {
-        b.stacked = 1; b.x = W * 0.5; b.y = ground - b.r;
-        beep(400, 0.06); return;
+        if (Math.abs(b.x - W * 0.5) < W * 0.22 && b.y > ground - b.r - 40) {
+          b.stacked = 1; b.x = W * 0.5; b.y = ground - b.r;
+          beep(400, 0.06);
+        }
+        return;
       }
       var under = null, i;
       for (i = 0; i < balls.length; i++) {

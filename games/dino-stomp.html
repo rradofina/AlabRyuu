@@ -113,7 +113,7 @@
         });
         blooms.forEach(function (f) {
           f.x -= spd * dt;
-          if (!f.got && f.x > 80 && f.x < 150 && dino.y > -40) { f.got = 1; flowers++; stars++; save(); hud(); }
+          if (!f.got && f.x > 80 && f.x < 150 && (dino.pose === "air" || dino.pose === "land" || dino.pose === "stomp")) { f.got = 1; flowers++; stars++; save(); hud(); }
           if (f.x < -40) { f.x = W + 80; f.got = 0; }
         });
         if (VAL[valley].rain && rain.length < 18) rain.push({ x: Math.random() * W, y: Math.random() * H * 0.6 });

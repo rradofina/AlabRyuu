@@ -404,7 +404,7 @@
       else if(stage==="serve")drawServe();
       else drawWin();
       drawBits();
-      try{bakeryLayer();}catch(e){}try{cookieLayer();}catch(e){}try{ck2Layer();}catch(e){}
+      if(stage!=="title"){try{bakeryLayer();}catch(e){}try{cookieLayer();}catch(e){}try{ck2Layer();}catch(e){}}
       if(stage!=="title")drawHud();
       else{
         var bw=Math.min(420,W-40);

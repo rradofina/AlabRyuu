@@ -165,7 +165,7 @@
     function addCrumb(x, y) {
       var lastC = trail[trail.length - 1];
       if (lastC && Math.hypot(x - lastC.x, y - lastC.y) < 16) return;
-      trail.push({ x: x, y: y, life: 10 });
+      trail.push({ x: x, y: y, life: 28 });
       ripples.push({ x: x, y: y, r: 4, life: 0.5 });
     }
     function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
@@ -322,7 +322,8 @@
     function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
     cv.addEventListener("pointerdown", function (e) {
       if (mode !== "play") return;
-      drawing = 1; trail = [];
+      drawing = 1;
+      if (trail.length > 40) trail = trail.slice(-20);
       var p = pos(e);
       addCrumb(p.x, p.y);
       var i;

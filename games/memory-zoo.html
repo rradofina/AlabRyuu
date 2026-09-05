@@ -144,9 +144,8 @@
         c = cards[i];
         if (mx >= c.x && mx <= c.x + c.w && my >= c.y && my <= c.y + c.h) {
           if (c.ok || c.want || open.indexOf(c) >= 0) return;
-          if (guest.on && !guest.done && c.kind !== guest.want && stage >= 3) {
-            document.getElementById("say").textContent = "Find the walking " + guest.want + " first!";
-            c.shake = 1; beep(200, 0.07); return;
+          if (guest.on && !guest.done && c.kind === guest.want) {
+            document.getElementById("say").textContent = "That's the walking pal!";
           }
           c.want = 1; open.push(c); beep(500 + open.length * 80, 0.06);
           if (open.length === 2) {

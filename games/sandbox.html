@@ -91,6 +91,8 @@
     });
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
+      if (e.clientY > H - 90) return;
+      if (e.clientX < 100 && e.clientY < 56) return;
       bits.push({ k: tool, x: e.clientX, y: e.clientY });
       placed++; stars++; kid.x = e.clientX / W; kid.y = e.clientY / H;
       try { localStorage.setItem("alabryuu-sandbox", JSON.stringify({ stars: stars, mission: mission })); } catch (err) {}

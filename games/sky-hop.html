@@ -188,6 +188,8 @@
     }
 
     document.getElementById("go").onclick = function () {
+      hopCount = 0;
+      build();
       document.getElementById("title").classList.add("hidden");
     };
     document.getElementById("hop").onclick = function () { hop(); };

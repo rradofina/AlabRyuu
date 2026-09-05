@@ -25,7 +25,7 @@
       {n:"Picnic",tip:"Feed flakes. Slow meters."},
       {n:"Friend",tip:"A bunny visits. Fetch!"},
       {n:"Rain",tip:"Soft rain. Still play."},
-      {n:"Butterfly",tip:"Tap flutter friends."},
+      {n:"Butterfly",tip:"Watch flutter friends. Feed or fetch!"},
       {n:"Glow",tip:"Night nap. Zzz kind."}
     ];
     function beep(f,d,tp){try{var ac=beep.ac||(beep.ac=new(window.AudioContext||window.webkitAudioContext)());var o=ac.createOscillator(),g=ac.createGain();o.type=tp||"sine";o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.stop(ac.currentTime+d);}catch(e){}}

@@ -12,7 +12,8 @@
     .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:rgba(0,0,0,.35);padding:8px 14px;border-radius:999px}
     #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800}
     #hud b{background:#fff;padding:6px 10px;border-radius:999px}
-    .panel{position:fixed;left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom));z-index:8;background:#ecfdf5ee;border:4px solid #0f766e;border-radius:22px;padding:12px}
+    .panel{position:fixed;left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom));z-index:8;background:#ecfdf5ee;border:4px solid #0f766e;border-radius:22px;padding:12px;pointer-events:none}
+    .panel .chs,.panel button{pointer-events:auto}
     .who{font-size:13px;font-weight:800}
     .say{font-size:24px;font-weight:900;margin:4px 0 10px}
     .chs{display:flex;flex-wrap:wrap;gap:8px}
@@ -51,9 +52,9 @@
     function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
     addEventListener("resize", resize); resize();
     var pals = [
-      { name: "Fox", col: "#f97316", hx: 0.22, hy: 0.58, hid: 1 },
-      { name: "Duck", col: "#fde047", hx: 0.52, hy: 0.62, hid: 1 },
-      { name: "Frog", col: "#22c55e", hx: 0.78, hy: 0.56, hid: 1 }
+      { name: "Fox", col: "#f97316", hx: 0.22, hy: 0.42, hid: 1 },
+      { name: "Duck", col: "#fde047", hx: 0.52, hy: 0.44, hid: 1 },
+      { name: "Frog", col: "#22c55e", hx: 0.78, hy: 0.40, hid: 1 }
     ];
     var SCENES = [
       { who: "Pip", say: "Who hides first?", ch: [["Fox hides", { helper: "Fox" }], ["Duck hides", { helper: "Duck" }]] },
@@ -153,7 +154,7 @@
     document.getElementById("go").onclick = function () { document.getElementById("title").classList.add("off"); show(); };
     document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); si = 0; pals.forEach(function (p) { p.hid = 1; }); found = 0; show(); };
     function loop() { T += 0.016; draw(); requestAnimationFrame(loop); }
-    show(); loop();
+    loop();
   })();
   </script>
 </body>

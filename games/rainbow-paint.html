@@ -202,11 +202,13 @@
     addEventListener("pointerdown", function (e) {
       if (e.target.closest && e.target.closest("a,button")) return;
       if (!play) return;
+      if (e.clientY > innerHeight - 72) return;
       drawing = true; lastP = { x: e.clientX, y: e.clientY };
       stroke(lastP.x, lastP.y, lastP.x + 0.1, lastP.y);
     });
     addEventListener("pointermove", function (e) {
       if (!drawing || !play) return;
+      if (e.clientY > innerHeight - 72) return;
       var p = { x: e.clientX, y: e.clientY };
       stroke(lastP.x, lastP.y, p.x, p.y);
       lastP = p;

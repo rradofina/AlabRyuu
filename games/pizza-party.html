@@ -279,7 +279,7 @@
       else drawWin();
       if(stage!=="win")extrasShop();
       if(stage==="build"){drawCheese(W*0.32,H*0.48);drawWaitKind();}
-      try{pizzaLayer();}catch(e){}try{pz2Layer();}catch(e){}
+      if(stage!=="title"){try{pizzaLayer();}catch(e){}try{pz2Layer();}catch(e){}}
       if(stage!=="title"&&stage!=="win")drawHud();
     }
     cv.addEventListener("pointerdown",function(e){pointer(e,"down");});

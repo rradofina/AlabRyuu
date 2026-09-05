@@ -122,7 +122,7 @@
     }
     function restack(){scoops=[];melt=0;say="New stack. Kind try!";beep(300,.1);}
     function addTop(id){
-      if(id!==ORDERS[order].top){say="This guest wants "+ORDERS[order].top+"!";beep(200,.08);return;}
+      if(id!==ORDERS[order].top){var wantTop=TOPS.filter(function(t){return t.id===ORDERS[order].top;})[0];say="This guest wants "+(wantTop?wantTop.n:"that top")+"!";beep(200,.08);return;}
       if(id==="spr"){for(var i=0;i<24;i++)spr.push({x:W*0.38+rnd(-24,24),y:H*0.42+rnd(-30,10),vx:rnd(-20,20),vy:rnd(20,80),c:["#f472b6","#38bdf8","#fde047","#fb7185"][i%4],life:1.2,s:rnd(3,6)});}
       stage="serve";say="Serve the cone!";beep(820,.12);
     }
@@ -192,7 +192,7 @@
       else if(stage==="order")drawOrder();
       else if(stage==="win")drawWin();
       else drawPlay();
-      drawFX();try{iceLayer();}catch(e){}try{ic2Layer();}catch(e){}
+      drawFX();if(stage!=="title"){try{iceLayer();}catch(e){}try{ic2Layer();}catch(e){}}
       if(stage!=="title"&&stage!=="win")drawHud();
       else if(stage==="title"){round(16,H-50,W-32,38,14,"rgba(255,255,255,.92)");x.fillStyle="#831843";x.font="800 15px Trebuchet MS";x.textAlign="center";x.fillText(say,W/2,H-31);}
     }

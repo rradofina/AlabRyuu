@@ -211,9 +211,10 @@
       else{drawRoom();drawPots();drawDrips();drawHud();}
       if(stage==="title"){round(16,H-50,W-32,36,12,"rgba(255,255,255,.9)");x.fillStyle="#1e1b4b";x.font="800 15px Trebuchet MS";x.textAlign="center";x.fillText(say,W/2,H-32);}
     }
-    cv.addEventListener("pointerdown",function(e){pointer(e,"down");});
+    cv.addEventListener("pointerdown",function(e){try{cv.setPointerCapture(e.pointerId);}catch(err){}pointer(e,"down");});
     cv.addEventListener("pointermove",function(e){pointer(e,"move");});
-    cv.addEventListener("pointerup",function(){down=0;});
+    addEventListener("pointerup",function(){down=0;});
+    addEventListener("pointercancel",function(){down=0;});
     function loop(now){var dt=Math.min(.033,(now-last)/1000)||.016;last=now;T=now/1000;step(dt);draw();requestAnimationFrame(loop);}
     requestAnimationFrame(loop);
   })();

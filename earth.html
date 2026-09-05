@@ -162,7 +162,7 @@
     addEventListener("pointermove", function (e) {
       if (!drag) return;
       var dx = e.clientX - lastX;
-      if (Math.abs(dx) > 3) { rot += dx * 0.012; lastX = e.clientX; moved = 1; }
+      if (Math.abs(dx) > 14) { rot += dx * 0.012; lastX = e.clientX; moved = 1; }
     });
     addEventListener("pointerup", function (e) { if (!drag) return; drag = 0; if (play && !moved) applyTool(e.clientX, e.clientY); });
     addEventListener("pointercancel", function () { drag = 0; });
