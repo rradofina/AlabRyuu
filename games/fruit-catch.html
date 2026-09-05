@@ -197,86 +197,25 @@
         });
       }
     }
+    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
+    function fruitEm(kind) {
+      return kind === "pear" ? "🍐" : kind === "cherry" ? "🍒" : kind === "orange" ? "🍊" : kind === "gold" ? "🌟" : "🍎";
+    }
     function drawFruit(f) {
-      var info = KINDS[f.kind] || KINDS.apple;
-      g.save();
-      g.translate(f.x, f.y);
-      g.rotate(f.rot);
-      g.scale(1 / (f.squash || 1), f.squash || 1);
-      if (f.kind === "pear") {
-        g.fillStyle = info.c;
-        g.beginPath(); g.ellipse(0, 4, f.r * 0.72, f.r * 0.95, 0, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.ellipse(0, -6, f.r * 0.5, f.r * 0.55, 0, 0, Math.PI * 2); g.fill();
-      } else if (f.kind === "cherry") {
-        g.fillStyle = info.c;
-        g.beginPath(); g.arc(-6, 4, f.r, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.arc(7, 2, f.r * 0.9, 0, Math.PI * 2); g.fill();
-        g.strokeStyle = "#365314"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(-6, -4); g.quadraticCurveTo(0, -18, 7, -5); g.stroke();
-      } else {
-        g.fillStyle = info.c;
-        g.beginPath(); g.arc(0, 0, f.r, 0, Math.PI * 2); g.fill();
-        if (f.kind === "orange") {
-          g.strokeStyle = "rgba(154,52,18,.25)"; g.lineWidth = 1;
-          for (var i = 0; i < 4; i++) { g.beginPath(); g.arc(0, 0, f.r * (0.4 + i * 0.15), 0, Math.PI * 2); g.stroke(); }
-        }
-      }
-      g.fillStyle = "rgba(255,255,255,.45)";
-      g.beginPath(); g.ellipse(-f.r * 0.28, -f.r * 0.28, f.r * 0.22, f.r * 0.14, -0.5, 0, Math.PI * 2); g.fill();
-      g.fillStyle = info.l;
-      g.beginPath();
-      g.ellipse(f.r * 0.15, -f.r * 0.85, 7, 4, 0.4, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#78350f";
-      g.fillRect(-1.5, -f.r - 6, 3, 7);
-      if (f.kind === "gold") {
-        g.strokeStyle = "rgba(254,243,199,.8)"; g.lineWidth = 2;
-        g.beginPath(); g.arc(0, 0, f.r + 4 + Math.sin(t * 8) * 2, 0, Math.PI * 2); g.stroke();
-      }
-      g.restore();
+      em(fruitEm(f.kind), f.x, f.y, Math.max(22, (f.r || 14) * 2.2));
     }
-    function drawRock(r) {
-      g.save(); g.translate(r.x, r.y); g.rotate(r.rot);
-      g.fillStyle = "#78716c";
-      g.beginPath();
-      g.moveTo(-r.r, 4); g.lineTo(-r.r * 0.5, -r.r); g.lineTo(r.r * 0.6, -r.r * 0.7); g.lineTo(r.r, 6); g.closePath(); g.fill();
-      g.fillStyle = "#a8a29e";
-      g.beginPath(); g.arc(-2, -2, 3, 0, Math.PI * 2); g.fill();
-      g.restore();
-    }
+    function drawRock(r) { em("🪨", r.x, r.y, Math.max(22, r.r * 2)); }
     function drawBasket(x, y) {
       var bob = Math.sin(t * 4) * 3;
-      g.save(); g.translate(x, y + bob);
-      g.fillStyle = "#b45309";
-      g.beginPath();
-      g.moveTo(-basket.w * 0.5, -4);
-      g.quadraticCurveTo(-basket.w * 0.42, basket.h, 0, basket.h + 4);
-      g.quadraticCurveTo(basket.w * 0.42, basket.h, basket.w * 0.5, -4);
-      g.closePath(); g.fill();
-      g.strokeStyle = "#78350f"; g.lineWidth = 3;
-      g.beginPath(); g.arc(0, 2, basket.w * 0.22, 0, Math.PI * 2); g.stroke();
-      g.strokeStyle = "#fbbf24"; g.lineWidth = 5;
-      g.beginPath(); g.arc(0, -8, basket.w * 0.4, Math.PI * 1.05, -0.05); g.stroke();
-      g.fillStyle = "#fde68a";
-      g.beginPath(); g.ellipse(0, -2, basket.w * 0.34, 7, 0, 0, Math.PI * 2); g.fill();
-      var show = bag.slice(-4);
-      for (var i = 0; i < show.length; i++) {
-        g.fillStyle = KINDS[show[i]] ? KINDS[show[i]].c : "#dc2626";
-        g.beginPath(); g.arc(-18 + i * 12, 8, 6, 0, Math.PI * 2); g.fill();
-      }
-      g.restore();
+      em("🧺", x, y + bob, 48);
+      var show = bag.slice(-4), i;
+      for (i = 0; i < show.length; i++) em(fruitEm(show[i]), x - 18 + i * 12, y + 10 + bob, 14);
     }
     function drawTree(tr, kind) {
       var sx = tr.x * W, base = H * 0.72;
       var sh = Math.sin(t * 18) * tr.shake * 10;
       g.save(); g.translate(sx + sh, base);
-      g.fillStyle = "#7c2d12";
-      g.beginPath(); g.moveTo(-12, 0); g.lineTo(-8, -H * tr.h * 0.55); g.lineTo(8, -H * tr.h * 0.55); g.lineTo(14, 0); g.fill();
-      g.fillStyle = "#365314";
-      blob(-6, -H * tr.h * 0.62, 46 + tr.w * 40);
-      g.fillStyle = "#4d7c0f";
-      blob(18, -H * tr.h * 0.7, 40);
-      g.fillStyle = "#3f6212";
-      blob(-20, -H * tr.h * 0.74, 36);
+      em("🌳", 0, -H * tr.h * 0.45, 72);
       var hang = kind === "cherry" ? 7 : 4;
       for (var i = 0; i < hang; i++) {
         var fx = Math.sin(i * 1.7 + tr.x * 8) * 36;
@@ -294,71 +233,20 @@
       var x = (b.x + Math.cos(t * 1.4 + b.a) * b.s);
       var y = (b.y + Math.sin(t * 2 + b.a) * 18);
       x = ((x % (W + 40)) + W + 40) % (W + 40) - 20;
-      g.save(); g.translate(x, y);
-      g.fillStyle = "rgba(255,255,255,.7)";
-      g.beginPath(); g.ellipse(-4, -6, 6, 4, -0.4, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#facc15";
-      g.beginPath(); g.ellipse(0, 0, 8, 5, 0, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#1c1917"; g.lineWidth = 2;
-      g.beginPath(); g.moveTo(-2, -4); g.lineTo(-2, 4); g.moveTo(3, -4); g.lineTo(3, 4); g.stroke();
-      g.restore();
+      em("🐝", x, y, 18);
     }
     function drawBird(b) {
       var x = ((b.x + t * 0.04) % 1.2) * W - 40;
       var y = b.y * H + Math.sin(t * 3 + b.fl) * 6;
-      var flap = Math.sin(t * 10 + b.fl) * 8;
-      g.strokeStyle = "#1c1917"; g.lineWidth = 2;
-      g.beginPath(); g.moveTo(x - 10, y - flap); g.quadraticCurveTo(x, y, x + 10, y - flap); g.stroke();
+      em("🐦", x, y, 18);
     }
     function drawButterfly(b) {
       var x = ((b.x + Math.sin(t * 0.4 + b.ph) * 0.12) % 1) * W;
       var y = b.y * H + Math.sin(t * 2.2 + b.ph) * 14;
-      var flap = 0.4 + 0.6 * Math.abs(Math.sin(t * 8 + b.ph));
-      g.save(); g.translate(x, y);
-      g.fillStyle = b.c;
-      g.beginPath(); g.ellipse(-7, -2, 7 * flap, 9, -0.4, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(7, -2, 7 * flap, 9, 0.4, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#422006";
-      g.fillRect(-1, -6, 2, 12);
-      g.restore();
+      em("🦋", x, y, 20);
     }
-    function drawScarecrow() {
-      var x = W * 0.08, y = H * 0.68;
-      g.strokeStyle = "#78350f"; g.lineWidth = 5;
-      g.beginPath(); g.moveTo(x, y + 40); g.lineTo(x, y - 20); g.stroke();
-      var arm = Math.sin(t * 1.5) * 0.25;
-      g.beginPath(); g.moveTo(x - 22, y - 8 + arm * 10); g.lineTo(x + 22, y - 8 - arm * 10); g.stroke();
-      g.fillStyle = "#fdba74";
-      g.beginPath(); g.arc(x, y - 28, 12, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#b45309";
-      g.beginPath(); g.ellipse(x, y - 38, 16, 6, 0, 0, Math.PI * 2); g.fill();
-      var blink = Math.sin(t * 2.2) > 0.88;
-      g.fillStyle = "#1c1917";
-      if (blink) { g.fillRect(x - 6, y - 30, 4, 1.2); g.fillRect(x + 2, y - 30, 4, 1.2); }
-      else {
-        g.beginPath(); g.arc(x - 4, y - 29, 1.6, 0, Math.PI * 2); g.fill();
-        g.beginPath(); g.arc(x + 4, y - 29, 1.6, 0, Math.PI * 2); g.fill();
-      }
-      g.fillStyle = "#dc2626";
-      g.beginPath(); g.moveTo(x - 10, y - 10); g.lineTo(x + 10, y - 10); g.lineTo(x + 12, y + 16); g.lineTo(x - 12, y + 16); g.fill();
-    }
-    function drawFarmer() {
-      var x = W * 0.92, y = H * 0.72 + Math.sin(t * 2) * 2;
-      g.fillStyle = "#fdba74";
-      g.beginPath(); g.arc(x, y - 28, 9, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#b45309";
-      g.beginPath(); g.ellipse(x, y - 36, 12, 4, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#16a34a";
-      g.fillRect(x - 8, y - 18, 16, 20);
-      g.strokeStyle = "#422006"; g.lineWidth = 2;
-      g.beginPath(); g.moveTo(x - 6, y + 2); g.lineTo(x - 8, y + 18); g.moveTo(x + 6, y + 2); g.lineTo(x + 8, y + 18); g.stroke();
-      var wave = Math.sin(t * 4) * 12;
-      g.beginPath(); g.moveTo(x + 8, y - 12); g.lineTo(x + 18, y - 18 + wave); g.stroke();
-      var blink = Math.sin(t * 2.6) > 0.9;
-      g.fillStyle = "#1c1917";
-      if (blink) g.fillRect(x - 3, y - 30, 6, 1.2);
-      else { g.beginPath(); g.arc(x - 3, y - 29, 1.4, 0, Math.PI * 2); g.fill(); g.beginPath(); g.arc(x + 3, y - 29, 1.4, 0, Math.PI * 2); g.fill(); }
-    }
+    function drawScarecrow() { em("🎃", W * 0.08, H * 0.66, 40); }
+    function drawFarmer() { em("🧒", W * 0.92, H * 0.68 + Math.sin(t * 2) * 2, 36); }
     function drawFence() {
       g.strokeStyle = "#78350f"; g.lineWidth = 4;
       g.beginPath(); g.moveTo(0, H * 0.74); g.lineTo(W, H * 0.74); g.stroke();

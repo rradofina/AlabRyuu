@@ -64,6 +64,7 @@
       { who: "Pip", say: "Walk to bed.", ch: [["Hug Nan", {}], ["Feed the pet", {}]] },
       { who: "Pip", say: "The end. Cozy.", ch: [["Play again", { end: true }]] }
     ];
+    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     function drawKid() {
       var g = x.createLinearGradient(0, 0, 0, H);
       if (flags.sky === "rain") { g.addColorStop(0, "#64748b"); g.addColorStop(1, "#86efac"); }
@@ -71,30 +72,25 @@
       else { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#fde68a"); }
       x.fillStyle = g; x.fillRect(0, 0, W, H);
       if (flags.sky === "rain") {
-        x.strokeStyle = "#7dd3fc"; x.lineWidth = 2;
-        for (var i = 0; i < 18; i++) {
-          var rx = (i * 40 + T * 80) % W, ry = (T * 120 + i * 30) % H;
-          x.beginPath(); x.moveTo(rx, ry); x.lineTo(rx - 4, ry + 14); x.stroke();
-        }
+        var i;
+        for (i = 0; i < 10; i++) em("💧", (i * 70 + T * 80) % W, (T * 120 + i * 40) % H, 18);
+      } else if (flags.sky === "wind") {
+        em("💨", W * 0.2, H * 0.18, 36); em("🍃", W * 0.72 + Math.sin(T * 2) * 20, H * 0.22, 28);
+      } else {
+        em("☀️", W * 0.82, H * 0.16, 42);
       }
-      var px = W * 0.5 + Math.sin(T * 2) * 10, py = H * 0.62;
-      var leg = Math.sin(T * 8) * 12;
-      x.strokeStyle = "#4c1d95"; x.lineWidth = 6; x.lineCap = "round";
-      x.beginPath(); x.moveTo(px - 8, py); x.lineTo(px - 8 + leg, py + 28); x.stroke();
-      x.beginPath(); x.moveTo(px + 8, py); x.lineTo(px + 8 - leg, py + 28); x.stroke();
-      x.fillStyle = flags.shoes === "boot" ? "#1d4ed8" : (flags.shoes === "sock" ? "#fff" : "#111");
-      x.fillRect(px - 16 + leg, py + 26, 14, 8); x.fillRect(px + 2 - leg, py + 26, 14, 8);
-      var coat = flags.coat === "rain" ? "#38bdf8" : (flags.coat === "vest" ? "#f97316" : (flags.coat === "pjs" ? "#a78bfa" : "#fde047"));
-      x.fillStyle = coat;
-      x.beginPath(); x.ellipse(px, py - 18, 22, 20, 0, 0, 6.3); x.fill();
-      x.fillStyle = "#ffe0b0";
-      x.beginPath(); x.arc(px, py - 48, 16, 0, 6.3); x.fill();
-      x.fillStyle = flags.hat === "hood" ? "#38bdf8" : (flags.hat === "scarf" ? "#f472b6" : "#f59e0b");
-      x.beginPath(); x.ellipse(px, py - 60, 18, 8, 0, 0, 6.3); x.fill();
-      x.fillStyle = "#111"; x.beginPath(); x.arc(px + 6, py - 50, 2, 0, 6.3); x.fill();
+      var px = W * 0.5 + Math.sin(T * 2) * 10, py = H * 0.58;
+      var hat = flags.hat === "hood" ? "🧥" : (flags.hat === "scarf" ? "🧣" : "🧢");
+      var coat = flags.coat === "rain" ? "🧥" : (flags.coat === "vest" ? "🦺" : (flags.coat === "pjs" ? "🌙" : "👕"));
+      var shoes = flags.shoes === "boot" ? "👢" : (flags.shoes === "sock" ? "🧦" : "👟");
+      em(hat, px, py - 54, 28);
+      em("🧒", px, py - 10, 64);
+      em(coat, px + 28, py - 8, 26);
+      em(shoes, px, py + 28, 24);
+      if (flags.friend === "Duck") em("🦆", px + 70, py + 8, 36);
       x.fillStyle = "#fff";
       x.beginPath(); x.roundRect ? (x.roundRect(px + 28, py - 88, 150, 44, 16), x.fill()) : (x.fillRect(px + 28, py - 88, 150, 44));
-      x.fillStyle = "#4c1d95"; x.font = "900 18px Verdana";
+      x.fillStyle = "#4c1d95"; x.font = "900 18px Verdana"; x.textAlign = "left"; x.textBaseline = "alphabetic";
       x.fillText(SCENES[Math.min(si, SCENES.length - 1)].say, px + 40, py - 60);
     }
     function save() { try { localStorage.setItem("alabryuu-dress", JSON.stringify({ stars: stars, flags: flags })); } catch (e) {} }
