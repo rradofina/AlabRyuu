@@ -4,421 +4,101 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Color Mix</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%; overflow: hidden;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: #3f2a14; color: #fff; touch-action: none; user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .home {
-      position: fixed; top: 12px; left: 12px; z-index: 8; color: #fff; text-decoration: none;
-      font-weight: 800; font-size: 17px; background: rgba(0,0,0,.35); padding: 8px 14px;
-      border-radius: 999px; touch-action: manipulation;
-    }
-    canvas { display: block; width: 100%; height: 100%; }
-    #pots {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
-      display: none; justify-content: center; gap: 8px; padding: 10px 8px 16px;
-      background: linear-gradient(transparent, rgba(63,42,20,.94));
-    }
-    #pots.on { display: flex; }
-    #pots button {
-      width: 64px; height: 76px; border-radius: 16px 16px 26px 26px; font-weight: 800; font-size: 12px;
-      box-shadow: 0 6px 0 rgba(0,0,0,.3); color: #3f2a14;
-    }
-    #pots button.on { outline: 3px solid #fff; transform: translateY(-6px); }
-    #stations {
-      position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6;
-      display: flex; gap: 6px; pointer-events: none;
-    }
-    #stations .st {
-      font-weight: 800; font-size: 12px; padding: 6px 10px; border-radius: 999px;
-      background: rgba(255,247,237,.25); color: #fff7ed; border: 2px solid transparent;
-    }
-    #stations .st.go { background: #ffedd5; color: #7c2d12; border-color: #ea580c; }
-    #hud { position: fixed; top: 12px; right: 12px; z-index: 6; font-weight: 800; text-align: right; pointer-events: none; }
-    #hud b { display: inline-block; background: rgba(0,0,0,.4); padding: 6px 10px; border-radius: 999px; margin-left: 6px; }
-    #say { position: fixed; top: 52px; left: 0; right: 0; text-align: center; font-weight: 800; font-size: 19px; z-index: 6; text-shadow: 0 2px 0 #3f2a14; pointer-events: none; }
-    #matchBtn {
-      position: fixed; left: 50%; bottom: 110px; transform: translateX(-50%);
-      display: none; z-index: 7; background: #fb923c; color: #3f2a14;
-      font-weight: 800; font-size: 22px; padding: 14px 28px; border-radius: 999px;
-      box-shadow: 0 7px 0 #c2410c;
-    }
-    #matchBtn.on { display: block; }
-    .cover {
-      position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center;
-      justify-content: flex-end; text-align: center; gap: 10px; padding: 20px 20px 48px;
-      background: linear-gradient(180deg, rgba(15,118,110,.15), rgba(63,42,20,.55));
-      pointer-events: none;
-    }
-    .cover.off { display: none; }
-    .cover .btn { pointer-events: auto; }
-    h1 { font-size: clamp(36px, 9vw, 54px); color: #fff7ed; text-shadow: 0 4px 0 #7c2d12; }
-    .cover p { font-weight: 800; }
-    .btn { background: #ffd166; color: #3b2100; font-weight: 800; font-size: 26px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
-    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#1e1b4b}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="stations">
-    <div class="st go" id="stPour">1 Pour</div>
-    <div class="st" id="stSwatch">2 Swatch</div>
-    <div class="st" id="stStamp">3 Stamp</div>
+  <div id="hud"><b id="rnd">1/5</b></div>
+  <div id="say">Mix to match!</div>
+  <div class="dock" id="dock">
+    <button id="r" style="background:#ef4444;color:#fff"><span>🔴</span>Red</button>
+    <button id="y" style="background:#facc15"><span>🟡</span>Yellow</button>
+    <button id="b" style="background:#3b82f6;color:#fff"><span>🔵</span>Blue</button>
   </div>
-  <div id="hud"><b id="lvl">Mix 1</b><b id="stars">Stars 0</b></div>
-  <div id="say">Hold a pot. Pour paint!</div>
-  <div id="pots"></div>
-  <button id="matchBtn">Looks right!</button>
   <div class="cover" id="title">
+    <div class="hero">🎨</div>
     <h1>Color Mix</h1>
-    <p>Pour pots. Match the swatch.<br>Then stamp a picture.</p>
-    <button class="btn" id="go">Play</button>
+    <p>Tap paints. Match the color!</p>
+    <button class="play" id="go">Mix</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Rainbow chef!</h1>
-    <p id="winP">You mixed a whole studio.</p>
-    <div class="row">
-      <button class="btn g" id="again">Play again</button>
-    </div>
+    <div class="hero">🌈</div>
+    <h1>Rainbow mixer!</h1>
+    <p>Five matches.</p>
+    <button class="play g" id="again">Mix again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, last = 0, t = 0, play = false, stage = 0, stars = 0, pouring = null;
-    var blobs = [], bits = [], stamps = [];
-    var cat = { x: 0.18, vx: 28, blink: 0, sit: 0, tail: 0 };
-    var mix = { r: 255, g: 255, b: 255, n: 0 }, unlocked = ["R", "Y", "B"];
-    var mode = "pour";
-    var pots = [
-      { id: "R", n: "Red", c: [239, 68, 68] },
-      { id: "Y", n: "Yellow", c: [250, 204, 21] },
-      { id: "B", n: "Blue", c: [59, 130, 246] },
-      { id: "W", n: "White", c: [248, 250, 252] },
-      { id: "K", n: "Brown", c: [180, 83, 9] }
+    var W, H, play = false, round = 0, mix = { r: 0, y: 0, b: 0 };
+    var GOALS = [
+      { n: "Orange", r: 1, y: 1, b: 0, c: "#f97316" },
+      { n: "Green", r: 0, y: 1, b: 1, c: "#22c55e" },
+      { n: "Purple", r: 1, y: 0, b: 1, c: "#a855f7" },
+      { n: "Orange", r: 1, y: 1, b: 0, c: "#f97316" },
+      { n: "Green", r: 0, y: 1, b: 1, c: "#22c55e" }
     ];
-    var STAGES = [
-      { goal: [251, 146, 60], name: "Orange", hint: "Red + Yellow", need: ["R", "Y"], pic: "flower" },
-      { goal: [167, 139, 250], name: "Purple", hint: "Red + Blue", need: ["R", "B"], pic: "kite" },
-      { goal: [74, 222, 128], name: "Green", hint: "Yellow + Blue", need: ["Y", "B"], pic: "tree" },
-      { goal: [249, 168, 212], name: "Pink", hint: "Red + White", need: ["R", "W"], unlock: "W", pic: "fish" },
-      { goal: [253, 224, 71], name: "Gold", hint: "Yellow + Brown", need: ["Y", "K"], unlock: "K", pic: "sun" },
-      { goal: [125, 211, 252], name: "Sky", hint: "Blue + White", need: ["B", "W"], pic: "rainbow" }
-    ];
-
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.frequency.value = f; g.gain.value = 0.1;
-        o.connect(g); g.connect(ac.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
-      } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
     addEventListener("resize", resize); resize();
-
-    function rgb(c, a) { return "rgba(" + (c[0]|0) + "," + (c[1]|0) + "," + (c[2]|0) + "," + (a == null ? 1 : a) + ")"; }
-    function distCol(a, b) {
-      return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    function mixColor() {
+      var r = mix.r * 220, g = mix.y * 200 + mix.b * 40, b = mix.b * 220 + mix.r * 40;
+      if (!mix.r && !mix.y && !mix.b) return "#e2e8f0";
+      return "rgb(" + Math.min(255, r) + "," + Math.min(255, g) + "," + Math.min(255, b) + ")";
     }
-    function setStation() {
-      document.getElementById("stPour").className = "st" + (mode === "pour" ? " go" : "");
-      document.getElementById("stSwatch").className = "st" + (mode === "match" ? " go" : "");
-      document.getElementById("stStamp").className = "st" + (mode === "stamp" ? " go" : "");
-      document.getElementById("matchBtn").className = mode === "match" ? "on" : "";
-      document.getElementById("pots").className = (play && mode === "pour") ? "on" : "";
-    }
-
-    function renderPots() {
-      var box = document.getElementById("pots");
-      box.innerHTML = "";
-      pots.forEach(function (p) {
-        if (unlocked.indexOf(p.id) < 0) return;
-        var b = document.createElement("button");
-        b.style.background = rgb(p.c);
-        b.textContent = p.n;
-        b.addEventListener("pointerdown", function (ev) { ev.preventDefault(); pouring = p; b.classList.add("on"); beep(480, 0.05); });
-        box.appendChild(b);
-      });
-    }
-    addEventListener("pointerup", function () {
-      pouring = null;
-      document.querySelectorAll("#pots button").forEach(function (b) { b.classList.remove("on"); });
-    });
-    addEventListener("pointermove", function (e) {
-      if (!play || !pouring || mode !== "pour") return;
-      blobs.push({
-        x: e.clientX + (Math.random() - 0.5) * 10,
-        y: Math.min(e.clientY, H * 0.55),
-        vx: (Math.random() - 0.5) * 40,
-        vy: 30 + Math.random() * 40,
-        r: 10 + Math.random() * 8,
-        c: pouring.c.slice(),
-        life: 1
-      });
-    });
-    cv.addEventListener("pointerdown", function (e) {
-      if (!play) return;
-      if (mode === "stamp") {
-        stamps.push({ x: e.clientX, y: e.clientY, c: [mix.r, mix.g, mix.b], r: 18 + Math.random() * 10, rot: Math.random() * 6 });
-        bits.push({ x: e.clientX, y: e.clientY, vy: -22, life: 0.8 });
-        beep(700, 0.05);
-        if (stamps.length >= 14) finishStage();
-      }
-    });
-
     function start() {
-      play = true; stage = 0; stars = 0; unlocked = ["R", "Y", "B"];
+      play = true; round = 0; mix = { r: 0, y: 0, b: 0 };
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      renderPots();
-      loadStage();
-      beep(520, 0.1);
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("say").textContent = "Make " + GOALS[0].n + "!";
+      document.getElementById("rnd").textContent = "1/5";
     }
-    function loadStage() {
-      var s = STAGES[stage];
-      blobs = []; bits = []; stamps = []; mix = { r: 255, g: 255, b: 255, n: 0 };
-      mode = "pour";
-      if (s.unlock && unlocked.indexOf(s.unlock) < 0) { unlocked.push(s.unlock); renderPots(); }
-      document.getElementById("lvl").textContent = "Mix " + (stage + 1);
-      document.getElementById("say").textContent = "Pour " + s.hint + " to make " + s.name + ".";
-      setStation();
-    }
-    function goMatch() {
-      mode = "match";
-      document.getElementById("say").textContent = "Does your bowl match the swatch?";
-      setStation();
-      beep(640, 0.1);
-    }
-    function goStamp() {
-      var s = STAGES[stage];
-      mode = "stamp";
-      stamps = [];
-      document.getElementById("say").textContent = "Stamp the " + s.pic + " with " + s.name + "!";
-      setStation();
-      beep(840, 0.12);
-    }
-    function finishStage() {
-      stars += 3;
-      document.getElementById("stars").textContent = "Stars " + stars;
-      stage++;
-      beep(880, 0.15);
-      if (stage >= STAGES.length) {
-        play = false;
-        mode = "pour";
-        setStation();
-        document.getElementById("winP").textContent = "Stars " + stars + "  You mixed six colors!";
-        document.getElementById("win").classList.remove("off");
-        return;
-      }
-      loadStage();
-    }
-
-    document.getElementById("matchBtn").onclick = function () {
-      if (mode !== "match") return;
-      var s = STAGES[stage];
-      if (distCol([mix.r, mix.g, mix.b], s.goal) < 110) goStamp();
-      else {
-        document.getElementById("say").textContent = "Almost. Pour a little more " + s.hint + ".";
-        mode = "pour";
-        setStation();
-        beep(220, 0.08);
-      }
-    };
-
-    function update(dt) {
-      t += dt;
-      cat.sit -= dt;
-      if (cat.sit <= 0) {
-        cat.x += (cat.vx * dt) / Math.max(280, W);
-        if (cat.x > 0.82 || cat.x < 0.1) { cat.vx *= -1; cat.sit = 1.2; }
-      }
-      cat.blink -= dt;
-      if (cat.blink < -3) cat.blink = 0.15;
-      cat.tail += dt;
-      if (pouring && play && mode === "pour" && Math.random() < 0.55) {
-        blobs.push({
-          x: W * 0.5 + (Math.random() - 0.5) * 80,
-          y: 128,
-          vx: (Math.random() - 0.5) * 50,
-          vy: 80,
-          r: 12,
-          c: pouring.c.slice(),
-          life: 1
-        });
-      }
-      var bowl = { x: W * 0.5, y: H * 0.4, r: Math.min(110, W * 0.26) };
-      blobs.forEach(function (b) {
-        b.vy += 220 * dt;
-        b.x += b.vx * dt; b.y += b.vy * dt;
-        b.vx *= 0.99;
-        var dx = b.x - bowl.x, dy = b.y - bowl.y, d = Math.hypot(dx, dy);
-        if (d > bowl.r - b.r && d < bowl.r + 40 && b.y > bowl.y - 20) {
-          var nx = dx / (d || 1), ny = dy / (d || 1);
-          b.x = bowl.x + nx * (bowl.r - b.r);
-          b.y = bowl.y + ny * (bowl.r - b.r);
-          b.vx += -nx * 40; b.vy += -ny * 40;
-          b.vx *= 0.7; b.vy *= 0.4;
-          mix.r = (mix.r * mix.n + b.c[0]) / (mix.n + 1);
-          mix.g = (mix.g * mix.n + b.c[1]) / (mix.n + 1);
-          mix.b = (mix.b * mix.n + b.c[2]) / (mix.n + 1);
-          mix.n = Math.min(80, mix.n + 1);
+    function add(k) {
+      if (!play) return;
+      mix[k] = 1;
+      var g = GOALS[round];
+      if (mix.r === g.r && mix.y === g.y && mix.b === g.b) {
+        document.getElementById("say").textContent = "Yes! " + g.n + "!";
+        round++;
+        if (round >= GOALS.length) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("win").classList.remove("off");
+        } else {
+          mix = { r: 0, y: 0, b: 0 };
+          document.getElementById("rnd").textContent = (round + 1) + "/5";
+          document.getElementById("say").textContent = "Now make " + GOALS[round].n + "!";
         }
-        if (b.y > H) b.life = 0;
-      });
-      for (var i = 0; i < blobs.length; i++) {
-        for (var j = i + 1; j < blobs.length; j++) {
-          var a = blobs[i], b = blobs[j];
-          var dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), min = a.r + b.r;
-          if (d < min && d > 0.1) {
-            var push = (min - d) * 0.5;
-            a.x -= dx / d * push; a.y -= dy / d * push;
-            b.x += dx / d * push; b.y += dy / d * push;
-            var cr = [(a.c[0] + b.c[0]) / 2, (a.c[1] + b.c[1]) / 2, (a.c[2] + b.c[2]) / 2];
-            a.c = cr; b.c = cr;
-          }
-        }
-      }
-      blobs = blobs.filter(function (b) { return b.life > 0; });
-      bits.forEach(function (p) { p.y += p.vy * dt; p.life -= dt; });
-      bits = bits.filter(function (p) { return p.life > 0; });
-      if (mode === "pour" && play && mix.n > 12) {
-        var s = STAGES[stage];
-        if (distCol([mix.r, mix.g, mix.b], s.goal) < 90) goMatch();
+      } else if ((mix.r && !g.r) || (mix.y && !g.y) || (mix.b && !g.b)) {
+        document.getElementById("say").textContent = "Oops. Try again!";
+        mix = { r: 0, y: 0, b: 0 };
       }
     }
-
-    function drawStudio() {
-      var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, "#99f6e4");
-      g.addColorStop(0.22, "#ccfbf1");
-      g.addColorStop(0.22, "#f5e6c8");
-      g.addColorStop(0.7, "#e7d3a8");
-      g.addColorStop(1, "#b45309");
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      x.fillStyle = "rgba(15,118,110,.18)";
-      x.fillRect(0, 0, W, H * 0.22);
-      x.strokeStyle = "#0f766e"; x.lineWidth = 8;
-      x.strokeRect(W * 0.18, 18, W * 0.64, H * 0.16);
-      x.strokeStyle = "rgba(15,118,110,.4)"; x.lineWidth = 3;
-      x.beginPath(); x.moveTo(W * 0.5, 18); x.lineTo(W * 0.5, H * 0.18); x.moveTo(W * 0.18, H * 0.1); x.lineTo(W * 0.82, H * 0.1); x.stroke();
-      x.fillStyle = "#fde68a";
-      x.beginPath(); x.arc(W * 0.28, 52, 10, 0, Math.PI * 2); x.fill();
-      var i;
-      for (i = 0; i < 5; i++) {
-        var lx = W * 0.14 + i * (W * 0.16);
-        x.strokeStyle = "#78716c"; x.lineWidth = 2;
-        x.beginPath(); x.moveTo(lx, H * 0.24); x.lineTo(lx + 18, H * 0.3); x.stroke();
-        x.fillStyle = ["#fb7185", "#38bdf8", "#facc15", "#34d399", "#c084fc"][i];
-        x.beginPath(); x.ellipse(lx + 18, H * 0.34, 14, 18, 0.2, 0, Math.PI * 2); x.fill();
-      }
-      x.fillStyle = "#92400e";
-      x.fillRect(18, H * 0.62, 70, 10);
-      x.fillRect(22, H * 0.48, 8, 14);
-      x.fillRect(76, H * 0.48, 8, 14);
-      x.fillStyle = "#fff7ed";
-      x.fillRect(20, H * 0.4, 66, 86);
-      x.strokeStyle = "#78350f"; x.lineWidth = 4; x.strokeRect(20, H * 0.4, 66, 86);
-    }
-
-    function drawBowl() {
-      var bx = W * 0.5, by = H * 0.4, br = Math.min(110, W * 0.26);
-      x.fillStyle = "#fff7ed";
-      x.beginPath(); x.arc(bx, by, br, 0.15, Math.PI - 0.15); x.fill();
-      x.strokeStyle = "#b45309"; x.lineWidth = 8; x.stroke();
-      x.fillStyle = rgb([mix.r, mix.g, mix.b], 0.88);
-      x.beginPath(); x.ellipse(bx, by + 10, br * 0.72, br * 0.38, 0, 0, Math.PI * 2); x.fill();
-      blobs.forEach(function (b) {
-        x.fillStyle = rgb(b.c, 0.8);
-        x.beginPath();
-        x.ellipse(b.x, b.y, b.r * 1.1, b.r * 0.85, t + b.x, 0, Math.PI * 2);
-        x.fill();
-      });
-    }
-
-    function drawSwatch() {
-      var s = STAGES[stage]; if (!s) return;
-      var sx = W - 118, sy = 86;
-      x.fillStyle = "#fff7ed";
-      x.beginPath();
-      if (x.roundRect) x.roundRect(sx, sy, 100, 124, 12);
-      else x.rect(sx, sy, 100, 124);
-      x.fill();
-      x.strokeStyle = "#b45309"; x.lineWidth = 5; x.stroke();
-      x.fillStyle = rgb(s.goal);
-      x.beginPath(); x.arc(sx + 50, sy + 48, 30, 0, Math.PI * 2); x.fill();
-      if (mode === "match") {
-        x.strokeStyle = "#ea580c"; x.lineWidth = 3;
-        x.beginPath(); x.arc(sx + 50, sy + 48, 34 + Math.sin(t * 6) * 2, 0, Math.PI * 2); x.stroke();
-      }
-      x.fillStyle = rgb([mix.r, mix.g, mix.b]);
-      x.beginPath(); x.arc(sx + 50, sy + 92, 14, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#7c2d12"; x.font = "bold 13px Trebuchet MS"; x.textAlign = "center";
-      x.fillText(s.name, sx + 50, sy + 18);
-    }
-
-    function drawPicGhost() {
-      var s = STAGES[stage]; if (!s || mode !== "stamp") return;
-      var cx = W * 0.5, cy = H * 0.68;
-      x.globalAlpha = 0.28;
-      x.fillStyle = rgb(s.goal);
-      drawPicShape(s.pic, cx, cy, 1);
-      x.globalAlpha = 1;
-    }
-
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-    function picEm(kind) {
-      return kind === "flower" ? "🌸" : kind === "kite" ? "🪁" : kind === "tree" ? "🌳" : kind === "fish" ? "🐟" : kind === "sun" ? "☀️" : "🌈";
-    }
-    function drawPicShape(kind, cx, cy, sc) {
-      em(picEm(kind), cx, cy, 56 * (sc || 1));
-    }
-
-    function drawCat() {
-      var cx = cat.x * W, cy = H * 0.78 + Math.sin(t * 3) * 2;
-      em("🐱", cx, cy, 42);
-    }
-
-    function draw() {
-      drawStudio();
-      drawBowl();
-      drawSwatch();
-      drawPicGhost();
-      stamps.forEach(function (p) {
-        var s = STAGES[stage];
-        em(picEm(s ? s.pic : "flower"), p.x, p.y, p.r * 2.2);
-      });
-      bits.forEach(function (p) {
-        x.globalAlpha = Math.max(0, p.life);
-        em("⭐", p.x, p.y, 16);
-      });
-      x.globalAlpha = 1;
-      drawCat();
-      if (mode === "pour") {
-        x.fillStyle = "#7c2d12";
-        x.font = "bold 14px Trebuchet MS"; x.textAlign = "center";
-        x.fillText("pour station", W * 0.5, H * 0.4 + Math.min(110, W * 0.26) + 22);
-      }
-    }
-
-    function loop(now) {
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000); last = now;
-      update(dt); draw();
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("r").onclick = function () { add("r"); };
+    document.getElementById("y").onclick = function () { add("y"); };
+    document.getElementById("b").onclick = function () { add("b"); };
+    function loop() {
+      x.fillStyle = "#1e1b4b"; x.fillRect(0, 0, W, H);
+      var g = GOALS[Math.min(round, GOALS.length - 1)];
+      x.beginPath(); x.arc(W * 0.32, H * 0.40, 70, 0, Math.PI * 2); x.fillStyle = g.c; x.fill();
+      em("🎯", W * 0.32, H * 0.40, 48);
+      x.beginPath(); x.arc(W * 0.68, H * 0.40, 80, 0, Math.PI * 2); x.fillStyle = mixColor(); x.fill();
+      em("🎨", W * 0.68, H * 0.40, 64);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
   })();
   </script>
 </body>

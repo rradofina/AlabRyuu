@@ -1,89 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Sky Hop · AlabRyuu</title>
-  <style>
-    :root { --ink:#16324a; --sky:#7ec8ff; }
-    * { box-sizing: border-box; }
-    html, body { margin:0; height:100%; overflow:hidden; font-family:Trebuchet MS,Comic Sans MS,sans-serif; background:#7ec8ff; color:#16324a; }
-    canvas { display:block; width:100%; height:100%; touch-action:none; }
-    .hud { position:fixed; inset:0; pointer-events:none; z-index:2; }
-    .top { display:flex; justify-content:space-between; padding:max(10px,env(safe-area-inset-top)) 12px 0; }
-    a { pointer-events:auto; color:#16324a; font-weight:900; text-decoration:none; background:#fff8; padding:8px 12px; border-radius:999px; }
-    .chip { background:#fff; padding:8px 12px; border-radius:999px; font-weight:900; }
-    .tools { position:absolute; left:50%; bottom:max(12px,env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; gap:10px; pointer-events:auto; }
-    button { min-height:64px; min-width:88px; border:0; border-radius:20px; background:#ffd84d; color:#16324a; font:900 18px Trebuchet MS,sans-serif; }
-    button.on { outline:4px solid #16324a; }
-    .ov { position:fixed; inset:0; background:#7ec8ffee; display:grid; place-items:center; padding:20px; z-index:5; text-align:center; }
-    .ov h1 { font-size:clamp(32px,8vw,56px); margin:0; }
-    .ov p { font-size:22px; max-width:26ch; }
-    .hidden { display:none; }
-    .bubble { position:absolute; left:16px; top:22%; background:#fff; border-radius:20px; padding:12px 16px; font-weight:900; font-size:22px; max-width:16ch; box-shadow:0 8px 0 #0002; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Sky Hop</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#7ec8ff}</style>
 </head>
 <body>
+  <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div class="hud">
-    <div class="top"><a href="../index.html">← Hub</a><div class="chip" id="info">High 0</div></div>
-    <div class="bubble" id="say">Tap Hop!</div>
-    <div class="tools">
-      <button id="hop">Hop</button>
-      <button id="flutter">Flutter</button>
-      <button id="deco">Decorate</button>
-    </div>
+  <div id="hud"><b id="info">High 0 · ★0</b></div>
+  <div id="say">Tap Hop!</div>
+  <div class="dock on" id="tools">
+    <button id="hop"><span>⬆️</span>Hop</button>
+    <button id="flutter"><span>🪽</span>Flutter</button>
+    <button id="deco"><span>🌸</span>Pretty</button>
   </div>
-  <div class="ov" id="title"><div><h1>Sky Hop</h1><p>Hop the clouds. Climb forever. Decorate as you go.</p><button id="go">Play</button></div></div>
+  <div class="cover" id="title">
+    <div class="hero">🧚</div>
+    <h1>Sky Hop</h1>
+    <p>Hop the clouds. Climb forever!</p>
+    <button class="play" id="go">Play</button>
+  </div>
   <script>
   (function () {
     var LS = "alabryuu-sky";
     var save = {};
     try { save = JSON.parse(localStorage.getItem(LS) || "{}"); } catch (e) {}
-    var cv = document.getElementById("c");
-    var ctx = cv.getContext("2d");
-    var W = 390, H = 700, T = 0;
-    var clouds = [];
-    var on = 0;
-    var hopCount = save.hops || 0;
-    var best = save.best || 0;
-    var stars = save.stars || 0;
-    var decorations = save.decos || 0;
-    var hopPhase = "idle";
-    var hopT = 0;
-    var flutterT = 0;
-    var hopFrom = { x: 0, y: 0 };
-    var hopTo = { x: 0, y: 0 };
-    var kid = { x: 0, y: 0, squash: 1, lean: 0, knee: 0, wing: 0.4 };
+    var cv = document.getElementById("c"), ctx = cv.getContext("2d");
+    var W = 390, H = 700, T = 0, playing = false;
+    var clouds = [], on = 0, hopCount = 0, best = save.best || 0, stars = save.stars || 0, decorations = save.decos || 0;
+    var hopPhase = "idle", hopT = 0, flutterT = 0, stuck = 0;
+    var hopFrom = { x: 0, y: 0 }, hopTo = { x: 0, y: 0 };
+    var kid = { x: 0, y: 0 };
     var camX = 0, camY = 0;
-    var dust = [];
-    var rain = [];
-    var TINTS = ["#ffffff", "#e8f7ff", "#ffd6f0", "#c8d8f0", "#ffe08a", "#d1fae5"];
     var cheers = ["Higher!", "Nice hop!", "Keep going!", "Up up!", "Whee!"];
-
+    function em(ch, px, py, s) {
+      ctx.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(ch, px, py);
+    }
     function resize() {
-      W = innerWidth;
-      H = innerHeight;
+      W = innerWidth; H = innerHeight;
       var d = Math.min(devicePixelRatio || 1, 2);
-      cv.width = Math.floor(W * d);
-      cv.height = Math.floor(H * d);
-      cv.style.width = W + "px";
-      cv.style.height = H + "px";
+      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
       ctx.setTransform(d, 0, 0, d, 0, 0);
     }
-    addEventListener("resize", resize);
-    resize();
-
+    addEventListener("resize", resize); resize();
     function sx(wx) { return wx - camX; }
-    function sy(wy) { return H * 0.66 - (wy - camY); }
-
-    function hud() {
-      document.getElementById("info").textContent = "High " + Math.max(best, hopCount) + " · ★" + stars;
-    }
+    function sy(wy) { return H * 0.62 - (wy - camY); }
+    function hud() { document.getElementById("info").textContent = "High " + Math.max(best, hopCount) + " · ★" + stars; }
     function persist() {
-      try {
-        localStorage.setItem(LS, JSON.stringify({ hops: hopCount, best: best, stars: stars, decos: decorations }));
-      } catch (e) {}
+      try { localStorage.setItem(LS, JSON.stringify({ hops: hopCount, best: best, stars: stars, decos: decorations })); } catch (e) {}
       hud();
     }
     function cloudAt(idx) {
@@ -91,303 +60,116 @@
       return null;
     }
     function spawnCloud(i) {
-      var lobs = [];
-      for (var n = 0; n < 5; n++) {
-        lobs.push({
-          ox: (n - 2) * 22 + (i * 13 + n * 7) % 11 - 5,
-          oy: 10 + (n % 3) * 8,
-          rx: 28 + (n * 9 + i) % 14,
-          ry: 16 + (n * 5 + i * 3) % 8
-        });
-      }
       clouds.push({
-        i: i,
-        x: i * 148,
-        y: i * 36 + Math.sin(i * 0.9) * 28,
-        tint: TINTS[((i * 0.07) | 0) % TINTS.length],
-        lobs: lobs,
-        decos: [],
-        star: i > 0 && i % 3 === 0 ? 1 : 0
+        i: i, x: i * 160, y: i * 40 + Math.sin(i * 0.9) * 30,
+        decos: [], star: i > 0 && i % 3 === 0 ? 1 : 0
       });
     }
     function ensureAhead() {
       var last = clouds.length ? clouds[clouds.length - 1].i : -1;
-      for (var i = last + 1; i <= on + 8; i++) spawnCloud(i);
+      for (var i = last + 1; i <= on + 10; i++) spawnCloud(i);
     }
     function recycleBehind() {
       while (clouds.length && clouds[0].i < on - 3) clouds.shift();
     }
-    function puffDust(n) {
-      for (var i = 0; i < n; i++) {
-        dust.push({
-          x: kid.x + (Math.random() - 0.5) * 28,
-          y: kid.y - 8,
-          vx: (Math.random() - 0.5) * 50,
-          vy: 20 + Math.random() * 40,
-          life: 0.45
-        });
-      }
-    }
     function snapToCloud(idx) {
       ensureAhead();
       on = Math.max(0, idx);
-      hopPhase = "idle";
-      hopT = 0;
-      flutterT = 0;
+      hopPhase = "idle"; hopT = 0; flutterT = 0; stuck = 0;
       var c = cloudAt(on) || clouds[0];
       if (!c) return;
-      kid.x = c.x;
-      kid.y = c.y + 18;
-      kid.squash = 1;
-      kid.lean = 0;
-      kid.knee = 0;
+      kid.x = c.x; kid.y = c.y + 18;
     }
     function build() {
-      clouds = [];
-      dust = [];
-      on = 0;
-      hopPhase = "idle";
-      ensureAhead();
-      snapToCloud(0);
-      camX = kid.x - W * 0.38;
-      camY = kid.y - 20;
+      clouds = []; on = 0; hopPhase = "idle";
+      ensureAhead(); snapToCloud(0);
+      camX = kid.x - W * 0.38; camY = kid.y - 20;
       hud();
       document.getElementById("say").textContent = "Tap Hop!";
     }
-
     function hop() {
-      if (hopPhase !== "idle") return;
-      ensureAhead();
-      var here = cloudAt(on);
-      var next = cloudAt(on + 1);
-      if (!here || !next) {
-        snapToCloud(on);
-        document.getElementById("say").textContent = "Hop again!";
-        return;
+      if (!playing) return;
+      if (hopPhase !== "idle") {
+        if (stuck > 1.6) snapToCloud(on);
+        else return;
       }
-      hopPhase = "crouch";
-      hopT = 0;
-      hopFrom.x = here.x;
-      hopFrom.y = here.y + 18;
-      hopTo.x = next.x;
-      hopTo.y = next.y + 18;
-      hopCount++;
-      if (hopCount > best) best = hopCount;
+      ensureAhead();
+      var here = cloudAt(on), next = cloudAt(on + 1);
+      if (!here || !next) { snapToCloud(on); document.getElementById("say").textContent = "Hop again!"; return; }
+      hopPhase = "air"; hopT = 0; stuck = 0;
+      hopFrom.x = here.x; hopFrom.y = here.y + 18;
+      hopTo.x = next.x; hopTo.y = next.y + 18;
+      hopCount++; if (hopCount > best) best = hopCount;
       if (hopCount % 5 === 0) stars += 1;
       persist();
       document.getElementById("say").textContent = cheers[hopCount % cheers.length];
     }
     function collectIfStar() {
       var c = cloudAt(on);
-      if (c && c.star) {
-        c.star = 0;
-        stars++;
-        persist();
-        document.getElementById("say").textContent = "Star!";
-      }
+      if (c && c.star) { c.star = 0; stars++; persist(); document.getElementById("say").textContent = "Star!"; }
     }
-
     document.getElementById("go").onclick = function () {
-      hopCount = 0;
-      build();
-      document.getElementById("title").classList.add("hidden");
+      hopCount = 0; playing = true; build();
+      document.getElementById("title").classList.add("off");
     };
-    document.getElementById("hop").onclick = function () { hop(); };
+    document.getElementById("hop").onclick = hop;
     document.getElementById("flutter").onclick = function () {
-      if (hopPhase !== "idle") return;
-      flutterT = 0.4;
+      if (!playing || hopPhase !== "idle") return;
+      flutterT = 0.45;
+      document.getElementById("say").textContent = "Whee!";
     };
     document.getElementById("deco").onclick = function () {
+      if (!playing) return;
       var c = cloudAt(on);
       if (!c) { snapToCloud(on); return; }
-      c.decos.push({
-        ox: (Math.random() - 0.5) * 50,
-        oy: 6 + Math.random() * 10,
-        col: ["#ff6b9a", "#fb7185", "#f472b6", "#fde047"][(Math.random() * 4) | 0]
-      });
-      decorations++;
-      stars++;
-      persist();
+      c.decos.push({ ox: (Math.random() - 0.5) * 50, oy: 8 });
+      decorations++; stars++; persist();
       document.getElementById("say").textContent = "Pretty!";
     };
-    cv.addEventListener("pointerdown", hop);
-
+    cv.addEventListener("pointerdown", function () { if (playing) hop(); });
     function lerp(a, b, k) { return a + (b - a) * k; }
-    function ellipse(x, y, rx, ry, fill) {
-      ctx.beginPath();
-      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
-      ctx.fillStyle = fill;
-      ctx.fill();
-    }
-    function em(ch,px,py,s){ ctx.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(ch,px,py); }
-    function drawCloud(c, t) {
-      var bob = Math.sin(t * 1.4 + c.i) * 6;
-      var px = sx(c.x);
-      var py = sy(c.y + bob);
-      if (px < -140 || px > W + 140 || py < -80 || py > H + 80) return;
-      em("☁️", px, py, 78);
-      for (var d = 0; d < c.decos.length; d++) {
-        var fl = c.decos[d];
-        em("🌸", px + fl.ox, py + fl.oy, 26);
-      }
-      if (c.star) {
-        em("⭐", px + 36, py - 28, 28);
-      }
-    }
-    function drawKid() {
-      var px = sx(kid.x);
-      var py = sy(kid.y);
-      var sq = kid.squash;
-      ctx.save();
-      ctx.translate(px, py);
-      ctx.rotate(kid.lean);
-      var flying = hopPhase === "air" || hopPhase === "takeoff" || flutterT > 0;
-      em(flying ? "🧚" : "🧒", 0, -22 * sq, 34 + 12 * sq);
-      ctx.restore();
-    }
-    function drawSky(t) {
-      var g = ctx.createLinearGradient(0, 0, 0, H);
-      var climb = Math.min(1, (camY + hopCount * 2) / 800);
-      g.addColorStop(0, climb > 0.4 ? "#c4b5fd" : "#4aa8e8");
-      g.addColorStop(0.45, "#7ec8ff");
-      g.addColorStop(1, "#f9a8d4");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
-      em("☀️", W * 0.82, 70, 48);
-      // far puffs
-      ctx.globalAlpha = 0.45;
-      for (var i = 0; i < 8; i++) {
-        var fx = ((i * 160 - camX * 0.25) % (W + 180)) - 40;
-        var fy = 80 + (i % 3) * 70 + Math.sin(t + i) * 6;
-        em("☁️", fx, fy, 36);
-      }
-      ctx.globalAlpha = 1;
-      // twinkles
-      for (var s = 0; s < 12; s++) {
-        var tw = 0.4 + 0.6 * Math.abs(Math.sin(t * 3 + s));
-        ctx.globalAlpha = tw * 0.85;
-        em("⭐", ((s * 97 - camX * 0.15) % (W + 40)), (s * 53 + camY * 0.08) % (H * 0.7), 14 + (s % 3) * 2);
-      }
-      ctx.globalAlpha = 1;
-    }
-
     var last = performance.now();
     function loop(now) {
-      var dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      T += dt;
+      var dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
       ensureAhead();
       var pad = cloudAt(on);
       if (!pad) snapToCloud(on);
-
-      if (hopPhase === "crouch") {
+      if (hopPhase !== "idle") stuck += dt;
+      if (stuck > 2) snapToCloud(on);
+      if (hopPhase === "air") {
         hopT += dt;
-        var k = Math.min(1, hopT / 0.28);
-        kid.squash = 0.55 + 0.1 * (1 - k);
-        kid.knee = 1.1 * k;
-        kid.lean = 0.12 * k;
-        kid.x = hopFrom.x;
-        kid.y = hopFrom.y - 4 * k;
-        kid.wing = 0.15;
-        if (hopT >= 0.28) { hopPhase = "takeoff"; hopT = 0; puffDust(7); }
-      } else if (hopPhase === "takeoff") {
-        hopT += dt;
-        var k2 = Math.min(1, hopT / 0.1);
-        kid.squash = 1.35;
-        kid.knee = -0.4;
-        kid.lean = -0.2;
-        kid.x = lerp(hopFrom.x, hopTo.x, k2 * 0.16);
-        kid.y = lerp(hopFrom.y, hopTo.y, k2 * 0.16) + 36 + k2 * 24;
-        kid.wing = 0.9;
-        if (hopT >= 0.1) { hopPhase = "air"; hopT = 0; on++; ensureAhead(); recycleBehind(); }
-      } else if (hopPhase === "air") {
-        hopT += dt;
-        var dur = 0.62;
-        var k3 = Math.min(1, hopT / dur);
-        var hang = Math.sin(k3 * Math.PI);
-        kid.x = lerp(hopFrom.x, hopTo.x, k3);
-        kid.y = lerp(hopFrom.y, hopTo.y, k3) + hang * 78;
-        kid.squash = 1.2;
-        kid.knee = -1.1;
-        kid.lean = -0.25 + k3 * 0.4;
-        kid.wing = 0.55 + Math.sin(T * 22) * 0.5;
-        if (hopT >= dur) { hopPhase = "land"; hopT = 0; puffDust(8); }
-      } else if (hopPhase === "land") {
-        hopT += dt;
-        var k4 = Math.min(1, hopT / 0.2);
-        var dip = k4 < 0.45 ? 10 * (1 - k4 / 0.45) : 0;
-        kid.x = hopTo.x;
-        kid.y = hopTo.y - dip;
-        kid.squash = 0.6 + k4 * 0.4;
-        kid.knee = 0.7 * (1 - k4);
-        kid.lean = 0;
-        kid.wing = 0.35;
-        if (hopT >= 0.2) {
-          hopPhase = "idle";
-          kid.squash = 1;
-          collectIfStar();
+        var k = Math.min(1, hopT / 0.55);
+        var hang = Math.sin(k * Math.PI);
+        kid.x = lerp(hopFrom.x, hopTo.x, k);
+        kid.y = lerp(hopFrom.y, hopTo.y, k) + hang * 70;
+        if (k >= 1) {
+          hopPhase = "idle"; on++; ensureAhead(); recycleBehind();
+          snapToCloud(on); collectIfStar();
         }
       } else if (flutterT > 0) {
         flutterT -= dt;
-        var fk = 1 - flutterT / 0.4;
-        kid.y = (pad ? pad.y + 18 : kid.y) + Math.sin(fk * Math.PI) * 28;
-        kid.wing = 0.2 + Math.sin(T * 24) * 0.7;
-        kid.knee = -0.5;
-        kid.squash = 1.1;
-      } else {
-        if (pad) {
-          kid.x = pad.x;
-          kid.y = pad.y + 18 + Math.sin(T * 3) * 4;
-        }
-        kid.squash = 1;
-        kid.knee = Math.sin(T * 8) * 0.15;
-        kid.lean = 0;
-        kid.wing = 0.35 + Math.sin(T * 8) * 0.2;
+        kid.y = (pad ? pad.y + 18 : kid.y) + Math.sin((1 - flutterT / 0.45) * Math.PI) * 30;
+      } else if (pad) {
+        kid.x = pad.x;
+        kid.y = pad.y + 18 + Math.sin(T * 3) * 4;
       }
-
-      camX += (kid.x - W * 0.38 - camX) * 0.1;
-      camY += (kid.y - 24 - camY) * 0.1;
-
-      // rain weather, not a level
-      if (hopCount % 20 > 14) {
-        if (rain.length < 24) {
-          rain.push({ x: camX + Math.random() * W, y: camY + 220 + Math.random() * 80, vy: 220 });
-        }
-      } else {
-        rain.length = 0;
+      camX += (kid.x - W * 0.38 - camX) * 0.12;
+      camY += (kid.y - 24 - camY) * 0.12;
+      var g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#4aa8e8"); g.addColorStop(1, "#f9a8d4");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      em("☀️", W * 0.82, 80, 64);
+      var i;
+      for (i = 0; i < clouds.length; i++) {
+        var c = clouds[i], px = sx(c.x), py = sy(c.y + Math.sin(T * 1.4 + c.i) * 6);
+        if (px < -160 || px > W + 160) continue;
+        em("☁️", px, py, 92);
+        for (var d = 0; d < c.decos.length; d++) em("🌸", px + c.decos[d].ox, py + c.decos[d].oy, 36);
+        if (c.star) em("⭐", px + 40, py - 36, 40);
       }
-      for (var r = 0; r < rain.length; r++) {
-        rain[r].y -= rain[r].vy * dt;
-        if (sy(rain[r].y) > H) rain[r].y = camY + 200;
-      }
-
-      for (var di = dust.length - 1; di >= 0; di--) {
-        var m = dust[di];
-        m.life -= dt;
-        m.x += m.vx * dt;
-        m.y += m.vy * dt;
-        if (m.life <= 0) dust.splice(di, 1);
-      }
-
-      drawSky(T);
-      for (var ci = 0; ci < clouds.length; ci++) drawCloud(clouds[ci], T);
-      for (var ri = 0; ri < rain.length; ri++) {
-        ctx.strokeStyle = "#8ad4ff";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(sx(rain[ri].x), sy(rain[ri].y));
-        ctx.lineTo(sx(rain[ri].x), sy(rain[ri].y) - 14);
-        ctx.stroke();
-      }
-      for (var dj = 0; dj < dust.length; dj++) {
-        ctx.globalAlpha = Math.max(0, dust[dj].life * 2);
-        ellipse(sx(dust[dj].x), sy(dust[dj].y), 6, 5, "#fff");
-        ctx.globalAlpha = 1;
-      }
-      drawKid();
+      em(hopPhase === "air" || flutterT > 0 ? "🧚" : "🧒", sx(kid.x), sy(kid.y) - 28, 72);
       requestAnimationFrame(loop);
     }
-
     build();
     requestAnimationFrame(loop);
   })();

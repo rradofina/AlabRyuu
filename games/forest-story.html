@@ -4,136 +4,87 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Forest Story</title>
+  <link rel="stylesheet" href="../kid.css" />
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#14532d;color:#3f2a14;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:rgba(20,83,45,.7);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800}
-    #hud b{background:#fffbeb;padding:6px 10px;border-radius:999px}
-    .panel{position:fixed;left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom));z-index:8;background:#f7ecd0ee;border:4px solid #7c4a1e;border-radius:22px;padding:12px}
-    .who{font-size:13px;font-weight:800;color:#166534}
-    .say{font-size:24px;font-weight:900;margin:4px 0 10px}
-    .chs{display:flex;flex-wrap:wrap;gap:8px}
-    .chs button{min-height:54px;flex:1;border-radius:16px;background:#bbf7d0;color:#14532d;font-weight:900;font-size:17px;box-shadow:0 5px 0 #15803d}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#86efac,#14532d);color:#fff}
-    .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,52px);text-shadow:0 4px 0 #14532d}
-    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    html,body{background:#14532d}
+    .choice{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:40;display:none;gap:16px}
+    .choice.on{display:flex}
+    .choice button{min-width:150px;min-height:130px;border-radius:28px;background:#fff;color:#14532d;font-weight:900;font-size:18px;box-shadow:0 8px 0 #166534}
+    .choice button span{display:block;font-size:64px;line-height:1}
+    #scene{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px 170px;text-align:center}
+    #pic{font-size:110px;line-height:1;margin-bottom:12px}
+    #line{font-size:28px;font-weight:900;color:#fff;max-width:16ch;text-shadow:0 3px 0 #052e16}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="ch">Start</b> <b id="st">⭐ 0</b></div>
-  <canvas id="c"></canvas>
-  <div class="panel" id="panel">
-    <div class="who" id="who">Pip</div>
-    <p class="say" id="say">Trees say hello.</p>
-    <div class="chs" id="chs"></div>
+  <div id="hud"><b id="st">⭐ 0</b></div>
+  <div id="scene">
+    <div id="pic">🌲</div>
+    <div id="line">A walk in the trees.</div>
+  </div>
+  <div class="choice" id="choice">
+    <button id="a"><span>🦊</span><b id="at">Help fox</b></button>
+    <button id="b"><span>🍓</span><b id="bt">Pick berries</b></button>
   </div>
   <div class="cover" id="title">
+    <div class="hero">🦊</div>
     <h1>Forest Story</h1>
-    <p>Pip walks. Friends talk.<br>Your path changes the ending.</p>
-    <button class="btn" id="go">Walk</button>
+    <p>Pick a path. Help forest friends!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Cozy trees</h1>
-    <p id="wp"></p>
-    <button class="btn" id="again">Walk again</button>
+    <div class="hero">🌙</div>
+    <h1>Home by moonlight</h1>
+    <p id="wp">A kind walk.</p>
+    <button class="play g" id="again">Walk again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, T = 0, si = 0, stars = 0;
-    var flags = { helpedSquirrel: false, path: "leaf", friend: "Pip", night: false, gift: "" };
-    try {
-      var sv = JSON.parse(localStorage.getItem("alabryuu-forest") || "{}");
-      if (sv.stars) stars = sv.stars;
-      if (sv.flags) flags = Object.assign(flags, sv.flags);
-    } catch (e) {}
-    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
-    addEventListener("resize", resize); resize();
-
+    var stars = 0, si = 0, flags = {};
     var SCENES = [
-      { who: "Pip", say: "A gold leaf winks.", ch: [["Follow leaf", { path: "leaf" }], ["Follow bee", { path: "bee" }]] },
-      { who: "Squirrel", say: "I dropped berries!", ch: [["Pick them up", { helpedSquirrel: true }], ["Wave hello", {}]] },
-      { who: "Pip", say: flags.helpedSquirrel ? "Squirrel smiles big." : "Squirrel still hunts.", ch: [["Share a hat", { gift: "hat" }], ["Keep walking", {}]] },
-      { who: "Owl", say: "Two soft ways.", ch: [["Mushroom lane", { path: "mush" }], ["Moon creek", { path: "creek" }]] },
-      { who: "Frog", say: "I lost my song.", ch: [["Sing with frog", { gift: "song" }], ["Clap the beat", {}]] },
-      { who: "Pip", say: "A twist! Fog rolls.", ch: [["Hold Owl wing", { friend: "Owl" }], ["Light a bug", { night: true }]] },
-      { who: "Bee", say: "Who helped nuts?", ch: [["We did!", {}], ["Ask Pip", {}]] },
-      { who: "Pip", say: flags.path === "creek" ? "Water looks like milk." : "Soft hats glow.", ch: [["Sit a minute", {}], ["Leave a gift", { gift: "berry" }]] },
-      { who: "Turtle", say: "Need a helper.", ch: [["Take Pip", { friend: "Pip" }], ["Take Owl", { friend: "Owl" }]] },
-      { who: "Pip", say: "Almost home stump.", ch: [["Decorate nest", {}], ["Save a seed", {}]] },
-      { who: "All", say: "Picnic time. Hug?", ch: [["Hug everyone", {}], ["Nap in moss", {}]] },
-      { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }]] }
+      { pic: "🌲", line: "A path in the trees.", a: { e: "🦊", t: "Help fox", next: 1, flag: "fox" }, b: { e: "🍓", t: "Pick berries", next: 2, flag: "berry" } },
+      { pic: "🦊", line: "Fox lost a sock!", a: { e: "🧦", t: "Give sock", next: 3, flag: "kind" }, b: { e: "🗺️", t: "Show map", next: 3, flag: "map" } },
+      { pic: "🍓", line: "Sweet red berries.", a: { e: "🐦", t: "Share birds", next: 3, flag: "share" }, b: { e: "🧺", t: "Fill basket", next: 3, flag: "basket" } },
+      { pic: "🌊", line: "A sparkly creek.", a: { e: "🪵", t: "Make bridge", next: 4, flag: "bridge" }, b: { e: "🐸", t: "Ask frog", next: 4, flag: "frog" } },
+      { pic: "🦉", line: "Owl says night comes.", a: { e: "🏡", t: "Walk home", next: 5, flag: "home" }, b: { e: "⭐", t: "Wish star", next: 5, flag: "wish" } },
+      { pic: "🌙", line: "The forest says thanks.", a: { e: "💛", t: "Wave bye", next: -1, flag: "bye" }, b: { e: "🎵", t: "Sing song", next: -1, flag: "song" } }
     ];
-
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-
-    function walkBody(px, py, who, phase, scale) {
-      var bob = Math.sin(phase) * 4;
-      var ch = who === "Owl" ? "🦉" : (who === "Pip" ? "🧒" : "🦊");
-      em(ch, px, py + bob, 48 * (scale || 1));
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-forest") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function hud() { document.getElementById("st").textContent = "⭐ " + stars; }
+    function show(i) {
+      si = i;
+      var s = SCENES[i];
+      document.getElementById("pic").textContent = s.pic;
+      document.getElementById("line").textContent = s.line;
+      document.getElementById("a").querySelector("span").textContent = s.a.e;
+      document.getElementById("at").textContent = s.a.t;
+      document.getElementById("b").querySelector("span").textContent = s.b.e;
+      document.getElementById("bt").textContent = s.b.t;
+      document.getElementById("choice").classList.add("on");
     }
-
-    function draw() {
-      var night = flags.night || si > 5;
-      var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, night ? "#0f172a" : "#7dd3fc");
-      g.addColorStop(0.45, night ? "#14532d" : "#86efac");
-      g.addColorStop(1, "#166534");
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      for (var i = 0; i < 8; i++) {
-        var tx = (i / 8) * W + Math.sin(T * 0.4 + i) * 6;
-        em("🌲", tx + 9, H * 0.48, 64);
-      }
-      if (night) {
-        for (var f = 0; f < 12; f++) {
-          em("✨", (f * 73 + T * 20) % W, H * 0.3 + Math.sin(T + f) * 20, 16);
-        }
-      }
-      var baseY = H * 0.62;
-      walkBody(W * 0.38 + Math.sin(T * 2) * 8, baseY, "Pip", T * 8, 1.4);
-      walkBody(W * 0.58 + Math.sin(T * 2 + 1) * 6, baseY + 6, flags.friend === "Owl" ? "Owl" : "Fox", T * 8 + 1, 1.2);
-      x.fillStyle = "#fff";
-      x.beginPath();
-      var bx = W * 0.38 + 30, by = baseY - 70;
-      x.moveTo(bx, by); x.quadraticCurveTo(bx + 80, by - 40, bx + 140, by);
-      x.quadraticCurveTo(bx + 80, by + 30, bx, by); x.fill();
-      x.fillStyle = "#3f2a14"; x.font = "900 20px Verdana"; x.textAlign = "left"; x.textBaseline = "alphabetic";
-      x.fillText(SCENES[Math.min(si, SCENES.length - 1)].say, bx + 16, by + 6);
+    function pick(side) {
+      var s = SCENES[si], ch = s[side];
+      flags[ch.flag] = 1; stars++;
+      try { localStorage.setItem("alabryuu-forest", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {}
+      hud();
+      if (ch.next < 0) {
+        document.getElementById("choice").classList.remove("on");
+        document.getElementById("wp").textContent = "⭐ " + stars + "  Kind forest walk.";
+        document.getElementById("win").classList.remove("off");
+      } else show(ch.next);
     }
-
-    function save() { try { localStorage.setItem("alabryuu-forest", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {} }
-    function show() {
-      var s = SCENES[Math.min(si, SCENES.length - 1)];
-      if (si === 2) s.say = flags.helpedSquirrel ? "Squirrel smiles big." : "Squirrel still hunts.";
-      if (si === 7) s.say = flags.path === "creek" ? "Water looks like milk." : "Soft hats glow.";
-      document.getElementById("who").textContent = s.who;
-      document.getElementById("say").textContent = s.say;
-      document.getElementById("ch").textContent = "Scene " + (si + 1) + "/12";
-      document.getElementById("st").textContent = "⭐ " + stars;
-      var box = document.getElementById("chs"); box.innerHTML = "";
-      s.ch.forEach(function (pair) {
-        var b = document.createElement("button"); b.textContent = pair[0];
-        b.onclick = function () {
-          Object.assign(flags, pair[1]);
-          if (pair[1].end) {
-            document.getElementById("wp").textContent = "You walked with " + flags.friend + (flags.helpedSquirrel ? " and helped Squirrel." : ".");
-            document.getElementById("win").classList.remove("off");
-            si = 0;
-          } else { si++; stars++; }
-          save(); if (!pair[1].end) show();
-        };
-        box.appendChild(b);
-      });
+    function start() {
+      flags = {}; si = 0;
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      show(0); hud();
     }
-    document.getElementById("go").onclick = function () { document.getElementById("title").classList.add("off"); show(); };
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); si = 0; show(); };
-    function loop() { T += 0.016; draw(); requestAnimationFrame(loop); }
-    show(); loop();
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("a").onclick = function () { pick("a"); };
+    document.getElementById("b").onclick = function () { pick("b"); };
+    hud();
   })();
   </script>
 </body>

@@ -4,545 +4,101 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Maze Garden</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #166534; color: #14532d; touch-action: none; user-select: none; }
-    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .home { position: fixed; top: 12px; left: 12px; z-index: 10; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.32); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; z-index: 12; }
-    canvas { display: block; width: 100%; height: 100%; }
-    #hud { position: fixed; top: 12px; right: 12px; z-index: 8; font-weight: 800; text-align: right; pointer-events: none; }
-    #hud b { display: inline-block; background: #fefce8; padding: 6px 12px; border-radius: 999px; margin-left: 6px; box-shadow: 0 3px 0 #365314; font-size: 14px; }
-    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 8; font-weight: 800; color: #fff; text-shadow: 0 2px 0 #14532d; pointer-events: none; text-align: center; width: 90%; }
-    #pads { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 8; display: none; grid-template-columns: 72px 72px 72px; grid-template-rows: 72px 72px 72px; gap: 8px; }
-    #pads.on { display: grid; }
-    #pads button { background: radial-gradient(circle at 30% 30%, #fefce8, #d6d3d1); border-radius: 50%; font-size: 26px; font-weight: 800; box-shadow: 0 6px 0 #365314; }
-    #pads button:active { transform: translateY(4px); box-shadow: 0 2px 0 #365314; }
-    #pads .n { grid-column: 2; grid-row: 1; } #pads .w { grid-column: 1; grid-row: 2; }
-    #pads .e { grid-column: 3; grid-row: 2; } #pads .s { grid-column: 2; grid-row: 3; }
-    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; gap: 8px; padding: 20px 20px 40px; pointer-events: none; }
-    .cover.off { display: none; }
-    .cover h1 { font-size: clamp(34px, 9vw, 52px); color: #fff; text-shadow: 0 4px 0 #14532d; pointer-events: none; }
-    .cover p { font-weight: 800; color: #ecfccb; text-shadow: 0 2px 0 #14532d; }
-    .btn { pointer-events: auto; background: #ffd166; color: #3b2100; font-weight: 800; font-size: 24px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
-    .btn.g { background: #bbf7d0; color: #14532d; box-shadow: 0 7px 0 #4ade80; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; pointer-events: auto; }
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="mz">Patch 1</b><b id="cr">Carrots 0</b><b id="st">Stars 0</b></div>
-  <div id="say">Hop the bunny. Pick carrots!</div>
-  <div id="pads">
-    <button class="n" data-d="0,-1">▲</button>
-    <button class="w" data-d="-1,0">◀</button>
-    <button class="e" data-d="1,0">▶</button>
-    <button class="s" data-d="0,1">▼</button>
-  </div>
+  <div id="hud"><b>🐰 to 🥕</b></div>
+  <div id="say">Drag the bunny to the carrot!</div>
   <div class="cover" id="title">
+    <div class="hero">🐰</div>
     <h1>Maze Garden</h1>
-    <p>Hop cell to cell. Pick carrots.<br>The fox is shy — a gentle boop!</p>
-    <button class="btn" id="go">Play</button>
+    <p>Drag bunny along the path.</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Garden hero!</h1>
-    <p id="winP">Five mazes hopped.</p>
-    <div class="row"><button class="btn g" id="again">Play again</button></div>
+    <div class="hero">🥕</div>
+    <h1>Crunch!</h1>
+    <p>Bunny found dinner.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), g = cv.getContext("2d");
-    var W, H, last = 0, t = 0, mode = "title", stars = 0, stage = 0;
-    var cell = 44, ox = 0, oy = 0, cols = 7, rows = 7;
-    var grid = [], hops = { fromX: 1, fromY: 1, toX: 1, toY: 1, p: 1, squash: 0, dir: 1 };
-    var bunny = { gx: 1, gy: 1, x: 0, y: 0 };
-    var fox = { gx: 0, gy: 0, x: 0, y: 0, path: [], pi: 0, p: 1, wait: 0, smile: 0, on: false };
-    var carrots = [], petals = [], rain = [], splashes = [], sway = [];
-    var collected = 0, need = 0, exit = { x: 0, y: 0 }, wet = false;
-    var boop = { on: 0, x: 0, y: 0 }, butterflies = [], flowers = [];
-    var swipe = { x: 0, y: 0, on: false };
-
-    var STAGES = [
-      { n: "Tiny Patch", rain: 0, fox: 0, map: [
-        "#######",
-        "#B..C.#",
-        "#.###.#",
-        "#...C.#",
-        "###.#.#",
-        "#C....E",
-        "#######"
-      ]},
-      { n: "Carrot Lane", rain: 0, fox: 0, map: [
-        "#########",
-        "#B...C..#",
-        "#.###.#.#",
-        "#.#...#C#",
-        "#.#.###.#",
-        "#C#...#.#",
-        "###.#.#.#",
-        "#....C..E",
-        "#########"
-      ]},
-      { n: "Rain Garden", rain: 1, fox: 0, map: [
-        "#########",
-        "#B.#.C..#",
-        "#.#.###.#",
-        "#.#...#.#",
-        "#C###.#C#",
-        "#...#.#.#",
-        "###.#...#",
-        "#C....#.E",
-        "#########"
-      ]},
-      { n: "Hedge Maze", rain: 0, fox: 1, map: [
-        "###########",
-        "#B..#..C..#",
-        "###.#.###.#",
-        "#...#.#...#",
-        "#.###.#.#C#",
-        "#C..F.#.#.#",
-        "#####.#.#.#",
-        "#.....#...#",
-        "#.#####.#.#",
-        "#..C....#.E",
-        "###########"
-      ]},
-      { n: "Fox Grove", rain: 1, fox: 1, map: [
-        "###########",
-        "#B.#...C..#",
-        "#.###.###.#",
-        "#...#.#.C.#",
-        "###.#.#.###",
-        "#C..F...#.#",
-        "#.#####.#.#",
-        "#.#...#...#",
-        "#.#.#.###.#",
-        "#C..#....#E",
-        "###########"
-      ]}
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, play = false, drag = 0, cx = 0, cy = 0;
+    var GRID = [
+      [1,1,1,1,0],
+      [1,0,0,1,0],
+      [1,1,0,1,1],
+      [0,1,0,0,1],
+      [0,1,1,1,1]
     ];
-
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), gn = ac.createGain();
-        o.type = "sine"; o.frequency.value = f; gn.gain.value = 0.07;
-        o.connect(gn); gn.connect(ac.destination); o.start();
-        gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
-        o.stop(ac.currentTime + d);
-      } catch (e) {}
+    var cols = 5, rows = 5, bunny = { r: 0, c: 0 };
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function lerp(a, b, p) { return a + (b - a) * p; }
-    function ease(p) { return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
-    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-    function rnd(a, b) { return a + Math.random() * (b - a); }
-    function oval(cx, cy, rx, ry, col) {
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, 6.28); g.fill();
-    }
-    function dot(cx, cy, r, col) {
-      g.fillStyle = col;
-      g.beginPath(); g.arc(cx, cy, r, 0, 6.28); g.fill();
-    }
-
     function resize() {
-      W = cv.width = innerWidth * (devicePixelRatio || 1);
-      H = cv.height = innerHeight * (devicePixelRatio || 1);
-      g.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
+      var d = Math.min(devicePixelRatio || 1, 2);
       W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
     addEventListener("resize", resize); resize();
-
-    function cellAt(gx, gy) {
-      if (gy < 0 || gy >= rows || gx < 0 || gx >= cols) return "#";
-      return grid[gy][gx];
+    function cell() { return Math.min((W - 40) / cols, (H - 200) / rows); }
+    function origin() {
+      var s = cell();
+      return { x: (W - s * cols) / 2, y: 110 };
     }
-    function walkable(gx, gy) {
-      var c = cellAt(gx, gy);
-      return c === "." || c === "B" || c === "C" || c === "E" || c === "F";
+    function at(px, py) {
+      var o = origin(), s = cell();
+      var c = Math.floor((px - o.x) / s), r = Math.floor((py - o.y) / s);
+      if (r < 0 || c < 0 || r >= rows || c >= cols) return null;
+      return { r: r, c: c };
     }
-    function worldX(gx) { return ox + gx * cell + cell / 2; }
-    function worldY(gy) { return oy + gy * cell + cell / 2; }
-
-    function loadStage() {
-      var S = STAGES[stage];
-      grid = S.map.map(function (r) { return r.split(""); });
-      rows = grid.length; cols = grid[0].length;
-      cell = Math.min(52, Math.floor(Math.min(W - 24, H - 220) / Math.max(cols, rows)));
-      ox = (W - cols * cell) / 2;
-      oy = 78 + (H - 220 - rows * cell) / 2;
-      carrots = []; flowers = []; sway = []; butterflies = [];
-      collected = 0; fox.on = !!S.fox; wet = !!S.rain; fox.path = []; fox.p = 1; fox.smile = 0;
-      var i, j, ch;
-      for (j = 0; j < rows; j++) {
-        for (i = 0; i < cols; i++) {
-          ch = grid[j][i];
-          sway.push({ x: i, y: j, ph: rnd(0, 6.28), kind: ch === "#" ? 1 : 0 });
-          if (ch === "B") { bunny.gx = i; bunny.gy = j; hops.fromX = hops.toX = i; hops.fromY = hops.toY = j; hops.p = 1; }
-          if (ch === "C") carrots.push({ gx: i, gy: j, got: 0, bob: rnd(0, 6) });
-          if (ch === "E") exit = { x: i, y: j };
-          if (ch === "F") { fox.gx = i; fox.gy = j; }
-          if (ch === "#" && Math.random() < 0.35) flowers.push({ gx: i, gy: j, col: ["#fde047", "#fb7185", "#f472b6", "#fb923c"][(i + j) % 4], ph: rnd(0, 6) });
-        }
-      }
-      need = carrots.length;
-      if (fox.on) {
-        var dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]], d, nx, ny, k;
-        fox.path = [{ x: fox.gx, y: fox.gy }];
-        for (k = 0; k < 18; k++) {
-          d = dirs[k % 4];
-          nx = fox.path[fox.path.length - 1].x + d[0];
-          ny = fox.path[fox.path.length - 1].y + d[1];
-          if (walkable(nx, ny) && !(nx === bunny.gx && ny === bunny.gy)) fox.path.push({ x: nx, y: ny });
-          else {
-            d = dirs[(k + 1) % 4];
-            nx = fox.path[fox.path.length - 1].x + d[0];
-            ny = fox.path[fox.path.length - 1].y + d[1];
-            if (walkable(nx, ny)) fox.path.push({ x: nx, y: ny });
-          }
-        }
-        fox.pi = 0;
-      }
-      for (i = 0; i < 8; i++) butterflies.push({ x: rnd(ox, ox + cols * cell), y: rnd(oy, oy + rows * cell), ph: rnd(0, 6), kind: i % 2 ? "fly" : "bee" });
-      rain = [];
-      if (wet) for (i = 0; i < 70; i++) rain.push({ x: rnd(0, W), y: rnd(-H, H), v: rnd(220, 420), len: rnd(10, 18) });
-      hops.p = 1; hops.squash = 0;
-      bunny.x = worldX(bunny.gx); bunny.y = worldY(bunny.gy);
-      document.getElementById("mz").textContent = S.n;
-      document.getElementById("cr").textContent = "Carrots " + collected + "/" + need;
-      document.getElementById("say").textContent = wet ? "Puddle hops! Soft rain." : (fox.on ? "Fox patrols. A gentle boop!" : "Hop to carrots, then the gate!");
+    function start() {
+      play = true; bunny = { r: 0, c: 0 };
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("say").textContent = "Drag the bunny to 🥕";
     }
-
-    function tryHop(dx, dy) {
-      if (mode !== "play" || hops.p < 1) return;
-      var nx = bunny.gx + dx, ny = bunny.gy + dy;
-      if (!walkable(nx, ny)) {
-        hops.squash = 0.35; beep(180, 0.06);
-        splashes.push({ x: bunny.x, y: bunny.y, life: 1, kind: "puff" });
-        return;
-      }
-      hops.fromX = bunny.gx; hops.fromY = bunny.gy;
-      hops.toX = nx; hops.toY = ny; hops.p = 0; hops.dir = dx !== 0 ? dx : hops.dir;
-      bunny.gx = nx; bunny.gy = ny;
-      beep(520 + Math.abs(dx + dy) * 40, 0.06);
-    }
-
-    function eatCarrots() {
-      carrots.forEach(function (c) {
-        if (!c.got && c.gx === bunny.gx && c.gy === bunny.gy && hops.p > 0.7) {
-          c.got = 1; collected++;
-          document.getElementById("cr").textContent = "Carrots " + collected + "/" + need;
-          beep(720, 0.1); stars += 1;
-          document.getElementById("st").textContent = "Stars " + stars;
-          splashes.push({ x: worldX(c.gx), y: worldY(c.gy), life: 1, kind: "spark" });
-        }
-      });
-    }
-
-    function checkExit() {
-      if (collected >= need && bunny.gx === exit.x && bunny.gy === exit.y && hops.p >= 1) {
-        stars += 3; document.getElementById("st").textContent = "Stars " + stars;
-        beep(660, 0.12); setTimeout(function () { beep(880, 0.16); }, 90);
-        if (stage < STAGES.length - 1) {
-          stage++;
-          document.getElementById("say").textContent = "Next garden!";
-          setTimeout(loadStage, 500);
-        } else {
-          mode = "win";
-          document.getElementById("pads").classList.remove("on");
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      var p = at(e.clientX, e.clientY);
+      if (p && p.r === bunny.r && p.c === bunny.c) drag = 1;
+    });
+    cv.addEventListener("pointermove", function (e) {
+      if (!play || !drag) return;
+      var p = at(e.clientX, e.clientY);
+      if (!p || !GRID[p.r][p.c]) { document.getElementById("say").textContent = "Stay on the path!"; return; }
+      var adj = Math.abs(p.r - bunny.r) + Math.abs(p.c - bunny.c);
+      if (adj <= 1) {
+        bunny = p;
+        if (p.r === 4 && p.c === 4) {
+          play = false; drag = 0;
           document.getElementById("win").classList.remove("off");
-          document.getElementById("winP").textContent = "Five mazes. " + stars + " stars.";
         }
       }
-    }
-
-    function foxStep(dt) {
-      if (!fox.on || !fox.path.length) return;
-      if (fox.smile > 0) { fox.smile -= dt; return; }
-      fox.wait -= dt;
-      if (fox.p >= 1) {
-        if (fox.wait > 0) return;
-        fox.pi = (fox.pi + 1) % fox.path.length;
-        var nxt = fox.path[fox.pi];
-        fox.gx = nxt.x; fox.gy = nxt.y;
-        fox.p = 0; fox.wait = 0.35;
-      } else fox.p = Math.min(1, fox.p + dt * 1.1);
-      var prev = fox.path[(fox.pi + fox.path.length - 1) % fox.path.length];
-      var cur = fox.path[fox.pi];
-      fox.x = lerp(worldX(prev.x), worldX(cur.x), ease(fox.p));
-      fox.y = lerp(worldY(prev.y), worldY(cur.y), ease(fox.p));
-      if (Math.abs(fox.gx - bunny.gx) < 1 && Math.abs(fox.gy - bunny.gy) < 1 && hops.p >= 1) {
-        if (fox.gx === bunny.gx && fox.gy === bunny.gy) {
-          fox.smile = 0.8; boop.on = 1; boop.x = bunny.x; boop.y = bunny.y - 30;
-          var backX = hops.fromX, backY = hops.fromY;
-          if (backX === bunny.gx && backY === bunny.gy) {
-            [[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (d) {
-              if (walkable(bunny.gx + d[0], bunny.gy + d[1])) { backX = bunny.gx + d[0]; backY = bunny.gy + d[1]; return true; }
-            });
-          }
-          hops.fromX = bunny.gx; hops.fromY = bunny.gy;
-          hops.toX = backX; hops.toY = backY; hops.p = 0;
-          bunny.gx = backX; bunny.gy = backY;
-          document.getElementById("say").textContent = "Boop! Fox says excuse me.";
-          beep(320, 0.1);
-        }
+    });
+    addEventListener("pointerup", function () { drag = 0; });
+    function loop() {
+      x.fillStyle = "#166534"; x.fillRect(0, 0, W, H);
+      var o = origin(), s = cell(), r, c;
+      for (r = 0; r < rows; r++) for (c = 0; c < cols; c++) {
+        var px = o.x + c * s, py = o.y + r * s;
+        if (GRID[r][c]) {
+          x.fillStyle = "#bbf7d0";
+          x.fillRect(px + 6, py + 6, s - 12, s - 12);
+        } else em("🌳", px + s / 2, py + s / 2, Math.min(48, s * 0.7));
       }
-    }
-
-    function hopUpdate(dt) {
-      if (hops.p < 1) {
-        hops.p = Math.min(1, hops.p + dt * 3.2);
-        var e = ease(hops.p);
-        bunny.x = lerp(worldX(hops.fromX), worldX(hops.toX), e);
-        bunny.y = lerp(worldY(hops.fromY), worldY(hops.toY), e);
-        var air = Math.sin(hops.p * Math.PI);
-        hops.squash = air * 0.28;
-        if (wet && hops.p > 0.92 && hops.p < 0.98) splashes.push({ x: bunny.x, y: bunny.y + 10, life: 0.7, kind: "drop" });
-      } else {
-        bunny.x = worldX(bunny.gx); bunny.y = worldY(bunny.gy);
-        hops.squash *= Math.max(0, 1 - dt * 8);
-        eatCarrots(); checkExit();
-      }
-    }
-
-    function drawSky() {
-      var S = STAGES[stage] || STAGES[0];
-      var grd = g.createLinearGradient(0, 0, 0, H);
-      if (mode === "title") { grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.45, "#86efac"); grd.addColorStop(1, "#166534"); }
-      else if (S.rain) { grd.addColorStop(0, "#64748b"); grd.addColorStop(0.4, "#4ade80"); grd.addColorStop(1, "#14532d"); }
-      else if (stage === 4) { grd.addColorStop(0, "#fb923c"); grd.addColorStop(0.4, "#86efac"); grd.addColorStop(1, "#166534"); }
-      else { grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.38, "#86efac"); grd.addColorStop(1, "#15803d"); }
-      g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      if (!S.rain && mode !== "title") {
-        em("☀️", W - 60, 70, 36);
-      }
-    }
-
-    function drawHedge(gx, gy, ph) {
-      var x = ox + gx * cell, y = oy + gy * cell, s = Math.sin(t * 2 + ph) * 3;
-      g.save();
-      g.translate(x + cell / 2, y + cell / 2);
-      g.rotate(s * 0.015);
-      var r = cell * 0.46;
-      oval(-r * 0.25, 4, r * 0.62, r * 0.5, "#14532d");
-      oval(r * 0.28, 2, r * 0.58, r * 0.48, "#166534");
-      oval(0, -r * 0.2 + s * 0.3, r * 0.55, r * 0.48, "#15803d");
-      oval(-r * 0.18, -2, r * 0.38, r * 0.3, "#22c55e");
-      oval(r * 0.2, 0, r * 0.32, r * 0.26, "#16a34a");
-      oval(-r * 0.1, -r * 0.15, r * 0.18, r * 0.14, "#4ade80");
-      oval(r * 0.08, -r * 0.28, r * 0.12, r * 0.16, "#22c55e");
-      g.restore();
-    }
-
-    function drawPath(gx, gy) {
-      var x = ox + gx * cell, y = oy + gy * cell;
-      g.fillStyle = wet ? "#ca8a04" : "#fde68a";
-      g.fillRect(x + 1, y + 1, cell - 2, cell - 2);
-      g.fillStyle = wet ? "rgba(120,80,20,.18)" : "rgba(180,120,20,.12)";
-      g.beginPath(); g.arc(x + cell * 0.3, y + cell * 0.4, 3, 0, 6.28); g.fill();
-      g.beginPath(); g.arc(x + cell * 0.7, y + cell * 0.65, 2.5, 0, 6.28); g.fill();
-      if (wet) {
-        g.fillStyle = "rgba(125,211,252,.28)";
-        g.beginPath(); g.ellipse(x + cell * 0.5, y + cell * 0.7, cell * 0.22, 5, 0, 0, 6.28); g.fill();
-      }
-    }
-
-    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
-    function drawBunny(x, y, squash, dir, sc) {
-      sc = sc || Math.max(0.7, cell / 48);
-      em("🐰", x, y - squash * 16, 36 * sc);
-    }
-
-    function drawFox(x, y, sc) {
-      sc = sc || Math.max(0.68, cell / 50);
-      em("🦊", x, y + Math.sin(t * 4) * 2, 36 * sc);
-      if (fox.smile > 0) {
-        g.font = "bold 13px Trebuchet MS";
-        g.fillStyle = "#fff"; g.textAlign = "center";
-        g.fillText("boop!", x, y - 28);
-      }
-    }
-
-    function drawCarrot(x, y, sc) {
-      sc = sc || Math.max(0.7, cell / 52);
-      em("🥕", x, y, 28 * sc);
-    }
-
-    function drawFlower(x, y, col) { em("🌸", x, y, 16); }
-
-    function drawFly(x, y, kind) { em(kind === "bee" ? "🐝" : "🦋", x, y, 18); }
-
-    function drawGate(gx, gy) {
-      var x = worldX(gx), y = worldY(gy), open = collected >= need;
-      g.save();
-      g.translate(x, y);
-      g.fillStyle = "#854d0e";
-      g.fillRect(-cell * 0.36, -cell * 0.44, 7, cell * 0.78);
-      g.fillRect(cell * 0.29, -cell * 0.44, 7, cell * 0.78);
-      g.fillRect(-cell * 0.36, -cell * 0.48, cell * 0.72, 8);
-      if (open) {
-        g.fillStyle = "#86efac";
-        g.fillRect(-cell * 0.22, -cell * 0.28, cell * 0.44, cell * 0.55);
-        g.fillStyle = "#14532d";
-        g.beginPath();
-        g.moveTo(-4, -4); g.lineTo(0, 6); g.lineTo(10, -10);
-        g.lineWidth = 3; g.strokeStyle = "#14532d"; g.stroke();
-      } else {
-        g.fillStyle = "#a3e635";
-        g.fillRect(-cell * 0.22, -cell * 0.28, cell * 0.44, cell * 0.55);
-        g.fillStyle = "#ca8a04";
-        g.fillRect(-8, -6, 16, 12);
-        g.strokeStyle = "#854d0e"; g.lineWidth = 2.5;
-        g.beginPath(); g.arc(0, -8, 5, Math.PI, 0); g.stroke();
-      }
-      g.restore();
-    }
-
-    function drawTitleGarden() {
-      var i, hx, hy;
-      for (i = 0; i < 10; i++) {
-        hx = (i * 73 + 20) % W; hy = H * 0.58 + Math.sin(t + i) * 8;
-        g.save(); g.translate(hx, hy); g.rotate(Math.sin(t * 1.6 + i) * 0.08);
-        oval(0, 4, 22, 14, "#14532d");
-        oval(-8, -4, 14, 12, "#166534");
-        oval(10, -2, 13, 11, "#22c55e");
-        g.restore();
-      }
-      drawBunny(W * 0.5 + Math.sin(t * 2) * 8, H * 0.48 - Math.abs(Math.sin(t * 3)) * 22, Math.abs(Math.sin(t * 3)) * 0.25, 1, 1.8);
-      g.save(); g.translate(W * 0.3, H * 0.5 + Math.sin(t * 2.2) * 6); g.rotate(Math.sin(t * 2) * 0.12);
-      drawCarrot(0, 0, 1.5); g.restore();
-      drawFox(W * 0.72, H * 0.52 + Math.sin(t * 1.4) * 4, 1.5);
-      petals.forEach(function (p) {
-        g.save(); g.globalAlpha = p.life; g.translate(p.x, p.y); g.rotate(p.r);
-        oval(0, 0, 6, 3.5, p.col); g.restore();
-      });
-    }
-
-    function drawPlay() {
-      var i, j, c;
-      g.fillStyle = "rgba(21,83,45,.35)";
-      g.beginPath();
-      roundRect(ox - 10, oy - 10, cols * cell + 20, rows * cell + 20, 18);
-      g.fill();
-      for (j = 0; j < rows; j++) {
-        for (i = 0; i < cols; i++) {
-          c = grid[j][i];
-          if (c === "#") drawHedge(i, j, sway[j * cols + i] ? sway[j * cols + i].ph : 0);
-          else drawPath(i, j);
-        }
-      }
-      flowers.forEach(function (f) {
-        drawFlower(worldX(f.gx), worldY(f.gy) - cell * 0.42 + Math.sin(t * 2 + f.ph) * 3, f.col);
-      });
-      drawGate(exit.x, exit.y);
-      carrots.forEach(function (c) {
-        if (c.got) return;
-        g.save();
-        g.translate(worldX(c.gx), worldY(c.gy) + Math.sin(t * 3 + c.bob) * 4);
-        g.rotate(Math.sin(t * 2 + c.bob) * 0.15);
-        drawCarrot(0, 0, Math.max(0.85, cell / 44));
-        g.restore();
-      });
-      butterflies.forEach(function (b) {
-        b.x += Math.sin(t + b.ph) * 0.4; b.y += Math.cos(t * 0.8 + b.ph) * 0.3;
-        drawFly(b.x, b.y + Math.sin(t * 5 + b.ph) * 4, b.kind);
-      });
-      if (fox.on) drawFox(fox.x || worldX(fox.gx), fox.y || worldY(fox.gy));
-      drawBunny(bunny.x, bunny.y, hops.squash, hops.dir);
-      if (boop.on > 0) {
-        g.globalAlpha = boop.on; g.font = "bold 18px Trebuchet MS"; g.fillStyle = "#fff";
-        g.textAlign = "center"; g.fillText("boop!", boop.x, boop.y); g.globalAlpha = 1;
-      }
-      rain.forEach(function (r) {
-        g.strokeStyle = "rgba(224,242,254,.65)"; g.lineWidth = 1.4;
-        g.beginPath(); g.moveTo(r.x, r.y); g.lineTo(r.x - 2, r.y + r.len); g.stroke();
-      });
-      splashes.forEach(function (s) {
-        g.globalAlpha = s.life;
-        if (s.kind === "drop") {
-          oval(s.x, s.y - (1 - s.life) * 20, 3, 5, "#7dd3fc");
-        } else if (s.kind === "spark") {
-          dot(s.x, s.y - (1 - s.life) * 20, 4, "#fde047");
-          dot(s.x + 8, s.y - 10, 2.5, "#fff");
-        } else {
-          oval(s.x, s.y, 10, 5, "rgba(255,255,255,.5)");
-        }
-        g.globalAlpha = 1;
-      });
-    }
-
-    function roundRect(x, y, w, h, r) {
-      g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
-      g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r);
-    }
-
-    function update(dt) {
-      t += dt;
-      if (mode === "title") {
-        if (petals.length < 18 && Math.random() < 0.2) petals.push({ x: rnd(0, W), y: -10, v: rnd(20, 50), r: rnd(0, 6), life: 1, col: ["#fb7185", "#fde047", "#86efac"][Math.floor(rnd(0, 3))] });
-        petals.forEach(function (p) { p.y += p.v * dt; p.x += Math.sin(t + p.r) * 12 * dt; p.r += dt; p.life -= dt * 0.08; });
-        petals = petals.filter(function (p) { return p.life > 0 && p.y < H + 20; });
-        return;
-      }
-      if (mode !== "play") return;
-      hopUpdate(dt);
-      foxStep(dt);
-      if (boop.on > 0) boop.on -= dt;
-      rain.forEach(function (r) { r.y += r.v * dt; if (r.y > H) { r.y = -20; r.x = rnd(0, W); } });
-      splashes.forEach(function (s) { s.life -= dt * 1.6; });
-      splashes = splashes.filter(function (s) { return s.life > 0; });
-    }
-
-    function draw() {
-      drawSky();
-      if (mode === "title" || mode === "win") drawTitleGarden();
-      else drawPlay();
-    }
-
-    function loop(now) {
-      var dt = Math.min(0.033, (now - last) / 1000 || 0.016);
-      last = now; update(dt); draw();
+      em("🥕", o.x + 4.5 * s, o.y + 4.5 * s, 48);
+      em("🐰", o.x + (bunny.c + 0.5) * s, o.y + (bunny.r + 0.5) * s, 56);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
-
-    function start() {
-      mode = "play"; stage = 0; stars = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
-      document.getElementById("pads").classList.add("on");
-      document.getElementById("st").textContent = "Stars 0";
-      loadStage(); beep(520, 0.1);
-    }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = function () {
-      document.getElementById("win").classList.add("off"); start();
-    };
-
-    [].forEach.call(document.querySelectorAll("#pads button"), function (b) {
-      b.addEventListener("pointerdown", function (e) {
-        e.preventDefault(); e.stopPropagation();
-        var d = b.getAttribute("data-d").split(",");
-        tryHop(+d[0], +d[1]);
-      });
-    });
-
-    cv.addEventListener("pointerdown", function (e) {
-      if (mode !== "play") return;
-      swipe.on = true; swipe.x = e.clientX; swipe.y = e.clientY;
-    });
-    addEventListener("pointerup", function (e) {
-      if (!swipe.on || mode !== "play") { swipe.on = false; return; }
-      var dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
-      swipe.on = false;
-      if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
-      if (Math.abs(dx) > Math.abs(dy)) tryHop(dx > 0 ? 1 : -1, 0);
-      else tryHop(0, dy > 0 ? 1 : -1);
-    });
-    addEventListener("keydown", function (e) {
-      var m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1] };
-      if (m[e.key]) { e.preventDefault(); tryHop(m[e.key][0], m[e.key][1]); }
-    });
   })();
   </script>
 </body>

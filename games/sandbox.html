@@ -4,117 +4,112 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Sandbox</title>
+  <link rel="stylesheet" href="../kid.css" />
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,sans-serif;background:#fef3c7;color:#431407;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#431407;text-decoration:none;font-weight:800;background:#fff;padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
-    #hud b{display:inline-block;background:#fff;padding:6px 10px;border-radius:999px;margin-left:6px}
-    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
-    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:6px;padding:8px;background:#fde68a;flex-wrap:wrap;justify-content:center}
-    #dock.on{display:flex}
-    #dock button{min-width:52px;height:52px;border-radius:14px;background:#fff;font-weight:800;font-size:13px;box-shadow:0 4px 0 #b45309}
-    #dock button.on{background:#86efac}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#f59e0b,#86efac)}
-    .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,50px)}
-    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
+    html,body{background:#fef3c7}
+    .dock button{min-width:72px;min-height:84px}
+    .dock button span{font-size:40px}
+    #say{color:#431407}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="ms">House</b><b id="bl">0/6</b><b id="st">⭐ 0</b></div>
-  <div id="say">Put a cottage and logs!</div>
-  <div id="dock">
-    <button data-k="wood" class="on">🪵</button>
-    <button data-k="grass">🌱</button>
-    <button data-k="water">💧</button>
-    <button data-k="stone">🪨</button>
-    <button data-k="gold">🥇</button>
-    <button data-k="tree">🌳</button>
-    <button data-k="flower">🌸</button>
-    <button data-k="house">🏠</button>
-    <button data-k="fence">🚧</button>
+  <div id="hud"><b id="ms">House</b><b id="bl">0/5</b><b id="st">⭐ 0</b></div>
+  <div id="say">Stamp a house and trees!</div>
+  <div class="dock" id="dock">
+    <button data-k="tree" class="on"><span>🌳</span></button>
+    <button data-k="house"><span>🏠</span></button>
+    <button data-k="flower"><span>🌸</span></button>
+    <button data-k="water"><span>💧</span></button>
   </div>
   <div class="cover" id="title">
+    <div class="hero">🧱</div>
     <h1>Sandbox</h1>
-    <p>Tap the dirt. Stack stuff.<br>Five little jobs.</p>
-    <button class="btn" id="go">Build</button>
+    <p>Stamp big things. Keep your town!</p>
+    <button class="play" id="go">Build</button>
   </div>
   <div class="cover off" id="win">
+    <div class="hero">🌟</div>
     <h1>Builder star!</h1>
     <p id="wp">A real little town.</p>
-    <button class="btn" id="again">Build again</button>
+    <button class="play g" id="again">Keep building</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, play = false, mission = 0, placed = 0, stars = 0, tool = "wood";
-    var bits = [], kid = { x: 0.5, y: 0.7 };
+    var W, H, t = 0, play = false, mission = 0, placed = 0, stars = 0, tool = "tree";
+    var bits = [];
     var JOBS = [
-      { n: "House", need: 6, say: "Put a cottage and logs!" },
-      { n: "Garden", need: 7, say: "Grass, flowers, a tree!" },
-      { n: "Bridge", need: 6, say: "Lay logs like a bridge!" },
-      { n: "Castle", need: 8, say: "Rocks, gold, a wall!" },
-      { n: "Home town", need: 8, say: "Houses, trees, fences!" }
+      { n: "House", need: 5, say: "Stamp a house and trees!" },
+      { n: "Garden", need: 5, say: "Add flowers and water!" },
+      { n: "Town", need: 6, say: "More houses and trees!" }
     ];
-    var COL = { wood: "#b45309", grass: "#22c55e", water: "#38bdf8", stone: "#78716c", gold: "#f59e0b", tree: "#166534", flower: "#fb7185", house: "#f97316", fence: "#92400e" };
-    var EMO = { wood: "🪵", grass: "🌱", water: "💧", stone: "🪨", gold: "🥇", tree: "🌳", flower: "🌸", house: "🏠", fence: "🚧" };
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+    var EMO = { tree: "🌳", house: "🏠", flower: "🌸", water: "💧" };
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-sandbox") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
     addEventListener("resize", resize); resize();
     function hud() {
-      document.getElementById("ms").textContent = JOBS[mission].n;
-      document.getElementById("bl").textContent = placed + "/" + JOBS[mission].need;
+      document.getElementById("ms").textContent = JOBS[Math.min(mission, JOBS.length - 1)].n;
+      document.getElementById("bl").textContent = placed + "/" + JOBS[Math.min(mission, JOBS.length - 1)].need;
       document.getElementById("st").textContent = "⭐ " + stars;
-      document.getElementById("say").textContent = JOBS[mission].say;
+      document.getElementById("say").textContent = JOBS[Math.min(mission, JOBS.length - 1)].say;
     }
-    function clearWorld() { bits = []; placed = 0; kid.x = 0.5; kid.y = 0.7; hud(); }
     function start() {
-      play = true; mission = 0;
+      play = true; mission = 0; placed = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
-      clearWorld();
+      hud();
     }
     document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
-    [].forEach.call(document.querySelectorAll("#dock button[data-k]"), function (b) {
+    document.getElementById("again").onclick = function () {
+      document.getElementById("win").classList.add("off");
+      play = true; mission = 0; placed = 0; hud();
+      document.getElementById("dock").classList.add("on");
+    };
+    [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
       b.onclick = function () {
         tool = b.getAttribute("data-k");
-        [].forEach.call(document.querySelectorAll("#dock button[data-k]"), function (el) { el.classList.toggle("on", el === b); });
+        [].forEach.call(document.querySelectorAll("#dock button"), function (el) { el.classList.toggle("on", el === b); });
       };
     });
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      if (e.clientY > H - 90) return;
-      if (e.clientX < 100 && e.clientY < 56) return;
+      if (e.clientY > H - 110) return;
+      if (e.clientX < 110 && e.clientY < 56) return;
       bits.push({ k: tool, x: e.clientX, y: e.clientY });
-      placed++; stars++; kid.x = e.clientX / W; kid.y = e.clientY / H;
+      placed++; stars++;
       try { localStorage.setItem("alabryuu-sandbox", JSON.stringify({ stars: stars, mission: mission })); } catch (err) {}
       hud();
       if (placed >= JOBS[mission].need) {
         mission++;
+        placed = 0;
         if (mission >= JOBS.length) {
-          play = false; document.getElementById("dock").classList.remove("on");
-          document.getElementById("wp").textContent = "⭐ " + stars + "  A real little town.";
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("wp").textContent = "⭐ " + stars + "  Your town stays!";
           document.getElementById("win").classList.remove("off");
-        } else clearWorld();
+        } else {
+          document.getElementById("say").textContent = "Nice! " + JOBS[mission].say;
+          hud();
+        }
       }
     });
     function loop() {
       t += 0.016;
       x.fillStyle = "#fde68a"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#ca8a04";
-      for (var i = 0; i < 8; i++) x.fillRect(0, H * 0.35 + i * 28, W, 8);
-      bits.forEach(function (b) {
-        em(EMO[b.k] || "🪵", b.x, b.y, b.k === "house" || b.k === "tree" ? 40 : 32);
-      });
-      em("🧒", kid.x * W, kid.y * H - 10, 36);
+      for (var i = 0; i < 10; i++) x.fillRect(0, H * 0.28 + i * 32, W, 6);
+      bits.forEach(function (b) { em(EMO[b.k] || "🌳", b.x, b.y, 64); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

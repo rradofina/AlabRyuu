@@ -4,127 +4,102 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Treasure Path</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Georgia,"Palatino Linotype",serif;background:#1c1917;color:#fff7ed;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#431407;text-decoration:none;font-family:Trebuchet MS,sans-serif;font-weight:800;background:#fde68a;padding:8px 14px;border-radius:6px 18px 6px 18px;border:3px solid #b45309}
-    #compass{position:fixed;top:10px;right:10px;z-index:8;width:92px;height:92px;border-radius:50%;background:radial-gradient(#fde68a,#b45309);border:5px solid #7c2d12;box-shadow:0 6px 0 #431407;display:flex;align-items:center;justify-content:center;font-family:Trebuchet MS,sans-serif;font-weight:800;color:#431407;text-align:center;font-size:13px;line-height:1.15}
-    #pathdots{position:fixed;top:112px;right:18px;z-index:8;display:flex;flex-direction:column;gap:6px}
-    #pathdots i{width:14px;height:10px;background:#78716c;border-radius:40% 40% 50% 50%;box-shadow:0 2px 0 #292524}
-    #pathdots i.on{background:#fde047}
-    .map{position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:8;background:#f5e6c8;color:#431407;border:5px solid #92400e;border-radius:8px 28px 8px 28px;padding:10px 12px 12px;box-shadow:0 8px 0 #431407;display:none}
-    .map.on{display:block}
-    .who{font-family:Trebuchet MS,sans-serif;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#b45309}
-    .say{font-size:22px;font-weight:700;margin:4px 0 10px}
-    .chs{display:flex;gap:8px;flex-wrap:wrap}
-    .chs button{flex:1;min-height:58px;border-radius:40% 40% 46% 46%;background:#f59e0b;color:#431407;font-family:Trebuchet MS,sans-serif;font-weight:800;font-size:16px;box-shadow:0 5px 0 #b45309}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:radial-gradient(circle at 50% 20%,#fbbf24aa,#431407ee)}
-    .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,50px);color:#fff7ed;text-shadow:0 4px 0 #7c2d12}
-    .btn{background:#fde68a;color:#431407;font-family:Trebuchet MS,sans-serif;font-weight:800;font-size:24px;padding:14px 26px;border-radius:40% 40% 46% 46%;box-shadow:0 7px 0 #b45309}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#431407}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="compass">Beat<br><b id="sc">1</b></div>
-  <div id="pathdots"></div>
-  <div class="map" id="panel">
-    <div class="who" id="who">Pip</div>
-    <p class="say" id="say">A map wiggles. Walk?</p>
-    <div class="chs" id="chs"></div>
-  </div>
+  <div id="hud"><b id="st">⭐ 0</b></div>
+  <div id="say">Tap the glowing stone!</div>
   <div class="cover" id="title">
+    <div class="hero">⭐</div>
     <h1>Treasure Path</h1>
-    <p>Kids walk the island.<br>Crab. Owl. Chest.</p>
-    <button class="btn" id="go">Walk</button>
+    <p>Tap the next glowing stone.</p>
+    <button class="play" id="go">Walk</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Cozy chest</h1>
-    <p id="wp">The island is home.</p>
-    <button class="btn" id="again">Walk again</button>
+    <div class="hero">💎</div>
+    <h1>Treasure!</h1>
+    <p id="wp">You found it.</p>
+    <button class="play g" id="again">Walk again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, T = 0, si = 0, stars = 0, kidX = 0.2, destX = 0.2;
-    var flags = { friend: "Pip", cave: false, boat: false, kind: 0, lantern: false };
-    try {
-      var sv = JSON.parse(localStorage.getItem("alabryuu-treasure") || "{}");
-      if (sv.stars) stars = sv.stars;
-      if (sv.flags) flags = Object.assign(flags, sv.flags);
-    } catch (e) {}
-    var SCENES = [
-      { who: "Pip", say: "A map wiggles!", ch: [["Follow map", { path: "map" }], ["Ask the boat", { boat: true }]] },
-      { who: "Map", say: "Two soft paths.", ch: [["Cave glow", { cave: true }], ["Beach walk", {}]] },
-      { who: "Pip", say: "Sand tickles.", ch: [["Light lantern", { lantern: true }], ["Hold pal hand", { friend: "Pal" }]] },
-      { who: "Crab", say: "I lost a shiny.", ch: [["Help crab", { kind: 1 }], ["Wave and go", {}]] },
-      { who: "Pip", say: "A twist! Fog!", ch: [["Sing a song", {}], ["Stay close", {}]] },
-      { who: "Owl", say: "Who helped Crab?", ch: [["We did!", {}], ["Ask Pip", {}]] },
-      { who: "Pip", say: "Feet can walk.", ch: [["Ride boat", { boat: true }], ["Keep walking", {}]] },
-      { who: "Chest", say: "Need a kind key.", ch: [["Share berry", { kind: 1 }], ["Draw a smile", {}]] },
-      { who: "Pip", say: "Almost home sand.", ch: [["Open slow", {}], ["Call friends", {}]] },
-      { who: "All", say: "Cozy gold. Hug?", ch: [["Hug everyone", {}], ["Sit and rest", {}]] },
-      { who: "Pip", say: "The end. Warm.", ch: [["Play again", { end: true }]] }
-    ];
-    var dots = document.getElementById("pathdots");
-    for (var d = 0; d < 11; d++) { var iel = document.createElement("i"); dots.appendChild(iel); }
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-    function resize() { var dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px"; x.setTransform(dpr, 0, 0, dpr, 0, 0); }
-    addEventListener("resize", resize); resize();
-    function save() { try { localStorage.setItem("alabryuu-treasure", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {} }
-    function show() {
-      var s = SCENES[Math.min(si, SCENES.length - 1)];
-      if (si === 2) s.say = flags.cave ? "Dark but kind." : "Sand tickles.";
-      if (si === 6) s.say = flags.boat ? "Boat waits." : "Feet can walk.";
-      document.getElementById("who").textContent = s.who;
-      document.getElementById("say").textContent = s.say;
-      document.getElementById("sc").textContent = (si + 1) + "/11";
-      [].forEach.call(dots.children, function (el, i) { el.classList.toggle("on", i <= si); });
-      destX = flags.cave ? 0.22 : (si > 7 ? 0.78 : (flags.boat ? 0.62 : 0.4));
-      var box = document.getElementById("chs"); box.innerHTML = "";
-      s.ch.forEach(function (pair) {
-        var b = document.createElement("button"); b.textContent = pair[0];
-        b.onclick = function () {
-          Object.assign(flags, pair[1]);
-          if (pair[1].end) {
-            document.getElementById("wp").textContent = "You walked with " + flags.friend + (flags.kind ? " and helped Crab." : ".");
-            document.getElementById("win").classList.remove("off");
-            si = 0;
-          } else { si++; stars++; if (flags.kind) stars++; }
-          save(); if (!pair[1].end) show();
-        };
-        box.appendChild(b);
-      });
+    var W, H, t = 0, play = false, step = 0, stars = 0, flags = {};
+    var stones = [];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-treasure") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function layout() {
+      stones = [
+        { x: 0.22, y: 0.72, e: "🪨" },
+        { x: 0.50, y: 0.60, e: "🪨" },
+        { x: 0.30, y: 0.46, e: "🪨" },
+        { x: 0.62, y: 0.36, e: "🪨" },
+        { x: 0.48, y: 0.22, e: "💎" }
+      ];
+    }
+    function hud() { document.getElementById("st").textContent = "⭐ " + stars; }
     function start() {
-      si = 0; document.getElementById("title").classList.add("off");
+      play = true; step = 0; flags = {}; layout();
+      document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("panel").classList.add("on");
-      show();
+      document.getElementById("say").textContent = "Tap the glowing stone!";
+      hud();
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      var i, best = -1, bestD = 70 * 70;
+      for (i = 0; i < stones.length; i++) {
+        var dx = e.clientX - stones[i].x * W, dy = e.clientY - stones[i].y * H;
+        var d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      if (best < 0) { document.getElementById("say").textContent = "Tap a stone!"; return; }
+      if (best === step) {
+        stars++; flags["s" + step] = 1; step++;
+        try { localStorage.setItem("alabryuu-treasure", JSON.stringify({ stars: stars, scene: step, flags: flags })); } catch (err) {}
+        hud();
+        if (step >= stones.length) {
+          play = false;
+          document.getElementById("wp").textContent = "⭐ " + stars + "  Sparkly treasure!";
+          document.getElementById("win").classList.remove("off");
+        } else document.getElementById("say").textContent = "Yes! Next glow.";
+      } else {
+        document.getElementById("say").textContent = "Not that one. The glow!";
+      }
+    });
     function loop() {
-      T += 0.016; kidX += (destX - kidX) * 0.05;
-      var night = flags.lantern && flags.cave;
-      var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, night ? "#0b132b" : "#7dd3fc"); g.addColorStop(1, "#ca8a04");
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#38bdf8"; x.fillRect(0, H * 0.72, W, H * 0.28);
-      x.fillStyle = "#65a30d"; x.beginPath(); x.ellipse(W * 0.5, H * 0.7, W * 0.46, 48, 0, 0, 6.3); x.fill();
-      em("🏝️", W * 0.5, H * 0.58, 72);
-      for (var i = 0; i < 6; i++) em("🌴", 45 + i * 70, H * 0.5, 36);
-      if (si >= 3) em("🦀", W * 0.28, H * 0.68, 32);
-      if (si >= 5) em("🦉", W * 0.72, H * 0.42, 32);
-      em("🧰", W * 0.8, H * 0.62, 36);
-      var kx = W * kidX, ky = H * 0.64 + Math.sin(T * 8) * 2;
-      em("🧒", kx, ky - 10, 36);
+      t += 0.016;
+      x.fillStyle = "#7c2d12"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#166534"; x.fillRect(0, H * 0.78, W, H * 0.22);
+      em("🌴", 40, H * 0.72, 64); em("🌴", W - 40, H * 0.70, 72);
+      for (var i = 0; i < stones.length; i++) {
+        var s = stones[i], px = s.x * W, py = s.y * H;
+        if (i === step && play) {
+          x.beginPath(); x.arc(px, py, 46 + Math.sin(t * 6) * 6, 0, Math.PI * 2);
+          x.fillStyle = "rgba(253,224,71,0.45)"; x.fill();
+        }
+        em(i < step ? "⭐" : s.e, px, py, i === stones.length - 1 ? 80 : 64);
+      }
+      if (play && step < stones.length) em("🧒", stones[Math.max(0, step - 1)].x * W, stones[Math.max(0, step - 1)].y * H - 50, 56);
       requestAnimationFrame(loop);
     }
-    loop();
+    layout();
+    requestAnimationFrame(loop);
+    hud();
   })();
   </script>
 </body>

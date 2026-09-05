@@ -4,142 +4,133 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Dino Stomp</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,sans-serif;background:#14532d;color:#ecfccb;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#14532d;text-decoration:none;font-weight:800;background:#fde047;padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
-    #hud b{display:inline-block;background:#fff;color:#14532d;padding:6px 10px;border-radius:999px;margin-left:6px}
-    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
-    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;padding:10px;justify-content:center}
-    #dock.on{display:flex}
-    #dock button{min-width:110px;height:64px;border-radius:18px;background:#fde047;color:#14532d;font-weight:800;font-size:20px;box-shadow:0 6px 0 #ca8a04}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#84cc16,#14532d)}
-    .cover.off{display:none}
-    h1{font-size:clamp(34px,9vw,52px);color:#fff;text-shadow:0 4px 0 #14532d}
-    .btn{background:#fde047;color:#14532d;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #ca8a04}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="val">Sunny path</b><b id="fl">🌼 0</b><b id="st">⭐ 0</b></div>
-  <div id="say">4 legs walk. Hop or STOMP!</div>
-  <div id="dock">
-    <button id="hop">Hop</button>
-    <button id="stomp">Stomp</button>
+  <div id="hud"><b id="fl">🌼 0</b><b id="st">⭐ 0</b></div>
+  <div id="say">Hop for flowers. Stomp the logs!</div>
+  <div class="dock" id="dock">
+    <button id="hop"><span>⬆️</span>Hop</button>
+    <button id="stomp"><span>💥</span>Stomp</button>
   </div>
   <div class="cover" id="title">
+    <div class="hero">🦕</div>
     <h1>Dino Stomp</h1>
-    <p>Hop the logs. Stomp the bumps.<br>Pick flowers.</p>
-    <button class="btn" id="go">Play</button>
+    <p>Hop flowers. Stomp logs. Keep going!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
+    <div class="hero">🎉</div>
     <h1>Dino did it!</h1>
     <p id="winP">⭐ 0</p>
-    <button class="btn" id="again">Play again</button>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, last = 0, play = false, valley = 0, flowers = 0, stars = 0;
+    var W, H, t = 0, last = 0, play = false, flowers = 0, stars = 0;
     var dino = { y: 0, vy: 0, pose: "walk", poseT: 0 };
-    var logs = [], blooms = [], rain = [];
-    var VAL = [
-      { n: "Sunny path", rain: 0, need: 5 },
-      { n: "Rolling logs", rain: 0, need: 6 },
-      { n: "Rain woods", rain: 1, need: 6 },
-      { n: "Night bugs", rain: 0, need: 6 },
-      { n: "Big pal", rain: 0, need: 3, boss: 1 }
-    ];
+    var logs = [], blooms = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dino") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
     addEventListener("resize", resize); resize();
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
     function save() { try { localStorage.setItem("alabryuu-dino", JSON.stringify({ stars: stars })); } catch (e) {} }
     function hud() {
-      document.getElementById("val").textContent = VAL[valley].n;
       document.getElementById("fl").textContent = "🌼 " + flowers;
       document.getElementById("st").textContent = "⭐ " + stars;
     }
-    function ground() { return H * 0.72; }
-    function loadVal() {
+    function ground() { return H * 0.70; }
+    function load() {
       logs = []; blooms = []; flowers = 0; dino.y = 0; dino.vy = 0; dino.pose = "walk";
       var i;
-      for (i = 0; i < 5; i++) logs.push({ x: W + i * 180, smash: 0, boss: 0, hp: 1 });
-      if (VAL[valley].boss) logs.push({ x: W + 400, smash: 0, boss: 1, hp: 3 });
-      for (i = 0; i < 6; i++) blooms.push({ x: 220 + i * 140, got: 0 });
+      for (i = 0; i < 4; i++) logs.push({ x: W + 80 + i * 220, smash: 0 });
+      for (i = 0; i < 5; i++) blooms.push({ x: 260 + i * 170, got: 0 });
       hud();
     }
     function hop() { if (!play || dino.pose !== "walk") return; dino.pose = "crouch"; dino.poseT = 0; }
     function stompNow() { if (!play || (dino.pose !== "walk" && dino.pose !== "land")) return; dino.pose = "stomp"; dino.poseT = 0; }
     function start() {
-      play = true; valley = 0;
+      play = true;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
-      loadVal();
+      document.getElementById("say").textContent = "Hop flowers. Stomp logs!";
+      load();
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
     document.getElementById("hop").onclick = hop;
     document.getElementById("stomp").onclick = stompNow;
-
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      if (e.clientY > H - 120) return;
+      if (e.clientX < W * 0.5) hop(); else stompNow();
+    });
+    function cheer() {
+      if (flowers >= 12 && play) {
+        play = false;
+        document.getElementById("dock").classList.remove("on");
+        document.getElementById("winP").textContent = "🌼 " + flowers + "  ⭐ " + stars;
+        document.getElementById("win").classList.remove("off");
+      } else if (flowers && flowers % 4 === 0) {
+        document.getElementById("say").textContent = "Yes! Keep stomping!";
+      }
+    }
     function loop(now) {
       if (!last) last = now;
       var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
-      var gY = ground(), spd = 160 + valley * 20;
+      var gY = ground(), spd = 170;
       if (play) {
         dino.poseT += dt;
-        if (dino.pose === "crouch") { dino.y = 8; if (dino.poseT > 0.18) { dino.pose = "air"; dino.vy = -420; dino.poseT = 0; } }
-        else if (dino.pose === "air") { dino.vy += 1100 * dt; dino.y += dino.vy * dt; if (dino.y >= 0) { dino.y = 0; dino.pose = "land"; dino.poseT = 0; } }
-        else if (dino.pose === "land") { if (dino.poseT > 0.16) dino.pose = "walk"; }
-        else if (dino.pose === "stomp") { dino.y = 10; if (dino.poseT > 0.28) dino.pose = "walk"; }
+        if (dino.pose === "crouch") { dino.y = 8; if (dino.poseT > 0.14) { dino.pose = "air"; dino.vy = -460; dino.poseT = 0; } }
+        else if (dino.pose === "air") { dino.vy += 1200 * dt; dino.y += dino.vy * dt; if (dino.y >= 0) { dino.y = 0; dino.pose = "land"; dino.poseT = 0; } }
+        else if (dino.pose === "land") { if (dino.poseT > 0.14) dino.pose = "walk"; }
+        else if (dino.pose === "stomp") { dino.y = 10; if (dino.poseT > 0.26) dino.pose = "walk"; }
         else dino.y = Math.sin(t * 8) * 3;
         logs.forEach(function (o) {
-          if (o.smash) return;
+          if (o.smash) { o.x -= spd * dt; if (o.x < -80) { o.x = W + 140; o.smash = 0; } return; }
           o.x -= spd * dt;
-          var hit = o.x > 70 && o.x < 150 && dino.y > -20;
+          var hit = o.x > 60 && o.x < 180 && dino.y > -24;
           if (hit && dino.pose === "stomp") {
-            o.hp--; if (o.hp <= 0) { o.smash = 1; flowers++; stars++; }
-            else o.x = W + 80;
-            save(); hud();
+            o.smash = 1; flowers++; stars++; save(); hud(); cheer();
+            document.getElementById("say").textContent = "Stomp!";
           } else if (hit && (dino.pose === "air" || dino.pose === "land")) {
-            o.smash = 1; flowers++; stars++; save(); hud();
-          } else if (hit && dino.pose === "walk") { o.x = W + 40; }
-          if (o.x < -80) { o.x = W + 120; o.smash = 0; }
+            o.x = W + 60;
+            document.getElementById("say").textContent = "Hop over! Stomp next time.";
+          } else if (hit && dino.pose === "walk") {
+            o.x = W + 40;
+            document.getElementById("say").textContent = "Oops! Tap Stomp.";
+          }
+          if (o.x < -80) { o.x = W + 160; o.smash = 0; }
         });
         blooms.forEach(function (f) {
           f.x -= spd * dt;
-          if (!f.got && f.x > 80 && f.x < 150 && (dino.pose === "air" || dino.pose === "land" || dino.pose === "stomp")) { f.got = 1; flowers++; stars++; save(); hud(); }
-          if (f.x < -40) { f.x = W + 80; f.got = 0; }
+          if (!f.got && f.x > 70 && f.x < 180 && (dino.pose === "air" || dino.pose === "land")) {
+            f.got = 1; flowers++; stars++; save(); hud(); cheer();
+            document.getElementById("say").textContent = "Flower!";
+          }
+          if (f.x < -40) { f.x = W + 100; f.got = 0; }
         });
-        if (VAL[valley].rain && rain.length < 18) rain.push({ x: Math.random() * W, y: Math.random() * H * 0.6 });
-        if (flowers >= VAL[valley].need) {
-          valley++;
-          if (valley >= VAL.length) {
-            play = false; document.getElementById("dock").classList.remove("on");
-            document.getElementById("winP").textContent = "⭐ " + stars;
-            document.getElementById("win").classList.remove("off");
-          } else loadVal();
-        }
       }
-      var night = VAL[valley] && VAL[valley].n.indexOf("Night") >= 0;
-      x.fillStyle = night ? "#0f172a" : (VAL[valley] && VAL[valley].rain ? "#64748b" : "#7dd3fc");
-      x.fillRect(0, 0, W, H);
-      x.fillStyle = night ? "#14532d" : "#4ade80"; x.fillRect(0, gY, W, H - gY);
-      rain.forEach(function (r) { r.y += 260 * dt; if (r.y > H) r.y = -10; x.strokeStyle = "#bae6fd"; x.beginPath(); x.moveTo(r.x, r.y); x.lineTo(r.x - 4, r.y + 12); x.stroke(); });
-      if (!(VAL[valley] && VAL[valley].rain)) rain.length = 0;
-      blooms.forEach(function (f) { if (f.got) return; em("🌼", f.x, gY - 18, 28); });
-      logs.forEach(function (o) {
-        if (o.smash) return;
-        em("🪵", o.x + (o.boss ? 35 : 23), gY - (o.boss ? 36 : 18), o.boss ? 64 : 42);
-      });
-      var dx = 110, dy = gY - 20 + dino.y;
-      var dsz = dino.pose === "stomp" ? 58 : (dino.pose === "crouch" ? 40 : 50);
-      em("🦕", dx, dy - 18, dsz);
+      x.fillStyle = "#7dd3fc"; x.fillRect(0, 0, W, H);
+      em("☀️", W * 0.84, 90, 56);
+      em("🌳", 40, gY - 40, 64); em("🌳", W - 40, gY - 50, 72);
+      x.fillStyle = "#4ade80"; x.fillRect(0, gY, W, H - gY);
+      blooms.forEach(function (f) { if (!f.got) em("🌼", f.x, gY - 28, 48); });
+      logs.forEach(function (o) { if (!o.smash) em("🪵", o.x, gY - 24, 64); });
+      var dsz = dino.pose === "stomp" ? 92 : (dino.pose === "crouch" ? 64 : 80);
+      em("🦕", 120, gY - 28 + dino.y, dsz);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

@@ -4,361 +4,88 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Balloon Pop</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%; overflow: hidden;
-      font-family: "Trebuchet MS", system-ui, sans-serif;
-      background: #5b21b6; color: #fff7ed;
-      touch-action: none; user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    .home {
-      position: fixed; top: 10px; left: 10px; z-index: 20;
-      color: #3b0764; text-decoration: none; font-weight: 800; font-size: 16px;
-      background: #fde047; padding: 8px 14px; border-radius: 999px;
-      box-shadow: 0 4px 0 #ca8a04;
-    }
-    canvas { display: block; width: 100%; height: 100%; }
-    .banner {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-      display: flex; justify-content: center; pointer-events: none;
-    }
-    .banner .inner {
-      margin-top: 8px; background: #7c3aed; border: 4px solid #fde047;
-      border-radius: 0 0 22px 22px; padding: 8px 22px 10px;
-      box-shadow: 0 6px 0 #4c1d95; text-align: center; min-width: 200px;
-    }
-    .banner .wave { font-weight: 800; font-size: 18px; color: #fde047; }
-    .banner .pops { font-weight: 800; font-size: 14px; color: #fff; }
-    .ask {
-      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
-      z-index: 12; display: flex; align-items: center; gap: 10px;
-      background: #fff; color: #3b0764; padding: 10px 18px; border-radius: 999px;
-      box-shadow: 0 6px 0 #c4b5fd; pointer-events: none; font-weight: 800; font-size: 22px;
-    }
-    .ask .dot { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #3b0764; flex-shrink: 0; }
-    .starrow { position: fixed; top: 58px; right: 10px; z-index: 12; display: flex; gap: 4px; pointer-events: none; }
-    .starrow b { width: 16px; height: 16px; background: #4c1d95; clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
-    .starrow b.on { background: #fde047; }
-    .hint {
-      position: fixed; left: 10px; right: 10px; top: 70px; z-index: 8;
-      text-align: center; font-weight: 800; font-size: 18px;
-      text-shadow: 0 3px 0 #5b21b6; pointer-events: none;
-    }
-    .cover {
-      position: fixed; inset: 0; z-index: 18;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; gap: 12px; padding: 24px;
-      background: linear-gradient(180deg, rgba(124,58,237,.4), rgba(91,33,182,.62));
-    }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(34px, 9vw, 52px); color: #fde047; text-shadow: 0 5px 0 #4c1d95; }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 300px; }
-    .btn {
-      background: #fde047; color: #422006; font-weight: 800; font-size: 26px;
-      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #ca8a04;
-    }
-    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
-    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#7dd3fc}</style>
 </head>
 <body>
-  <a class="home" href="../index.html">Home</a>
+  <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div class="banner"><div class="inner"><div class="wave" id="waveName">Parade</div><div class="pops" id="pops">Pops 0</div></div></div>
-  <div class="starrow" id="stars"></div>
-  <div class="hint" id="say">Hold. Aim the pin. Let go!</div>
-  <div class="ask"><span class="dot" id="askDot"></span><span id="askWord">RED</span></div>
+  <div id="hud"><b id="got">0/8</b></div>
+  <div id="say">Pop the red ones! 🔴</div>
   <div class="cover" id="title">
+    <div class="hero">🎈</div>
     <h1>Balloon Pop</h1>
-    <p>Hold to aim the pin. Let go to poke the color we ask!</p>
-    <button class="btn" id="go" type="button">Play</button>
+    <p>Pop only the color we ask!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Party yes!</h1>
-    <p id="winP">Five waves. Big pops.</p>
-    <button class="btn g" id="again" type="button">Play again</button>
+    <div class="hero">🎉</div>
+    <h1>Pop party!</h1>
+    <p>Eight right pops.</p>
+    <button class="play g" id="again">Pop again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), g = cv.getContext("2d");
-    var W, H, t = 0, last = 0, mode = "title", wave = 0, pops = 0, stars = 0, need = 6;
-    var ask = "red", hold = 0, aim = -1.2, kidX = 0, kidY = 0, pinLen = 170;
-    var balloons = [], bits = [], clouds = [], flags = [];
-    var pokeFlash = 0;
-    var COLORS = [
-      { k: "red", c: "#ef4444", n: "RED" },
-      { k: "blue", c: "#3b82f6", n: "BLUE" },
-      { k: "yellow", c: "#facc15", n: "YELLOW" },
-      { k: "green", c: "#22c55e", n: "GREEN" },
-      { k: "pink", c: "#f472b6", n: "PINK" }
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, n = 0;
+    var want = "🔴", balls = [];
+    var SET = [
+      { e: "🔴", n: "red" }, { e: "🟡", n: "yellow" }, { e: "🔵", n: "blue" }, { e: "🟢", n: "green" }
     ];
-    var WAVES = [
-      { n: "Parade", wind: 8, rise: 16, need: 6, rain: 0, say: "Hold. Aim. Poke RED." },
-      { n: "Breeze", wind: 28, rise: 20, need: 7, rain: 0, say: "Wind slides them." },
-      { n: "Mix-up", wind: 12, rise: 22, need: 7, rain: 0, say: "Look at the color!" },
-      { n: "Gust", wind: 48, rise: 24, need: 8, rain: 0, say: "Big wind. Aim well." },
-      { n: "Rainbow", wind: 18, rise: 18, need: 8, rain: 1, say: "Rainbow always counts!" }
-    ];
-
-    function beep(f, d, typ) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), a = ac.createGain();
-        o.type = typ || "square"; o.frequency.value = f; a.gain.value = 0.06;
-        o.connect(a); a.connect(ac.destination); o.start();
-        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
-        o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function say(s) { document.getElementById("say").textContent = s; }
-    function paintStars() {
-      var el = document.getElementById("stars"), html = "", i;
-      for (i = 0; i < 5; i++) html += "<b" + (i < stars ? " class=\"on\"" : "") + "></b>";
-      el.innerHTML = html;
-    }
-    function setAsk(k) {
-      ask = k;
-      var col = COLORS.filter(function (c) { return c.k === k; })[0] || COLORS[0];
-      document.getElementById("askDot").style.background = col.c;
-      document.getElementById("askWord").textContent = col.n;
-    }
-    function hud() {
-      document.getElementById("waveName").textContent = WAVES[Math.min(wave, 4)].n;
-      document.getElementById("pops").textContent = "Pops " + pops + " / " + need;
-      paintStars();
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
     function resize() {
-      W = cv.width = innerWidth; H = cv.height = innerHeight;
-      kidX = W * 0.5; kidY = H * 0.86;
-      pinLen = Math.min(210, Math.max(140, H * 0.28));
-      if (!flags.length) seed();
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
-    function seed() {
-      flags = []; clouds = [];
-      var i;
-      for (i = 0; i < 12; i++) flags.push({ x: i / 11, c: COLORS[i % COLORS.length].c, ph: i });
-      for (i = 0; i < 4; i++) clouds.push({ x: Math.random(), y: 0.12 + Math.random() * 0.1, w: 60 + Math.random() * 50, s: 8 });
+    addEventListener("resize", resize); resize();
+    function spawn() {
+      var s = SET[(Math.random() * SET.length) | 0];
+      balls.push({ e: s.e, x: 50 + Math.random() * (W - 100), y: H + 20, vy: 70 + Math.random() * 40 });
     }
-    function spawnBal(anywhere) {
-      var col = COLORS[(Math.random() * COLORS.length) | 0];
-      var rain = WAVES[Math.min(wave, 4)].rain && Math.random() < 0.2;
-      balloons.push({
-        x: anywhere ? 50 + Math.random() * (W - 100) : 40 + Math.random() * (W - 80),
-        y: anywhere ? 90 + Math.random() * (H * 0.4) : H * 0.72,
-        r: 24 + Math.random() * 10, col: col.k, hex: col.c, rain: rain,
-        ph: Math.random() * 6, drift: 0, gone: 0
-      });
-    }
-    function resetWave() {
-      var w = WAVES[wave];
-      balloons = []; bits = []; pops = 0; need = w.need;
-      setAsk(COLORS[(Math.random() * COLORS.length) | 0].k);
-      say(w.say);
-      var i;
-      for (i = 0; i < 5; i++) spawnBal(true);
-      hud();
-    }
-    function startGame() {
-      mode = "play"; wave = 0; stars = 0;
+    function start() {
+      play = true; n = 0; balls = []; want = "🔴";
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      resetWave();
-      beep(392, 0.1); beep(523, 0.12);
+      document.getElementById("got").textContent = "0/8";
+      document.getElementById("say").textContent = "Pop the red ones! 🔴";
     }
-    function nextWave() {
-      stars++;
-      wave++;
-      if (wave >= 5) {
-        mode = "win";
-        document.getElementById("winP").textContent = "You poked the party colors!";
-        document.getElementById("win").classList.remove("off");
-        beep(659, 0.16); beep(784, 0.2);
-        hud();
-        return;
-      }
-      beep(700, 0.1);
-      resetWave();
-    }
-    function spray(x, y, c) {
-      var i;
-      for (i = 0; i < 14; i++) {
-        bits.push({
-          x: x, y: y, vx: (Math.random() - 0.5) * 240, vy: (Math.random() - 0.5) * 220 - 30,
-          life: 0.45 + Math.random() * 0.4, c: c, s: 3 + Math.random() * 4
-        });
-      }
-    }
-    function pinTip() {
-      return { x: kidX + Math.cos(aim) * pinLen, y: kidY - 28 + Math.sin(aim) * pinLen };
-    }
-    function pokeReach() {
-      return Math.max(pinLen + 40, Math.min(W, H) * 0.7);
-    }
-    function poke() {
-      var tip = pinTip(), i, b, dx, dy, hit = -1, sway, bob, k, px, py;
-      pokeFlash = 0.18;
-      beep(880, 0.05, "triangle");
-      var reach = pokeReach();
-      for (i = 0; i < balloons.length; i++) {
-        b = balloons[i];
-        if (b.gone) continue;
-        bob = Math.sin(t * 2.2 + b.ph) * 8;
-        sway = Math.sin(t * 1.4 + b.ph) * 6;
-        for (k = 0.2; k <= 1.05; k += 0.05) {
-          px = kidX + Math.cos(aim) * reach * k;
-          py = kidY - 28 + Math.sin(aim) * reach * k;
-          dx = px - (b.x + sway); dy = py - (b.y + bob);
-          if (dx * dx + dy * dy < (b.r + 40) * (b.r + 40)) { hit = i; k = 99; }
-        }
-        if (hit >= 0) break;
-      }
-      if (hit < 0) { say("Aim again!"); return; }
-      b = balloons[hit];
-      if (b.col === ask || b.rain) {
-        spray(b.x, b.y, b.rain ? "#a78bfa" : b.hex);
-        balloons.splice(hit, 1);
-        pops += b.rain ? 2 : 1;
-        beep(520, 0.08); beep(660, 0.1);
-        say(b.rain ? "Rainbow yes!" : "Pop!");
-        if (Math.random() < 0.5) setAsk(COLORS[(Math.random() * COLORS.length) | 0].k);
-        hud();
-        if (pops >= need) nextWave();
-      } else {
-        b.gone = 1;
-        b.drift = (b.x < kidX ? -80 : 80);
-        say("It floats away. Try " + (COLORS.filter(function (c) { return c.k === ask; })[0] || { n: "that" }).n + "!");
-        beep(200, 0.08, "sine");
-      }
-    }
-    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
-    function drawBalloon(b) {
-      var bob = Math.sin(t * 2.2 + b.ph) * 8;
-      var sway = Math.sin(t * 1.4 + b.ph) * 6;
-      var x = b.x + sway, y = b.y + bob;
-      em(b.rain ? "🌈" : "🎈", x, y, b.r * 2.4);
-    }
-    function drawKid() {
-      var tip = pinTip();
-      var hop = hold ? 0 : Math.abs(Math.sin(t * 3)) * 3;
-      var hnx = kidX + Math.cos(aim) * 40, hny = kidY - 48 - hop + Math.sin(aim) * 40;
-      em("🧒", kidX, kidY - 40 - hop, 56);
-      if (hold) {
-        var reach = pokeReach();
-        g.strokeStyle = "rgba(253,224,71,.45)"; g.lineWidth = 3;
-        g.setLineDash([8, 8]);
-        g.beginPath();
-        g.moveTo(tip.x, tip.y);
-        g.lineTo(kidX + Math.cos(aim) * reach, kidY - 28 + Math.sin(aim) * reach);
-        g.stroke();
-        g.setLineDash([]);
-      }
-      g.strokeStyle = "#92400e"; g.lineWidth = 6;
-      g.beginPath(); g.moveTo(hnx, hny); g.lineTo(tip.x, tip.y); g.stroke();
-      em("📍", tip.x, tip.y, 22);
-    }
-    function drawBg() {
-      var grd = g.createLinearGradient(0, 0, 0, H);
-      grd.addColorStop(0, wave === 4 ? "#4c1d95" : "#7dd3fc");
-      grd.addColorStop(0.5, wave === 4 ? "#7c3aed" : "#f9a8d4");
-      grd.addColorStop(1, "#86efac");
-      g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      if (wave !== 4) em("☀️", W * 0.84, H * 0.16, 36);
-      else em("🌙", W * 0.84, H * 0.16, 32);
-      var i, c, cx;
-      for (i = 0; i < clouds.length; i++) {
-        c = clouds[i];
-        cx = ((c.x + t * 0.03) % 1.3) * W - 20;
-        em("☁️", cx, c.y * H, 32);
-      }
-      g.strokeStyle = "#fde047"; g.lineWidth = 3;
-      g.beginPath();
-      for (i = 0; i < flags.length; i++) {
-        var fx = flags[i].x * W, fy = 36 + Math.sin(t * 2 + flags[i].ph) * 5;
-        if (i === 0) g.moveTo(fx, fy); else g.lineTo(fx, fy);
-      }
-      g.stroke();
-      for (i = 0; i < flags.length; i++) {
-        g.fillStyle = flags[i].c;
-        var x = flags[i].x * W, y = 36 + Math.sin(t * 2 + flags[i].ph) * 5;
-        g.beginPath(); g.moveTo(x - 9, y); g.lineTo(x + 9, y); g.lineTo(x, y + 20); g.fill();
-      }
-      g.fillStyle = "#4d7c0f"; g.fillRect(0, H * 0.78, W, H);
-      g.fillStyle = "#65a30d"; g.fillRect(0, H * 0.78, W, 10);
-    }
-    function update(dt) {
-      var w = WAVES[Math.min(wave, 4)];
-      t += dt;
-      if (pokeFlash > 0) pokeFlash -= dt;
-      var i, b;
-      if (mode === "play") {
-        if (balloons.length < 6 + wave) spawnBal(false);
-        for (i = balloons.length - 1; i >= 0; i--) {
-          b = balloons[i];
-          if (b.gone) {
-            b.x += b.drift * dt; b.y -= 10 * dt; b.drift *= 1.01;
-            if (b.x < -40 || b.x > W + 40) balloons.splice(i, 1);
-            continue;
-          }
-          b.y -= w.rise * dt;
-          b.x += Math.sin(t * 1.1 + b.ph) * 10 * dt + w.wind * dt * 0.28;
-          if (b.x < 28) b.x = 28;
-          if (b.x > W - 28) b.x = W - 28;
-          if (b.y < 40) balloons.splice(i, 1);
-        }
-      } else if (balloons.length < 6) spawnBal(true);
-      for (i = bits.length - 1; i >= 0; i--) {
-        bits[i].x += bits[i].vx * dt; bits[i].y += bits[i].vy * dt; bits[i].vy += 220 * dt; bits[i].life -= dt;
-        if (bits[i].life <= 0) bits.splice(i, 1);
-      }
-    }
-    function draw() {
-      drawBg();
-      var i;
-      for (i = 0; i < balloons.length; i++) drawBalloon(balloons[i]);
-      for (i = 0; i < bits.length; i++) {
-        g.globalAlpha = Math.max(0, bits[i].life);
-        g.fillStyle = bits[i].c;
-        g.beginPath(); g.arc(bits[i].x, bits[i].y, bits[i].s, 0, Math.PI * 2); g.fill();
-        g.globalAlpha = 1;
-      }
-      drawKid();
-    }
-    function loop(now) {
-      requestAnimationFrame(loop);
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
-      update(dt); draw();
-    }
-    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
-      if (mode !== "play") return;
-      hold = 1;
-      var p = pos(e);
-      aim = Math.atan2(p.y - (kidY - 28), p.x - kidX);
-      try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+      if (!play) return;
+      for (var i = balls.length - 1; i >= 0; i--) {
+        var dx = e.clientX - balls[i].x, dy = e.clientY - balls[i].y;
+        if (dx * dx + dy * dy < 50 * 50) {
+          if (balls[i].e === want) {
+            balls.splice(i, 1); n++;
+            document.getElementById("got").textContent = n + "/8";
+            document.getElementById("say").textContent = "Pop!";
+            if (n === 4) { want = "🟡"; document.getElementById("say").textContent = "Now yellow! 🟡"; }
+            if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else {
+            document.getElementById("say").textContent = "Not that color. " + want;
+          }
+          return;
+        }
+      }
     });
-    cv.addEventListener("pointermove", function (e) {
-      if (!hold || mode !== "play") return;
-      var p = pos(e);
-      aim = Math.atan2(p.y - (kidY - 28), p.x - kidX);
-    });
-    function release() {
-      if (!hold) return;
-      hold = 0;
-      if (mode === "play") poke();
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#7dd3fc"; x.fillRect(0, 0, W, H);
+      em("☁️", 60, 90, 56); em("☁️", W - 50, 120, 64);
+      if (play) {
+        if (balls.length < 5 && Math.random() < 0.04) spawn();
+        balls.forEach(function (b) { b.y -= b.vy * dt; });
+        balls = balls.filter(function (b) { return b.y > -40; });
+      }
+      balls.forEach(function (b) { em(b.e, b.x, b.y, 64); });
+      requestAnimationFrame(loop);
     }
-    cv.addEventListener("pointerup", release);
-    cv.addEventListener("pointercancel", release);
-    document.getElementById("go").onclick = startGame;
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
-    addEventListener("resize", resize);
-    resize();
     requestAnimationFrame(loop);
   })();
   </script>

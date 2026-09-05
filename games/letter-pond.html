@@ -4,361 +4,90 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Letter Pond</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%; overflow: hidden;
-      font-family: Georgia, "Palatino Linotype", serif;
-      background: #1a3a1a; color: #fefce8;
-      touch-action: none; user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    .home {
-      position: fixed; top: 10px; left: 10px; z-index: 20;
-      color: #fff; text-decoration: none; font-family: Trebuchet MS, sans-serif;
-      font-weight: 800; font-size: 16px;
-      background: rgba(20, 83, 45, .75); padding: 8px 14px; border-radius: 8px;
-      border: 2px solid #86efac;
-    }
-    canvas { display: block; width: 100%; height: 100%; }
-    .woodbar {
-      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-      z-index: 12; background: linear-gradient(#92400e, #78350f);
-      border: 4px solid #451a03; border-radius: 6px;
-      padding: 6px 18px; text-align: center; pointer-events: none;
-      box-shadow: 0 5px 0 #1c0a00; min-width: 140px;
-    }
-    .woodbar .wn { font-family: Trebuchet MS, sans-serif; font-weight: 800; font-size: 16px; color: #fde68a; }
-    .lilies {
-      position: fixed; top: 10px; right: 10px; z-index: 12;
-      display: flex; gap: 5px; pointer-events: none;
-    }
-    .lilies i {
-      width: 18px; height: 12px; background: #365314; border-radius: 50%;
-    }
-    .lilies i.on { background: #86efac; }
-    #word {
-      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
-      z-index: 12; min-width: 200px; text-align: center;
-      background: linear-gradient(#d6a15a, #b45309);
-      border: 6px solid #78350f; border-radius: 8px;
-      padding: 12px 22px; font-weight: 800; font-size: 32px;
-      letter-spacing: 10px; color: #fff7ed;
-      box-shadow: 0 8px 0 #451a03, inset 0 0 0 3px #fde68a;
-      pointer-events: none; font-family: Georgia, serif;
-    }
-    .hint {
-      position: fixed; left: 12px; right: 12px; top: 56px; z-index: 8;
-      text-align: center; font-family: Trebuchet MS, sans-serif; font-weight: 800;
-      font-size: 18px; color: #fff; text-shadow: 0 2px 0 #14532d; pointer-events: none;
-    }
-    .cover {
-      position: fixed; inset: 0; z-index: 18;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; gap: 12px; padding: 24px;
-      background: linear-gradient(180deg, rgba(20,83,45,.4), rgba(22,101,52,.62));
-    }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(34px, 9vw, 52px); color: #fde047; text-shadow: 0 4px 0 #14532d; }
-    .cover p { font-family: Trebuchet MS, sans-serif; font-weight: 800; font-size: 18px; max-width: 300px; }
-    .btn {
-      font-family: Trebuchet MS, sans-serif; background: #fde047; color: #422006;
-      font-weight: 800; font-size: 26px; padding: 16px 36px; border-radius: 22px;
-      box-shadow: 0 8px 0 #ca8a04;
-    }
-    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
-    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#0369a1}</style>
 </head>
 <body>
-  <a class="home" href="../index.html">Home</a>
+  <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div class="woodbar"><div class="wn" id="wordN">Word 1</div></div>
-  <div class="lilies" id="stars"></div>
-  <div class="hint" id="say">Tap the next letter!</div>
-  <div id="word">___</div>
+  <div id="hud"><b id="rd">1/8</b></div>
+  <div id="say">Tap A</div>
   <div class="cover" id="title">
+    <div class="hero">🔤</div>
     <h1>Letter Pond</h1>
-    <p>Tap the next letter. The frog hops pad to pad!</p>
-    <button class="btn" id="go" type="button">Play</button>
+    <p>Tap the letter we say!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Words done!</h1>
-    <p id="winP">Five words. Big smile.</p>
-    <button class="btn g" id="again" type="button">Play again</button>
+    <div class="hero">🐸</div>
+    <h1>Letter star!</h1>
+    <p>Eight letters caught.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), g = cv.getContext("2d");
-    var W, H, t = 0, last = 0, mode = "title", stage = 0, stars = 0, nextI = 0;
-    var pads = [], reeds = [], ripples = [];
-    var frog = { x: 0, y: 0, sx: 0, sy: 0, tx: 0, ty: 0, st: "idle", u: 0, shake: 0, look: 0 };
-    var WORDS = [
-      { w: "CAT", n: "Word 1" },
-      { w: "SUN", n: "Word 2" },
-      { w: "HOP", n: "Word 3" },
-      { w: "FROG", n: "Word 4" },
-      { w: "STAR", n: "Word 5" }
-    ];
-
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), a = ac.createGain();
-        o.type = "triangle"; o.frequency.value = f; a.gain.value = 0.07;
-        o.connect(a); a.connect(ac.destination); o.start();
-        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
-        o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function say(s) { document.getElementById("say").textContent = s; }
-    function paintStars() {
-      var el = document.getElementById("stars"), html = "", i;
-      for (i = 0; i < 5; i++) html += "<i" + (i < stars ? " class=\"on\"" : "") + "></i>";
-      el.innerHTML = html;
-    }
-    function wordShow() {
-      var wd = WORDS[Math.min(stage, 4)], show = "", k;
-      for (k = 0; k < wd.w.length; k++) show += k < nextI ? wd.w[k] : "_";
-      document.getElementById("word").textContent = show;
-      document.getElementById("wordN").textContent = wd.n;
-      paintStars();
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, round = 0, want = "A";
+    var ABC = "ABCDEFGH".split("");
+    var letters = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
     function resize() {
-      W = cv.width = innerWidth; H = cv.height = innerHeight;
-      if (!reeds.length) {
-        var i;
-        for (i = 0; i < 14; i++) reeds.push({ x: Math.random(), side: i < 7 ? 0 : 1, h: 48 + Math.random() * 50, ph: i });
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
+    function deal() {
+      want = ABC[round];
+      var pool = [want];
+      while (pool.length < 4) {
+        var L = ABC[(Math.random() * ABC.length) | 0];
+        if (pool.indexOf(L) < 0) pool.push(L);
       }
+      letters = pool.map(function (L, i) {
+        return { L: L, x: 0.2 + (i % 2) * 0.55, y: 0.38 + ((i / 2) | 0) * 0.28 };
+      });
+      document.getElementById("say").textContent = "Tap " + want;
+      document.getElementById("rd").textContent = (round + 1) + "/8";
     }
-    function layoutPads(word) {
-      pads = [];
-      var letters = word.split("");
-      var extras = "BDEIJKLMNPQUVWXYZ";
-      var used = {}, i, ch;
-      for (i = 0; i < letters.length; i++) {
-        used[letters[i]] = 1;
-        pads.push({
-          ch: letters[i], need: 1, done: 0,
-          x: 0.18 + (i / Math.max(1, letters.length - 1)) * 0.64,
-          y: 0.40 + (i % 2) * 0.16,
-          ph: i, r: 38
-        });
-      }
-      for (i = 0; i < 3; i++) {
-        do { ch = extras[(Math.random() * extras.length) | 0]; } while (used[ch]);
-        used[ch] = 1;
-        pads.push({
-          ch: ch, need: 0, done: 0,
-          x: 0.16 + Math.random() * 0.68,
-          y: 0.38 + Math.random() * 0.3,
-          ph: 4 + i, r: 34, reed: 1
-        });
-      }
-    }
-    function padXY(p) {
-      return {
-        x: p.x * W + Math.sin(t * 1.2 + p.ph) * 6,
-        y: p.y * H + Math.cos(t * 1.0 + p.ph) * 4
-      };
-    }
-    function resetWord() {
-      var wd = WORDS[stage];
-      nextI = 0;
-      layoutPads(wd.w);
-      ripples = [];
-      frog.st = "idle"; frog.u = 0; frog.shake = 0;
-      frog.x = W * 0.14; frog.y = H * 0.72;
-      frog.sx = frog.x; frog.sy = frog.y;
-      say("Tap " + wd.w[0] + "!");
-      wordShow();
-    }
-    function startGame() {
-      mode = "play"; stage = 0; stars = 0;
+    function start() {
+      play = true; round = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      resetWord();
-      beep(349, 0.1); beep(440, 0.12);
+      deal();
     }
-    function nextWord() {
-      stars++;
-      stage++;
-      if (stage >= 5) {
-        mode = "win";
-        document.getElementById("winP").textContent = "You spelled five pond words!";
-        document.getElementById("win").classList.remove("off");
-        beep(523, 0.14); beep(659, 0.16); beep(784, 0.2);
-        wordShow();
-        return;
-      }
-      beep(700, 0.1);
-      resetWord();
-    }
-    function startHop(p) {
-      var xy = padXY(p);
-      frog.sx = frog.x; frog.sy = frog.y;
-      frog.tx = xy.x; frog.ty = xy.y - 18;
-      frog.st = "crouch"; frog.u = 0;
-      beep(300, 0.06);
-    }
-    function drawPad(p) {
-      var xy = padXY(p);
-      var x = xy.x, y = xy.y;
-      em(p.done ? "✅" : "🟢", x, y, p.r * 1.6);
-      if (p.reed) {
-        var sway = Math.sin(t * 1.8 + p.ph) * 6;
-        g.strokeStyle = "#365314"; g.lineWidth = 5;
-        g.beginPath(); g.moveTo(x + 16, y + 10);
-        g.quadraticCurveTo(x + 18 + sway, y - 8, x + 14 + sway, y - 30);
-        g.stroke();
-        g.fillStyle = "#4d7c0f";
-        g.beginPath(); g.ellipse(x + 14 + sway, y - 32, 5, 10, 0.2, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "rgba(22,101,52,.28)";
-        g.beginPath(); g.ellipse(x + 10, y + 4, p.r * 0.45, p.r * 0.28, 0, 0, Math.PI * 2); g.fill();
-      }
-      g.fillStyle = "#14532d";
-      g.font = "bold 32px Trebuchet MS"; g.textAlign = "center"; g.textBaseline = "middle";
-      g.fillText(p.ch, x, y - 2);
-      em("🔤", x + p.r * 0.55, y - p.r * 0.55, 16);
-      if (mode === "play" && p.need && !p.done && WORDS[stage].w[nextI] === p.ch) {
-        g.strokeStyle = "rgba(253,224,71,.9)"; g.lineWidth = 4;
-        g.beginPath(); g.ellipse(x, y, p.r + 7 + Math.sin(t * 6) * 3, p.r * 0.7 + 4, 0, 0, Math.PI * 2); g.stroke();
-      }
-      p._x = x; p._y = y;
-    }
-    function frogPose() {
-      var x = frog.x, y = frog.y, squash = 1, stretch = 1, fold = 0, air = 0;
-      if (frog.st === "crouch") {
-        squash = 1 - frog.u * 0.35;
-        stretch = 1 + frog.u * 0.2;
-        fold = frog.u;
-      } else if (frog.st === "air") {
-        var k = frog.u;
-        x = frog.sx + (frog.tx - frog.sx) * k;
-        y = frog.sy + (frog.ty - frog.sy) * k - Math.sin(k * Math.PI) * 56;
-        squash = 1.25; stretch = 0.78; air = 1;
-      } else if (frog.st === "land") {
-        squash = 0.75 + frog.u * 0.25;
-        stretch = 1.2 - frog.u * 0.2;
-        fold = 1 - frog.u;
-        x = frog.tx; y = frog.ty;
-      } else {
-        x = frog.x; y = frog.y;
-      }
-      if (frog.shake > 0) x += Math.sin(t * 28) * 5;
-      return { x: x, y: y, squash: squash, stretch: stretch, fold: fold, air: air };
-    }
-    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
-    function drawFrog() {
-      var p = frogPose();
-      g.save();
-      g.translate(p.x, p.y);
-      g.scale(p.stretch, p.squash);
-      if (frog.shake > 0) g.rotate(Math.sin(t * 20) * 0.25);
-      em("🐸", 0, 0, 52);
-      g.restore();
-    }
-    function drawBg() {
-      var grd = g.createLinearGradient(0, 0, 0, H);
-      grd.addColorStop(0, "#7dd3fc"); grd.addColorStop(0.32, "#38bdf8"); grd.addColorStop(1, "#0ea5e9");
-      g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      em("☀️", W * 0.84, H * 0.13, 36);
-      g.fillStyle = "#0284c7";
-      g.beginPath(); g.moveTo(0, H * 0.3);
-      var i;
-      for (i = 0; i <= W; i += 16) g.lineTo(i, H * 0.3 + Math.sin(i * 0.03 + t) * 6);
-      g.lineTo(W, H); g.lineTo(0, H); g.fill();
-      g.fillStyle = "#0ea5e9";
-      g.beginPath(); g.moveTo(0, H * 0.36);
-      for (i = 0; i <= W; i += 14) g.lineTo(i, H * 0.36 + Math.sin(i * 0.04 + t * 1.4) * 7);
-      g.lineTo(W, H); g.lineTo(0, H); g.fill();
-      g.fillStyle = "#166534";
-      g.beginPath(); g.ellipse(0, H, W * 0.42, 88, 0, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(W, H, W * 0.46, 96, 0, 0, Math.PI * 2); g.fill();
-      for (i = 0; i < reeds.length; i++) {
-        var r = reeds[i];
-        var rx = r.side ? W - r.x * W * 0.15 : r.x * W * 0.15;
-        var sway = Math.sin(t * 1.7 + r.ph) * 9;
-        em("🌾", rx + sway, H * 0.82 - r.h * 0.45, 28);
-      }
-    }
-    function update(dt) {
-      t += dt;
-      if (frog.shake > 0) frog.shake -= dt;
-      if (frog.st === "crouch") {
-        frog.u += dt * 6;
-        if (frog.u >= 1) { frog.st = "air"; frog.u = 0; beep(520, 0.07); }
-      } else if (frog.st === "air") {
-        frog.u += dt * 2.6;
-        if (frog.u >= 1) { frog.st = "land"; frog.u = 0; frog.x = frog.tx; frog.y = frog.ty; beep(400, 0.05); }
-      } else if (frog.st === "land") {
-        frog.u += dt * 7;
-        if (frog.u >= 1) { frog.st = "idle"; frog.u = 0; }
-      }
-      var i;
-      for (i = ripples.length - 1; i >= 0; i--) {
-        ripples[i].r += 34 * dt; ripples[i].life -= dt;
-        if (ripples[i].life <= 0) ripples.splice(i, 1);
-      }
-    }
-    function tap(x, y) {
-      if (mode !== "play" || frog.st !== "idle") return;
-      var wd = WORDS[stage], i, p, hit = -1;
-      for (i = 0; i < pads.length; i++) {
-        p = pads[i];
-        if (Math.hypot(x - p._x, y - p._y) < p.r + 14) { hit = i; break; }
-      }
-      if (hit < 0) return;
-      p = pads[hit];
-      if (p.done) return;
-      if (p.ch === wd.w[nextI] && p.need) {
-        p.done = 1;
-        nextI++;
-        startHop(p);
-        ripples.push({ x: p._x, y: p._y, r: 8, life: 0.7 });
-        wordShow();
-        if (nextI >= wd.w.length) {
-          say(wd.w + "!");
-          setTimeout(function () { if (mode === "play") nextWord(); }, 700);
-        } else {
-          say("Now " + wd.w[nextI] + "!");
-        }
-      } else {
-        frog.shake = 0.45;
-        frog.look = p._x < frog.x ? -1 : 1;
-        say("Nope. Next is " + wd.w[nextI] + ".");
-        beep(180, 0.08);
-      }
-    }
-    function draw() {
-      drawBg();
-      var i;
-      for (i = 0; i < ripples.length; i++) {
-        g.strokeStyle = "rgba(255,255,255," + (ripples[i].life * 0.5) + ")"; g.lineWidth = 2;
-        g.beginPath(); g.arc(ripples[i].x, ripples[i].y, ripples[i].r, 0, Math.PI * 2); g.stroke();
-      }
-      for (i = 0; i < pads.length; i++) drawPad(pads[i]);
-      drawFrog();
-    }
-    function loop(now) {
-      requestAnimationFrame(loop);
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
-      update(dt); draw();
-    }
-    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
-      if (mode === "play") tap(pos(e).x, pos(e).y);
+      if (!play) return;
+      letters.forEach(function (L) {
+        var dx = e.clientX - L.x * W, dy = e.clientY - L.y * H;
+        if (dx * dx + dy * dy < 60 * 60) {
+          if (L.L === want) {
+            round++;
+            if (round >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
+            else deal();
+          } else document.getElementById("say").textContent = "Find " + want + "!";
+        }
+      });
     });
-    document.getElementById("go").onclick = startGame;
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
-    addEventListener("resize", resize);
-    resize();
-    frog.x = W * 0.2; frog.y = H * 0.7;
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#38bdf8"; x.fillRect(0, 0, W, H);
+      em("🐸", 50, H * 0.22, 64); em("🪷", W - 50, H * 0.28, 56);
+      letters.forEach(function (L) {
+        var px = L.x * W, py = L.y * H + Math.sin(t * 2 + L.x) * 6;
+        em("⭕", px, py, 88);
+        x.fillStyle = "#0f172a";
+        x.font = "bold 48px Trebuchet MS,sans-serif";
+        x.textAlign = "center"; x.textBaseline = "middle";
+        x.fillText(L.L, px, py);
+      });
+      requestAnimationFrame(loop);
+    }
     requestAnimationFrame(loop);
   })();
   </script>

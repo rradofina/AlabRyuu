@@ -4,430 +4,86 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Memory Zoo</title>
+  <link rel="stylesheet" href="../kid.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #3f6212; color: #3f2a14; touch-action: none; user-select: none; }
-    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .home { position: fixed; top: 12px; left: 12px; z-index: 12; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.32); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
-    canvas { display: block; width: 100%; height: 100%; }
-    #hud { position: fixed; top: 12px; right: 12px; z-index: 8; font-weight: 800; text-align: right; pointer-events: none; }
-    #hud b { display: inline-block; background: rgba(255,255,255,.9); padding: 6px 12px; border-radius: 999px; margin-left: 6px; font-size: 14px; }
-    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 8; font-weight: 800; color: #fff; text-shadow: 0 2px 0 #3f2a14; pointer-events: none; text-align: center; width: 92%; }
-    #peek { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 8; display: none; background: #fde047; color: #422006; font-weight: 800; font-size: 20px; padding: 12px 22px; border-radius: 999px; box-shadow: 0 6px 0 #ca8a04; }
-    #peek.on { display: block; } #peek.off { opacity: .35; }
-    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; gap: 8px; padding: 20px 20px 48px; pointer-events: none; }
-    .cover.off { display: none; }
-    .cover h1 { font-size: clamp(32px, 8vw, 50px); color: #fff; text-shadow: 0 4px 0 #365314; }
-    .cover p { font-weight: 800; color: #ecfccb; }
-    .btn { pointer-events: auto; background: #ffd166; color: #3b2100; font-weight: 800; font-size: 24px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
-    .btn.g { background: #86efac; color: #14532d; box-shadow: 0 7px 0 #16a34a; }
+    html,body{background:#14532d;overflow:auto;touch-action:manipulation}
+    .grid{position:fixed;left:50%;top:58%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:min(92vw,440px);z-index:2}
+    .card{min-height:92px;border-radius:20px;background:#166534;font-size:56px;box-shadow:0 6px 0 #052e16}
+    .card.on{background:#fff}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <canvas id="c"></canvas>
-  <div id="hud"><b id="enc">Meadow</b><b id="pairs">0 / 3</b><b id="st">Stars 0</b></div>
-  <div id="say">Flip two cards. Match the pals!</div>
-  <button id="peek">Peek</button>
+  <div id="hud"><b id="pr">0/4</b></div>
+  <div id="say">Find two the same!</div>
+  <div class="grid" id="grid"></div>
   <div class="cover" id="title">
+    <div class="hero">🦁</div>
     <h1>Memory Zoo</h1>
-    <p>Flip cards. Watch them bob.<br>A walking guest later!</p>
-    <button class="btn" id="go">Play</button>
+    <p>Flip cards. Match the animals!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Zoo star!</h1>
-    <p id="winP">Five enclosures matched.</p>
-    <button class="btn g" id="again">Play again</button>
+    <div class="hero">🎉</div>
+    <h1>Zoo match!</h1>
+    <p>All the pals found friends.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), g = cv.getContext("2d");
-    var W, H, last = 0, t = 0, mode = "title", stars = 0, stage = 0;
-    var cards = [], open = [], lock = 0, matched = 0, need = 0;
-    var keeper = { x: 0, dir: 1, wave: 0, step: 0 };
-    var guest = { on: 0, x: 0, y: 0, kind: "lion", want: "", done: 0, bob: 0 };
-    var bits = [], leaves = [], clouds = [], birds = [], peeked = 0, peekT = 0;
-    var yard = { x: 0, y: 0, w: 0, h: 0 }, cols = 3, rows = 2;
-
-    var ENCS = [
-      { n: "Meadow", sky: ["#87c8e8", "#8fce5b"], grass: "#65a30d", animals: ["bunny", "fox", "panda"], guest: 0, night: 0, tree: "round" },
-      { n: "Jungle", sky: ["#4ade80", "#166534"], grass: "#3f6212", animals: ["monkey", "frog", "parrot", "tiger"], guest: 0, night: 0, tree: "palm" },
-      { n: "Arctic", sky: ["#e0f2fe", "#7dd3fc"], grass: "#cbd5e1", animals: ["penguin", "seal", "polar", "owl", "fish"], guest: 0, night: 0, tree: "pine" },
-      { n: "Savanna", sky: ["#fdba74", "#fde68a"], grass: "#ca8a04", animals: ["lion", "giraffe", "zebra", "elephant", "hippo"], guest: 1, night: 0, tree: "round" },
-      { n: "Night Safari", sky: ["#0b1433", "#16301a"], grass: "#14532d", animals: ["lion", "owl", "fox", "raccoon", "wolf", "bat"], guest: 1, night: 1, tree: "pine" }
-    ];
-
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), gn = ac.createGain();
-        o.type = "sine"; o.frequency.value = f; gn.gain.value = 0.07;
-        o.connect(gn); gn.connect(ac.destination); o.start();
-        gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function lerp(a, b, p) { return a + (b - a) * p; }
-    function rnd(a, b) { return a + Math.random() * (b - a); }
+    var ANIM = ["🦁", "🐘", "🦒", "🐧"];
+    var cards = [], open = [], lock = false, pairs = 0;
     function shuffle(a) {
-      var i, j, t2;
-      for (i = a.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); t2 = a[i]; a[i] = a[j]; a[j] = t2; }
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = (Math.random() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t;
+      }
       return a;
     }
-    function oval(cx, cy, rx, ry, col) {
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, 6.28); g.fill();
-    }
-    function dot(cx, cy, r, col) {
-      g.fillStyle = col;
-      g.beginPath(); g.arc(cx, cy, r, 0, 6.28); g.fill();
-    }
-    function eye(ex, ey, r) {
-      oval(ex, ey, r * 1.2, r, "#fff");
-      dot(ex + r * 0.15, ey, r * 0.55, "#1c1917");
-      dot(ex + r * 0.35, ey - r * 0.25, r * 0.22, "#fff");
-    }
-
-    function resize() {
-      cv.width = innerWidth * (devicePixelRatio || 1);
-      cv.height = innerHeight * (devicePixelRatio || 1);
-      g.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
-      W = innerWidth; H = innerHeight;
-      layoutCards();
-    }
-    addEventListener("resize", resize); resize();
-
-    function layoutCards() {
-      var pad = 12, top = 100, bot = 100;
-      yard.w = Math.min(420, W - 24); yard.h = Math.min(H - top - bot, 420);
-      yard.x = (W - yard.w) / 2; yard.y = top + Math.max(0, (H - top - bot - yard.h) / 2);
-      if (!cards.length) return;
-      var cw = (yard.w - pad * (cols + 1)) / cols;
-      var ch = (yard.h - pad * (rows + 1) - 36) / rows;
+    function deal() {
+      cards = shuffle(ANIM.concat(ANIM).map(function (e, i) { return { e: e, id: i, open: 0, done: 0 }; }));
+      open = []; lock = false; pairs = 0;
+      var g = document.getElementById("grid");
+      g.innerHTML = "";
       cards.forEach(function (c, i) {
-        var gx = i % cols, gy = Math.floor(i / cols);
-        c.x = yard.x + pad + gx * (cw + pad);
-        c.y = yard.y + 28 + pad + gy * (ch + pad);
-        c.w = cw; c.h = ch;
+        var b = document.createElement("button");
+        b.className = "card";
+        b.textContent = "❓";
+        b.onclick = function () { flip(i, b); };
+        c.el = b;
+        g.appendChild(b);
       });
+      document.getElementById("pr").textContent = "0/4";
+      document.getElementById("say").textContent = "Find two the same!";
     }
-
-    function loadEnc() {
-      var E = ENCS[stage];
-      var pool = E.animals.slice(), deck = [], i;
-      pool.forEach(function (a) { deck.push(a, a); });
-      shuffle(deck);
-      var n = deck.length;
-      cols = n <= 6 ? 3 : n <= 8 ? 4 : 4;
-      rows = Math.ceil(n / cols);
-      cards = deck.map(function (a, i) {
-        return { kind: a, flip: 0, want: 0, ok: 0, bob: 0, i: i, shake: 0 };
-      });
-      layoutCards();
-      open = []; lock = 0; matched = 0; need = pool.length; peeked = 0; peekT = 0;
-      keeper.x = yard.x - 20; keeper.dir = 1; keeper.wave = 0;
-      guest.on = E.guest; guest.x = -40; guest.y = yard.y + yard.h + 8; guest.done = 0;
-      guest.kind = pool[Math.floor(Math.random() * pool.length)]; guest.want = guest.kind; guest.bob = 0;
-      bits = []; leaves = []; clouds = []; birds = [];
-      for (i = 0; i < 6; i++) clouds.push({ x: rnd(0, W), y: rnd(20, 80), s: rnd(0.6, 1.2), v: rnd(8, 18) });
-      for (i = 0; i < 5; i++) birds.push({ x: rnd(0, W), y: rnd(40, 110), ph: rnd(0, 6), v: rnd(20, 40) });
-      for (i = 0; i < 16; i++) leaves.push({ x: rnd(yard.x, yard.x + yard.w), y: rnd(yard.y, yard.y + 20), ph: rnd(0, 6), tree: E.tree });
-      document.getElementById("enc").textContent = E.n;
-      document.getElementById("pairs").textContent = matched + " / " + need;
-      document.getElementById("peek").className = "on";
-      document.getElementById("say").textContent = E.guest ? "A walker will visit. Match that pal!" : "Flip two matching pals.";
-    }
-
-    function tapCard(mx, my) {
-      if (mode !== "play" || lock || peekT > 0) return;
-      var c, i;
-      for (i = 0; i < cards.length; i++) {
-        c = cards[i];
-        if (mx >= c.x && mx <= c.x + c.w && my >= c.y && my <= c.y + c.h) {
-          if (c.ok || c.want || open.indexOf(c) >= 0) return;
-          if (guest.on && !guest.done && c.kind === guest.want) {
-            document.getElementById("say").textContent = "That's the walking pal!";
-          }
-          c.want = 1; open.push(c); beep(500 + open.length * 80, 0.06);
-          if (open.length === 2) {
-            lock = 1;
-            if (open[0].kind === open[1].kind) {
-              setTimeout(function () {
-                open[0].ok = open[1].ok = 1; open[0].bob = open[1].bob = 1;
-                matched++; stars += 2;
-                document.getElementById("pairs").textContent = matched + " / " + need;
-                document.getElementById("st").textContent = "Stars " + stars;
-                burst(open[0].x + open[0].w / 2, open[0].y, open[0].kind);
-                if (guest.on && open[0].kind === guest.want) guest.done = 1;
-                open = []; lock = 0; beep(720, 0.12);
-                if (matched >= need) finishEnc();
-              }, 380);
-            } else {
-              setTimeout(function () {
-                open[0].want = open[1].want = 0; open[0].shake = open[1].shake = 1;
-                open = []; lock = 0; beep(180, 0.1);
-              }, 700);
-            }
-          }
-          return;
-        }
-      }
-    }
-
-    function burst(x, y, kind) {
-      var i;
-      for (i = 0; i < 8; i++) bits.push({ x: x, y: y, vx: rnd(-60, 60), vy: rnd(-90, -20), life: 1, kind: kind, spark: i % 2 });
-    }
-
-    function finishEnc() {
-      stars += 3; document.getElementById("st").textContent = "Stars " + stars;
-      beep(660, 0.12); setTimeout(function () { beep(880, 0.16); }, 90);
-      if (stage < ENCS.length - 1) {
-        stage++;
-        document.getElementById("say").textContent = "Next enclosure!";
-        setTimeout(loadEnc, 700);
+    function flip(i, b) {
+      var c = cards[i];
+      if (lock || c.open || c.done) return;
+      c.open = 1; b.textContent = c.e; b.classList.add("on");
+      open.push(c);
+      if (open.length < 2) return;
+      lock = true;
+      if (open[0].e === open[1].e) {
+        open[0].done = open[1].done = 1;
+        pairs++;
+        document.getElementById("pr").textContent = pairs + "/4";
+        document.getElementById("say").textContent = "Match! " + open[0].e;
+        open = []; lock = false;
+        if (pairs >= 4) document.getElementById("win").classList.remove("off");
       } else {
-        mode = "win";
-        document.getElementById("peek").classList.remove("on");
-        document.getElementById("win").classList.remove("off");
-        document.getElementById("winP").textContent = "Five enclosures. " + stars + " stars.";
+        document.getElementById("say").textContent = "Try again!";
+        setTimeout(function () {
+          open.forEach(function (o) { o.open = 0; o.el.textContent = "❓"; o.el.classList.remove("on"); });
+          open = []; lock = false;
+        }, 700);
       }
     }
-
-    function doPeek() {
-      if (peeked || mode !== "play") return;
-      peeked = 1; peekT = 1.6;
-      document.getElementById("peek").className = "on off";
-      cards.forEach(function (c) { if (!c.ok) c.want = 1; });
-      beep(640, 0.1);
-      document.getElementById("say").textContent = "Quick peek!";
-    }
-
-    function updateFlip(dt) {
-      cards.forEach(function (c) {
-        var goal = (c.want || c.ok || peekT > 0) ? 1 : 0;
-        c.flip = lerp(c.flip, goal, 1 - Math.pow(0.001, dt));
-        if (Math.abs(c.flip - goal) < 0.02) c.flip = goal;
-        if (c.ok && c.bob) c.bob += dt;
-        if (c.shake > 0) c.shake -= dt * 3;
-      });
-      if (peekT > 0) {
-        peekT -= dt;
-        if (peekT <= 0) cards.forEach(function (c) { if (!c.ok && open.indexOf(c) < 0) c.want = 0; });
-      }
-    }
-
-    function updateKeeper(dt) {
-      keeper.x += keeper.dir * 46 * dt;
-      keeper.step += dt * 6;
-      if (keeper.x > yard.x + yard.w + 10) { keeper.dir = -1; keeper.wave = 1; }
-      if (keeper.x < yard.x - 30) { keeper.dir = 1; keeper.wave = 1; }
-      if (keeper.wave > 0) keeper.wave -= dt;
-      if (guest.on) {
-        guest.x += 50 * dt;
-        guest.bob += dt;
-        if (guest.x > W + 40) guest.x = -50;
-      }
-      clouds.forEach(function (c) { c.x += c.v * dt; if (c.x > W + 60) c.x = -60; });
-      birds.forEach(function (b) { b.x += b.v * dt; if (b.x > W + 30) { b.x = -20; b.y = rnd(40, 110); } });
-      bits.forEach(function (b) { b.x += b.vx * dt; b.y += b.vy * dt; b.vy += 80 * dt; b.life -= dt; });
-      bits = bits.filter(function (b) { return b.life > 0; });
-    }
-
-    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
-    function zooEm(kind) {
-      return {
-        lion: "🦁", panda: "🐼", bunny: "🐰", fox: "🦊", monkey: "🐵", frog: "🐸",
-        parrot: "🦜", tiger: "🐯", penguin: "🐧", seal: "🦭", polar: "🐻‍❄️", owl: "🦉",
-        fish: "🐟", giraffe: "🦒", zebra: "🦓", elephant: "🐘", hippo: "🦛",
-        raccoon: "🦝", wolf: "🐺", bat: "🦇"
-      }[kind] || "⭐";
-    }
-    function drawFace(kind, s) {
-      s = s || 1;
-      em(zooEm(kind), 0, 0, 36 * s);
-    }
-
-    function drawPaw() { em("🐾", 0, 0, 22); }
-
-    function drawPerson(kind, walk, wave) {
-      var lift = Math.abs(walk) * 3;
-      em(kind === "keeper" ? "🧒" : "🧑", 0, -lift, 32);
-      if (kind === "keeper" && wave > 0) em("👋", 16, -18 - Math.sin(t * 10) * 3, 16);
-    }
-
-    function drawTree(x, y, kind) {
-      em(kind === "palm" ? "🌴" : kind === "pine" ? "🌲" : "🌳", x, y - 8, 22);
-    }
-
-    function drawCloud(c) {
-      em("☁️", c.x, c.y, 28 * c.s);
-    }
-
-    function drawBird(b) { em("🐦", b.x, b.y + Math.sin(t * 4 + b.ph) * 4, 16); }
-
-    function drawSky() {
-      var E = ENCS[stage] || ENCS[0];
-      var grd = g.createLinearGradient(0, 0, 0, H);
-      if (mode === "title") { grd.addColorStop(0, "#87c8e8"); grd.addColorStop(0.35, "#8fce5b"); grd.addColorStop(1, "#3f6212"); }
-      else { grd.addColorStop(0, E.sky[0]); grd.addColorStop(0.4, E.sky[1]); grd.addColorStop(1, E.grass); }
-      g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      if (mode !== "title" && E.night) {
-        em("🌙", W - 50, 64, 28);
-        var i; g.fillStyle = "#fff";
-        for (i = 0; i < 20; i++) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t + i); g.fillRect((i * 73) % W, 20 + (i * 17) % 70, 2, 2); }
-        g.globalAlpha = 1;
-      } else {
-        em("☀️", W - 54, 68, 32);
-      }
-      clouds.forEach(function (c) {
-        g.globalAlpha = E && E.night ? 0.2 : 0.85;
-        drawCloud(c);
-        g.globalAlpha = 1;
-      });
-      birds.forEach(drawBird);
-    }
-
-    function drawYard() {
-      var E = ENCS[stage];
-      g.fillStyle = "#5a3a1c";
-      roundFill(yard.x - 10, yard.y - 8, yard.w + 20, yard.h + 28, 16);
-      g.fillStyle = E.night ? "#243818" : "#6d8f3c";
-      roundFill(yard.x - 4, yard.y - 2, yard.w + 8, yard.h + 16, 12);
-      g.fillStyle = "#f4e1b5";
-      roundFill(yard.x + yard.w / 2 - 70, yard.y - 18, 140, 26, 8);
-      g.fillStyle = "#4a2a12"; g.font = "bold 13px Trebuchet MS"; g.textAlign = "center";
-      g.fillText(E.n + " Gate", yard.x + yard.w / 2, yard.y - 1);
-      var i;
-      for (i = 0; i < 6; i++) {
-        g.fillStyle = "#5a3a1c";
-        g.fillRect(yard.x + 10 + i * ((yard.w - 20) / 5), yard.y - 22, 8, 18);
-      }
-      leaves.forEach(function (L) {
-        g.save(); g.translate(0, Math.sin(t * 2 + L.ph) * 3);
-        drawTree(L.x, L.y, L.tree);
-        g.restore();
-      });
-    }
-
-    function drawCard(c) {
-      var sx = Math.cos(c.flip * Math.PI);
-      var x = c.x + (c.shake > 0 ? Math.sin(t * 40) * 4 : 0);
-      var y = c.y + (c.ok ? Math.sin(t * 3 + c.i) * 5 : 0);
-      g.save();
-      g.translate(x + c.w / 2, y + c.h / 2);
-      g.scale(Math.max(0.08, Math.abs(sx)), 1);
-      var face = sx >= 0;
-      if (face) {
-        var grd = g.createLinearGradient(-c.w / 2, -c.h / 2, c.w / 2, c.h / 2);
-        grd.addColorStop(0, "#166534"); grd.addColorStop(1, "#14532d");
-        g.fillStyle = grd;
-        roundFill(-c.w / 2, -c.h / 2, c.w, c.h, 12);
-        drawPaw();
-        g.strokeStyle = "rgba(255,255,255,.2)"; g.strokeRect(-c.w / 2 + 6, -c.h / 2 + 6, c.w - 12, c.h - 12);
-      } else {
-        g.fillStyle = c.ok ? "#d9f99d" : "#fffbeb";
-        roundFill(-c.w / 2, -c.h / 2, c.w, c.h, 12);
-        var sc = Math.min(c.w, c.h) / 52;
-        drawFace(c.kind, sc);
-      }
-      g.restore();
-    }
-
-    function drawKeeper() {
-      g.save();
-      g.translate(keeper.x, yard.y + yard.h + 6);
-      g.scale(keeper.dir, 1);
-      g.translate(0, Math.abs(Math.sin(keeper.step)) * -3);
-      drawPerson("keeper", Math.sin(keeper.step), keeper.wave);
-      g.restore();
-      if (guest.on) {
-        g.save();
-        g.translate(guest.x, guest.y + Math.sin(guest.bob * 8) * 4);
-        drawPerson("guest", Math.sin(guest.bob * 8), 0);
-        g.save();
-        g.translate(18, -18);
-        drawFace(guest.kind, 0.42);
-        g.restore();
-        if (!guest.done) {
-          g.font = "bold 12px Trebuchet MS"; g.fillStyle = "#fff"; g.textAlign = "center";
-          g.fillText("match me!", 0, -28);
-        }
-        g.restore();
-      }
-    }
-
-    function drawTitleZoo() {
-      var kinds = ["lion", "panda", "fox", "giraffe", "elephant", "owl", "bunny", "frog"];
-      var i;
-      for (i = 0; i < 8; i++) {
-        g.save();
-        g.translate((i * 90 + t * 20) % (W + 40) - 20, H * 0.42 + Math.sin(t + i) * 8);
-        drawFace(kinds[i], 0.9);
-        g.restore();
-      }
-      g.save();
-      g.translate((t * 40) % (W + 60) - 30, H * 0.62);
-      drawPerson("keeper", Math.sin(t * 6), 1);
-      g.restore();
-      g.save();
-      g.translate((t * 40 + 80) % (W + 60) - 30, H * 0.68);
-      drawPerson("guest", Math.sin(t * 6 + 1), 0);
-      g.restore();
-    }
-
-    function roundFill(x, y, w, h, r) {
-      g.beginPath();
-      g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
-      g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.fill();
-    }
-
-    function update(dt) {
-      t += dt;
-      if (mode === "title" || mode === "win") {
-        clouds.forEach(function (c) { c.x += c.v * dt; if (c.x > W + 60) c.x = -60; });
-        if (!clouds.length) for (var i = 0; i < 6; i++) clouds.push({ x: rnd(0, W), y: rnd(20, 80), s: rnd(0.6, 1.2), v: rnd(8, 18) });
-        birds.forEach(function (b) { b.x += (b.v || 24) * dt; if (b.x > W + 30) b.x = -20; });
-        if (!birds.length) for (i = 0; i < 4; i++) birds.push({ x: rnd(0, W), y: rnd(40, 100), ph: i, v: 24 });
-        return;
-      }
-      if (mode !== "play") return;
-      updateFlip(dt); updateKeeper(dt);
-    }
-
-    function draw() {
-      drawSky();
-      if (mode === "title" || mode === "win") { drawTitleZoo(); return; }
-      drawYard();
-      cards.forEach(drawCard);
-      drawKeeper();
-      bits.forEach(function (b) {
-        g.globalAlpha = b.life;
-        if (b.spark) { dot(b.x, b.y, 3, "#fde047"); }
-        else { g.save(); g.translate(b.x, b.y); drawFace(b.kind, 0.28); g.restore(); }
-        g.globalAlpha = 1;
-      });
-    }
-
-    function loop(now) {
-      var dt = Math.min(0.033, (now - last) / 1000 || 0.016);
-      last = now; update(dt); draw(); requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-
     function start() {
-      mode = "play"; stage = 0; stars = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("st").textContent = "Stars 0";
-      loadEnc(); beep(500, 0.1);
+      deal();
     }
     document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); start(); };
-    document.getElementById("peek").onclick = doPeek;
-    cv.addEventListener("pointerdown", function (e) {
-      if (mode !== "play") return;
-      tapCard(e.clientX, e.clientY);
-    });
+    document.getElementById("again").onclick = start;
   })();
   </script>
 </body>

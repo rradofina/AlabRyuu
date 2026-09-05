@@ -4,239 +4,113 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Pet Park</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:"Trebuchet MS","Comic Sans MS",system-ui,sans-serif;background:#14532d;color:#14532d;touch-action:none;user-select:none}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;font-size:17px;background:rgba(20,83,45,.5);padding:8px 14px;border-radius:999px;touch-action:manipulation}
-    canvas{display:block;width:100%;height:100%}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#86efac}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
+  <div id="hud"><b id="love">💛 0/3</b></div>
+  <div id="say">Tap a pet. Then Feed, Pet, or Play!</div>
+  <div class="dock" id="dock">
+    <button id="feed"><span>🍖</span>Feed</button>
+    <button id="pet"><span>🤗</span>Pet</button>
+    <button id="playb"><span>🎾</span>Play</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero">🐶</div>
+    <h1>Pet Park</h1>
+    <p>Make three pals happy!</p>
+    <button class="play" id="go">Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero">🥳</div>
+    <h1>Happy park!</h1>
+    <p>Every pet is smiling.</p>
+    <button class="play g" id="again">Play again</button>
+  </div>
   <script>
-  (function(){
-    var cv=document.getElementById("c"),x=cv.getContext("2d");
-    var W,H,T=0,last=0,stage="title",day=0,stars=0,mx=0,my=0;
-    var hits=[],say="Tap Play!",hunger=0.8,play=0.8,sleep=0.8,blink=0,zzz=[],flakes=[],ball=null,sky=0,napT=0;
-    var AV={name:"Alab",hair:"🧒",shirt:"#ffd166",pet:"🐶"};
-    try{var a=JSON.parse(localStorage.getItem("alabryuu-avatar")||"null");if(a&&a.name){AV.name=a.name;AV.hair=a.hair||AV.hair;AV.shirt=a.shirt||AV.shirt;AV.pet=a.pet||AV.pet;}}catch(e){}
-    var DAYS=[
-      {n:"Picnic",tip:"Feed flakes. Slow meters."},
-      {n:"Friend",tip:"A bunny visits. Fetch!"},
-      {n:"Rain",tip:"Soft rain. Still play."},
-      {n:"Butterfly",tip:"Watch flutter friends. Feed or fetch!"},
-      {n:"Glow",tip:"Night nap. Zzz kind."}
-    ];
-    function beep(f,d,tp){try{var ac=beep.ac||(beep.ac=new(window.AudioContext||window.webkitAudioContext)());var o=ac.createOscillator(),g=ac.createGain();o.type=tp||"sine";o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.stop(ac.currentTime+d);}catch(e){}}
-    function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
-    addEventListener("resize",resize);resize();
-    function rnd(a,b){return a+Math.random()*(b-a);}
-    function round(a,b,w,h,r,col){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();if(col){x.fillStyle=col;x.fill();}}
-    function ellipse(cx,cy,rx,ry,col){x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,6.28);x.fillStyle=col;x.fill();}
-    function hitAt(p,q){for(var i=hits.length-1;i>=0;i--){var h=hits[i];if(p>=h.x&&p<=h.x+h.w&&q>=h.y&&q<=h.y+h.h)return h;}return null;}
-    function btn(id,bx,by,bw,bh,label,col,tc){hits.push({id:id,x:bx,y:by,w:bw,h:bh});round(bx,by,bw,bh,16,col||"#ffd166");x.fillStyle=tc||"#3b2100";x.font="800 14px Trebuchet MS";x.textAlign="center";x.textBaseline="middle";x.fillText(label,bx+bw/2,by+bh/2);}
-
-    function petKind(){
-      var p=AV.pet||"🐶";
-      if(p==="🐱")return "cat";
-      if(p==="🐰")return "bunny";
-      if(p==="🦊")return "fox";
-      if(p==="🐼")return "panda";
-      if(p==="🐥")return "chick";
-      if(p==="🐸")return "frog";
-      if(p==="🦄")return "unicorn";
-      return "dog";
+  (function () {
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, sel = 0, AV = { pet: "🐶" };
+    try { var a = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null"); if (a && a.pet) AV.pet = a.pet; } catch (e) {}
+    var pals = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function petWord(){
-      return {dog:"dog",cat:"cat",bunny:"bunny",fox:"fox",panda:"panda",chick:"chick",frog:"frog",unicorn:"unicorn"}[petKind()]||"pal";
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
-
-    function skyG(){
-      var t=(sky%1),g=x.createLinearGradient(0,0,0,H);
-      if(day===4||t>0.75){g.addColorStop(0,"#0f172a");g.addColorStop(.4,"#1e3a8a");g.addColorStop(1,"#14532d");}
-      else if(day===2){g.addColorStop(0,"#64748b");g.addColorStop(1,"#4ade80");}
-      else if(t<0.35){g.addColorStop(0,"#fda4af");g.addColorStop(.4,"#7dd3fc");g.addColorStop(1,"#86efac");}
-      else{g.addColorStop(0,"#38bdf8");g.addColorStop(1,"#4ade80");}
-      x.fillStyle=g;x.fillRect(0,0,W,H);
+    addEventListener("resize", resize); resize();
+    function reset() {
+      pals = [
+        { e: AV.pet || "🐶", x: 0.25, y: 0.48, happy: 0 },
+        { e: "🐱", x: 0.50, y: 0.42, happy: 0 },
+        { e: "🐰", x: 0.75, y: 0.50, happy: 0 }
+      ];
+      sel = 0; hud();
     }
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-    function drawBunnyVisit(cx,cy){ em("🐰",cx,cy-Math.abs(Math.sin(T*4))*6,36); }
-    function drawFlutter(cx,cy,ph){ em("🦋",cx,cy+Math.sin(T*8+ph)*3,28); }
-    function drawPark(){
-      skyG();
-      var sunX=W*(0.15+0.7*((sky%1))),sunY=H*(0.14+0.12*Math.sin((sky%1)*3.14));
-      em(day===4?"🌙":"☀️",sunX,sunY,36);
-      x.fillStyle="#22c55e";x.fillRect(0,H*0.58,W,H*0.42);
-      x.fillStyle="#16a34a";
-      for(var i=0;i<10;i++){x.beginPath();x.moveTo(i*W/9,H*0.58);x.quadraticCurveTo(i*W/9+10,H*0.54,i*W/9+20,H*0.58);x.fill();}
-      x.strokeStyle="#166534";x.lineWidth=4;x.beginPath();x.moveTo(0,H*0.72);x.quadraticCurveTo(W/2,H*0.66,W,H*0.72);x.stroke();
-      em("🌳",W*0.1,H*0.42,48);em("🌳",W*0.86,H*0.42,44);
-      if(day===1) drawBunnyVisit(W*0.72,H*0.56);
-      if(day===3){for(i=0;i<4;i++) drawFlutter(W*0.2+i*70,H*0.3+Math.sin(T*3+i)*10,i);}
+    function hud() {
+      var n = pals.filter(function (p) { return p.happy >= 2; }).length;
+      document.getElementById("love").textContent = "💛 " + n + "/3";
     }
-
-    function petPose(){
-      if(stage==="title"||stage==="win") return "bounce";
-      if(napT>0||sleep<0.3) return "sleep";
-      if(stage==="feed") return "eat";
-      return "bounce";
+    function start() {
+      play = true; reset();
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("say").textContent = "Tap a pet first!";
     }
-
-    function drawPet(cx,cy){
-      var pose=petPose();
-      var bounce=pose==="bounce"?Math.sin(T*4)*6:0;
-      var asleep=pose==="sleep";
-      var eating=pose==="eat";
-      if(asleep) cy+=12;
-      ellipse(cx,cy+36,24,8,"rgba(0,0,0,.15)");
-      var face=AV.pet||"🐶";
-      em(face,cx,cy+bounce,asleep?48:64);
-      if(eating) em("🍖",cx+34,cy+18,22);
-      if(asleep){
-        if(zzz.length<3)zzz.push({x:cx+18+zzz.length*10,y:cy-16-zzz.length*8,life:1.4,s:10});
-        if(Math.random()<0.1)zzz.push({x:cx+20,y:cy-20,life:1.4,s:10});
-        for(var i=0;i<zzz.length;i++){x.globalAlpha=zzz[i].life;em("💤",zzz[i].x,zzz[i].y,18);x.globalAlpha=1;}
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    function act(kind) {
+      if (!play) return;
+      var p = pals[sel];
+      p.happy = Math.min(3, p.happy + 1);
+      document.getElementById("say").textContent = kind + " " + p.e + "!";
+      hud();
+      if (pals.every(function (q) { return q.happy >= 2; })) {
+        play = false;
+        document.getElementById("dock").classList.remove("on");
+        document.getElementById("win").classList.remove("off");
       }
     }
-    function meter(label,val,mx0,my0,col){
-      x.fillStyle="#14532d";x.font="800 12px Trebuchet MS";x.textAlign="left";x.fillText(label,mx0,my0-6);
-      round(mx0,my0,100,12,6,"#d9f99d");
-      round(mx0,my0,100*Math.max(0.12,val),12,6,col);
-    }
-    function drawHud(){
-      round(W-140,10,130,32,14,"rgba(255,255,255,.9)");
-      x.fillStyle="#14532d";x.font="800 13px Trebuchet MS";x.textAlign="left";x.textBaseline="middle";
-      x.fillText("Day "+(day+1)+"/5  ⭐ "+stars,W-126,26);
-      meter("Yum",hunger,16,H*0.12,"#fb7185");
-      meter("Play",play,130,H*0.12,"#38bdf8");
-      meter("Nap",sleep,244,H*0.12,"#a78bfa");
-      round(16,H-50,W-32,36,12,"rgba(255,255,255,.92)");
-      x.textAlign="center";x.fillText(say,W/2,H-32);
-    }
-    function drawActs(){
-      btn("feed",20,H*0.78,90,44,"Feed","#fecaca","#9f1239");
-      btn("fetch",120,H*0.78,90,44,"Fetch","#bae6fd","#0c4a6e");
-      btn("nap",220,H*0.78,90,44,"Nap","#ddd6fe","#5b21b6");
-      btn("nextd",W-120,H*0.78,100,44,"Next day","#ffd166","#3b2100");
-    }
-    function start(){stage="park";day=0;stars=0;hunger=play=sleep=0.85;say=DAYS[0].tip;flakes=[];ball=null;beep(500,.1);}
-    function pointer(e){
-      var r=cv.getBoundingClientRect();
-      mx=(e.clientX||(e.touches&&e.touches[0].clientX)||0)-r.left;
-      my=(e.clientY||(e.touches&&e.touches[0].clientY)||0)-r.top;
-      var h=hitAt(mx,my);
-      if(h&&h.id==="play"){start();return;}
-      if(h&&h.id==="again"){stage="title";return;}
-      if(h&&h.id==="back"){stage="park";say=DAYS[day].tip;ball=null;return;}
-      if(stage==="feed"){
-        for(var i=flakes.length-1;i>=0;i--){
-          var f=flakes[i],dx=mx-f.x,dy=my-f.y;
-          if(dx*dx+dy*dy<400){flakes.splice(i,1);hunger=Math.min(1,hunger+0.12);stars++;beep(700,.06);say="Yum flake!";}
+    document.getElementById("feed").onclick = function () { act("Yum"); };
+    document.getElementById("pet").onclick = function () { act("Soft"); };
+    document.getElementById("playb").onclick = function () { act("Play"); };
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      if (e.clientY > H - 120) return;
+      var i, best = sel, bestD = 90 * 90;
+      for (i = 0; i < pals.length; i++) {
+        var dx = e.clientX - pals[i].x * W, dy = e.clientY - pals[i].y * H;
+        var d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      sel = best;
+      document.getElementById("say").textContent = "Hi " + pals[sel].e + "! Feed, Pet, or Play.";
+    });
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.62, W, H);
+      em("🌳", 40, H * 0.38, 72); em("🌳", W - 36, H * 0.34, 80); em("☀️", W * 0.82, 80, 56);
+      pals.forEach(function (p, i) {
+        var px = p.x * W, py = p.y * H + Math.sin(t * 3 + i) * 4;
+        if (i === sel && play) {
+          x.beginPath(); x.arc(px, py, 58, 0, Math.PI * 2);
+          x.fillStyle = "rgba(253,224,71,0.4)"; x.fill();
         }
-        return;
-      }
-      if(stage==="fetch"&&ball){
-        var dx=mx-ball.x,dy=my-ball.y;
-        if(dx*dx+dy*dy<900){ball.vx=rnd(-80,80);ball.vy=-180;play=Math.min(1,play+0.1);stars++;beep(640,.07);say="Fetch!";}
-        return;
-      }
-      if(!h)return;
-      if(h.id==="feed"){stage="feed";for(i=0;i<8;i++)flakes.push({x:rnd(40,W-40),y:rnd(H*0.2,H*0.5),vy:30,life:6});say="Tap falling flakes!";}
-      if(h.id==="fetch"){stage="fetch";ball={x:W*0.6,y:H*0.6,vx:40,vy:-20};say="Tap the ball!";}
-      if(h.id==="nap"){sleep=Math.min(1,sleep+0.25);napT=2.2;say="Zzz... kind rest.";beep(280,.16);}
-      if(h.id==="nextd"){stars+=2;if(day>=4)stage="win";else{day++;hunger=0.7;play=0.7;sleep=0.7;stage="park";say=DAYS[day].tip;beep(560,.1);}}
-      if(h.id==="back"){stage="park";say=DAYS[day].tip;}
+        em(p.e, px, py, 80);
+        var h;
+        for (h = 0; h < p.happy; h++) em("💛", px - 24 + h * 24, py - 58, 28);
+      });
+      requestAnimationFrame(loop);
     }
-    function step(dt){
-      blink+=dt;if(blink>1.2)blink=0;
-      if(napT>0)napT-=dt;
-      sky+=dt*0.04;
-      hunger=Math.max(0.15,hunger-dt*0.015);
-      play=Math.max(0.15,play-dt*0.012);
-      sleep=Math.max(0.12,sleep-dt*0.01);
-      for(var i=zzz.length-1;i>=0;i--){zzz[i].life-=dt;zzz[i].y-=20*dt;if(zzz[i].life<=0)zzz.splice(i,1);}
-      if(stage==="feed"){
-        for(i=flakes.length-1;i>=0;i--){flakes[i].y+=flakes[i].vy*dt;flakes[i].life-=dt;if(flakes[i].y>H*0.7||flakes[i].life<=0)flakes.splice(i,1);}
-        if(flakes.length<5)flakes.push({x:rnd(30,W-30),y:40,vy:40,life:5});
-      }
-      if(stage==="fetch"&&ball){ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;ball.vy+=220*dt;if(ball.y>H*0.68){ball.y=H*0.68;ball.vy*=-0.4;ball.vx*=0.8;}if(ball.x<20||ball.x>W-20)ball.vx*=-1;}
-    }
-    function drawMini(){
-      if(stage==="feed"){
-        for(var i=0;i<flakes.length;i++) em("🍖",flakes[i].x,flakes[i].y,22);
-        btn("back",W-110,H*0.78,90,40,"Done","#fff","#14532d");
-      }
-      if(stage==="fetch"&&ball){
-        em("⚽",ball.x,ball.y,28);
-        btn("back",W-110,H*0.78,90,40,"Done","#fff","#14532d");
-      }
-    }
-    function drawTitle(){
-      drawPark();drawYardBits();drawPet(W*0.5,H*0.5);
-      x.fillStyle="#14532d";x.font="800 "+Math.floor(Math.min(46,W/8))+"px Trebuchet MS";x.textAlign="center";
-      x.fillText("Pet Park",W/2,H*0.16);
-      x.font="800 14px Trebuchet MS";x.fillText(AV.name+" and a "+petWord(),W/2,H*0.22);
-      hits.push({id:"play",x:W/2-80,y:H*0.78,w:160,h:50});
-      round(W/2-80,H*0.78,160,50,18,"#ffd166");
-      x.fillStyle="#3b2100";x.font="800 22px Trebuchet MS";x.fillText("Play!",W/2,H*0.8+12);
-    }
-    function drawWin(){
-      drawPark();drawYardBits();drawPet(W*0.5,H*0.48);
-      x.fillStyle="#14532d";x.font="800 38px Trebuchet MS";x.textAlign="center";
-      x.fillText("Happy week!",W/2,H*0.2);
-      x.font="800 16px Trebuchet MS";x.fillText(AV.name+"'s "+petWord()+"  ⭐ "+stars,W/2,H*0.28);
-      hits.push({id:"again",x:W/2-80,y:H*0.78,w:160,h:50});
-      round(W/2-80,H*0.78,160,50,18,"#86efac");
-      x.fillStyle="#14532d";x.fillText("Again",W/2,H*0.8+12);
-    }
-    function draw(){
-      hits=[];
-      if(stage==="title")drawTitle();
-      else if(stage==="win")drawWin();
-      else{drawPark();drawYardBits();drawPet(W*0.46,H*0.54);if(stage==="park")drawActs();drawMini();drawHud();}
-    }
-    cv.addEventListener("pointerdown",pointer);
-
-    var flowers=[],rain=[],hearts=[];
-    function drawPond(){
-      em("🌊",W*0.72,H*0.66,40);
-    }
-    function drawFlowers(){
-      if(!flowers.length){for(var i=0;i<8;i++)flowers.push({x:rnd(0.08,0.9),y:rnd(0.62,0.8),c:["#fb7185","#fde047","#a78bfa","#fff"][i%4]});}
-      for(var i=0;i<flowers.length;i++){
-        var f=flowers[i];
-        x.strokeStyle="#166534";x.beginPath();x.moveTo(f.x*W,f.y*H);x.lineTo(f.x*W,f.y*H+10);x.stroke();
-        em("🌸",f.x*W,f.y*H,16);
-      }
-    }
-    function drawBench(){
-      em("🪑",W*0.26,H*0.58,40);
-    }
-    function drawFence(){
-      for(var i=0;i<8;i++) em("🚧",i*W/8+20,H*0.58,22);
-    }
-    function drawRain(){
-      if(day!==2)return;
-      if(rain.length<12)rain.push({x:rnd(0,W),y:-10,vy:220});
-      for(var i=rain.length-1;i>=0;i--){rain[i].y+=rain[i].vy*0.016;em("💧",rain[i].x,rain[i].y,16);if(rain[i].y>H)rain.splice(i,1);}
-    }
-    function drawHearts(){
-      if((hunger>0.85||play>0.85)&&Math.random()<0.05)hearts.push({x:W*0.46+rnd(-10,10),y:H*0.46,life:1});
-      for(var i=hearts.length-1;i>=0;i--){
-        hearts[i].life-=0.02;hearts[i].y-=20*0.016;
-        x.globalAlpha=hearts[i].life;
-        em("❤️",hearts[i].x,hearts[i].y,16);
-        if(hearts[i].life<=0)hearts.splice(i,1);
-      }
-      x.globalAlpha=1;
-    }
-    function drawKidOwner(){ em("🧒",W*0.28,H*0.5,36); }
-    function drawYardBits(){
-      drawFence();drawPond();drawFlowers();drawBench();drawRain();drawHearts();drawKidOwner();
-    }
-
-    function loop(now){var dt=Math.min(.033,(now-last)/1000)||.016;last=now;T=now/1000;step(dt);draw();requestAnimationFrame(loop);}
+    reset();
     requestAnimationFrame(loop);
   })();
   </script>

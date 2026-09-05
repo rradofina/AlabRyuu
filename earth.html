@@ -4,54 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Little Earth</title>
+  <link rel="stylesheet" href="kid.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #020617; color: #fff; touch-action: none; user-select: none; }
-    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    canvas { display: block; width: 100%; height: 100%; }
-    .home { position: fixed; top: 10px; left: 10px; z-index: 8; color: #fff; text-decoration: none; font-weight: 800; font-size: 16px; background: rgba(255,255,255,.16); padding: 8px 12px; border-radius: 999px; }
-    #hud { position: fixed; top: 10px; right: 10px; z-index: 8; text-align: right; font-weight: 800; pointer-events: none; }
-    #hud b { display: inline-block; background: rgba(0,0,0,.5); padding: 6px 10px; border-radius: 999px; margin-left: 6px; }
-    #bubble { position: fixed; left: 50%; top: 52px; transform: translateX(-50%); z-index: 8; background: #fff; color: #1e1b4b; font-weight: 800; font-size: 20px; padding: 8px 14px; border-radius: 18px; max-width: 80vw; text-align: center; pointer-events: none; }
-    #tools { position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 8; display: none; gap: 8px; padding: 0 8px 6px; }
-    #tools.on { display: flex; }
-    #tools button { width: 80px; height: 70px; border-radius: 18px; font-weight: 800; font-size: 13px; box-shadow: 0 5px 0 rgba(0,0,0,.35); }
-    #tools button span { display: block; font-size: 28px; line-height: 1; }
-    #tools button.on { outline: 4px solid #ffd166; }
+    html, body { background: #020617; }
+    #tools button { background: #fff; }
     #tSun { background: #fde047; color: #78350f; }
     #tRain { background: #38bdf8; color: #082f49; }
     #tPlant { background: #86efac; color: #14532d; }
-    .cover { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 24px; background: radial-gradient(circle at 50% 18%, #1e1b4b88, #020617b3 72%); }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(36px, 9vw, 58px); text-shadow: 0 6px 0 #1e1b4b; }
-    .btn { background: #ffd166; color: #3b2100; font-weight: 800; font-size: 26px; padding: 14px 30px; border-radius: 999px; box-shadow: 0 8px 0 #e09f1f; }
-    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
   </style>
 </head>
 <body>
   <a class="home" href="index.html">← Home</a>
   <canvas id="c"></canvas>
   <div id="hud"><b id="eraN">🔥 Hot rock</b><b id="stars">⭐ 0</b></div>
-  <div id="bubble">Tap Play to grow Earth</div>
-  <div id="tools">
+  <div id="say">Tap Play to grow Earth</div>
+  <div class="dock" id="tools">
     <button id="tSun"><span>☀️</span>Sun</button>
     <button id="tRain"><span>🌧️</span>Rain</button>
     <button id="tPlant"><span>🌱</span>Plant</button>
   </div>
   <div class="cover" id="title">
-    <h1>🌍 Little Earth</h1>
-    <p>A spinning water world.<br>☀️ Sun. 🌧️ Rain. 🌱 Friends.</p>
-    <button class="btn" id="go">Play</button>
+    <div class="hero">🌍</div>
+    <h1>Little Earth</h1>
+    <p>Warm the rock. Then fill the sea!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="cut">
-    <h1 id="cutT">🌊 Water!</h1>
-    <p id="cutP">Blue seas are here.</p>
-    <button class="btn g" id="cutGo">Next</button>
+    <div class="hero" id="cutE">🌊</div>
+    <h1 id="cutT">Seas!</h1>
+    <p id="cutP">Blue water wins.</p>
+    <button class="play g" id="cutGo">Next</button>
   </div>
   <div class="cover off" id="win">
-    <h1>🌍 Our Earth!</h1>
+    <div class="hero">🎉</div>
+    <h1>Our Earth!</h1>
     <p id="winP">You grew the globe.</p>
-    <button class="btn g" id="again">Play again</button>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
@@ -60,30 +48,30 @@
     var rot = 0, drag = 0, lastX = 0, moved = 0;
     var life = [], flashes = [], rains = [];
     var CUT = [
-      { t: "🔥 Warm!", p: "The rock glows." },
-      { t: "🌊 Seas!", p: "Blue water wins." },
-      { t: "🪷 Plants!", p: "Lilies sit on waves." },
-      { t: "🐟 Fish!", p: "Friends in water." },
-      { t: "🌿 Kelp!", p: "Tall kelp in the sea." },
-      { t: "🦕 Dinos!", p: "Big pals walk." },
-      { t: "🐦 Birds!", p: "Wings in sky." },
-      { t: "🦊 Pals!", p: "Friends on waves." },
-      { t: "🧒 Home!", p: "Kids come home." }
+      { e: "🌋", t: "Warm!", p: "The rock glows." },
+      { e: "🌊", t: "Seas!", p: "Blue water wins." },
+      { e: "🪷", t: "Plants!", p: "Lilies sit on waves." },
+      { e: "🐟", t: "Fish!", p: "Friends in water." },
+      { e: "🌿", t: "Kelp!", p: "Tall kelp in the sea." },
+      { e: "🦕", t: "Dinos!", p: "Big pals swim." },
+      { e: "🐦", t: "Birds!", p: "Wings over water." },
+      { e: "🦊", t: "Pals!", p: "Friends on waves." },
+      { e: "🧒", t: "Home!", p: "Kids come home." }
     ];
     var ERAS = [
-      { n: "🔥 Hot rock", say: "Warm the rock!", need: 4 },
-      { n: "🌊 Seas", say: "Rain on the sea!", need: 4 },
-      { n: "🌱 Plants", say: "Plant little seeds!", need: 5 },
-      { n: "🐟 Fish", say: "Tap the fish!", need: 5 },
-      { n: "🌿 Trees", say: "Grow a forest!", need: 5 },
-      { n: "🦕 Dinos", say: "Boop big pals!", need: 5 },
-      { n: "🐦 Birds", say: "Sun for wings!", need: 5 },
-      { n: "🦊 Animals", say: "Tap swimming pals!", need: 5 },
-      { n: "🧒 People", say: "Friends on waves!", need: 5 }
+      { n: "🔥 Hot rock", say: "Tap the rock with ☀️", need: 4, want: "sun" },
+      { n: "🌊 Seas", say: "Rain on the sea!", need: 4, want: "rain" },
+      { n: "🌱 Plants", say: "Plant little seeds!", need: 5, want: "plant" },
+      { n: "🐟 Fish", say: "Tap the fish!", need: 5, want: "sun" },
+      { n: "🌿 Kelp", say: "Grow tall kelp!", need: 5, want: "plant" },
+      { n: "🦕 Dinos", say: "Boop big pals!", need: 5, want: "sun" },
+      { n: "🐦 Birds", say: "Sun for wings!", need: 5, want: "sun" },
+      { n: "🦊 Animals", say: "Tap swimming pals!", need: 5, want: "sun" },
+      { n: "🧒 People", say: "Friends on waves!", need: 5, want: "sun" }
     ];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-earth") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function em(ch, px, py, s) {
-      x.font = (s || 28) + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
       x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
     function resize() {
@@ -98,49 +86,57 @@
     function hud() {
       document.getElementById("eraN").textContent = ERAS[era] ? ERAS[era].n : "🌍 Home";
       document.getElementById("stars").textContent = "⭐ " + stars;
-      document.getElementById("bubble").textContent = ERAS[era] ? ERAS[era].say : "Home!";
+      document.getElementById("say").textContent = ERAS[era] ? ERAS[era].say : "Home!";
     }
     function cx() { return W * 0.5; }
-    function cy() { return H * 0.46; }
-    function R() { return Math.min(W, H) * 0.28; }
+    function cy() { return H * 0.44; }
+    function R() { return Math.min(W, H) * 0.30; }
     function spawnEraLife() {
       life = [];
-      var n = 0, kind = "🪷";
-      if (era === 2) { n = 4; kind = "🪷"; }
-      else if (era === 3) { n = 5; kind = "🐟"; }
-      else if (era === 4) { n = 5; kind = "🌿"; }
-      else if (era === 5) { n = 3; kind = "🦕"; }
-      else if (era === 6) { n = 4; kind = "🐦"; }
-      else if (era === 7) { n = 4; kind = "🦊"; }
-      else if (era === 8) { n = 3; kind = "🧒"; }
-      for (var i = 0; i < n; i++) life.push({ kind: kind, a: i * (Math.PI * 2 / n), bob: i });
+      var kinds = { 2: ["🪷", 4], 3: ["🐟", 5], 4: ["🌿", 5], 5: ["🦕", 3], 6: ["🐦", 4], 7: ["🦊", 4], 8: ["🧒", 3] };
+      var spec = kinds[era];
+      if (!spec) return;
+      for (var i = 0; i < spec[1]; i++) life.push({ kind: spec[0], a: i * (Math.PI * 2 / spec[1]), bob: i });
     }
     function progress(n) {
       if (!play || !ERAS[era]) return;
       got += n; stars += n; save(); hud();
       if (got >= ERAS[era].need) {
         play = false;
+        document.getElementById("cutE").textContent = CUT[era].e;
         document.getElementById("cutT").textContent = CUT[era].t;
         document.getElementById("cutP").textContent = CUT[era].p;
         document.getElementById("cut").classList.remove("off");
       }
     }
     function applyTool(px, py) {
-      var dx = px - cx(), dy = py - cy();
-      if (dx * dx + dy * dy > R() * R()) return;
-      if (tool === "sun") { flashes.push({ x: px, y: py, life: 0.5 }); progress(1); }
-      else if (tool === "rain") { rains.push({ x: px, y: py - 40, life: 0.8 }); progress(1); }
-      else { life.push({ kind: era < 4 ? "🌱" : "🌿", a: rot + Math.atan2(dx, -dy), bob: t }); progress(1); }
+      var dx = px - cx(), dy = py - cy(), hitR = R() * 1.2;
+      if (dx * dx + dy * dy > hitR * hitR) {
+        document.getElementById("say").textContent = "Tap the big globe!";
+        return;
+      }
+      var want = ERAS[era].want;
+      if (tool !== want) {
+        document.getElementById("say").textContent = "Try the " + (want === "sun" ? "☀️ Sun" : want === "rain" ? "🌧️ Rain" : "🌱 Plant") + " button!";
+        return;
+      }
+      if (tool === "sun") flashes.push({ x: px, y: py, life: 0.5 });
+      else if (tool === "rain") rains.push({ x: px, y: py - 40, life: 0.8 });
+      else life.push({ kind: era < 4 ? "🌱" : "🌿", a: rot + Math.atan2(dx, -dy), bob: t });
+      progress(1);
+    }
+    function setTool(name) {
+      tool = name;
+      document.getElementById("tSun").classList.toggle("on", name === "sun");
+      document.getElementById("tRain").classList.toggle("on", name === "rain");
+      document.getElementById("tPlant").classList.toggle("on", name === "plant");
     }
     function start() {
-      play = true; era = 0; got = 0; tool = "sun"; life = []; flashes = []; rains = [];
+      play = true; era = 0; got = 0; setTool("sun"); life = []; flashes = []; rains = [];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("cut").classList.add("off");
       document.getElementById("tools").classList.add("on");
-      document.getElementById("tSun").classList.add("on");
-      document.getElementById("tRain").classList.remove("on");
-      document.getElementById("tPlant").classList.remove("on");
       hud();
     }
     document.getElementById("go").onclick = start;
@@ -153,11 +149,15 @@
         document.getElementById("win").classList.remove("off");
         document.getElementById("tools").classList.remove("on");
         play = false;
-      } else { got = 0; play = true; spawnEraLife(); hud(); save(); }
+      } else {
+        got = 0; play = true; spawnEraLife();
+        setTool(ERAS[era].want);
+        hud(); save();
+      }
     };
-    document.getElementById("tSun").onclick = function () { tool = "sun"; this.classList.add("on"); document.getElementById("tRain").classList.remove("on"); document.getElementById("tPlant").classList.remove("on"); };
-    document.getElementById("tRain").onclick = function () { tool = "rain"; this.classList.add("on"); document.getElementById("tSun").classList.remove("on"); document.getElementById("tPlant").classList.remove("on"); };
-    document.getElementById("tPlant").onclick = function () { tool = "plant"; this.classList.add("on"); document.getElementById("tSun").classList.remove("on"); document.getElementById("tRain").classList.remove("on"); };
+    document.getElementById("tSun").onclick = function () { setTool("sun"); };
+    document.getElementById("tRain").onclick = function () { setTool("rain"); };
+    document.getElementById("tPlant").onclick = function () { setTool("plant"); };
     cv.addEventListener("pointerdown", function (e) { drag = 1; lastX = e.clientX; moved = 0; });
     addEventListener("pointermove", function (e) {
       if (!drag) return;
@@ -166,60 +166,56 @@
     });
     addEventListener("pointerup", function (e) { if (!drag) return; drag = 0; if (play && !moved) applyTool(e.clientX, e.clientY); });
     addEventListener("pointercancel", function () { drag = 0; });
-
     function drawGlobe() {
       var gx = cx(), gy = cy(), r = R();
       x.save();
       x.beginPath(); x.arc(gx, gy, r, 0, Math.PI * 2); x.clip();
       if (era === 0) {
         x.fillStyle = "#7c2d12"; x.fillRect(gx - r, gy - r, r * 2, r * 2);
-        var i;
-        for (i = 0; i < 14; i++) {
+        for (var i = 0; i < 10; i++) {
           var ang = rot + i * 0.7;
-          em(i % 2 ? "🔥" : "🪨", gx + Math.sin(ang) * r * 0.55, gy + Math.cos(ang * 1.1) * r * 0.5, 28);
+          em(i % 2 ? "🔥" : "🪨", gx + Math.sin(ang) * r * 0.5, gy + Math.cos(ang * 1.1) * r * 0.45, 48);
         }
-        em("🌋", gx, gy, 52);
+        em("🌋", gx, gy, 84);
       } else {
         x.fillStyle = "#0369a1"; x.fillRect(gx - r, gy - r, r * 2, r * 2);
-        var j;
-        for (j = 0; j < 16; j++) {
+        for (var j = 0; j < 12; j++) {
           var a2 = rot + j * 0.55;
-          em("🌊", gx + Math.sin(a2) * r * 0.62, gy + Math.cos(a2 * 0.9) * r * 0.5, 26);
+          em("🌊", gx + Math.sin(a2) * r * 0.58, gy + Math.cos(a2 * 0.9) * r * 0.46, 52);
         }
       }
       x.restore();
       x.beginPath(); x.arc(gx, gy, r, 0, Math.PI * 2);
-      x.strokeStyle = era === 0 ? "#ea580c" : "#7dd3fc"; x.lineWidth = 6; x.stroke();
+      x.strokeStyle = era === 0 ? "#ea580c" : "#7dd3fc"; x.lineWidth = 8; x.stroke();
     }
-
     function loop(now) {
       if (!last) last = now;
       var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
       if (!drag) rot += dt * 0.15;
       x.fillStyle = "#020617"; x.fillRect(0, 0, W, H);
       var i;
-      for (i = 0; i < 18; i++) em("✨", (i * 73 + rot * 20) % W, (i * 41) % (H * 0.88), 12);
-      em("☀️", W * 0.14, 64, 36);
-      em("🌙", W * 0.88, 80, 28);
+      for (i = 0; i < 14; i++) em("✨", (i * 73 + rot * 20) % W, (i * 41) % (H * 0.88), 18);
+      em("☀️", W * 0.14, 90, 56);
+      em("🌙", W * 0.88, 100, 48);
       if (era >= 1) {
-        em("☁️", W * 0.22 + Math.sin(t) * 8, 120, 30);
-        em("☁️", W * 0.78, 140, 26);
+        em("☁️", W * 0.22 + Math.sin(t) * 8, 140, 56);
+        em("☁️", W * 0.78, 160, 48);
       }
       drawGlobe();
       for (i = 0; i < life.length; i++) {
         var L = life[i], a = L.a + rot;
-        em(L.kind, cx() + Math.sin(a) * R() * 0.78, cy() + Math.cos(a) * R() * 0.42 + Math.sin(t * 2 + L.bob) * 4, 26);
+        em(L.kind, cx() + Math.sin(a) * R() * 0.72, cy() + Math.cos(a) * R() * 0.40 + Math.sin(t * 2 + L.bob) * 4, 56);
       }
       for (i = flashes.length - 1; i >= 0; i--) {
         flashes[i].life -= dt;
         x.globalAlpha = Math.max(0, flashes[i].life * 2);
-        em("☀️", flashes[i].x, flashes[i].y, 36);
+        em("☀️", flashes[i].x, flashes[i].y, 64);
         if (flashes[i].life <= 0) flashes.splice(i, 1);
       }
       for (i = rains.length - 1; i >= 0; i--) {
         rains[i].life -= dt; rains[i].y += 70 * dt;
         x.globalAlpha = Math.max(0, rains[i].life);
-        em("💧", rains[i].x, rains[i].y, 22);
+        em("💧", rains[i].x, rains[i].y, 40);
         if (rains[i].life <= 0) rains.splice(i, 1);
       }
       x.globalAlpha = 1;
@@ -227,7 +223,7 @@
     }
     hud();
     requestAnimationFrame(loop);
-    if (/shot=ocean/.test(location.search)) { start(); era = 1; spawnEraLife(); hud(); }
+    if (/shot=ocean/.test(location.search)) { start(); era = 1; spawnEraLife(); setTool("rain"); hud(); }
   })();
   </script>
 </body>
