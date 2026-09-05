@@ -4,129 +4,88 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Soccer Kick</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,sans-serif;background:#14532d;color:#ecfccb;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#14532d;text-decoration:none;font-weight:800;background:#fde047;padding:8px 14px;border-radius:4px}
-    .scarf{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:8;min-width:210px;background:repeating-linear-gradient(90deg,#16a34a 0 14px,#fff 14px 20px,#dc2626 20px 34px,#fff 34px 40px);padding:8px 18px 10px;border-radius:0 0 16px 16px;text-align:center;box-shadow:0 6px 0 #14532d;pointer-events:none}
-    .scarf b{display:block;background:#14532d;color:#fde047;padding:4px 10px;font-size:15px}
-    #say{position:fixed;left:10px;right:10px;bottom:108px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
-    #bar{position:fixed;left:22%;right:22%;bottom:18px;z-index:8;height:22px;background:#14532d;border-radius:6px;overflow:hidden;box-shadow:inset 0 0 0 3px #fde047}
-    #fill{height:100%;width:0;background:linear-gradient(90deg,#86efac,#fde047,#f97316)}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#22c55e,#14532d)}
-    .cover.off{display:none}
-    h1{font-size:clamp(34px,9vw,52px);color:#fff;text-shadow:0 4px 0 #14532d}
-    .btn{background:#fde047;color:#422006;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #ca8a04}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div class="scarf"><b id="hf">Friendly</b><b id="sc">Home 0 – 0 Away</b></div>
-  <div id="say">Hold to power. Let go to kick!</div>
-  <div id="bar"><div id="fill"></div></div>
+  <div id="hud"><b id="gl">⚽ 0/5</b></div>
+  <div id="say">Tap Kick when the goal is open!</div>
+  <div class="dock" id="dock">
+    <button id="kick"><span>👟</span>Kick</button>
+  </div>
   <div class="cover" id="title">
+    <div class="hero">⚽</div>
     <h1>Soccer Kick</h1>
-    <p>Hold. Kick. Goalie dives.</p>
-    <button class="btn" id="go">Kick off</button>
+    <p>Kick when the gloves move away!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Goal party!</h1>
-    <p id="wp">Five matches.</p>
-    <button class="btn" id="again">Play again</button>
+    <div class="hero">🏆</div>
+    <h1>Goal hero!</h1>
+    <p>Five goals. Crowd goes wow.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, last = 0, play = false, match = 0, goals = 0, misses = 0, stars = 0;
-    var phase = "ready", power = 0, holding = 0, kickT = 0, lastPX = 0.5;
-    var ball = { x: 0.5, y: 0.72, vx: 0, vy: 0 }, goalie = 0.5;
-    var MATCH = [
-      { n: "Friendly", need: 2, dive: 0.6 },
-      { n: "Windy", need: 2, dive: 0.7, wind: 1 },
-      { n: "Night lights", need: 3, dive: 0.8, night: 1 },
-      { n: "Rain pitch", need: 3, dive: 0.75, rain: 1 },
-      { n: "Cup final", need: 3, dive: 0.85 }
-    ];
-    var SAYS = ["Hold, then kick!", "Wind curves it!", "Aim the tap!", "Chip the rain!", "Cup kick!"];
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+    var W, H, t = 0, last = 0, play = false, goals = 0, stars = 0, ballY = 0.78, kicking = 0, keeper = 0;
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-soccer") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
     addEventListener("resize", resize); resize();
-    function resetKick() {
-      phase = "ready"; power = 0; kickT = 0; holding = 0;
-      ball.x = 0.5; ball.y = 0.72; ball.vx = 0; ball.vy = 0; goalie = 0.5;
-      document.getElementById("fill").style.width = "0%";
-    }
-    function setMatch() {
-      var m = MATCH[match];
-      document.getElementById("hf").textContent = m.n;
-      document.getElementById("sc").textContent = "Home " + goals + " – " + misses + " Away";
-      document.getElementById("say").textContent = SAYS[match];
-      resetKick();
-    }
     function start() {
-      play = true; match = 0; goals = 0; misses = 0;
+      play = true; goals = 0; ballY = 0.78; kicking = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      setMatch();
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("gl").textContent = "⚽ 0/5";
+      document.getElementById("say").textContent = "Tap Kick when gloves move away!";
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    function onDown(e) { if (e.clientX != null) lastPX = e.clientX / W; if (play && phase === "ready") { holding = 1; phase = "power"; } }
-    function onUp(e) {
-      if (!play || phase !== "power") return;
-      holding = 0; phase = "run"; kickT = 0;
-      if (e && e.clientX != null) lastPX = e.clientX / W;
-    }
-    cv.addEventListener("pointerdown", onDown);
-    addEventListener("pointerup", onUp);
-    addEventListener("pointercancel", onUp);
-
+    document.getElementById("kick").onclick = function () {
+      if (!play || kicking) return;
+      kicking = 1;
+    };
     function loop(now) {
       if (!last) last = now;
       var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
-      var m = MATCH[match];
-      if (holding) { power = Math.sin(t * 4) * 0.5 + 0.5; document.getElementById("fill").style.width = (power * 100) + "%"; }
-      if (phase === "run") {
-        kickT += dt;
-        if (kickT >= 0.35) {
-          phase = "fly";
-          var nx = (lastPX * 2 - 1) + (m.wind ? Math.sin(t) * 0.2 : 0);
-          ball.vx = nx * 0.55; ball.vy = -0.55 - power * 0.7;
-        }
-      }
-      if (phase === "fly") {
-        ball.x += ball.vx * dt * 1.4; ball.y += ball.vy * dt;
-        ball.vy += 0.9 * dt;
-        goalie += ((ball.x - goalie) * m.dive - (goalie - 0.5) * 0.1) * dt * 6;
-        goalie = Math.max(0.28, Math.min(0.72, goalie));
-        if (ball.y < 0.22) {
-          var inGoal = Math.abs(ball.x - 0.5) < 0.28 && Math.abs(ball.x - goalie) > 0.08;
-          if (inGoal) { goals++; stars++; document.getElementById("say").textContent = "GOAL!"; }
-          else { misses++; document.getElementById("say").textContent = "Try again!"; }
-          document.getElementById("sc").textContent = "Home " + goals + " – " + misses + " Away";
-          try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {}
-          if (goals >= m.need) {
-            match++;
-            if (match >= MATCH.length) {
+      keeper = Math.sin(t * 1.6);
+      x.fillStyle = "#4ade80"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#86efac"; x.fillRect(W * 0.22, 80, W * 0.56, 90);
+      em("🥅", W * 0.5, 120, 88);
+      em("🧤", W * 0.5 + keeper * 90, 150, 56);
+      if (play && kicking) {
+        ballY -= 1.4 * dt;
+        if (ballY < 0.22) {
+          var blocked = Math.abs(keeper) < 0.28;
+          kicking = 0; ballY = 0.78;
+          if (blocked) {
+            document.getElementById("say").textContent = "Saved! Wait for an open goal.";
+          } else {
+            goals++; stars++;
+            try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {}
+            document.getElementById("gl").textContent = "⚽ " + goals + "/5";
+            document.getElementById("say").textContent = "GOAL!";
+            if (goals >= 5) {
               play = false;
-              document.getElementById("wp").textContent = "⚽ " + goals + "  ★ " + stars;
+              document.getElementById("dock").classList.remove("on");
               document.getElementById("win").classList.remove("off");
-            } else setMatch();
-          } else { phase = "wait"; setTimeout(resetKick, 700); }
+            }
+          }
         }
       }
-      x.fillStyle = m.night ? "#0f172a" : "#7dd3fc"; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#22c55e"; x.fillRect(0, H * 0.28, W, H * 0.72);
-      x.strokeStyle = "#ecfccb"; x.lineWidth = 3; x.strokeRect(W * 0.22, H * 0.28, W * 0.56, H * 0.22);
-      em("🥅", W * 0.5, H * 0.2, 72);
-      em("🧤", W * goalie, H * 0.24, 36);
-      em("🧒", W * 0.5, H * 0.78, 40);
-      em("⚽", W * ball.x, H * ball.y, 28);
-      if (m.rain) { x.strokeStyle = "#7dd3fc"; for (var i = 0; i < 14; i++) { var rx = (i * 50 + t * 80) % W; x.beginPath(); x.moveTo(rx, (i * 40 + t * 200) % H); x.lineTo(rx - 4, (i * 40 + t * 200) % H + 10); x.stroke(); } }
+      em("⚽", W * 0.5, ballY * H, 64);
+      em("🧒", W * 0.5, H * 0.86, 56);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

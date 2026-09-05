@@ -4,547 +4,103 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Piano Keys</title>
+  <link rel="stylesheet" href="../kid.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: Georgia, "Trebuchet MS", serif; background: #1e1b4b; color: #ede9fe; touch-action: none; user-select: none; -webkit-user-select: none; }
-    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
-    canvas { display: block; width: 100%; height: 100%; }
-    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #fff; text-decoration: none; font-family: "Trebuchet MS", sans-serif; font-weight: 800; font-size: 17px; background: rgba(76,29,149,.55); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
-    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; font-family: "Trebuchet MS", sans-serif; }
-    #hud b { font-weight: 800; font-size: 13px; background: #4c1d95; color: #fde68a; padding: 6px 10px; border-radius: 999px; }
-    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 7; font-family: "Trebuchet MS", sans-serif; font-weight: 800; font-size: 16px; color: #fde68a; pointer-events: none; text-align: center; width: 92%; }
-    #dock { position: fixed; left: 8px; right: 8px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 7; display: none; gap: 8px; }
-    #dock.on { display: flex; }
-    #dock button { flex: 1; height: 52px; border-radius: 16px; font-family: "Trebuchet MS", sans-serif; font-weight: 800; font-size: 15px; background: #c4b5fd; color: #1e1b4b; box-shadow: 0 4px 0 #6d28d9; }
-    #dock button.on { background: #fde047; }
-    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#1e1b4b, #6d28d9); }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(32px, 9vw, 50px); color: #fff; text-shadow: 0 4px 0 #4c1d95; }
-    .cover p { font-family: "Trebuchet MS", sans-serif; font-weight: 800; font-size: 18px; max-width: 340px; }
-    .btn { font-family: "Trebuchet MS", sans-serif; background: #fde047; color: #422006; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #ca8a04; }
-    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
+    html,body{background:#111827}
+    .keys{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:none;gap:8px;z-index:40}
+    .keys.on{display:flex}
+    .keys button{width:64px;height:160px;border-radius:16px;background:#fff;color:#111;font-weight:900;font-size:28px;box-shadow:0 8px 0 #020617}
+    .keys button.lit{background:#fde047}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <canvas id="c"></canvas>
-  <div id="hud"><b id="sn">Twinkle</b><b id="oc">Octave 1</b><b id="fr">Follow</b></div>
-  <div id="say">Follow the firefly. Keys go down!</div>
-  <div id="dock">
-    <button id="free" type="button">Free play</button>
-    <button id="hint" type="button">Hear song</button>
+  <div id="hud"><b id="rd">Song 1</b></div>
+  <div id="say">Watch the keys glow. Copy!</div>
+  <div style="position:fixed;inset:0 0 190px 0;display:grid;place-items:center;font-size:110px;pointer-events:none" id="face">🎹</div>
+  <div class="keys" id="keys">
+    <button data-i="0">1</button>
+    <button data-i="1">2</button>
+    <button data-i="2">3</button>
+    <button data-i="3">4</button>
+    <button data-i="4">5</button>
   </div>
   <div class="cover" id="title">
-    <div style="font-size:76px">🎹</div>
+    <div class="hero">🎹</div>
     <h1>Piano Keys</h1>
-    <p>Keys depress. Notes fly up. Follow the firefly. Unlock a second octave.</p>
-    <button class="btn" id="go">Play</button>
+    <p>Copy the little song.</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:76px">🌟</div>
-    <h1>Little maestro!</h1>
-    <p id="winP">Five songs. Soft keys.</p>
-    <button class="btn g" id="again">Play again</button>
+    <div class="hero">🎵</div>
+    <h1>Music star!</h1>
+    <p>Three songs played.</p>
+    <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), x = cv.getContext("2d");
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-    var W, H, last = 0, t = 0, play = false, free = false, oct2 = 0;
-    var song = 0, step = 0, wait = 0, glow = 0;
-    var keys = [], notes = [], sparks = [], dust = [];
-    var fly = { i: 0, x: 0, y: 0, tx: 0, ty: 0, bob: 0 };
-    var NAMES = ["C", "D", "E", "F", "G", "A", "B", "C2"];
-    var FREQ = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
-    var COLS = ["#ef4444", "#f97316", "#facc15", "#22c55e", "#14b8a6", "#3b82f6", "#a855f7", "#f472b6"];
-    var SONGS = [
-      { n: "Twinkle", notes: [0, 0, 4, 4, 5, 5, 4, 3, 3, 2, 2, 1, 1, 0] },
-      { n: "Little Lamb", notes: [2, 1, 0, 1, 2, 2, 2, 1, 1, 1, 2, 4, 4] },
-      { n: "Hot Cross", notes: [1, 0, 1, 2, 1, 0, 1, 2, 2, 3, 4] },
-      { n: "Ode Bit", notes: [2, 2, 3, 4, 4, 3, 2, 1, 0, 0, 1, 2, 2, 1, 1] },
-      { n: "Happy High", notes: [0, 0, 1, 0, 3, 2, 0, 0, 1, 0, 4, 3, 7, 5, 3, 2, 1] }
-    ];
-
-    function beep(f, d, typ) {
+    var SONGS = [[0, 2, 4], [0, 1, 2, 1], [4, 3, 2, 0]];
+    var song = 0, seq = [], step = 0, listen = false;
+    var btns = [].slice.call(document.querySelectorAll("#keys button"));
+    var AC = null;
+    function beep(i) {
       try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        if (ac.state === "suspended") ac.resume();
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.type = typ || "sine"; o.frequency.value = f; g.gain.value = 0.11;
-        o.connect(g); g.connect(ac.destination);
-        o.start();
-        g.gain.setValueAtTime(0.11, ac.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
-        o.stop(ac.currentTime + d);
+        AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+        var o = AC.createOscillator(), g = AC.createGain();
+        o.frequency.value = [262, 294, 330, 392, 440][i];
+        o.type = "sine"; g.gain.value = 0.12;
+        o.connect(g); g.connect(AC.destination);
+        o.start(); setTimeout(function () { o.stop(); }, 280);
       } catch (e) {}
     }
-    function chord(fs, d) {
-      fs.forEach(function (f, i) { setTimeout(function () { beep(f, d); }, i * 40); });
+    function light(i) {
+      btns[i].classList.add("lit"); beep(i);
+      setTimeout(function () { btns[i].classList.remove("lit"); }, 320);
     }
-    function say(s) { document.getElementById("say").textContent = s; }
-    function hud() {
-      document.getElementById("sn").textContent = SONGS[song] ? SONGS[song].n : "Done";
-      document.getElementById("oc").textContent = oct2 ? "Octave 2!" : "Octave 1";
-      document.getElementById("fr").textContent = free ? "Free play" : "Follow";
-    }
-    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; layoutKeys(); }
-    addEventListener("resize", resize);
-
-    function layoutKeys() {
-      var n = oct2 ? 8 : 7;
-      var pad = 10, kw = (W - pad * 2) / n, kh = Math.min(220, H * 0.32);
-      var ky = H - kh - 78;
-      keys = [];
-      var i;
-      for (i = 0; i < n; i++) {
-        keys.push({
-          i: i, x: pad + i * kw + 3, y: ky, w: kw - 6, h: kh,
-          down: 0, press: 0, name: NAMES[i], f: FREQ[i], col: COLS[i]
-        });
+    function playSong() {
+      listen = false; step = 0; seq = SONGS[song];
+      document.getElementById("rd").textContent = "Song " + (song + 1);
+      document.getElementById("say").textContent = "Watch...";
+      var i = 0;
+      function tick() {
+        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn!"; return; }
+        light(seq[i]); i++; setTimeout(tick, 500);
       }
-      hopFly(SONGS[song] ? SONGS[song].notes[step] || 0 : 0, true);
+      setTimeout(tick, 400);
     }
-
-    function hopFly(i, snap) {
-      var k = keys[Math.min(i, keys.length - 1)];
-      if (!k) return;
-      fly.tx = k.x + k.w * 0.5; fly.ty = k.y - 18;
-      fly.i = i;
-      if (snap) { fly.x = fly.tx; fly.y = fly.ty; }
-    }
-
     function start() {
-      play = true; song = 0; step = 0; free = false; oct2 = 0; wait = 0.4;
-      notes = []; sparks = []; dust = [];
+      song = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("dock").classList.add("on");
-      document.getElementById("free").classList.remove("on");
-      layoutKeys();
-      say("Follow the firefly. Tap the glowing key.");
-      hud(); beep(520, 0.1);
+      document.getElementById("keys").classList.add("on");
+      playSong();
     }
-
-    function playKey(k, fromUser) {
-      if (!k) return;
-      k.down = 1; k.press = 0.18;
-      var freq = k.f;
-      beep(freq, 0.28, "sine");
-      notes.push({ x: k.x + k.w * 0.5, y: k.y, col: k.col, life: 1, name: k.name, vy: -80 });
-      var i;
-      for (i = 0; i < 8; i++) sparks.push({ x: k.x + k.w * 0.5, y: k.y, vx: (Math.random() - 0.5) * 80, vy: -40 - Math.random() * 60, life: 0.6, col: k.col });
-      if (free || !fromUser) return;
-      var need = SONGS[song].notes[step];
-      if (k.i === need || (need === 7 && k.i === 7)) {
-        step++;
-        glow = 0.3;
-        if (step >= SONGS[song].notes.length) {
-          chord([523, 659, 784], 0.2);
-          if (song === 2 && !oct2) {
-            oct2 = 1; layoutKeys();
-            say("Second octave unlocked! High C is yours.");
-          }
-          song++;
-          if (song >= SONGS.length) {
-            play = false;
-            document.getElementById("dock").classList.remove("on");
-            document.getElementById("winP").textContent = "Five songs. Keys went down. Notes flew up.";
-            document.getElementById("win").classList.remove("off");
-            return;
-          }
-          step = 0; wait = 0.6;
-          say("Song done! Next: " + SONGS[song].n);
-          hud();
-        } else {
-          hopFly(SONGS[song].notes[step], false);
-          say("Yes! " + (step + 1) + " / " + SONGS[song].notes.length);
-        }
-      } else {
-        beep(180, 0.08, "square");
-        say("Almost — the firefly is on " + NAMES[need] + ".");
-        hopFly(need, false);
-      }
-    }
-
-    function keyAt(mx, my) {
-      var i, k;
-      for (i = 0; i < keys.length; i++) {
-        k = keys[i];
-        if (mx >= k.x && mx <= k.x + k.w && my >= k.y && my <= k.y + k.h) return k;
-      }
-      return null;
-    }
-
-    addEventListener("pointerdown", function (e) {
-      if (e.target.closest && e.target.closest("a,button")) return;
-      if (!play) return;
-      var k = keyAt(e.clientX, e.clientY);
-      if (k) playKey(k, true);
-    });
-    document.getElementById("free").onclick = function () {
-      free = !free;
-      this.classList.toggle("on", free);
-      hud();
-      say(free ? "Free play. Tap any key. Toggle again to follow." : "Follow the firefly again.");
-      beep(600, 0.07);
-    };
-    document.getElementById("hint").onclick = function () {
-      if (!SONGS[song]) return;
-      var seq = SONGS[song].notes, i = 0;
-      function next() {
-        if (i >= seq.length || !keys[seq[i]]) return;
-        playKey(keys[Math.min(seq[i], keys.length - 1)], false);
-        i++;
-        if (i < seq.length) setTimeout(next, 280);
-      }
-      next();
-    };
-
-    function update(dt) {
-      t += dt;
-      fly.bob += dt * 6;
-      fly.x += (fly.tx - fly.x) * Math.min(1, dt * 7);
-      fly.y += (fly.ty - fly.y) * Math.min(1, dt * 7);
-      if (glow > 0) glow -= dt;
-      var i, k;
-      for (i = 0; i < keys.length; i++) {
-        k = keys[i];
-        if (k.press > 0) k.press -= dt;
-        k.down += ((k.press > 0 ? 1 : 0) - k.down) * Math.min(1, dt * 16);
-      }
-      for (i = notes.length - 1; i >= 0; i--) {
-        notes[i].life -= dt * 0.7; notes[i].y += notes[i].vy * dt; notes[i].vy -= 20 * dt;
-        if (notes[i].life <= 0) notes.splice(i, 1);
-      }
-      for (i = sparks.length - 1; i >= 0; i--) {
-        sparks[i].life -= dt * 1.6; sparks[i].x += sparks[i].vx * dt; sparks[i].y += sparks[i].vy * dt;
-        if (sparks[i].life <= 0) sparks.splice(i, 1);
-      }
-      if (play && !free && SONGS[song]) hopFly(SONGS[song].notes[step] || 0, false);
-      dust.push({ x: fly.x + (Math.random() - 0.5) * 8, y: fly.y + 6, life: 0.5 });
-      for (i = dust.length - 1; i >= 0; i--) {
-        dust[i].life -= dt * 2; dust[i].y += 12 * dt;
-        if (dust[i].life <= 0) dust.splice(i, 1);
-      }
-    }
-
-    function drawRoom() {
-      var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, "#0f0a2e"); g.addColorStop(0.45, "#1e1b4b"); g.addColorStop(1, "#4c1d95");
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#fff";
-      var i;
-      for (i = 0; i < 36; i++) {
-        x.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(t * 2 + i));
-        x.fillRect((i * 67 + t * 4) % W, 10 + (i * 43) % (H * 0.35), 2, 2);
-      }
-      x.globalAlpha = 1;
-      x.fillStyle = "rgba(253,224,71,.15)";
-      x.beginPath(); x.arc(W * 0.8, 70, 50, 0, Math.PI * 2); x.fill();
-      x.fillStyle = "#2e1065";
-      x.fillRect(0, H * 0.55, W, H * 0.45);
-      x.fillStyle = "#3b0764";
-      x.fillRect(8, H * 0.58, W - 16, 16);
-    }
-
-    function drawKeys() {
-      var i, k, dip, target, need;
-      need = (!free && SONGS[song]) ? SONGS[song].notes[step] : -1;
-      for (i = 0; i < keys.length; i++) {
-        k = keys[i];
-        dip = k.down * 10;
-        x.fillStyle = "#111";
-        x.fillRect(k.x + 3, k.y + 8, k.w, k.h);
-        target = (k.i === need && glow < 0.2 && !free);
-        x.fillStyle = k.press > 0 ? k.col : (target ? "#fde68a" : "#f8fafc");
-        x.beginPath();
-        if (x.roundRect) x.roundRect(k.x, k.y + dip, k.w, k.h - dip, 8);
-        else x.rect(k.x, k.y + dip, k.w, k.h - dip);
-        x.fill();
-        em("🎹", k.x + k.w * 0.5, k.y + dip + k.h * 0.55, Math.min(36, k.w * 0.55));
-        x.fillStyle = k.press > 0 ? "#fff" : "#4c1d95";
-        x.font = "bold 18px Trebuchet MS"; x.textAlign = "center";
-        x.fillText(k.name, k.x + k.w * 0.5, k.y + dip + 28);
-        if (target) {
-          x.strokeStyle = "#fde047"; x.lineWidth = 3;
-          x.strokeRect(k.x + 2, k.y + dip + 2, k.w - 4, k.h - dip - 4);
-        }
-        x.fillStyle = "rgba(0,0,0,.08)";
-        x.fillRect(k.x + 6, k.y + dip + k.h * 0.55, k.w - 12, 8);
-      }
-    }
-
-    function drawFly() {
-      var fy = fly.y + Math.sin(fly.bob) * 5;
-      x.fillStyle = "rgba(253,224,71,.25)";
-      x.beginPath(); x.arc(fly.x, fy, 16 + Math.sin(t * 8) * 3, 0, Math.PI * 2); x.fill();
-      em("✨", fly.x, fy, 28);
-      var i;
-      for (i = 0; i < dust.length; i++) {
-        x.globalAlpha = Math.max(0, dust[i].life);
-        x.fillStyle = "#fde047";
-        x.beginPath(); x.arc(dust[i].x, dust[i].y, 2, 0, Math.PI * 2); x.fill();
-      }
-      x.globalAlpha = 1;
-    }
-
-    function draw() {
-      drawRoom();
-      var i;
-      for (i = 0; i < notes.length; i++) {
-        x.globalAlpha = Math.max(0, notes[i].life);
-        em("🎵", notes[i].x, notes[i].y, 22);
-        x.fillStyle = notes[i].col; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
-        x.fillText(notes[i].name, notes[i].x, notes[i].y + 14);
-      }
-      x.globalAlpha = 1;
-      for (i = 0; i < sparks.length; i++) {
-        x.globalAlpha = Math.max(0, sparks[i].life);
-        x.fillStyle = sparks[i].col;
-        x.fillRect(sparks[i].x, sparks[i].y, 3, 3);
-      }
-      x.globalAlpha = 1;
-      drawKeys();
-      if (play) drawFly();
-      if (SONGS[song] && !free) {
-        x.fillStyle = "#c4b5fd"; x.font = "bold 14px Trebuchet MS"; x.textAlign = "left";
-        var seq = SONGS[song].notes, s, lab = "";
-        for (s = 0; s < seq.length; s++) lab += (s === step ? "[" : "") + NAMES[seq[s]] + (s === step ? "] " : " ");
-        x.fillText(lab, 12, 80);
-      }
-      x.fillStyle = "rgba(255,255,255,.2)";
-      x.fillRect(16, 8, W - 32, 6);
-      x.fillStyle = "#fde047";
-      var prog = song / 5 + (SONGS[song] ? step / (SONGS[song].notes.length * 5) : 0);
-      x.fillRect(16, 8, Math.min(W - 32, prog * (W - 32)), 6);
-    }
-
-    
-    var staff=[], metronome=0, glowKeys=[], sheetX=0;
-    function flavorUpdate(dt){
-      metronome+=dt;
-      sheetX+=dt*30;
-      if(!staff.length){ var i; for(i=0;i<5;i++) staff.push({y:0.16+i*0.025}); }
-      if(typeof notes!=="undefined" && notes.length && Math.random()<dt*4){
-        glowKeys.push({i:Math.floor(Math.random()*7),life:0.3});
-      }
-      var i; for(i=glowKeys.length-1;i>=0;i--){ glowKeys[i].life-=dt; if(glowKeys[i].life<=0) glowKeys.splice(i,1); }
-    }
-    function flavorDraw(){
-      var i;
-      x.strokeStyle="rgba(196,181,253,.45)"; x.lineWidth=1;
-      for(i=0;i<staff.length;i++){ x.beginPath(); x.moveTo(16,staff[i].y*H); x.lineTo(W-16,staff[i].y*H); x.stroke(); }
-      if(typeof SONGS!=="undefined" && SONGS[song]){
-        var seq=SONGS[song].notes, s;
-        for(s=0;s<seq.length;s++){
-          var nx=40+s*18-(sheetX%18);
-          x.fillStyle=s===(typeof step==="number"?step:-1)?"#fde047":"#c4b5fd";
-          x.beginPath(); x.arc(nx, staff[Math.min(4,seq[s]%5)].y*H, 5,0,Math.PI*2); x.fill();
-        }
-      }
-      x.fillStyle="#fde047";
-      var beat=Math.abs(Math.sin(metronome*Math.PI*2));
-      x.beginPath(); x.arc(28, 40, 4+beat*3,0,Math.PI*2); x.fill();
-      x.font="11px Trebuchet MS"; x.fillStyle="#c4b5fd"; x.textAlign="left";
-      x.fillText(typeof free!=="undefined"&&free?"jam mode":"copy the firefly", 16, 100);
-    }
-
-    function extraWorld(){
-      var _i,_a;
-      _a=0.08+0.04*Math.sin(t+0); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((0+t*8)%W, 20, 4, 3); /* key lip 0 */
-      _a=0.08+0.04*Math.sin(t+1); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((47+t*8)%W, 51, 5, 4); /* firefly dust 1 */
-      _a=0.08+0.04*Math.sin(t+2); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((94+t*8)%W, 82, 6, 5); /* felt 2 */
-      _a=0.08+0.04*Math.sin(t+3); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((44+t*8)%W, 30, 7, 6); /* ivory 3 */
-      _a=0.08+0.04*Math.sin(t+4); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((91+t*8)%W, 61, 8, 3); /* ribbon 4 */
-      _a=0.08+0.04*Math.sin(t+5); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((41+t*8)%W, 92, 4, 4); /* key lip 5 */
-      _a=0.08+0.04*Math.sin(t+6); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((88+t*8)%W, 40, 5, 5); /* firefly dust 6 */
-      _a=0.08+0.04*Math.sin(t+7); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((38+t*8)%W, 71, 6, 6); /* felt 7 */
-      _a=0.08+0.04*Math.sin(t+8); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((85+t*8)%W, 102, 7, 3); /* ivory 8 */
-      _a=0.08+0.04*Math.sin(t+9); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((35+t*8)%W, 50, 8, 4); /* ribbon 9 */
-      _a=0.08+0.04*Math.sin(t+10); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((82+t*8)%W, 81, 4, 5); /* key lip 10 */
-      _a=0.08+0.04*Math.sin(t+11); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((32+t*8)%W, 29, 5, 6); /* firefly dust 11 */
-      _a=0.08+0.04*Math.sin(t+12); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((79+t*8)%W, 60, 6, 3); /* felt 12 */
-      _a=0.08+0.04*Math.sin(t+13); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((29+t*8)%W, 91, 7, 4); /* ivory 13 */
-      _a=0.08+0.04*Math.sin(t+14); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((76+t*8)%W, 39, 8, 5); /* ribbon 14 */
-      _a=0.08+0.04*Math.sin(t+15); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((26+t*8)%W, 70, 4, 6); /* key lip 15 */
-      _a=0.08+0.04*Math.sin(t+16); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((73+t*8)%W, 101, 5, 3); /* firefly dust 16 */
-      _a=0.08+0.04*Math.sin(t+17); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((23+t*8)%W, 49, 6, 4); /* felt 17 */
-      _a=0.08+0.04*Math.sin(t+18); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((70+t*8)%W, 80, 7, 5); /* ivory 18 */
-      _a=0.08+0.04*Math.sin(t+19); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((20+t*8)%W, 28, 8, 6); /* ribbon 19 */
-      _a=0.08+0.04*Math.sin(t+20); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((67+t*8)%W, 59, 4, 3); /* key lip 20 */
-      _a=0.08+0.04*Math.sin(t+21); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((17+t*8)%W, 90, 5, 4); /* firefly dust 21 */
-      _a=0.08+0.04*Math.sin(t+22); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((64+t*8)%W, 38, 6, 5); /* felt 22 */
-      _a=0.08+0.04*Math.sin(t+23); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((14+t*8)%W, 69, 7, 6); /* ivory 23 */
-      _a=0.08+0.04*Math.sin(t+24); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((61+t*8)%W, 100, 8, 3); /* ribbon 24 */
-      _a=0.08+0.04*Math.sin(t+25); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((11+t*8)%W, 48, 4, 4); /* key lip 25 */
-      _a=0.08+0.04*Math.sin(t+26); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((58+t*8)%W, 79, 5, 5); /* firefly dust 26 */
-      _a=0.08+0.04*Math.sin(t+27); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((8+t*8)%W, 27, 6, 6); /* felt 27 */
-      _a=0.08+0.04*Math.sin(t+28); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((55+t*8)%W, 58, 7, 3); /* ivory 28 */
-      _a=0.08+0.04*Math.sin(t+29); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((5+t*8)%W, 89, 8, 4); /* ribbon 29 */
-      _a=0.08+0.04*Math.sin(t+30); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((52+t*8)%W, 37, 4, 5); /* key lip 30 */
-      _a=0.08+0.04*Math.sin(t+31); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((2+t*8)%W, 68, 5, 6); /* firefly dust 31 */
-      _a=0.08+0.04*Math.sin(t+32); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((49+t*8)%W, 99, 6, 3); /* felt 32 */
-      _a=0.08+0.04*Math.sin(t+33); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((96+t*8)%W, 47, 7, 4); /* ivory 33 */
-      _a=0.08+0.04*Math.sin(t+34); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((46+t*8)%W, 78, 8, 5); /* ribbon 34 */
-      _a=0.08+0.04*Math.sin(t+35); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((93+t*8)%W, 26, 4, 6); /* key lip 35 */
-      _a=0.08+0.04*Math.sin(t+36); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((43+t*8)%W, 57, 5, 3); /* firefly dust 36 */
-      _a=0.08+0.04*Math.sin(t+37); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((90+t*8)%W, 88, 6, 4); /* felt 37 */
-      _a=0.08+0.04*Math.sin(t+38); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((40+t*8)%W, 36, 7, 5); /* ivory 38 */
-      _a=0.08+0.04*Math.sin(t+39); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((87+t*8)%W, 67, 8, 6); /* ribbon 39 */
-      _a=0.08+0.04*Math.sin(t+40); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((37+t*8)%W, 98, 4, 3); /* key lip 40 */
-      _a=0.08+0.04*Math.sin(t+41); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((84+t*8)%W, 46, 5, 4); /* firefly dust 41 */
-      _a=0.08+0.04*Math.sin(t+42); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((34+t*8)%W, 77, 6, 5); /* felt 42 */
-      _a=0.08+0.04*Math.sin(t+43); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((81+t*8)%W, 25, 7, 6); /* ivory 43 */
-      _a=0.08+0.04*Math.sin(t+44); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((31+t*8)%W, 56, 8, 3); /* ribbon 44 */
-      _a=0.08+0.04*Math.sin(t+45); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((78+t*8)%W, 87, 4, 4); /* key lip 45 */
-      _a=0.08+0.04*Math.sin(t+46); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((28+t*8)%W, 35, 5, 5); /* firefly dust 46 */
-      _a=0.08+0.04*Math.sin(t+47); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((75+t*8)%W, 66, 6, 6); /* felt 47 */
-      _a=0.08+0.04*Math.sin(t+48); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((25+t*8)%W, 97, 7, 3); /* ivory 48 */
-      _a=0.08+0.04*Math.sin(t+49); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((72+t*8)%W, 45, 8, 4); /* ribbon 49 */
-      _a=0.08+0.04*Math.sin(t+50); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((22+t*8)%W, 76, 4, 5); /* key lip 50 */
-      _a=0.08+0.04*Math.sin(t+51); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((69+t*8)%W, 24, 5, 6); /* firefly dust 51 */
-      _a=0.08+0.04*Math.sin(t+52); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((19+t*8)%W, 55, 6, 3); /* felt 52 */
-      _a=0.08+0.04*Math.sin(t+53); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((66+t*8)%W, 86, 7, 4); /* ivory 53 */
-      _a=0.08+0.04*Math.sin(t+54); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((16+t*8)%W, 34, 8, 5); /* ribbon 54 */
-      _a=0.08+0.04*Math.sin(t+55); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((63+t*8)%W, 65, 4, 6); /* key lip 55 */
-      _a=0.08+0.04*Math.sin(t+56); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((13+t*8)%W, 96, 5, 3); /* firefly dust 56 */
-      _a=0.08+0.04*Math.sin(t+57); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((60+t*8)%W, 44, 6, 4); /* felt 57 */
-      _a=0.08+0.04*Math.sin(t+58); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((10+t*8)%W, 75, 7, 5); /* ivory 58 */
-      _a=0.08+0.04*Math.sin(t+59); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((57+t*8)%W, 23, 8, 6); /* ribbon 59 */
-      _a=0.08+0.04*Math.sin(t+60); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((7+t*8)%W, 54, 4, 3); /* key lip 60 */
-      _a=0.08+0.04*Math.sin(t+61); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((54+t*8)%W, 85, 5, 4); /* firefly dust 61 */
-      _a=0.08+0.04*Math.sin(t+62); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((4+t*8)%W, 33, 6, 5); /* felt 62 */
-      _a=0.08+0.04*Math.sin(t+63); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((51+t*8)%W, 64, 7, 6); /* ivory 63 */
-      _a=0.08+0.04*Math.sin(t+64); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((1+t*8)%W, 95, 8, 3); /* ribbon 64 */
-      _a=0.08+0.04*Math.sin(t+65); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((48+t*8)%W, 43, 4, 4); /* key lip 65 */
-      _a=0.08+0.04*Math.sin(t+66); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((95+t*8)%W, 74, 5, 5); /* firefly dust 66 */
-      _a=0.08+0.04*Math.sin(t+67); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((45+t*8)%W, 22, 6, 6); /* felt 67 */
-      _a=0.08+0.04*Math.sin(t+68); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((92+t*8)%W, 53, 7, 3); /* ivory 68 */
-      _a=0.08+0.04*Math.sin(t+69); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((42+t*8)%W, 84, 8, 4); /* ribbon 69 */
-      _a=0.08+0.04*Math.sin(t+70); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((89+t*8)%W, 32, 4, 5); /* key lip 70 */
-      _a=0.08+0.04*Math.sin(t+71); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((39+t*8)%W, 63, 5, 6); /* firefly dust 71 */
-      _a=0.08+0.04*Math.sin(t+72); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((86+t*8)%W, 94, 6, 3); /* felt 72 */
-      _a=0.08+0.04*Math.sin(t+73); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((36+t*8)%W, 42, 7, 4); /* ivory 73 */
-      _a=0.08+0.04*Math.sin(t+74); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((83+t*8)%W, 73, 8, 5); /* ribbon 74 */
-      _a=0.08+0.04*Math.sin(t+75); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((33+t*8)%W, 21, 4, 6); /* key lip 75 */
-      _a=0.08+0.04*Math.sin(t+76); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((80+t*8)%W, 52, 5, 3); /* firefly dust 76 */
-      _a=0.08+0.04*Math.sin(t+77); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((30+t*8)%W, 83, 6, 4); /* felt 77 */
-      _a=0.08+0.04*Math.sin(t+78); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((77+t*8)%W, 31, 7, 5); /* ivory 78 */
-      _a=0.08+0.04*Math.sin(t+79); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((27+t*8)%W, 62, 8, 6); /* ribbon 79 */
-      _a=0.08+0.04*Math.sin(t+80); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((74+t*8)%W, 93, 4, 3); /* key lip 80 */
-      _a=0.08+0.04*Math.sin(t+81); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((24+t*8)%W, 41, 5, 4); /* firefly dust 81 */
-      _a=0.08+0.04*Math.sin(t+82); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((71+t*8)%W, 72, 6, 5); /* felt 82 */
-      _a=0.08+0.04*Math.sin(t+83); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((21+t*8)%W, 20, 7, 6); /* ivory 83 */
-      _a=0.08+0.04*Math.sin(t+84); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((68+t*8)%W, 51, 8, 3); /* ribbon 84 */
-      _a=0.08+0.04*Math.sin(t+85); x.fillStyle='#c4b5fd'; x.globalAlpha=_a;
-      x.fillRect((18+t*8)%W, 82, 4, 4); /* key lip 85 */
-      _a=0.08+0.04*Math.sin(t+86); x.fillStyle='#fde047'; x.globalAlpha=_a;
-      x.fillRect((65+t*8)%W, 30, 5, 5); /* firefly dust 86 */
-      _a=0.08+0.04*Math.sin(t+87); x.fillStyle='#4c1d95'; x.globalAlpha=_a;
-      x.fillRect((15+t*8)%W, 61, 6, 6); /* felt 87 */
-      _a=0.08+0.04*Math.sin(t+88); x.fillStyle='#fff'; x.globalAlpha=_a;
-      x.fillRect((62+t*8)%W, 92, 7, 3); /* ivory 88 */
-      _a=0.08+0.04*Math.sin(t+89); x.fillStyle='#a855f7'; x.globalAlpha=_a;
-      x.fillRect((12+t*8)%W, 40, 8, 4); /* ribbon 89 */
-      x.globalAlpha=1;
-    }
-
-    function loop(now) {
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
-      update(dt); if(typeof flavorUpdate==='function') flavorUpdate(dt); draw(); if(typeof flavorDraw==='function') flavorDraw(); if(typeof extraWorld==='function') extraWorld();
-      requestAnimationFrame(loop);
-    }
-    resize();
-    requestAnimationFrame(loop);
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
+    btns.forEach(function (b) {
+      b.onclick = function () {
+        var i = +b.getAttribute("data-i");
+        light(i);
+        if (!listen) return;
+        if (i === seq[step]) {
+          step++;
+          if (step >= seq.length) {
+            song++;
+            if (song >= SONGS.length) {
+              listen = false;
+              document.getElementById("keys").classList.remove("on");
+              document.getElementById("win").classList.remove("off");
+            } else {
+              document.getElementById("say").textContent = "Nice song!";
+              setTimeout(playSong, 500);
+            }
+          }
+        } else {
+          document.getElementById("say").textContent = "Oops. Watch again!";
+          playSong();
+        }
+      };
+    });
   })();
   </script>
 </body>

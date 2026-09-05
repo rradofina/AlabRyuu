@@ -4,391 +4,78 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Bubble Bath</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%; overflow: hidden;
-      font-family: "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
-      background: #fda4af; color: #4a044e;
-      touch-action: none; user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    .home {
-      position: fixed; top: 10px; left: 10px; z-index: 20;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 16px;
-      background: rgba(76, 5, 81, .55); padding: 8px 14px; border-radius: 12px;
-    }
-    canvas { display: block; width: 100%; height: 100%; }
-    .sheet {
-      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-      z-index: 12; background: #fff1f2; border: 4px dashed #fb7185;
-      border-radius: 18px; padding: 8px 16px; min-width: 180px; text-align: center;
-      pointer-events: none; box-shadow: 0 5px 0 #9f1239;
-    }
-    .sheet .bath { font-weight: 800; font-size: 18px; color: #9d174d; }
-    .suds {
-      margin-top: 6px; height: 16px; background: #fecdd3; border-radius: 999px; overflow: hidden;
-      border: 2px solid #fb7185;
-    }
-    .suds > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #fff, #67e8f9); border-radius: 999px; }
-    .stars { position: fixed; top: 10px; right: 10px; z-index: 12; display: flex; gap: 4px; pointer-events: none; }
-    .stars b { width: 18px; height: 18px; background: #9f1239; clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
-    .stars b.on { background: #fde047; }
-    .hint {
-      position: fixed; left: 10px; right: 10px; top: 78px; z-index: 8;
-      text-align: center; font-weight: 800; font-size: 18px; color: #4a044e;
-      text-shadow: 0 2px 0 #fff; pointer-events: none;
-    }
-    .temps {
-      position: fixed; left: 10px; right: 10px; bottom: 12px; z-index: 14;
-      display: flex; gap: 8px;
-    }
-    .temps button {
-      flex: 1; min-height: 64px; border-radius: 18px; font-weight: 800; font-size: 18px;
-      box-shadow: 0 6px 0 rgba(0,0,0,.18);
-    }
-    .temps button:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,.18); }
-    #hot { background: #fb7185; color: #4a044e; }
-    #warm { background: #5eead4; color: #134e4a; }
-    #cool { background: #7dd3fc; color: #0c4a6e; }
-    .temps button.on { outline: 4px solid #fff; }
-    .cover {
-      position: fixed; inset: 0; z-index: 18;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; gap: 12px; padding: 24px;
-      background: linear-gradient(180deg, rgba(253,164,175,.45), rgba(157,23,77,.55));
-    }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(34px, 9vw, 52px); color: #fff; text-shadow: 0 4px 0 #9d174d; }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 300px; color: #fff; }
-    .btn {
-      background: #fde047; color: #422006; font-weight: 800; font-size: 26px;
-      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #ca8a04;
-    }
-    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
-    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#7dd3fc}</style>
 </head>
 <body>
-  <a class="home" href="../index.html">Home</a>
+  <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div class="sheet">
-    <div class="bath" id="bathName">Wash duck</div>
-    <div class="suds"><i id="sudsBar"></i></div>
-  </div>
-  <div class="stars" id="stars"></div>
-  <div class="hint" id="say">Scrub the dirty spots!</div>
-  <div class="temps">
-    <button id="hot" type="button">Hot</button>
-    <button id="warm" class="on" type="button">Warm</button>
-    <button id="cool" type="button">Cool</button>
-  </div>
+  <div id="hud"><b id="pp">🫧 0/12</b></div>
+  <div id="say">Pop bubbles. Wash the duck!</div>
   <div class="cover" id="title">
+    <div class="hero">🛁</div>
     <h1>Bubble Bath</h1>
-    <p>Scrub dirt. Make foam. Then tap leftover bubbles!</p>
-    <button class="btn" id="go" type="button">Play</button>
+    <p>Pop 12 bubbles. Duck gets clean!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
+    <div class="hero">🦆</div>
     <h1>Squeaky clean!</h1>
-    <p id="winP">Five baths. So shiny.</p>
-    <button class="btn g" id="again" type="button">Play again</button>
+    <p>The duck is shiny.</p>
+    <button class="play g" id="again">Bath again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), g = cv.getContext("2d");
-    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
-    var W, H, t = 0, last = 0, mode = "title", bath = 0, stars = 0, phase = "scrub";
-    var temp = "warm", scrub = 0, lastX = 0, lastY = 0;
-    var dirt = [], foam = [], bubbles = [], steam = [], splash = [];
-    var duck = { x: 0, bob: 0 }, kid = { scrubA: 0 }, hat = 0;
-    var BATHS = [
-      { n: "Wash duck", need: 3, kind: "duck", say: "Scrub the duck!" },
-      { n: "Wash toes", need: 3, kind: "toes", say: "Scrub those toes!" },
-      { n: "Wash boat", need: 3, kind: "boat", say: "Clean the boat." },
-      { n: "Foam hat", need: 4, kind: "hat", say: "Scrub a foam hat!" },
-      { n: "Rinse", need: 3, kind: "rinse", say: "Rinse. Then pop bubbles." }
-    ];
-
-    function beep(f, d, typ) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), a = ac.createGain();
-        o.type = typ || "sine"; o.frequency.value = f; a.gain.value = 0.07;
-        o.connect(a); a.connect(ac.destination); o.start();
-        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
-        o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function say(s) { document.getElementById("say").textContent = s; }
-    function paintStars() {
-      var el = document.getElementById("stars"), html = "", i;
-      for (i = 0; i < 5; i++) html += "<b" + (i < stars ? " class=\"on\"" : "") + "></b>";
-      el.innerHTML = html;
-    }
-    function hud() {
-      document.getElementById("bathName").textContent = BATHS[Math.min(bath, 4)].n;
-      var clean = 0, i;
-      for (i = 0; i < dirt.length; i++) clean += 1 - dirt[i].d;
-      var pct = dirt.length ? Math.round((clean / dirt.length) * 100) : 0;
-      if (phase === "pop") pct = 100;
-      document.getElementById("sudsBar").style.width = pct + "%";
-      paintStars();
-    }
-    function waterCol() {
-      if (temp === "hot") return ["#fb7185", "#fda4af"];
-      if (temp === "cool") return ["#38bdf8", "#7dd3fc"];
-      return ["#2dd4bf", "#99f6e4"];
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, n = 0, bubbles = [];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
     function resize() {
-      W = cv.width = innerWidth; H = cv.height = innerHeight;
-      duck.x = W * 0.32;
-      if (!steam.length) {
-        var i;
-        for (i = 0; i < 8; i++) steam.push({ x: 0.2 + Math.random() * 0.6, ph: i, s: 16 + Math.random() * 14 });
-      }
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
-    function placeDirt(kind) {
-      dirt = []; foam = []; bubbles = []; splash = []; hat = 0; phase = "scrub";
-      var spots, i;
-      if (kind === "duck") spots = [{ ox: -10, oy: -4 }, { ox: 16, oy: 2 }, { ox: 4, oy: 10 }];
-      else if (kind === "toes") spots = [{ ox: -18, oy: 52 }, { ox: 0, oy: 54 }, { ox: 18, oy: 52 }];
-      else if (kind === "boat") spots = [{ ox: 8, oy: 6 }, { ox: -12, oy: 10 }, { ox: 18, oy: 14 }];
-      else if (kind === "hat") spots = [{ ox: -8, oy: -48 }, { ox: 8, oy: -50 }, { ox: 0, oy: -36 }, { ox: 16, oy: -40 }];
-      else spots = [{ ox: -20, oy: 8 }, { ox: 22, oy: 12 }, { ox: 0, oy: 28 }];
-      for (i = 0; i < spots.length; i++) dirt.push({ ox: spots[i].ox, oy: spots[i].oy, d: 1, r: 22 });
-      hud();
-    }
-    function resetBath() {
-      placeDirt(BATHS[bath].kind);
-      say(BATHS[bath].say);
-    }
-    function startGame() {
-      mode = "play"; bath = 0; stars = 0;
+    addEventListener("resize", resize); resize();
+    function spawn() { bubbles.push({ x: 40 + Math.random() * (W - 80), y: H * 0.72, vy: 40 + Math.random() * 50 }); }
+    function start() {
+      play = true; n = 0; bubbles = [];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      resetBath();
-      beep(349, 0.1); beep(440, 0.12);
+      document.getElementById("pp").textContent = "🫧 0/12";
+      document.getElementById("say").textContent = "Pop the bubbles!";
     }
-    function nextBath() {
-      stars++;
-      bath++;
-      if (bath >= 5) {
-        mode = "win";
-        document.getElementById("winP").textContent = "Five clean baths!";
-        document.getElementById("win").classList.remove("off");
-        beep(523, 0.16); beep(659, 0.2);
-        hud();
-        return;
-      }
-      beep(700, 0.1);
-      resetBath();
-    }
-    function spawnPopBubbles() {
-      bubbles = [];
-      var i;
-      for (i = 0; i < 6; i++) {
-        bubbles.push({
-          x: W * 0.28 + Math.random() * W * 0.44,
-          y: H * 0.48 + Math.random() * H * 0.16,
-          r: 16 + Math.random() * 12, ph: i
-        });
-      }
-    }
-    function dirtWorld(d) {
-      var kind = BATHS[Math.min(bath, 4)].kind;
-      var bx = W * 0.5, by = H * 0.58;
-      if (kind === "duck") return { x: duck.x + d.ox, y: by - 18 + d.oy + Math.sin(t * 2) * 4 };
-      if (kind === "toes") return { x: bx + d.ox, y: by + d.oy };
-      if (kind === "boat") return { x: W * 0.68 + d.ox, y: by - 6 + d.oy + Math.sin(t * 1.8) * 3 };
-      if (kind === "hat") return { x: bx + d.ox, y: by - 20 + d.oy };
-      return { x: bx + d.ox, y: by + d.oy };
-    }
-    function scrubAt(x, y) {
-      if (phase !== "scrub") return;
-      var i, p, hit = 0;
-      kid.scrubA = Math.atan2(y - (H * 0.52), x - (W * 0.5));
-      for (i = 0; i < dirt.length; i++) {
-        p = dirtWorld(dirt[i]);
-        if (Math.hypot(x - p.x, y - p.y) < dirt[i].r + 18 && dirt[i].d > 0) {
-          dirt[i].d = Math.max(0, dirt[i].d - 0.035);
-          hit = 1;
-          foam.push({ x: p.x + (Math.random() - 0.5) * 12, y: p.y, r: 6 + Math.random() * 8, life: 1.2 });
-          if (BATHS[bath].kind === "hat") hat = Math.min(1, hat + 0.02);
-        }
-      }
-      if (hit) {
-        if (Math.random() < 0.18) beep(700 + Math.random() * 80, 0.04);
-        hud();
-        var left = 0;
-        for (i = 0; i < dirt.length; i++) if (dirt[i].d > 0.12) left++;
-        if (!left) {
-          phase = "pop";
-          spawnPopBubbles();
-          say("Tap leftover bubbles!");
-          beep(520, 0.08); beep(660, 0.1);
-          hud();
-        }
-      }
-    }
-    function popAt(x, y) {
-      var i, n = 0;
-      for (i = bubbles.length - 1; i >= 0; i--) {
-        if (Math.hypot(x - bubbles[i].x, y - bubbles[i].y) < bubbles[i].r + 20) {
-          splash.push({ x: bubbles[i].x, y: bubbles[i].y, life: 0.4, s: bubbles[i].r });
-          bubbles.splice(i, 1); n++;
-        }
-      }
-      if (n) {
-        beep(480 + n * 40, 0.07);
-        if (!bubbles.length) nextBath();
-      }
-    }
-    function drawTiles() {
-      var s = 42, x, y, odd;
-      for (y = 0; y < H; y += s) {
-        for (x = 0; x < W; x += s) {
-          odd = ((x / s) | 0) % 2 ^ ((y / s) | 0) % 2;
-          g.fillStyle = odd ? "#fecdd3" : "#fff1f2";
-          g.fillRect(x, y, s + 1, s + 1);
-        }
-      }
-    }
-    function drawTub() {
-      var cx = W * 0.5, cy = H * 0.62, tw = Math.min(W * 0.78, 340), th = 110;
-      g.fillStyle = "#e2e8f0";
-      g.beginPath(); g.ellipse(cx, cy + 8, tw * 0.5, th * 0.62, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#fff";
-      g.beginPath(); g.ellipse(cx, cy, tw * 0.46, th * 0.5, 0, 0, Math.PI * 2); g.fill();
-      var wc = waterCol();
-      var grd = g.createLinearGradient(0, cy - 30, 0, cy + 40);
-      grd.addColorStop(0, wc[1]); grd.addColorStop(1, wc[0]);
-      g.fillStyle = grd;
-      g.beginPath(); g.ellipse(cx, cy + 6, tw * 0.4, th * 0.36, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#cbd5e1";
-      g.beginPath(); g.ellipse(cx - tw * 0.42, cy + 48, 12, 16, 0, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(cx + tw * 0.42, cy + 48, 12, 16, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#94a3b8";
-      g.fillRect(cx + tw * 0.28, cy - 70, 8, 40);
-      g.beginPath(); g.arc(cx + tw * 0.28 + 4, cy - 74, 10, 0, Math.PI * 2); g.fill();
-      g.fillStyle = wc[1];
-      g.fillRect(cx + tw * 0.3, cy - 36, 4, 18 + Math.sin(t * 6) * 3);
-      em("🛁", cx, cy + 8, Math.min(140, tw * 0.55));
-    }
-    function drawDuck() {
-      var y = H * 0.58 + Math.sin(t * 2.2) * 4;
-      em("🦆", duck.x, y, 48);
-    }
-    function drawBoat() {
-      var bx = W * 0.68, by = H * 0.58 + Math.sin(t * 1.8) * 3;
-      em("⛵", bx, by, 48);
-    }
-    function drawKid() {
-      var kx = W * 0.5, ky = H * 0.54;
-      em("🧒", kx, ky - 18, 44);
-      var ax = Math.cos(kid.scrubA || -0.8) * 28, ay = Math.sin(kid.scrubA || -0.8) * 16;
-      em("🧽", kx - 12 + ax, ky - 8 + ay, 22);
-      if (hat > 0.15 || BATHS[Math.min(bath, 4)].kind === "hat") {
-        em("🫧", kx, ky - 48, 22 + hat * 16);
-      }
-    }
-    function update(dt) {
-      t += dt;
-      var i;
-      for (i = foam.length - 1; i >= 0; i--) {
-        foam[i].life -= dt; foam[i].y -= 8 * dt;
-        if (foam[i].life <= 0) foam.splice(i, 1);
-      }
-      for (i = splash.length - 1; i >= 0; i--) {
-        splash[i].life -= dt;
-        if (splash[i].life <= 0) splash.splice(i, 1);
-      }
-      if (phase === "pop") {
-        for (i = 0; i < bubbles.length; i++) {
-          bubbles[i].y -= 10 * dt;
-          bubbles[i].x += Math.sin(t * 1.6 + bubbles[i].ph) * 8 * dt;
-          if (bubbles[i].y < H * 0.28) bubbles[i].y = H * 0.62;
-        }
-      }
-    }
-    function draw() {
-      drawTiles();
-      var i, s, sx, sy;
-      for (i = 0; i < steam.length; i++) {
-        s = steam[i];
-        sx = s.x * W + Math.sin(t + s.ph) * 10;
-        sy = H * 0.42 - ((t * 16 + s.ph * 10) % 70);
-        g.fillStyle = "rgba(255,255,255," + (0.1 + 0.08 * Math.sin(t + s.ph)) + ")";
-        g.beginPath(); g.ellipse(sx, sy, s.s, s.s * 0.55, 0, 0, Math.PI * 2); g.fill();
-      }
-      drawTub();
-      drawDuck();
-      drawBoat();
-      drawKid();
-      for (i = 0; i < dirt.length; i++) {
-        if (dirt[i].d <= 0.05) continue;
-        var p = dirtWorld(dirt[i]);
-        g.fillStyle = "rgba(120, 53, 15," + (0.25 + dirt[i].d * 0.5) + ")";
-        g.beginPath(); g.ellipse(p.x, p.y, dirt[i].r * dirt[i].d, dirt[i].r * 0.7 * dirt[i].d, 0.2, 0, Math.PI * 2); g.fill();
-      }
-      for (i = 0; i < foam.length; i++) {
-        g.fillStyle = "rgba(255,255,255," + Math.max(0, foam[i].life * 0.55) + ")";
-        g.beginPath(); g.arc(foam[i].x, foam[i].y, foam[i].r, 0, Math.PI * 2); g.fill();
-      }
-      for (i = 0; i < bubbles.length; i++) {
-        var u = bubbles[i];
-        var grd = g.createRadialGradient(u.x - 4, u.y - 4, 2, u.x, u.y, u.r);
-        grd.addColorStop(0, "rgba(255,255,255,.6)");
-        grd.addColorStop(1, "rgba(125,211,252,.3)");
-        em("🫧", u.x, u.y, u.r * 2.2);
-      }
-      for (i = 0; i < splash.length; i++) {
-        g.strokeStyle = "rgba(255,255,255," + splash[i].life + ")";
-        g.beginPath(); g.arc(splash[i].x, splash[i].y, splash[i].s + (0.4 - splash[i].life) * 30, 0, Math.PI * 2); g.stroke();
-      }
-    }
-    function loop(now) {
-      requestAnimationFrame(loop);
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
-      update(dt); draw();
-    }
-    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
-      if (mode !== "play") return;
-      var p = pos(e);
-      lastX = p.x; lastY = p.y; scrub = 1;
-      if (phase === "pop") popAt(p.x, p.y);
-      else scrubAt(p.x, p.y);
-      try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+      if (!play) return;
+      for (var i = bubbles.length - 1; i >= 0; i--) {
+        var dx = e.clientX - bubbles[i].x, dy = e.clientY - bubbles[i].y;
+        if (dx * dx + dy * dy < 48 * 48) {
+          bubbles.splice(i, 1); n++;
+          document.getElementById("pp").textContent = "🫧 " + n + "/12";
+          document.getElementById("say").textContent = "Pop!";
+          if (n >= 12) { play = false; document.getElementById("win").classList.remove("off"); }
+          return;
+        }
+      }
     });
-    cv.addEventListener("pointermove", function (e) {
-      if (!scrub || mode !== "play") return;
-      var p = pos(e);
-      if (phase === "scrub") scrubAt(p.x, p.y);
-      lastX = p.x; lastY = p.y;
-    });
-    function endScrub() { scrub = 0; }
-    cv.addEventListener("pointerup", endScrub);
-    cv.addEventListener("pointercancel", endScrub);
-    function setTemp(v) {
-      temp = v;
-      document.getElementById("hot").className = v === "hot" ? "on" : "";
-      document.getElementById("warm").className = v === "warm" ? "on" : "";
-      document.getElementById("cool").className = v === "cool" ? "on" : "";
-      say(v === "hot" ? "Toasty water!" : v === "cool" ? "Cool splash!" : "Warm and nice.");
-      beep(v === "hot" ? 480 : v === "cool" ? 360 : 420, 0.08);
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#bae6fd"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#38bdf8"; x.fillRect(0, H * 0.58, W, H);
+      em("🛁", W * 0.5, H * 0.70, 96);
+      em(n >= 12 ? "🦆" : "🐥", W * 0.5, H * 0.58, 72);
+      if (play) {
+        if (bubbles.length < 6 && Math.random() < 0.06) spawn();
+        bubbles.forEach(function (b) { b.y -= b.vy * dt; });
+        bubbles = bubbles.filter(function (b) { return b.y > 40; });
+      }
+      bubbles.forEach(function (b) { em("🫧", b.x, b.y, 56); });
+      requestAnimationFrame(loop);
     }
-    document.getElementById("hot").onclick = function () { setTemp("hot"); };
-    document.getElementById("warm").onclick = function () { setTemp("warm"); };
-    document.getElementById("cool").onclick = function () { setTemp("cool"); };
-    document.getElementById("go").onclick = startGame;
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
-    addEventListener("resize", resize);
-    resize();
     requestAnimationFrame(loop);
   })();
   </script>

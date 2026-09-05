@@ -4,122 +4,93 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Dress the Day</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#ede9fe;color:#4c1d95;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    canvas{display:block;width:100%;height:58%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:rgba(0,0,0,.28);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800}
-    #hud b{background:#fff;padding:6px 10px;border-radius:999px;box-shadow:0 3px 0 #a78bfa}
-    .panel{position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:8;background:#fff;border:4px solid #7c3aed;border-radius:22px;padding:12px}
-    .who{font-size:13px;font-weight:800}
-    .say{font-size:22px;font-weight:900;margin:4px 0 8px}
-    .chs{display:flex;flex-wrap:wrap;gap:8px}
-    .chs button{min-height:52px;flex:1;border-radius:14px;background:#fde68a;color:#3b2100;font-weight:900;font-size:16px}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#c4b5fd,#7c3aed);color:#fff}
-    .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,50px)}
-    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#7c3aed}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="dy">Morning</b> <b id="st">⭐ 0</b></div>
   <canvas id="c"></canvas>
-  <div class="panel">
-    <div class="who" id="who">Pip</div>
-    <p class="say" id="say">What sky today?</p>
-    <div class="chs" id="chs"></div>
+  <div id="hud"><b id="wx">☀️</b><b id="rd">1/3</b></div>
+  <div id="say">What do we wear in sun?</div>
+  <div class="dock" id="dock">
+    <button id="a"><span>😎</span>Sunny</button>
+    <button id="b"><span>🧥</span>Rain</button>
+    <button id="c"><span>🧤</span>Snow</button>
   </div>
   <div class="cover" id="title">
+    <div class="hero">👗</div>
     <h1>Dress the Day</h1>
-    <p>A walking kid. Weather talks.<br>Outfit choices change later.</p>
-    <button class="btn" id="go">Dress</button>
+    <p>Pick clothes for the weather!</p>
+    <button class="play" id="go">Dress</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Ready for bed</h1>
-    <p id="wp"></p>
-    <button class="btn" id="again">New day</button>
+    <div class="hero">🌟</div>
+    <h1>Ready for anything!</h1>
+    <p>Sun, rain, and snow.</p>
+    <button class="play g" id="again">Dress again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, T = 0, si = 0, stars = 0;
-    var flags = { sky: "sun", hat: "cap", coat: "tee", shoes: "sneak", friend: "Pip", wet: false };
-    try { var sv = JSON.parse(localStorage.getItem("alabryuu-dress") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function resize() { W = cv.width = innerWidth; H = cv.height = cv.clientHeight; }
-    addEventListener("resize", resize); resize();
-    var SCENES = [
-      { who: "Sky", say: "What sky today?", ch: [["Sunny smile", { sky: "sun" }], ["Soft rain", { sky: "rain" }], ["Windy leaf", { sky: "wind" }]] },
-      { who: "Pip", say: "Pick a hat!", ch: [["Sunny cap", { hat: "cap" }], ["Rain hood", { hat: "hood" }], ["Wind scarf", { hat: "scarf" }]] },
-      { who: "Pip", say: "A coat too.", ch: [["Warm tee", { coat: "tee" }], ["Rain coat", { coat: "rain" }], ["Puffy vest", { coat: "vest" }]] },
-      { who: "Shoes", say: "Feet need help.", ch: [["Sneakers", { shoes: "sneak" }], ["Rain boots", { shoes: "boot" }], ["Soft socks", { shoes: "sock" }]] },
-      { who: "Pip", say: "A problem! Puddle!", ch: [["Jump over", {}], ["Splash kind", { wet: true }]] },
-      { who: "Duck", say: "Need a helper.", ch: [["Share hood", { friend: "Duck" }], ["Wave from path", {}]] },
-      { who: "Pip", say: "A twist! Wind!", ch: [["Hold the hat", {}], ["Let scarf fly", { hat: "scarf" }]] },
-      { who: "Nan", say: "Did you dress kind?", ch: [["Yes, for Duck", {}], ["I dressed me", {}]] },
-      { who: "Pip", say: flags.sky === "rain" ? "Rain likes boots." : "Sun likes caps.", ch: [["Change shoes", { shoes: "boot" }], ["Keep this look", {}]] },
-      { who: "Moon", say: "Pajama time soon.", ch: [["Star pjs", { coat: "pjs" }], ["Keep vest", {}]] },
-      { who: "Pip", say: "Walk to bed.", ch: [["Hug Nan", {}], ["Feed the pet", {}]] },
-      { who: "Pip", say: "The end. Cozy.", ch: [["Play again", { end: true }]] }
+    var W, H, play = false, round = 0, stars = 0, flags = {};
+    var DAYS = [
+      { w: "☀️", q: "Sunny day. What do we wear?", ok: "a", wear: "😎" },
+      { w: "🌧️", q: "Rain! What keeps us dry?", ok: "b", wear: "🧥" },
+      { w: "❄️", q: "Snow! What keeps hands warm?", ok: "c", wear: "🧤" }
     ];
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-    function drawKid() {
-      var g = x.createLinearGradient(0, 0, 0, H);
-      if (flags.sky === "rain") { g.addColorStop(0, "#64748b"); g.addColorStop(1, "#86efac"); }
-      else if (flags.sky === "wind") { g.addColorStop(0, "#fde68a"); g.addColorStop(1, "#fdba74"); }
-      else { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#fde68a"); }
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      if (flags.sky === "rain") {
-        var i;
-        for (i = 0; i < 10; i++) em("💧", (i * 70 + T * 80) % W, (T * 120 + i * 40) % H, 18);
-      } else if (flags.sky === "wind") {
-        em("💨", W * 0.2, H * 0.18, 36); em("🍃", W * 0.72 + Math.sin(T * 2) * 20, H * 0.22, 28);
-      } else {
-        em("☀️", W * 0.82, H * 0.16, 42);
-      }
-      var px = W * 0.5 + Math.sin(T * 2) * 10, py = H * 0.58;
-      var hat = flags.hat === "hood" ? "🧥" : (flags.hat === "scarf" ? "🧣" : "🧢");
-      var coat = flags.coat === "rain" ? "🧥" : (flags.coat === "vest" ? "🦺" : (flags.coat === "pjs" ? "🌙" : "👕"));
-      var shoes = flags.shoes === "boot" ? "👢" : (flags.shoes === "sock" ? "🧦" : "👟");
-      em(hat, px, py - 54, 28);
-      em("🧒", px, py - 10, 64);
-      em(coat, px + 28, py - 8, 26);
-      em(shoes, px, py + 28, 24);
-      if (flags.friend === "Duck") em("🦆", px + 70, py + 8, 36);
-      x.fillStyle = "#fff";
-      x.beginPath(); x.roundRect ? (x.roundRect(px + 28, py - 88, 150, 44, 16), x.fill()) : (x.fillRect(px + 28, py - 88, 150, 44));
-      x.fillStyle = "#4c1d95"; x.font = "900 18px Verdana"; x.textAlign = "left"; x.textBaseline = "alphabetic";
-      x.fillText(SCENES[Math.min(si, SCENES.length - 1)].say, px + 40, py - 60);
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-dress") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function save() { try { localStorage.setItem("alabryuu-dress", JSON.stringify({ stars: stars, flags: flags })); } catch (e) {} }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
     function show() {
-      var s = SCENES[Math.min(si, SCENES.length - 1)];
-      if (si === 8) s.say = flags.sky === "rain" ? "Rain likes boots." : "Sun likes caps.";
-      document.getElementById("who").textContent = s.who;
-      document.getElementById("say").textContent = s.say;
-      document.getElementById("dy").textContent = "Scene " + (si + 1) + "/12";
-      document.getElementById("st").textContent = "⭐ " + stars;
-      var box = document.getElementById("chs"); box.innerHTML = "";
-      s.ch.forEach(function (pair) {
-        var b = document.createElement("button"); b.textContent = pair[0];
-        b.onclick = function () {
-          Object.assign(flags, pair[1]);
-          if (pair[1].end) {
-            document.getElementById("wp").textContent = "You dressed for " + flags.sky + " with " + flags.friend + ".";
-            document.getElementById("win").classList.remove("off");
-            si = 0;
-          } else { si++; stars++; }
-          save(); if (!pair[1].end) show();
-        };
-        box.appendChild(b);
-      });
+      var d = DAYS[round];
+      document.getElementById("wx").textContent = d.w;
+      document.getElementById("rd").textContent = (round + 1) + "/3";
+      document.getElementById("say").textContent = d.q;
     }
-    document.getElementById("go").onclick = function () { document.getElementById("title").classList.add("off"); resize(); show(); };
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); si = 0; show(); };
-    function loop() { T += 0.016; drawKid(); requestAnimationFrame(loop); }
-    show(); loop();
+    function start() {
+      play = true; round = 0; flags = {};
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("dock").classList.add("on");
+      show();
+    }
+    function pick(k) {
+      if (!play) return;
+      var d = DAYS[round];
+      if (k === d.ok) {
+        flags[k] = 1; stars++;
+        try { localStorage.setItem("alabryuu-dress", JSON.stringify({ stars: stars, flags: flags })); } catch (e) {}
+        round++;
+        if (round >= 3) {
+          play = false;
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("win").classList.remove("off");
+        } else show();
+      } else document.getElementById("say").textContent = "Not for this weather. " + d.q;
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("a").onclick = function () { pick("a"); };
+    document.getElementById("b").onclick = function () { pick("b"); };
+    document.getElementById("c").onclick = function () { pick("c"); };
+    function loop() {
+      var d = DAYS[Math.min(round, 2)];
+      x.fillStyle = d.w === "☀️" ? "#7dd3fc" : (d.w === "🌧️" ? "#64748b" : "#e0f2fe");
+      x.fillRect(0, 0, W, H);
+      em(d.w, W * 0.8, 90, 72);
+      em("🧒", W * 0.5, H * 0.42, 110);
+      if (play) em(d.wear, W * 0.5, H * 0.28, 48);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
   })();
   </script>
 </body>

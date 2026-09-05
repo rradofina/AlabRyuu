@@ -4,191 +4,97 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Train Tracks</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Georgia,serif;background:#3f2a14;color:#fff7ed;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#431407;text-decoration:none;font-family:Trebuchet MS,sans-serif;font-weight:800;background:#fde68a;padding:8px 14px;border-radius:4px;border:3px solid #b45309}
-    .ticket{position:fixed;top:10px;right:10px;z-index:8;width:118px;background:#fef3c7;color:#7c2d12;border:4px dashed #b45309;padding:8px 10px;text-align:center;font-family:Trebuchet MS,sans-serif;font-weight:800;box-shadow:0 6px 0 #431407;pointer-events:none}
-    .ticket small{display:block;font-size:11px;letter-spacing:1px}
-    .ticket b{display:block;font-size:16px;margin-top:4px}
-    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
-    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:6px;padding:10px;background:#78350f;flex-wrap:wrap;justify-content:center}
-    #dock.on{display:flex}
-    #dock button{min-width:56px;height:56px;border-radius:14px;background:#fed7aa;color:#431407;font-weight:800;font-size:20px;box-shadow:0 5px 0 #431407}
-    #dock button.on{background:#fde047}
-    #goBtn{background:#86efac!important;min-width:86px!important}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#ca8a04,#7c2d12)}
-    .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,50px)}
-    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#334155}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div class="ticket"><small>YARD</small><b id="mp">Short run</b><b id="cg">Cargo 0</b><b id="st">Stars 0</b></div>
-  <div id="say">Snap tracks. Then the train runs!</div>
-  <div id="dock">
-    <button data-p="H" class="on">═</button>
-    <button data-p="V">║</button>
-    <button data-p="NE">╚</button>
-    <button data-p="NW">╝</button>
-    <button data-p="SE">╔</button>
-    <button data-p="SW">╗</button>
-    <button id="goBtn">Choo!</button>
+  <div id="hud"><b id="pc">🛤️ 0/3</b></div>
+  <div id="say">Tap empty spots. Lay 3 tracks!</div>
+  <div class="dock" id="dock">
+    <button id="goTrain"><span>🚂</span>Go</button>
   </div>
   <div class="cover" id="title">
+    <div class="hero">🛤️</div>
     <h1>Train Tracks</h1>
-    <p>Snap rails. Then Choo!</p>
-    <button class="btn" id="play">Build</button>
+    <p>Fill the gaps. Then send the train!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <h1>All aboard!</h1>
-    <p id="wp">The train ran your path.</p>
-    <button class="btn" id="again">Build again</button>
+    <div class="hero">🚂</div>
+    <h1>Choo choo!</h1>
+    <p>The train made it home.</p>
+    <button class="play g" id="again">Build again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, play = false, running = false, mapI = 0, stars = 0, cargo = 0, piece = "H";
-    var tiles = {}, boxes = [], path = [], pathI = 0, origin = { x: 0, y: 0 }, cell = 56;
-    var MAPS = [
-      { n: "Short run", w: 5, h: 4, start: [0, 2], goal: [4, 2], need: 2 },
-      { n: "Hill loop", w: 5, h: 4, start: [0, 1], goal: [4, 3], need: 3 },
-      { n: "River hop", w: 6, h: 4, start: [0, 0], goal: [5, 3], need: 3 },
-      { n: "Night yard", w: 6, h: 5, start: [0, 2], goal: [5, 2], need: 4 },
-      { n: "Home station", w: 6, h: 5, start: [0, 4], goal: [5, 0], need: 4 }
-    ];
-    var SAYS = ["Lay a straight!", "Add a turn!", "Bridge the gap!", "Night lights on!", "Home station!"];
-    var GLYPH = { H: "═", V: "║", NE: "╚", NW: "╝", SE: "╔", SW: "╗" };
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+    var W, H, t = 0, play = false, laid = 0, riding = 0, train = 0, stars = 0;
+    var slots = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-train") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); layout(); }
-    addEventListener("resize", resize);
-    function key(a, b) { return a + "," + b; }
-    function layout() {
-      var m = MAPS[mapI];
-      cell = Math.min(64, Math.floor((W - 24) / m.w), Math.floor((H - 180) / m.h));
-      origin.x = (W - m.w * cell) / 2;
-      origin.y = 90 + (H - 200 - m.h * cell) / 2;
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function cellCenter(gx, gy) { return { x: origin.x + gx * cell + cell / 2, y: origin.y + gy * cell + cell / 2 }; }
-    function rebuild() {
-      tiles = {}; boxes = []; cargo = 0; running = false; path = []; pathI = 0;
-      var m = MAPS[mapI], i;
-      tiles[key(m.start[0], m.start[1])] = "H";
-      for (i = 0; i < m.need; i++) boxes.push({ gx: 1 + (i % (m.w - 2)), gy: (i + 1) % m.h, got: 0 });
-      document.getElementById("mp").textContent = m.n;
-      document.getElementById("cg").textContent = "Cargo 0/" + m.need;
-      document.getElementById("st").textContent = "Stars " + stars;
-      document.getElementById("say").textContent = SAYS[mapI];
-      layout();
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
-    function outs(kind) {
-      if (kind === "H") return [[1, 0], [-1, 0]];
-      if (kind === "V") return [[0, 1], [0, -1]];
-      if (kind === "NE") return [[1, 0], [0, -1]];
-      if (kind === "NW") return [[-1, 0], [0, -1]];
-      if (kind === "SE") return [[1, 0], [0, 1]];
-      return [[-1, 0], [0, 1]];
-    }
-    function buildPath() {
-      var m = MAPS[mapI]; path = [];
-      var gx = m.start[0], gy = m.start[1], px = -1, py = gy, step;
-      for (step = 0; step < 40; step++) {
-        path.push(cellCenter(gx, gy));
-        if (gx === m.goal[0] && gy === m.goal[1] && step > 0) return true;
-        var tile = tiles[key(gx, gy)]; if (!tile) return false;
-        var nexts = outs(tile), nx = gx, ny = gy, ok = false, i;
-        for (i = 0; i < nexts.length; i++) {
-          var cx = gx + nexts[i][0], cy = gy + nexts[i][1];
-          if (cx === px && cy === py) continue;
-          nx = cx; ny = cy; ok = true; break;
-        }
-        if (!ok) return false;
-        px = gx; py = gy; gx = nx; gy = ny;
-      }
-      return false;
-    }
-    cv.addEventListener("pointerdown", function (e) {
-      if (!play || running) return;
-      var gx = Math.floor((e.clientX - origin.x) / cell), gy = Math.floor((e.clientY - origin.y) / cell);
-      var m = MAPS[mapI];
-      if (gx < 0 || gy < 0 || gx >= m.w || gy >= m.h) return;
-      if ((gx === m.start[0] && gy === m.start[1]) || (gx === m.goal[0] && gy === m.goal[1])) return;
-      tiles[key(gx, gy)] = piece;
-    });
-    [].forEach.call(document.querySelectorAll("#dock button[data-p]"), function (b) {
-      b.onclick = function () {
-        piece = b.getAttribute("data-p");
-        [].forEach.call(document.querySelectorAll("#dock button[data-p]"), function (el) { el.classList.toggle("on", el === b); });
-      };
-    });
-    document.getElementById("goBtn").onclick = function () {
-      if (!play) return;
-      if (buildPath()) { running = true; pathI = 0; cargo = 0; }
-      else document.getElementById("say").textContent = "Snap to the gold!";
-    };
+    addEventListener("resize", resize); resize();
     function start() {
-      play = true; mapI = 0;
+      play = true; laid = 0; riding = 0; train = 0;
+      slots = [
+        { x: 0.22, y: 0.48, on: 1, lock: 1 },
+        { x: 0.40, y: 0.48, on: 0, lock: 0 },
+        { x: 0.58, y: 0.48, on: 0, lock: 0 },
+        { x: 0.76, y: 0.48, on: 0, lock: 0 },
+        { x: 0.90, y: 0.48, on: 1, lock: 1 }
+      ];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
-      rebuild();
+      document.getElementById("pc").textContent = "🛤️ 0/3";
+      document.getElementById("say").textContent = "Tap the empty spots!";
     }
-    document.getElementById("play").onclick = start;
+    document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    resize();
+    document.getElementById("goTrain").onclick = function () {
+      if (!play) return;
+      if (laid < 3) { document.getElementById("say").textContent = "Lay all 3 tracks first!"; return; }
+      riding = 1; train = 0;
+      document.getElementById("say").textContent = "Choo choo!";
+    };
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play || riding) return;
+      slots.forEach(function (s) {
+        if (s.lock || s.on) return;
+        var dx = e.clientX - s.x * W, dy = e.clientY - s.y * H;
+        if (dx * dx + dy * dy < 50 * 50) {
+          s.on = 1; laid++;
+          document.getElementById("pc").textContent = "🛤️ " + laid + "/3";
+          document.getElementById("say").textContent = laid >= 3 ? "Tap Go!" : "Nice track!";
+        }
+      });
+    });
     function loop() {
       t += 0.016;
-      var m = MAPS[mapI];
-      x.fillStyle = mapI === 3 ? "#1c1917" : "#86efac"; x.fillRect(0, 0, W, H);
-      var gx, gy, k;
-      for (gy = 0; gy < m.h; gy++) {
-        for (gx = 0; gx < m.w; gx++) {
-          var p = cellCenter(gx, gy);
-          x.fillStyle = "#65a30d"; x.fillRect(p.x - cell * 0.42, p.y - cell * 0.42, cell * 0.84, cell * 0.84);
-          k = tiles[key(gx, gy)];
-          if (k) em(GLYPH[k], p.x, p.y, cell * 0.55);
+      x.fillStyle = "#64748b"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.62, W, H);
+      em("🏠", W * 0.90, H * 0.36, 64);
+      slots.forEach(function (s) { em(s.on ? "🛤️" : "⬛", s.x * W, s.y * H, 56); });
+      if (riding) {
+        train += 0.012;
+        var i = Math.min(4, Math.floor(train * 5));
+        em("🚂", slots[i].x * W, slots[i].y * H - 40, 64);
+        if (train >= 1) {
+          riding = 0; play = false; stars++;
+          try { localStorage.setItem("alabryuu-train", JSON.stringify({ stars: stars })); } catch (e) {}
+          document.getElementById("dock").classList.remove("on");
+          document.getElementById("win").classList.remove("off");
         }
-      }
-      var s = cellCenter(m.start[0], m.start[1]), g = cellCenter(m.goal[0], m.goal[1]);
-      em("🏠", s.x, s.y - cell * 0.42, 28);
-      em("🏠", g.x, g.y - cell * 0.42, 28);
-      boxes.forEach(function (b) {
-        if (b.got) return;
-        var p = cellCenter(b.gx, b.gy);
-        em("📦", p.x, p.y, 26);
-      });
-      var tx = s.x, ty = s.y;
-      if (running && path.length) {
-        pathI += 0.045;
-        var i0 = Math.min(path.length - 2, Math.floor(pathI));
-        var k2 = pathI - i0;
-        tx = path[i0].x + (path[i0 + 1].x - path[i0].x) * k2;
-        ty = path[i0].y + (path[i0 + 1].y - path[i0].y) * k2;
-        boxes.forEach(function (b) {
-          if (b.got) return;
-          var p = cellCenter(b.gx, b.gy);
-          if (Math.hypot(tx - p.x, ty - p.y) < 18) {
-            b.got = 1; cargo++; stars++;
-            document.getElementById("cg").textContent = "Cargo " + cargo + "/" + m.need;
-            document.getElementById("st").textContent = "Stars " + stars;
-            try { localStorage.setItem("alabryuu-train", JSON.stringify({ stars: stars })); } catch (e) {}
-          }
-        });
-        if (pathI >= path.length - 1) {
-          running = false; mapI++;
-          if (mapI >= MAPS.length) {
-            play = false; document.getElementById("dock").classList.remove("on");
-            document.getElementById("wp").textContent = "⭐ " + stars + "  Wheels never stopped.";
-            document.getElementById("win").classList.remove("off");
-          } else rebuild();
-        }
-      }
-      em("🚂", tx, ty, 36);
+      } else em("🚂", slots[0].x * W, slots[0].y * H - 40, 64);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

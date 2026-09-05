@@ -4,124 +4,84 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Treasure Dig</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,sans-serif;background:#78350f;color:#fff7ed;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#431407;text-decoration:none;font-weight:800;background:#fde68a;padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
-    #hud b{display:inline-block;background:#fef3c7;color:#7c2d12;padding:6px 10px;border-radius:999px;margin-left:6px}
-    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
-    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;padding:10px;justify-content:center}
-    #dock.on{display:flex}
-    #dock button{min-width:88px;height:64px;border-radius:18px;background:#fde68a;color:#431407;font-weight:800;font-size:18px}
-    #dock button.on{outline:4px solid #fff}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#f59e0b,#78350f)}
-    .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,50px)}
-    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#f59e0b}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="cv">Beach cave</b><b id="fd">Find 0</b><b id="st">⭐ 0</b></div>
-  <div id="say">Tap dirt. Scoop!</div>
-  <div id="dock">
-    <button id="dig" class="on">Dig</button>
-    <button id="lamp">Lantern</button>
-    <button id="brush">Brush</button>
-  </div>
+  <div id="hud"><b id="got">💎 0/3</b></div>
+  <div id="say">Tap sand piles. Dig treasure!</div>
   <div class="cover" id="title">
+    <div class="hero">💎</div>
     <h1>Treasure Dig</h1>
-    <p>Tap the dirt. Dig. Brush.<br>Open the vault.</p>
-    <button class="btn" id="go">Dig</button>
+    <p>Dig 3 sparkly treasures.</p>
+    <button class="play" id="go">Dig</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Gold hug!</h1>
-    <p id="wp">⭐ 0</p>
-    <button class="btn" id="again">Dig again</button>
+    <div class="hero">👑</div>
+    <h1>Treasure!</h1>
+    <p>Three shiny finds.</p>
+    <button class="play g" id="again">Dig again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, play = false, caveI = 0, found = 0, stars = 0, tool = "dig", lampOn = 0, vault = 0;
-    var mounds = [];
-    var CAVES = [
-      { n: "Beach cave", need: 4, night: 0, floor: "#c4a35a" },
-      { n: "Crystal hall", need: 5, night: 0, floor: "#64748b" },
-      { n: "Night dig", need: 5, night: 1, floor: "#44403c" },
-      { n: "Brush room", need: 5, night: 0, floor: "#a16207" },
-      { n: "Home vault", need: 4, night: 0, floor: "#b45309" }
-    ];
-    var SAYS = ["Tap dirt. Scoop!", "Crystals wink!", "Hold the lamp!", "Brush the bone!", "Open the big chest!"];
-    var LOOT = ["🪙", "🐚", "💎", "📦", "🦴"];
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+    var W, H, play = false, n = 0, stars = 0, piles = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dig") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
-    addEventListener("resize", resize); resize();
-    function spawn() {
-      var m = CAVES[caveI], i; mounds = []; found = 0; vault = 0; lampOn = m.night ? 1 : lampOn;
-      for (i = 0; i < m.need + 2; i++) mounds.push({ x: 0.18 + (i % 3) * 0.28, y: 0.38 + Math.floor(i / 3) * 0.18, hits: 0, open: 0 });
-      document.getElementById("cv").textContent = m.n;
-      document.getElementById("fd").textContent = "Find 0/" + m.need;
-      document.getElementById("st").textContent = "⭐ " + stars;
-      document.getElementById("say").textContent = SAYS[caveI];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
+    addEventListener("resize", resize); resize();
     function start() {
-      play = true; caveI = 0; tool = "dig";
+      play = true; n = 0;
+      piles = [
+        { x: 0.22, y: 0.40, gem: "💎", dug: 0 },
+        { x: 0.50, y: 0.36, gem: "", dug: 0 },
+        { x: 0.78, y: 0.42, gem: "👑", dug: 0 },
+        { x: 0.30, y: 0.64, gem: "", dug: 0 },
+        { x: 0.62, y: 0.68, gem: "⭐", dug: 0 },
+        { x: 0.48, y: 0.52, gem: "", dug: 0 }
+      ];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("dock").classList.add("on");
-      spawn();
+      document.getElementById("got").textContent = "💎 0/3";
+      document.getElementById("say").textContent = "Tap a sand pile!";
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    document.getElementById("dig").onclick = function () { tool = "dig"; this.classList.add("on"); document.getElementById("lamp").classList.remove("on"); document.getElementById("brush").classList.remove("on"); };
-    document.getElementById("lamp").onclick = function () { tool = "lamp"; lampOn = 1; this.classList.add("on"); document.getElementById("dig").classList.remove("on"); document.getElementById("brush").classList.remove("on"); };
-    document.getElementById("brush").onclick = function () { tool = "brush"; this.classList.add("on"); document.getElementById("dig").classList.remove("on"); document.getElementById("lamp").classList.remove("on"); };
-    function nextCave() {
-      caveI++;
-      if (caveI >= CAVES.length) {
-        play = false; document.getElementById("dock").classList.remove("on");
-        document.getElementById("wp").textContent = "⭐ " + stars;
-        document.getElementById("win").classList.remove("off");
-      } else spawn();
-    }
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      if (vault && Math.hypot(e.clientX - W * 0.5, e.clientY - H * 0.28) < 50) {
-        stars += 2; try { localStorage.setItem("alabryuu-dig", JSON.stringify({ stars: stars })); } catch (err) {}
-        nextCave(); return;
-      }
-      var needHits = tool === "dig" ? 2 : 1;
-      mounds.forEach(function (o) {
-        if (o.open) return;
-        if (Math.hypot(e.clientX - o.x * W, e.clientY - o.y * H) < 40) {
-          o.hits++;
-          if (o.hits >= needHits) {
-            o.open = 1; found++; stars++;
-            document.getElementById("fd").textContent = "Find " + found + "/" + CAVES[caveI].need;
-            document.getElementById("st").textContent = "⭐ " + stars;
+      piles.forEach(function (p) {
+        var dx = e.clientX - p.x * W, dy = e.clientY - p.y * H;
+        if (dx * dx + dy * dy < 55 * 55 && !p.dug) {
+          p.dug = 1;
+          if (p.gem) {
+            n++; stars += 2;
             try { localStorage.setItem("alabryuu-dig", JSON.stringify({ stars: stars })); } catch (err) {}
-            if (found >= CAVES[caveI].need) { vault = 1; document.getElementById("say").textContent = "Open the big chest!"; }
-          }
+            document.getElementById("got").textContent = "💎 " + n + "/3";
+            document.getElementById("say").textContent = "Wow " + p.gem + "!";
+            if (n >= 3) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else document.getElementById("say").textContent = "Just sand. Dig another!";
         }
       });
     });
     function loop() {
-      t += 0.016;
-      var m = CAVES[caveI] || CAVES[0];
-      x.fillStyle = m.night && !lampOn ? "#1c1917" : m.floor; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#44403c"; x.fillRect(0, 0, W, H * 0.2);
-      mounds.forEach(function (o, i) {
-        em(o.open ? LOOT[i % LOOT.length] : "⛰️", o.x * W, o.y * H, 36);
+      x.fillStyle = "#fde68a"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#38bdf8"; x.fillRect(0, 0, W, 90);
+      em("☀️", W * 0.84, 80, 56);
+      piles.forEach(function (p) {
+        if (p.dug && p.gem) em(p.gem, p.x * W, p.y * H, 72);
+        else if (p.dug) em("🕳️", p.x * W, p.y * H, 56);
+        else em("🏜️", p.x * W, p.y * H, 72);
       });
-      if (vault) em("🧰", W * 0.5, H * 0.28, 52);
-      em("🧒", W * 0.18, H * 0.82, 36);
-      em("⛏️", W * 0.28, H * 0.8, 28);
-      if (m.night && lampOn) { x.fillStyle = "rgba(253,224,71,0.15)"; x.beginPath(); x.arc(W * 0.5, H * 0.5, 160, 0, 6.3); x.fill(); }
+      em("🧒", W * 0.12, H * 0.82, 56);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

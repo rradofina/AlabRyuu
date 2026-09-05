@@ -4,560 +4,95 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Rainbow Paint</title>
+  <link rel="stylesheet" href="../kid.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #1e3a8a; color: #fff; touch-action: none; user-select: none; -webkit-user-select: none; }
-    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
-    canvas { display: block; width: 100%; height: 100%; }
-    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.35); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
-    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; }
-    #hud b { font-weight: 800; font-size: 13px; background: #fff; color: #1e3a8a; padding: 6px 10px; border-radius: 999px; }
-    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 7; font-weight: 800; font-size: 16px; color: #fff; text-shadow: 0 2px 0 #1e3a8a; pointer-events: none; text-align: center; width: 92%; }
-    #tray { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: none; gap: 6px; padding: 8px 8px max(10px, env(safe-area-inset-bottom)); background: rgba(15,23,42,.55); justify-content: center; flex-wrap: wrap; }
-    #tray.on { display: flex; }
-    #tray button { width: 42px; height: 42px; border-radius: 50%; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
-    #tray button.on { outline: 3px solid #fff; transform: scale(1.1); }
-    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#ef4444, #3b82f6 50%, #a855f7); }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(32px, 9vw, 48px); color: #fff; text-shadow: 0 4px 0 #1e3a8a; }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; }
-    .btn { background: #fde047; color: #422006; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #ca8a04; }
-    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
+    html,body{background:#7dd3fc}
+    .dock button{min-width:56px;min-height:84px}
+    .dock button span{font-size:32px}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="pic">Sky bow</b><b id="ord">Red</b></div>
-  <div id="say">Paint the rainbow in order. Clouds love color.</div>
-  <div id="tray"></div>
+  <div id="hud"><b id="nx">Next 🔴</b></div>
+  <div id="say">Paint the sky in rainbow order!</div>
+  <div class="dock" id="dock">
+    <button data-i="0"><span>🔴</span></button>
+    <button data-i="1"><span>🟠</span></button>
+    <button data-i="2"><span>🟡</span></button>
+    <button data-i="3"><span>🟢</span></button>
+    <button data-i="4"><span>🔵</span></button>
+    <button data-i="5"><span>🟣</span></button>
+  </div>
   <div class="cover" id="title">
-    <div style="font-size:76px">🌈</div>
+    <div class="hero">🌈</div>
     <h1>Rainbow Paint</h1>
-    <p>Real strokes. Drips fall. Fill the sky rainbow in order. Color the clouds.</p>
-    <button class="btn" id="go">Paint</button>
+    <p>Tap colors in order. Fill the sky!</p>
+    <button class="play" id="go">Paint</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:76px">☁️</div>
-    <h1>Color sky!</h1>
-    <p id="winP">Five pictures. Soft drips.</p>
-    <button class="btn g" id="again">Paint again</button>
+    <div class="hero">🌈</div>
+    <h1>Rainbow!</h1>
+    <p>The whole sky smiled.</p>
+    <button class="play g" id="again">Paint again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-    var layer, lx, W, H, last = 0, t = 0, play = false, pic = 0;
-    var drawing = false, lastP = null, brush = 0, order = 0;
-    var drips = [], clouds = [], guides = [], bits = [];
-    var filled = [0, 0, 0, 0, 0, 0, 0], cloudTint = [];
-    var RAIN = [
-      { n: "Red", c: "#ef4444" },
-      { n: "Orange", c: "#f97316" },
-      { n: "Yellow", c: "#facc15" },
-      { n: "Green", c: "#22c55e" },
-      { n: "Blue", c: "#3b82f6" },
-      { n: "Indigo", c: "#4f46e5" },
-      { n: "Violet", c: "#a855f7" }
+    var W, H, play = false, next = 0;
+    var COLS = [
+      { e: "🔴", c: "#ef4444" }, { e: "🟠", c: "#f97316" }, { e: "🟡", c: "#facc15" },
+      { e: "🟢", c: "#22c55e" }, { e: "🔵", c: "#3b82f6" }, { e: "🟣", c: "#a855f7" }
     ];
-    var PICS = [
-      { n: "Sky bow", hint: "Stroke a rainbow. Red first, then orange...", kind: "bow", clouds: 3 },
-      { n: "House day", hint: "Color the house. Keep the rainbow order.", kind: "house", clouds: 2 },
-      { n: "Flower hill", hint: "Paint petals. Clouds still want color.", kind: "flower", clouds: 3 },
-      { n: "Sun lake", hint: "Fill the sun and lake bands.", kind: "sun", clouds: 2 },
-      { n: "Night sparks", hint: "Last picture. Fireworks + rainbow.", kind: "night", clouds: 4 }
-    ];
-
-    function beep(f, d, typ) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        if (ac.state === "suspended") ac.resume();
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.type = typ || "sine"; o.frequency.value = f; g.gain.value = 0.07;
-        o.connect(g); g.connect(ac.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
-        o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function say(s) { document.getElementById("say").textContent = s; }
-    function hud() {
-      document.getElementById("pic").textContent = PICS[pic] ? PICS[pic].n : "Done";
-      document.getElementById("ord").textContent = RAIN[order] ? RAIN[order].n : "All!";
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
     function resize() {
-      W = cv.width = innerWidth; H = cv.height = innerHeight;
-      if (!layer) {
-        layer = document.createElement("canvas");
-        lx = layer.getContext("2d");
-      }
-      var old = layer;
-      layer.width = W; layer.height = H;
-      if (old && old !== layer) {}
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
-    addEventListener("resize", function () {
-      var snap = null;
-      try { snap = lx.getImageData(0, 0, layer.width, layer.height); } catch (e) {}
-      resize();
-      if (snap) try { lx.putImageData(snap, 0, 0); } catch (e) {}
-    });
-    resize();
-
-    function makeTray() {
-      var tray = document.getElementById("tray");
-      tray.innerHTML = "";
-      RAIN.forEach(function (r, i) {
-        var b = document.createElement("button");
-        b.type = "button"; b.style.background = r.c;
-        if (i === brush) b.className = "on";
-        b.onclick = function () {
-          if (i !== order && i > order) {
-            say("Almost — next is " + RAIN[order].n + "!");
-            beep(200, 0.08); return;
-          }
-          brush = i; markTray(); beep(500 + i * 30, 0.05);
-        };
-        tray.appendChild(b);
-      });
-    }
-    function markTray() {
-      var bs = document.getElementById("tray").children, i;
-      for (i = 0; i < bs.length; i++) bs[i].classList.toggle("on", i === brush);
-    }
-
-    function makeClouds(n) {
-      clouds = []; cloudTint = [];
-      var i;
-      for (i = 0; i < n; i++) {
-        clouds.push({ x: 40 + i * (W / (n + 0.5)), y: 90 + (i % 2) * 30, s: 0.8 + (i % 3) * 0.15, ph: i, col: null });
-        cloudTint.push(null);
-      }
-    }
-
-    function clearPaint() {
-      lx.clearRect(0, 0, W, H);
-      drips = []; bits = []; filled = [0, 0, 0, 0, 0, 0, 0];
-      order = 0; brush = 0;
-    }
-
-    function loadPic() {
-      clearPaint();
-      makeClouds(PICS[pic].clouds);
-      makeTray(); markTray();
-      say(PICS[pic].hint); hud();
-    }
-
+    addEventListener("resize", resize); resize();
     function start() {
-      play = true; pic = 0;
+      play = true; next = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("tray").classList.add("on");
-      loadPic(); beep(520, 0.1);
+      document.getElementById("dock").classList.add("on");
+      document.getElementById("nx").textContent = "Next " + COLS[0].e;
+      document.getElementById("say").textContent = "Tap " + COLS[0].e + " first!";
     }
-
-    function stroke(x1, y1, x2, y2) {
-      var col = RAIN[brush].c;
-      lx.strokeStyle = col; lx.lineWidth = 16; lx.lineCap = "round"; lx.lineJoin = "round";
-      lx.beginPath(); lx.moveTo(x1, y1); lx.lineTo(x2, y2); lx.stroke();
-      lx.fillStyle = col;
-      lx.beginPath(); lx.arc(x2, y2, 8, 0, Math.PI * 2); lx.fill();
-      if (Math.random() < 0.35) {
-        drips.push({ x: x2, y: y2, vy: 20, life: 1.4, col: col, w: 3 + Math.random() * 3 });
-      }
-      filled[brush] += Math.hypot(x2 - x1, y2 - y1);
-      var i, c;
-      for (i = 0; i < clouds.length; i++) {
-        c = clouds[i];
-        if (Math.hypot(x2 - c.x, y2 - c.y) < 40 * c.s) {
-          c.col = col;
-          bits.push({ x: c.x, y: c.y, life: 0.5, col: col });
-        }
-      }
-      if (filled[brush] > 180 && brush === order) {
-        order++;
-        if (order < 7) {
-          brush = order; markTray();
-          say("Yes! Next color: " + RAIN[order].n);
-          beep(700 + order * 20, 0.08); hud();
-        } else {
-          nextPic();
-        }
-      }
-    }
-
-    function nextPic() {
-      var colored = clouds.filter(function (c) { return c.col; }).length;
-      beep(880, 0.12);
-      pic++;
-      if (pic >= PICS.length) {
-        play = false;
-        document.getElementById("tray").classList.remove("on");
-        document.getElementById("winP").textContent = "Clouds painted: " + colored + "+  Five pictures.";
-        document.getElementById("win").classList.remove("off");
-        return;
-      }
-      say("Picture done! " + PICS[pic].n);
-      loadPic();
-    }
-
-    addEventListener("pointerdown", function (e) {
-      if (e.target.closest && e.target.closest("a,button")) return;
-      if (!play) return;
-      if (e.clientY > innerHeight - 72) return;
-      drawing = true; lastP = { x: e.clientX, y: e.clientY };
-      stroke(lastP.x, lastP.y, lastP.x + 0.1, lastP.y);
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
+      b.onclick = function () {
+        if (!play) return;
+        var i = +b.getAttribute("data-i");
+        if (i === next) {
+          next++;
+          if (next >= COLS.length) {
+            play = false;
+            document.getElementById("dock").classList.remove("on");
+            document.getElementById("win").classList.remove("off");
+          } else {
+            document.getElementById("nx").textContent = "Next " + COLS[next].e;
+            document.getElementById("say").textContent = "Yes! Now " + COLS[next].e;
+          }
+        } else document.getElementById("say").textContent = "Next is " + COLS[next].e;
+      };
     });
-    addEventListener("pointermove", function (e) {
-      if (!drawing || !play) return;
-      if (e.clientY > innerHeight - 72) return;
-      var p = { x: e.clientX, y: e.clientY };
-      stroke(lastP.x, lastP.y, p.x, p.y);
-      lastP = p;
-    });
-    addEventListener("pointerup", function () { drawing = false; lastP = null; });
-    addEventListener("pointercancel", function () { drawing = false; });
-
-    function update(dt) {
-      t += dt;
-      var i, d;
-      for (i = drips.length - 1; i >= 0; i--) {
-        d = drips[i];
-        d.y += d.vy * dt; d.vy += 80 * dt; d.life -= dt * 0.4;
-        lx.fillStyle = d.col;
-        lx.globalAlpha = Math.max(0, d.life);
-        lx.beginPath(); lx.ellipse(d.x, d.y, d.w * 0.4, d.w, 0, 0, Math.PI * 2); lx.fill();
-        lx.globalAlpha = 1;
-        if (d.life <= 0 || d.y > H) drips.splice(i, 1);
+    function loop() {
+      x.fillStyle = "#7dd3fc"; x.fillRect(0, 0, W, H);
+      for (var i = 0; i < next; i++) {
+        x.beginPath();
+        x.arc(W * 0.5, H * 0.72, 40 + i * 28, Math.PI, 0);
+        x.strokeStyle = COLS[i].c; x.lineWidth = 18; x.stroke();
       }
-      for (i = bits.length - 1; i >= 0; i--) {
-        bits[i].life -= dt * 2;
-        if (bits[i].life <= 0) bits.splice(i, 1);
-      }
-      for (i = 0; i < clouds.length; i++) clouds[i].ph += dt;
-    }
-
-    function drawGuide() {
-      var p = PICS[pic] || PICS[0];
-      x.save();
-      x.globalAlpha = 0.55;
-      if (p.kind === "bow" || p.kind === "night") em("🌈", W * 0.5, H * 0.52, 120);
-      if (p.kind === "house") em("🏠", W * 0.5, H * 0.5, 96);
-      if (p.kind === "flower") em("🌸", W * 0.5, H * 0.5, 90);
-      if (p.kind === "sun") { em("☀️", W * 0.22, H * 0.22, 56); em("🌊", W * 0.5, H * 0.72, 72); }
-      if (p.kind === "night") em("🌙", W * 0.7, H * 0.22, 40);
-      x.restore();
-    }
-
-    function drawScene() {
-      var p = PICS[pic] || PICS[0];
-      var g = x.createLinearGradient(0, 0, 0, H);
-      if (p.kind === "night") { g.addColorStop(0, "#0f172a"); g.addColorStop(1, "#1e1b4b"); }
-      else if (p.kind === "sun") { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#38bdf8"); }
-      else { g.addColorStop(0, "#7dd3fc"); g.addColorStop(1, "#bfdbfe"); }
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      if (p.kind !== "night") {
-        em("☀️", W * 0.82, 60, 36);
-      } else {
-        x.fillStyle = "#fff";
-        var s;
-        for (s = 0; s < 30; s++) x.fillRect((s * 59) % W, 10 + (s * 41) % (H * 0.4), 2, 2);
-      }
-      x.fillStyle = p.kind === "night" ? "#14532d" : "#4ade80";
-      x.fillRect(0, H * 0.78, W, H * 0.22);
-      var i, c;
-      for (i = 0; i < clouds.length; i++) {
-        c = clouds[i];
-        x.save(); x.translate(c.x, c.y + Math.sin(t + c.ph) * 4); x.scale(c.s, c.s);
-        if (c.col) { x.fillStyle = c.col; x.beginPath(); x.arc(0, 0, 22, 0, Math.PI * 2); x.fill(); }
-        em("☁️", 12, 0, 44);
-        x.restore();
-      }
-    }
-
-    function draw() {
-      drawScene();
-      drawGuide();
-      x.drawImage(layer, 0, 0);
-      var i;
-      for (i = 0; i < bits.length; i++) {
-        x.globalAlpha = Math.max(0, bits[i].life);
-        x.fillStyle = bits[i].col;
-        x.beginPath(); x.arc(bits[i].x, bits[i].y, 6, 0, Math.PI * 2); x.fill();
-      }
-      x.globalAlpha = 1;
-      if (play) {
-        x.fillStyle = RAIN[brush].c;
-        x.beginPath(); x.arc(W - 28, 90, 10, 0, Math.PI * 2); x.fill();
-      }
-      x.fillStyle = "rgba(255,255,255,.2)";
-      x.fillRect(16, 8, W - 32, 6);
-      x.fillStyle = "#fde047";
-      x.fillRect(16, 8, Math.min(W - 32, ((pic + order / 7) / 5) * (W - 32)), 6);
-    }
-
-    
-    var brushGhost=[], orderRing=0, cloudTalk=[];
-    function flavorUpdate(dt){
-      orderRing+=dt;
-      if(typeof drawing!=="undefined" && drawing && typeof lastP!=="undefined" && lastP){
-        brushGhost.push({x:lastP.x,y:lastP.y,life:0.35,c:RAIN[brush].c});
-      }
-      var i; for(i=brushGhost.length-1;i>=0;i--){ brushGhost[i].life-=dt*2; if(brushGhost[i].life<=0) brushGhost.splice(i,1); }
-      if(typeof clouds!=="undefined" && Math.random()<dt*0.25){
-        cloudTalk.push({txt:["color me","wow","drip!","rainbow"][Math.floor(Math.random()*4)],life:1.4});
-      }
-      for(i=cloudTalk.length-1;i>=0;i--){ cloudTalk[i].life-=dt; if(cloudTalk[i].life<=0) cloudTalk.splice(i,1); }
-    }
-    function flavorDraw(){
-      var i;
-      for(i=0;i<brushGhost.length;i++){
-        x.globalAlpha=Math.max(0,brushGhost[i].life);
-        x.strokeStyle=brushGhost[i].c; x.lineWidth=4;
-        x.beginPath(); x.arc(brushGhost[i].x,brushGhost[i].y,10,0,Math.PI*2); x.stroke();
-      }
-      x.globalAlpha=1;
-      if(typeof RAIN!=="undefined"){
-        for(i=0;i<RAIN.length;i++){
-          x.fillStyle=RAIN[i].c;
-          x.globalAlpha=i===(typeof order==="number"?order:0)?1:0.35;
-          x.beginPath(); x.arc(20+i*18, 28, 6,0,Math.PI*2); x.fill();
-        }
-        x.globalAlpha=1;
-      }
-      for(i=0;i<cloudTalk.length;i++){
-        x.globalAlpha=Math.max(0,cloudTalk[i].life);
-        x.fillStyle="#fff"; x.font="bold 13px Trebuchet MS"; x.textAlign="center";
-        x.fillText(cloudTalk[i].txt, W*0.5, 88);
-      }
-      x.globalAlpha=1;
-    }
-
-    var puddles = [], skyDust = [];
-    function dripPuddle(dt) {
-      if (typeof drips !== "undefined" && drips.length && Math.random() < dt * 4) {
-        var d = drips[drips.length - 1];
-        puddles.push({ x: d.x, y: Math.min((typeof H === "number" ? H : 400) * 0.82, d.y + 40), r: 4, life: 1.2, col: d.col });
-      }
-      var i;
-      for (i = puddles.length - 1; i >= 0; i--) {
-        puddles[i].life -= dt * 0.4; puddles[i].r += dt * 8;
-        if (puddles[i].life <= 0) puddles.splice(i, 1);
-      }
-      if (Math.random() < dt * 6) skyDust.push({ x: Math.random() * (W || 300), y: 20 + Math.random() * 80, life: 0.8, col: RAIN[Math.floor(Math.random() * 7)].c });
-      for (i = skyDust.length - 1; i >= 0; i--) { skyDust[i].life -= dt; skyDust[i].y += 12 * dt; if (skyDust[i].life <= 0) skyDust.splice(i, 1); }
-    }
-    var _oldFlavor = flavorUpdate;
-    flavorUpdate = function (dt) { _oldFlavor(dt); dripPuddle(dt); };
-    var _oldFlavorDraw = flavorDraw;
-    flavorDraw = function () {
-      _oldFlavorDraw();
-      var i;
-      for (i = 0; i < puddles.length; i++) {
-        x.globalAlpha = Math.max(0, puddles[i].life * 0.35);
-        x.fillStyle = puddles[i].col;
-        x.beginPath(); x.ellipse(puddles[i].x, puddles[i].y, puddles[i].r, puddles[i].r * 0.35, 0, 0, Math.PI * 2); x.fill();
-      }
-      for (i = 0; i < skyDust.length; i++) {
-        x.globalAlpha = Math.max(0, skyDust[i].life);
-        x.fillStyle = skyDust[i].col;
-        x.fillRect(skyDust[i].x, skyDust[i].y, 3, 3);
-      }
-      x.globalAlpha = 1;
-    };
-    function extraWorld(){
-      var _i,_a;
-      _a=0.08+0.04*Math.sin(t+0); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((0+t*8)%W, 20, 4, 3); /* red 0 */
-      _a=0.08+0.04*Math.sin(t+1); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((47+t*8)%W, 51, 5, 4); /* orange 1 */
-      _a=0.08+0.04*Math.sin(t+2); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((94+t*8)%W, 82, 6, 5); /* yellow 2 */
-      _a=0.08+0.04*Math.sin(t+3); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((44+t*8)%W, 30, 7, 6); /* green 3 */
-      _a=0.08+0.04*Math.sin(t+4); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((91+t*8)%W, 61, 8, 3); /* blue 4 */
-      _a=0.08+0.04*Math.sin(t+5); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((41+t*8)%W, 92, 4, 4); /* red 5 */
-      _a=0.08+0.04*Math.sin(t+6); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((88+t*8)%W, 40, 5, 5); /* orange 6 */
-      _a=0.08+0.04*Math.sin(t+7); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((38+t*8)%W, 71, 6, 6); /* yellow 7 */
-      _a=0.08+0.04*Math.sin(t+8); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((85+t*8)%W, 102, 7, 3); /* green 8 */
-      _a=0.08+0.04*Math.sin(t+9); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((35+t*8)%W, 50, 8, 4); /* blue 9 */
-      _a=0.08+0.04*Math.sin(t+10); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((82+t*8)%W, 81, 4, 5); /* red 10 */
-      _a=0.08+0.04*Math.sin(t+11); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((32+t*8)%W, 29, 5, 6); /* orange 11 */
-      _a=0.08+0.04*Math.sin(t+12); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((79+t*8)%W, 60, 6, 3); /* yellow 12 */
-      _a=0.08+0.04*Math.sin(t+13); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((29+t*8)%W, 91, 7, 4); /* green 13 */
-      _a=0.08+0.04*Math.sin(t+14); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((76+t*8)%W, 39, 8, 5); /* blue 14 */
-      _a=0.08+0.04*Math.sin(t+15); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((26+t*8)%W, 70, 4, 6); /* red 15 */
-      _a=0.08+0.04*Math.sin(t+16); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((73+t*8)%W, 101, 5, 3); /* orange 16 */
-      _a=0.08+0.04*Math.sin(t+17); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((23+t*8)%W, 49, 6, 4); /* yellow 17 */
-      _a=0.08+0.04*Math.sin(t+18); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((70+t*8)%W, 80, 7, 5); /* green 18 */
-      _a=0.08+0.04*Math.sin(t+19); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((20+t*8)%W, 28, 8, 6); /* blue 19 */
-      _a=0.08+0.04*Math.sin(t+20); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((67+t*8)%W, 59, 4, 3); /* red 20 */
-      _a=0.08+0.04*Math.sin(t+21); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((17+t*8)%W, 90, 5, 4); /* orange 21 */
-      _a=0.08+0.04*Math.sin(t+22); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((64+t*8)%W, 38, 6, 5); /* yellow 22 */
-      _a=0.08+0.04*Math.sin(t+23); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((14+t*8)%W, 69, 7, 6); /* green 23 */
-      _a=0.08+0.04*Math.sin(t+24); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((61+t*8)%W, 100, 8, 3); /* blue 24 */
-      _a=0.08+0.04*Math.sin(t+25); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((11+t*8)%W, 48, 4, 4); /* red 25 */
-      _a=0.08+0.04*Math.sin(t+26); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((58+t*8)%W, 79, 5, 5); /* orange 26 */
-      _a=0.08+0.04*Math.sin(t+27); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((8+t*8)%W, 27, 6, 6); /* yellow 27 */
-      _a=0.08+0.04*Math.sin(t+28); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((55+t*8)%W, 58, 7, 3); /* green 28 */
-      _a=0.08+0.04*Math.sin(t+29); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((5+t*8)%W, 89, 8, 4); /* blue 29 */
-      _a=0.08+0.04*Math.sin(t+30); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((52+t*8)%W, 37, 4, 5); /* red 30 */
-      _a=0.08+0.04*Math.sin(t+31); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((2+t*8)%W, 68, 5, 6); /* orange 31 */
-      _a=0.08+0.04*Math.sin(t+32); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((49+t*8)%W, 99, 6, 3); /* yellow 32 */
-      _a=0.08+0.04*Math.sin(t+33); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((96+t*8)%W, 47, 7, 4); /* green 33 */
-      _a=0.08+0.04*Math.sin(t+34); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((46+t*8)%W, 78, 8, 5); /* blue 34 */
-      _a=0.08+0.04*Math.sin(t+35); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((93+t*8)%W, 26, 4, 6); /* red 35 */
-      _a=0.08+0.04*Math.sin(t+36); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((43+t*8)%W, 57, 5, 3); /* orange 36 */
-      _a=0.08+0.04*Math.sin(t+37); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((90+t*8)%W, 88, 6, 4); /* yellow 37 */
-      _a=0.08+0.04*Math.sin(t+38); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((40+t*8)%W, 36, 7, 5); /* green 38 */
-      _a=0.08+0.04*Math.sin(t+39); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((87+t*8)%W, 67, 8, 6); /* blue 39 */
-      _a=0.08+0.04*Math.sin(t+40); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((37+t*8)%W, 98, 4, 3); /* red 40 */
-      _a=0.08+0.04*Math.sin(t+41); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((84+t*8)%W, 46, 5, 4); /* orange 41 */
-      _a=0.08+0.04*Math.sin(t+42); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((34+t*8)%W, 77, 6, 5); /* yellow 42 */
-      _a=0.08+0.04*Math.sin(t+43); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((81+t*8)%W, 25, 7, 6); /* green 43 */
-      _a=0.08+0.04*Math.sin(t+44); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((31+t*8)%W, 56, 8, 3); /* blue 44 */
-      _a=0.08+0.04*Math.sin(t+45); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((78+t*8)%W, 87, 4, 4); /* red 45 */
-      _a=0.08+0.04*Math.sin(t+46); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((28+t*8)%W, 35, 5, 5); /* orange 46 */
-      _a=0.08+0.04*Math.sin(t+47); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((75+t*8)%W, 66, 6, 6); /* yellow 47 */
-      _a=0.08+0.04*Math.sin(t+48); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((25+t*8)%W, 97, 7, 3); /* green 48 */
-      _a=0.08+0.04*Math.sin(t+49); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((72+t*8)%W, 45, 8, 4); /* blue 49 */
-      _a=0.08+0.04*Math.sin(t+50); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((22+t*8)%W, 76, 4, 5); /* red 50 */
-      _a=0.08+0.04*Math.sin(t+51); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((69+t*8)%W, 24, 5, 6); /* orange 51 */
-      _a=0.08+0.04*Math.sin(t+52); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((19+t*8)%W, 55, 6, 3); /* yellow 52 */
-      _a=0.08+0.04*Math.sin(t+53); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((66+t*8)%W, 86, 7, 4); /* green 53 */
-      _a=0.08+0.04*Math.sin(t+54); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((16+t*8)%W, 34, 8, 5); /* blue 54 */
-      _a=0.08+0.04*Math.sin(t+55); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((63+t*8)%W, 65, 4, 6); /* red 55 */
-      _a=0.08+0.04*Math.sin(t+56); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((13+t*8)%W, 96, 5, 3); /* orange 56 */
-      _a=0.08+0.04*Math.sin(t+57); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((60+t*8)%W, 44, 6, 4); /* yellow 57 */
-      _a=0.08+0.04*Math.sin(t+58); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((10+t*8)%W, 75, 7, 5); /* green 58 */
-      _a=0.08+0.04*Math.sin(t+59); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((57+t*8)%W, 23, 8, 6); /* blue 59 */
-      _a=0.08+0.04*Math.sin(t+60); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((7+t*8)%W, 54, 4, 3); /* red 60 */
-      _a=0.08+0.04*Math.sin(t+61); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((54+t*8)%W, 85, 5, 4); /* orange 61 */
-      _a=0.08+0.04*Math.sin(t+62); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((4+t*8)%W, 33, 6, 5); /* yellow 62 */
-      _a=0.08+0.04*Math.sin(t+63); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((51+t*8)%W, 64, 7, 6); /* green 63 */
-      _a=0.08+0.04*Math.sin(t+64); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((1+t*8)%W, 95, 8, 3); /* blue 64 */
-      _a=0.08+0.04*Math.sin(t+65); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((48+t*8)%W, 43, 4, 4); /* red 65 */
-      _a=0.08+0.04*Math.sin(t+66); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((95+t*8)%W, 74, 5, 5); /* orange 66 */
-      _a=0.08+0.04*Math.sin(t+67); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((45+t*8)%W, 22, 6, 6); /* yellow 67 */
-      _a=0.08+0.04*Math.sin(t+68); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((92+t*8)%W, 53, 7, 3); /* green 68 */
-      _a=0.08+0.04*Math.sin(t+69); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((42+t*8)%W, 84, 8, 4); /* blue 69 */
-      _a=0.08+0.04*Math.sin(t+70); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((89+t*8)%W, 32, 4, 5); /* red 70 */
-      _a=0.08+0.04*Math.sin(t+71); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((39+t*8)%W, 63, 5, 6); /* orange 71 */
-      _a=0.08+0.04*Math.sin(t+72); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((86+t*8)%W, 94, 6, 3); /* yellow 72 */
-      _a=0.08+0.04*Math.sin(t+73); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((36+t*8)%W, 42, 7, 4); /* green 73 */
-      _a=0.08+0.04*Math.sin(t+74); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((83+t*8)%W, 73, 8, 5); /* blue 74 */
-      _a=0.08+0.04*Math.sin(t+75); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((33+t*8)%W, 21, 4, 6); /* red 75 */
-      _a=0.08+0.04*Math.sin(t+76); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((80+t*8)%W, 52, 5, 3); /* orange 76 */
-      _a=0.08+0.04*Math.sin(t+77); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((30+t*8)%W, 83, 6, 4); /* yellow 77 */
-      _a=0.08+0.04*Math.sin(t+78); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((77+t*8)%W, 31, 7, 5); /* green 78 */
-      _a=0.08+0.04*Math.sin(t+79); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((27+t*8)%W, 62, 8, 6); /* blue 79 */
-      _a=0.08+0.04*Math.sin(t+80); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((74+t*8)%W, 93, 4, 3); /* red 80 */
-      _a=0.08+0.04*Math.sin(t+81); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((24+t*8)%W, 41, 5, 4); /* orange 81 */
-      _a=0.08+0.04*Math.sin(t+82); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((71+t*8)%W, 72, 6, 5); /* yellow 82 */
-      _a=0.08+0.04*Math.sin(t+83); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((21+t*8)%W, 20, 7, 6); /* green 83 */
-      _a=0.08+0.04*Math.sin(t+84); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((68+t*8)%W, 51, 8, 3); /* blue 84 */
-      _a=0.08+0.04*Math.sin(t+85); x.fillStyle='#ef4444'; x.globalAlpha=_a;
-      x.fillRect((18+t*8)%W, 82, 4, 4); /* red 85 */
-      _a=0.08+0.04*Math.sin(t+86); x.fillStyle='#f97316'; x.globalAlpha=_a;
-      x.fillRect((65+t*8)%W, 30, 5, 5); /* orange 86 */
-      _a=0.08+0.04*Math.sin(t+87); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((15+t*8)%W, 61, 6, 6); /* yellow 87 */
-      _a=0.08+0.04*Math.sin(t+88); x.fillStyle='#22c55e'; x.globalAlpha=_a;
-      x.fillRect((62+t*8)%W, 92, 7, 3); /* green 88 */
-      _a=0.08+0.04*Math.sin(t+89); x.fillStyle='#3b82f6'; x.globalAlpha=_a;
-      x.fillRect((12+t*8)%W, 40, 8, 4); /* blue 89 */
-      x.globalAlpha=1;
-    }
-
-    function loop(now) {
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
-      update(dt); if(typeof flavorUpdate==='function') flavorUpdate(dt); draw(); if(typeof flavorDraw==='function') flavorDraw(); if(typeof extraWorld==='function') extraWorld();
+      em("☁️", 60, 120, 56); em("☁️", W - 50, 140, 64);
+      if (next >= COLS.length) em("🌈", W * 0.5, H * 0.42, 96);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
   })();
   </script>
 </body>

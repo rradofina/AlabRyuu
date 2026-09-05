@@ -4,157 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Hide and Seek</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Verdana,system-ui,sans-serif;background:#0f766e;color:#134e4a;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#fff;text-decoration:none;font-weight:800;background:rgba(0,0,0,.35);padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;font-weight:800}
-    #hud b{background:#fff;padding:6px 10px;border-radius:999px}
-    .panel{position:fixed;left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom));z-index:8;background:#ecfdf5ee;border:4px solid #0f766e;border-radius:22px;padding:12px;pointer-events:none}
-    .panel .chs,.panel button{pointer-events:auto}
-    .who{font-size:13px;font-weight:800}
-    .say{font-size:24px;font-weight:900;margin:4px 0 10px}
-    .chs{display:flex;flex-wrap:wrap;gap:8px}
-    .chs button{min-height:54px;flex:1;border-radius:16px;background:#fde047;color:#422006;font-weight:900;font-size:17px}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#5eead4,#0f766e);color:#fff}
-    .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,50px)}
-    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="ch">Garden</b> <b id="st">⭐ 0</b></div>
   <canvas id="c"></canvas>
-  <div class="panel">
-    <div class="who" id="who">Pip</div>
-    <p class="say" id="say">Count to three!</p>
-    <div class="chs" id="chs"></div>
-  </div>
+  <div id="hud"><b id="fd">0/3</b></div>
+  <div id="say">Find 3 hiding pals!</div>
   <div class="cover" id="title">
+    <div class="hero">🔎</div>
     <h1>Hide and Seek</h1>
-    <p>Friends hide. You seek.<br>Choices change who hides.</p>
-    <button class="btn" id="go">Seek</button>
+    <p>Tap bushes and trees. Find friends!</p>
+    <button class="play" id="go">Seek</button>
   </div>
   <div class="cover off" id="win">
+    <div class="hero">🤗</div>
     <h1>Found you!</h1>
-    <p id="wp"></p>
-    <button class="btn" id="again">Seek again</button>
+    <p>Three pals giggled.</p>
+    <button class="play g" id="again">Seek again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, T = 0, si = 0, stars = 0, found = 0;
-    var flags = { helper: "Pip", place: "garden", night: false, kind: 0 };
+    var W, H, t = 0, play = false, found = 0, stars = 0, spots = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-hide") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
     addEventListener("resize", resize); resize();
-    var pals = [
-      { name: "Fox", col: "#f97316", hx: 0.22, hy: 0.42, hid: 1 },
-      { name: "Duck", col: "#fde047", hx: 0.52, hy: 0.44, hid: 1 },
-      { name: "Frog", col: "#22c55e", hx: 0.78, hy: 0.40, hid: 1 }
-    ];
-    var SCENES = [
-      { who: "Pip", say: "Who hides first?", ch: [["Fox hides", { helper: "Fox" }], ["Duck hides", { helper: "Duck" }]] },
-      { who: "Pip", say: "Where do we play?", ch: [["Sunny garden", { place: "garden" }], ["Old barn", { place: "barn" }]] },
-      { who: "Pip", say: "Count with me!", ch: [["Count slow", {}], ["Peek a tiny bit", { kind: 1 }]] },
-      { who: "Fox", say: "I am in leaves.", seek: 1 },
-      { who: "Duck", say: "I splash quiet.", seek: 1 },
-      { who: "Pip", say: "A twist! Night!", ch: [["Get a lamp", { night: true }], ["Hold hands", {}]] },
-      { who: "Frog", say: "Mud is cozy.", seek: 1 },
-      { who: "Owl", say: "Who was kind?", ch: [["We peeked kind", {}], ["We counted fair", {}]] },
-      { who: "Pip", say: flags.place === "barn" ? "Hay smells warm." : "Grass tickles.", ch: [["Hide now too", {}], ["Keep seeking", {}]] },
-      { who: "All", say: "One last hide.", seek: 1 },
-      { who: "Pip", say: "Hugs in a pile.", ch: [["Group hug", {}], ["Share snacks", {}]] },
-      { who: "Pip", say: "The end. Soft.", ch: [["Play again", { end: true }]] }
-    ];
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-    function palEm(name) { return name === "Fox" ? "🦊" : name === "Duck" ? "🦆" : "🐸"; }
-    function body(px, py, ch, phase, hide) {
-      x.save(); x.globalAlpha = hide ? 0.45 : 1;
-      em(ch, px, py + Math.sin(phase) * 4, hide ? 36 : 48);
-      x.restore();
+    function start() {
+      play = true; found = 0;
+      spots = [
+        { e: "🌳", x: 0.22, y: 0.38, pal: "🦊", got: 0 },
+        { e: "bush", x: 0.72, y: 0.42, pal: "🐰", got: 0 },
+        { e: "🪨", x: 0.28, y: 0.64, pal: "", got: 0 },
+        { e: "⛺", x: 0.70, y: 0.66, pal: "🦉", got: 0 }
+      ];
+      document.getElementById("title").classList.add("off");
+      document.getElementById("win").classList.add("off");
+      document.getElementById("fd").textContent = "0/3";
+      document.getElementById("say").textContent = "Find 3 hiding pals!";
     }
-    function draw() {
-      var night = flags.night || si > 5;
-      var g = x.createLinearGradient(0, 0, 0, H);
-      if (flags.place === "barn") { g.addColorStop(0, "#fde68a"); g.addColorStop(1, "#b45309"); }
-      else { g.addColorStop(0, night ? "#0b132b" : "#7dd3fc"); g.addColorStop(1, night ? "#14532d" : "#86efac"); }
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      x.fillStyle = night ? "#14532d" : "#4ade80";
-      x.fillRect(0, H * 0.7, W, H * 0.3);
-      var i;
-      for (i = 0; i < 6; i++) em("🌳", 40 + i * 70, H * 0.7, 42);
-      pals.forEach(function (p, i) {
-        body(p.hx * W, p.hy * H, palEm(p.name), T * 7 + i, p.hid);
-      });
-      body(W * 0.18, H * 0.66, "🧒", T * 8, 0);
-    }
-    function save() { try { localStorage.setItem("alabryuu-hide", JSON.stringify({ stars: stars, flags: flags })); } catch (e) {} }
-    function show() {
-      var s = SCENES[Math.min(si, SCENES.length - 1)];
-      if (si === 8) s.say = flags.place === "barn" ? "Hay smells warm." : "Grass tickles.";
-      document.getElementById("who").textContent = s.who;
-      document.getElementById("say").textContent = s.say;
-      document.getElementById("ch").textContent = (flags.place || "garden") + " " + (si + 1) + "/12";
-      document.getElementById("st").textContent = "⭐ " + stars;
-      var box = document.getElementById("chs"); box.innerHTML = "";
-      if (s.seek) {
-        if (!pals.some(function (p) { return p.hid; })) {
-          pals.forEach(function (p) { p.hid = 1; });
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      spots.forEach(function (s) {
+        var dx = e.clientX - s.x * W, dy = e.clientY - s.y * H;
+        if (dx * dx + dy * dy < 60 * 60) {
+          if (s.got) return;
+          if (s.pal) {
+            s.got = 1; found++; stars++;
+            try { localStorage.setItem("alabryuu-hide", JSON.stringify({ stars: stars })); } catch (err) {}
+            document.getElementById("fd").textContent = found + "/3";
+            document.getElementById("say").textContent = "Hi " + s.pal + "!";
+            if (found >= 3) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else document.getElementById("say").textContent = "Nobody here. Keep looking!";
         }
-        var b = document.createElement("button");
-        b.textContent = "Found one!";
-        b.onclick = function () { findPal(null); };
-        box.appendChild(b);
-        return;
-      }
-      s.ch.forEach(function (pair) {
-        var b = document.createElement("button"); b.textContent = pair[0];
-        b.onclick = function () {
-          Object.assign(flags, pair[1]);
-          if (pair[1].end) {
-            document.getElementById("wp").textContent = "You found friends with " + flags.helper + ".";
-            document.getElementById("win").classList.remove("off");
-            si = 0; pals.forEach(function (p) { p.hid = 1; });
-          } else { si++; stars++; }
-          save(); if (!pair[1].end) show();
-        };
-        box.appendChild(b);
       });
-    }
-    function findPal(target) {
-      var s = SCENES[Math.min(si, SCENES.length - 1)];
-      if (!s.seek) return;
-      if (!pals.some(function (p) { return p.hid; })) {
-        pals.forEach(function (p) { p.hid = 1; });
-      }
-      var p = target;
-      if (!p || !p.hid) {
-        p = pals.filter(function (x) { return x.hid; })[0];
-      }
-      if (!p) return;
-      p.hid = 0; found++; stars++;
-      document.getElementById("say").textContent = "Hi " + p.name + "!";
-      si++; save(); show();
-    }
-    cv.addEventListener("pointerdown", function (ev) {
-      var s = SCENES[Math.min(si, SCENES.length - 1)];
-      if (!s.seek) return;
-      var r = cv.getBoundingClientRect();
-      var px = ev.clientX - r.left, py = ev.clientY - r.top;
-      var hit = null;
-      pals.forEach(function (p) {
-        if (p.hid && Math.hypot(px - p.hx * W, py - p.hy * H) < 70) hit = p;
-      });
-      if (hit) findPal(hit);
     });
-    document.getElementById("go").onclick = function () { document.getElementById("title").classList.add("off"); show(); };
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); si = 0; pals.forEach(function (p) { p.hid = 1; }); found = 0; show(); };
-    function loop() { T += 0.016; draw(); requestAnimationFrame(loop); }
-    loop();
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#4ade80"; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H * 0.28);
+      em("☀️", W * 0.84, 80, 56);
+      spots.forEach(function (s) {
+        var px = s.x * W, py = s.y * H;
+        if (s.got) em(s.pal, px, py - 10, 72);
+        else em(s.e === "bush" ? "🌿" : s.e, px, py, 80);
+      });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
   })();
   </script>
 </body>

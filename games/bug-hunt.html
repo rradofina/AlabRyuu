@@ -4,325 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Bug Hunt</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #365314; color: #365314; touch-action: none; user-select: none; }
-    button { background: transparent; border: 0; appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .home { position: fixed; top: 12px; left: 12px; z-index: 12; color: #fff; text-decoration: none; font-weight: 800; font-size: 17px; background: rgba(0,0,0,.32); padding: 8px 14px; border-radius: 999px; touch-action: manipulation; }
-    canvas { display: block; width: 100%; height: 100%; }
-    #hud { position: fixed; top: 12px; right: 12px; z-index: 8; font-weight: 800; text-align: right; pointer-events: none; }
-    #hud b { display: inline-block; background: rgba(255,255,255,.9); padding: 6px 12px; border-radius: 999px; margin-left: 6px; font-size: 14px; }
-    #say { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 8; font-weight: 800; color: #fff; text-shadow: 0 2px 0 #14532d; pointer-events: none; text-align: center; width: 92%; }
-    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; gap: 8px; padding: 20px 20px 48px; pointer-events: none; }
-    .cover.off { display: none; }
-    .cover h1 { font-size: clamp(32px, 8vw, 48px); color: #fff; text-shadow: 0 4px 0 #14532d; }
-    .cover p { font-weight: 800; color: #ecfccb; }
-    .btn { pointer-events: auto; background: #ffd166; color: #3b2100; font-weight: 800; font-size: 24px; padding: 14px 28px; border-radius: 999px; box-shadow: 0 7px 0 #e09f1f; }
-    .btn.g { background: #86efac; color: #14532d; box-shadow: 0 7px 0 #16a34a; }
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#166534}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="gn">Clover</b><b id="bg">Bugs 0</b><b id="st">Stars 0</b></div>
-  <div id="say">Lift leaves. Catch crawling bugs!</div>
+  <div id="hud"><b id="got">🐞 0/4</b></div>
+  <div id="say">Flip the leaves. Find bugs!</div>
   <div class="cover" id="title">
+    <div class="hero">🐞</div>
     <h1>Bug Hunt</h1>
-    <p>Leaves rustle. Bugs crawl away.<br>Fill the jar. Night glow later!</p>
-    <button class="btn" id="go">Play</button>
+    <p>Tap leaves. Find 4 bugs!</p>
+    <button class="play" id="go">Hunt</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Jar full!</h1>
-    <p id="winP">Five gardens searched.</p>
-    <button class="btn g" id="again">Play again</button>
+    <div class="hero">🦋</div>
+    <h1>Bug explorer!</h1>
+    <p>Four little bugs waved.</p>
+    <button class="play g" id="again">Hunt again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), g = cv.getContext("2d");
-    var W, H, last = 0, t = 0, mode = "title", stars = 0, garden = 0;
-    var leaves = [], bugs = [], jar = [], mag = { x: 0, y: 0 }, rustle = [], glow = [];
-    var caught = 0, need = 3;
-
-    var GARDENS = [
-      { n: "Clover patch", night: 0, bugs: ["caterpillar", "ladybug", "ant"], need: 3, leaf: "#22c55e" },
-      { n: "Rose bed", night: 0, bugs: ["caterpillar", "ladybug", "bee", "cricket"], need: 4, leaf: "#16a34a" },
-      { n: "Veggie row", night: 0, bugs: ["caterpillar", "ladybug", "ant", "beetle"], need: 4, leaf: "#15803d" },
-      { n: "Fern glen", night: 0, bugs: ["caterpillar", "cricket", "beetle", "butterfly"], need: 4, leaf: "#166534" },
-      { n: "Night glow", night: 1, bugs: ["glow", "beetle", "butterfly", "caterpillar"], need: 5, leaf: "#14532d" }
-    ];
-
-    function beep(f, d) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), gn = ac.createGain();
-        o.type = "sine"; o.frequency.value = f; gn.gain.value = 0.07;
-        o.connect(gn); gn.connect(ac.destination); o.start();
-        gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d); o.stop(ac.currentTime + d);
-      } catch (e) {}
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, play = false, n = 0, leaves = [];
+    var BUGS = ["🐞", "🐛", "🦋", "🐝"];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function lerp(a, b, p) { return a + (b - a) * p; }
-    function rnd(a, b) { return a + Math.random() * (b - a); }
-    function noise(x, y) { return Math.sin(x * 1.7 + y * 0.9) + Math.sin(x * 0.6 - y * 1.3) * 0.5; }
-    function oval(cx, cy, rx, ry, col) {
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, 6.28); g.fill();
-    }
-    function dot(cx, cy, r, col) {
-      g.fillStyle = col;
-      g.beginPath(); g.arc(cx, cy, r, 0, 6.28); g.fill();
-    }
-
     function resize() {
-      cv.width = innerWidth * (devicePixelRatio || 1);
-      cv.height = innerHeight * (devicePixelRatio || 1);
-      g.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
+      var d = Math.min(devicePixelRatio || 1, 2);
       W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
     addEventListener("resize", resize); resize();
-
-    function loadGarden() {
-      var G = GARDENS[garden], i, has;
-      leaves = []; bugs = []; jar = []; rustle = []; glow = []; caught = 0; need = G.need;
-      for (i = 0; i < 10 + garden * 2; i++) {
-        has = i < G.need;
-        leaves.push({
-          x: rnd(40, W - 40), y: rnd(110, H - 140), r: rnd(28, 40),
-          ph: rnd(0, 6), open: 0, bug: has ? G.bugs[i % G.bugs.length] : "",
-          gone: 0
-        });
-      }
-      document.getElementById("gn").textContent = G.n;
-      document.getElementById("bg").textContent = "Bugs 0/" + need;
-      document.getElementById("say").textContent = G.night ? "Glow bugs! Follow the glass." : "Lift leaves. Bugs may crawl!";
-    }
-
-    function lift(mx, my) {
-      if (mode !== "play") return;
-      leaves.forEach(function (L) {
-        if (L.open || Math.hypot(mx - L.x, my - L.y) > L.r) return;
-        L.open = 1; rustle.push({ x: L.x, y: L.y, life: 1, ph: L.ph });
-        beep(400, 0.06);
-        if (L.bug) {
-          bugs.push({
-            kind: L.bug, x: L.x, y: L.y, vx: rnd(-80, 80), vy: rnd(-40, 40),
-            life: 1, crawl: 0, caught: 0, segs: []
-          });
-          document.getElementById("say").textContent = "A bug! Catch it with the glass.";
-        }
-      });
-    }
-
-    function tryCatch(mx, my) {
-      bugs.forEach(function (b) {
-        if (b.caught) return;
-        if (Math.hypot(mx - b.x, my - b.y) < 36) {
-          b.caught = 1; caught++; stars += 2;
-          jar.push({ kind: b.kind, bob: rnd(0, 6) });
-          document.getElementById("bg").textContent = "Bugs " + caught + "/" + need;
-          document.getElementById("st").textContent = "Stars " + stars;
-          beep(720, 0.1);
-          if (caught >= need) finishGarden();
-        }
-      });
-    }
-
-    function finishGarden() {
-      stars += 3; document.getElementById("st").textContent = "Stars " + stars;
-      beep(660, 0.12); setTimeout(function () { beep(880, 0.14); }, 90);
-      if (garden < GARDENS.length - 1) {
-        garden++;
-        document.getElementById("say").textContent = "Next garden!";
-        setTimeout(loadGarden, 700);
-      } else {
-        mode = "win";
-        document.getElementById("win").classList.remove("off");
-        document.getElementById("winP").textContent = "Five gardens. " + stars + " stars.";
-      }
-    }
-
-    function updateBugs(dt) {
-      bugs.forEach(function (b) {
-        if (b.caught) { b.x = lerp(b.x, W / 2, 0.08); b.y = lerp(b.y, H - 50, 0.08); return; }
-        b.crawl += dt;
-        b.vx += noise(b.x * 0.02, t) * 40 * dt;
-        b.vy += noise(t, b.y * 0.02) * 40 * dt;
-        b.x += b.vx * dt; b.y += b.vy * dt;
-        if (b.x < 20 || b.x > W - 20) b.vx *= -1;
-        if (b.y < 90 || b.y > H - 80) b.vy *= -1;
-        b.segs.push({ x: b.x, y: b.y });
-        if (b.segs.length > 6) b.segs.shift();
-      });
-      rustle.forEach(function (r) { r.life -= dt * 1.4; });
-      rustle = rustle.filter(function (r) { return r.life > 0; });
-      if (GARDENS[garden] && GARDENS[garden].night) {
-        if (glow.length < 18 && Math.random() < 0.2) glow.push({ x: rnd(0, W), y: rnd(80, H - 60), ph: rnd(0, 6), life: 1 });
-        glow.forEach(function (o) { o.life -= dt * 0.15; o.y -= 8 * dt; });
-        glow = glow.filter(function (o) { return o.life > 0; });
-      }
-    }
-
-    function drawWorld() {
-      var G = GARDENS[garden] || GARDENS[0];
-      var grd = g.createLinearGradient(0, 0, 0, H);
-      if (mode === "title") { grd.addColorStop(0, "#bbf7d0"); grd.addColorStop(1, "#4d7c0f"); }
-      else if (G.night) { grd.addColorStop(0, "#0f172a"); grd.addColorStop(1, "#14532d"); }
-      else { grd.addColorStop(0, "#86efac"); grd.addColorStop(1, "#166534"); }
-      g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      var i;
-      for (i = 0; i < 12; i++) {
-        g.fillStyle = "rgba(20,83,45,.15)";
-        g.beginPath(); g.ellipse((i * 97 + t * 4) % W, H * 0.7 + Math.sin(t + i) * 6, 40, 16, 0, 0, 6.28); g.fill();
-      }
-    }
-
-    function drawLeaf(L) {
-      var G = GARDENS[garden], sway = noise(L.x * 0.03, t + L.ph) * 0.25;
-      g.save();
-      g.translate(L.x, L.y);
-      g.rotate(-0.3 + sway);
-      if (!L.open) {
-        em("🍃", 0, 0, L.r * 1.8);
-      } else {
-        g.fillStyle = "#fefce8";
-        g.beginPath(); g.ellipse(0, 0, L.r * 0.7, L.r * 0.45, 0, 0, 6.28); g.fill();
-      }
-      g.restore();
-    }
-
-    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
-    function bugEm(kind) {
-      return kind === "ladybug" ? "🐞" : kind === "beetle" ? "🪲" : kind === "butterfly" ? "🦋" : kind === "bee" ? "🐝" : kind === "ant" ? "🐜" : kind === "cricket" ? "🦗" : kind === "glow" ? "✨" : "🐛";
-    }
-    function drawBug(kind, s) {
-      s = s || 1;
-      em(bugEm(kind), 0, 0, 28 * s);
-    }
-
-    function drawBugs() {
-      bugs.forEach(function (b) {
-        if (b.caught) return;
-        b.segs.forEach(function (s, i) {
-          g.globalAlpha = 0.12 * (i / 6);
-          g.save(); g.translate(s.x, s.y); drawBug(b.kind, 0.55); g.restore();
-        });
-        g.globalAlpha = 1;
-        g.save(); g.translate(b.x, b.y); g.rotate(Math.atan2(b.vy, b.vx));
-        drawBug(b.kind, 1.15);
-        g.restore();
-      });
-    }
-
-    function drawMag() {
-      if (mode !== "play") return;
-      g.save();
-      g.strokeStyle = "rgba(255,255,255,.7)"; g.lineWidth = 4;
-      g.beginPath(); g.arc(mag.x, mag.y, 34, 0, 6.28); g.stroke();
-      g.strokeStyle = "#a8a29e"; g.lineWidth = 6;
-      g.beginPath(); g.moveTo(mag.x + 24, mag.y + 24); g.lineTo(mag.x + 44, mag.y + 44); g.stroke();
-      g.fillStyle = "rgba(186,230,253,.12)"; g.beginPath(); g.arc(mag.x, mag.y, 32, 0, 6.28); g.fill();
-      g.restore();
-    }
-
-    function drawJar() {
-      var x = W / 2, y = H - 28;
-      g.fillStyle = "#b45309";
-      g.beginPath();
-      g.moveTo(x - 28, y - 42); g.lineTo(x + 28, y - 42);
-      g.lineTo(x + 32, y - 32); g.lineTo(x - 32, y - 32);
-      g.closePath(); g.fill();
-      g.fillStyle = "#f59e0b";
-      g.fillRect(x - 26, y - 38, 52, 8);
-      g.fillStyle = "rgba(186,230,253,.38)";
-      g.strokeStyle = "#38bdf8"; g.lineWidth = 3;
-      g.beginPath();
-      g.moveTo(x - 30, y - 28);
-      g.lineTo(x - 24, y + 14);
-      g.quadraticCurveTo(x, y + 26, x + 24, y + 14);
-      g.lineTo(x + 30, y - 28);
-      g.closePath(); g.fill(); g.stroke();
-      g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 2;
-      g.beginPath(); g.moveTo(x - 16, y - 18); g.lineTo(x - 12, y + 6); g.stroke();
-      jar.forEach(function (j, i) {
-        g.save();
-        g.translate(x - 16 + (i % 3) * 16, y + Math.sin(t * 3 + j.bob) * 3);
-        drawBug(j.kind, 0.55);
-        g.restore();
-      });
-    }
-
-    function drawTitleHunt() {
-      drawWorld();
-      var i;
-      for (i = 0; i < 7; i++) {
-        g.save();
-        g.translate(50 + i * 48, H * 0.5 + Math.sin(t * 2 + i) * 8);
-        g.rotate(Math.sin(t * 1.5 + i) * 0.2);
-        em("🍃", 0, 0, 40);
-        g.restore();
-      }
-      g.save();
-      g.translate(W * 0.55 + Math.sin(t) * 20, H * 0.4);
-      g.strokeStyle = "#e2e8f0"; g.lineWidth = 5;
-      g.beginPath(); g.arc(0, 0, 22, 0, 6.28); g.stroke();
-      g.strokeStyle = "#a8a29e"; g.lineWidth = 6;
-      g.beginPath(); g.moveTo(16, 16); g.lineTo(30, 30); g.stroke();
-      g.restore();
-      g.save();
-      g.translate(W * 0.38 + Math.sin(t * 2) * 30, H * 0.48);
-      drawBug("ladybug", 1.6);
-      g.restore();
-      g.save();
-      g.translate(W * 0.62, H * 0.52 + Math.sin(t * 3) * 8);
-      drawBug("butterfly", 1.4);
-      g.restore();
-      g.save();
-      g.translate(W / 2, H * 0.72);
-      g.scale(1.2, 1.2);
-      g.translate(-W / 2, -(H - 28));
-      drawJar();
-      g.restore();
-    }
-
-    function update(dt) {
-      t += dt;
-      if (mode === "title" || mode === "win") return;
-      updateBugs(dt);
-    }
-
-    function draw() {
-      if (mode === "title" || mode === "win") { drawTitleHunt(); return; }
-      drawWorld();
-      leaves.forEach(drawLeaf);
-      rustle.forEach(function (r) {
-        g.globalAlpha = r.life;
-        oval(r.x + Math.sin(t * 10) * 8, r.y - (1 - r.life) * 16, 7, 4, "#86efac");
-        g.globalAlpha = 1;
-      });
-      drawBugs();
-      glow.forEach(function (o) {
-        g.globalAlpha = o.life * (0.4 + 0.4 * Math.sin(t * 4 + o.ph));
-        g.fillStyle = "#bef264"; g.beginPath(); g.arc(o.x, o.y, 5, 0, 6.28); g.fill(); g.globalAlpha = 1;
-      });
-      drawMag(); drawJar();
-    }
-
-    function loop(now) {
-      var dt = Math.min(0.033, (now - last) / 1000 || 0.016);
-      last = now; update(dt); draw(); requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-
     function start() {
-      mode = "play"; garden = 0; stars = 0;
+      play = true; n = 0;
+      leaves = [
+        { x: 0.25, y: 0.36, bug: "🐞", open: 0 },
+        { x: 0.70, y: 0.34, bug: "", open: 0 },
+        { x: 0.22, y: 0.58, bug: "🐛", open: 0 },
+        { x: 0.55, y: 0.52, bug: "🦋", open: 0 },
+        { x: 0.78, y: 0.62, bug: "", open: 0 },
+        { x: 0.48, y: 0.74, bug: "🐝", open: 0 }
+      ];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("st").textContent = "Stars 0";
-      loadGarden(); beep(500, 0.1);
+      document.getElementById("got").textContent = "🐞 0/4";
+      document.getElementById("say").textContent = "Flip the leaves!";
     }
     document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); start(); };
-    cv.addEventListener("pointerdown", function (e) { lift(e.clientX, e.clientY); tryCatch(e.clientX, e.clientY); });
-    cv.addEventListener("pointermove", function (e) { mag.x = e.clientX; mag.y = e.clientY; if (mode === "play") tryCatch(e.clientX, e.clientY); });
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      leaves.forEach(function (L) {
+        var dx = e.clientX - L.x * W, dy = e.clientY - L.y * H;
+        if (dx * dx + dy * dy < 55 * 55 && !L.open) {
+          L.open = 1;
+          if (L.bug) {
+            n++;
+            document.getElementById("got").textContent = "🐞 " + n + "/4";
+            document.getElementById("say").textContent = "Hi " + L.bug + "!";
+            if (n >= 4) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else document.getElementById("say").textContent = "Just a leaf. Keep looking!";
+        }
+      });
+    });
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#4ade80"; x.fillRect(0, 0, W, H);
+      em("🌳", 40, 100, 64); em("🌳", W - 36, 110, 72);
+      leaves.forEach(function (L) {
+        if (L.open && L.bug) em(L.bug, L.x * W, L.y * H, 72);
+        else if (L.open) em("🍂", L.x * W, L.y * H, 56);
+        else em("🍃", L.x * W, L.y * H + Math.sin(t * 2 + L.x) * 3, 72);
+      });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
   })();
   </script>
 </body>

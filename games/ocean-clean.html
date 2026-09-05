@@ -4,126 +4,84 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Ocean Clean</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:Trebuchet MS,sans-serif;background:#0369a1;color:#fff;touch-action:none;user-select:none}
-    button{background:transparent;border:0;appearance:none;font:inherit;color:inherit;cursor:pointer}
-    canvas{display:block;width:100%;height:100%}
-    .home{position:fixed;top:12px;left:12px;z-index:8;color:#082f49;text-decoration:none;font-weight:800;background:#67e8f9;padding:8px 14px;border-radius:999px}
-    #hud{position:fixed;top:12px;right:12px;z-index:8;text-align:right;font-weight:800;pointer-events:none}
-    #hud b{display:inline-block;background:#fff;color:#0369a1;padding:6px 10px;border-radius:999px;margin-left:6px}
-    #say{position:fixed;left:10px;right:10px;top:56px;text-align:center;font-weight:800;z-index:8;pointer-events:none}
-    #dock{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;padding:10px;justify-content:center}
-    #dock.on{display:flex}
-    #dock button{min-width:88px;height:64px;border-radius:18px;background:#67e8f9;color:#082f49;font-weight:800;font-size:18px}
-    #dock button.on{outline:4px solid #fff}
-    .cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px;background:linear-gradient(#38bdf8,#0369a1)}
-    .cover.off{display:none}
-    h1{font-size:clamp(32px,8vw,50px)}
-    .btn{background:#ffd166;color:#3b2100;font-weight:800;font-size:24px;padding:14px 26px;border-radius:999px;box-shadow:0 7px 0 #e09f1f}
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#0369a1}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="rf">Sunny bay</b><b id="tr">Trash 0</b><b id="st">Stars 0</b></div>
-  <div id="say">Tap the trash!</div>
-  <div id="dock">
-    <button id="net" class="on">Net</button>
-    <button id="feed">Feed</button>
-    <button id="boat">Boat</button>
-  </div>
+  <div id="hud"><b id="tr">🗑️ 0/8</b></div>
+  <div id="say">Tap trash. Leave the fish!</div>
   <div class="cover" id="title">
+    <div class="hero">🌊</div>
     <h1>Ocean Clean</h1>
-    <p>Pick up trash. Feed fish.<br>Steer the boat.</p>
-    <button class="btn" id="go">Dive</button>
+    <p>Pick up 8 bits of trash. Not the fish!</p>
+    <button class="play" id="go">Clean</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Clean sea!</h1>
-    <p id="wp">⭐ 0</p>
-    <button class="btn" id="again">Dive again</button>
+    <div class="hero">🐠</div>
+    <h1>Sparkly sea!</h1>
+    <p>The fish are happy.</p>
+    <button class="play g" id="again">Clean again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, play = false, reef = 0, got = 0, stars = 0, tool = "net", boatX = 0.5;
-    var trash = [], fish = [];
-    var REEFS = [
-      { n: "Sunny bay", need: 6, night: 0 },
-      { n: "Coral street", need: 7, night: 0 },
-      { n: "Night glow", need: 7, night: 1 },
-      { n: "Storm swell", need: 8, night: 0 },
-      { n: "Home reef", need: 6, night: 0 }
-    ];
-    var SAYS = ["Tap the trash!", "Feed the fish!", "Night glow net!", "Steer the boat!", "Home reef!"];
-    var KINDS = ["#38bdf8", "#f8fafc", "#a8a29e", "#fde047"];
-    var TRASH_EM = ["🧴", "🗑️", "🧴", "🗑️"];
-    var FISH_EM = ["🐠", "🐟", "🐠", "🐡"];
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
+    var W, H, t = 0, last = 0, play = false, n = 0, stars = 0, bits = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-ocean") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function resize() { var d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+    }
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+    }
     addEventListener("resize", resize); resize();
-    function spawn() {
-      var m = REEFS[reef], i; trash = []; fish = []; got = 0;
-      for (i = 0; i < m.need + 3; i++) trash.push({ x: 0.15 + Math.random() * 0.7, y: 0.32 + Math.random() * 0.26, got: 0, col: KINDS[i % 4] });
-      for (i = 0; i < 10; i++) fish.push({ x: Math.random(), y: 0.35 + Math.random() * 0.4, vx: 0.06 + Math.random() * 0.05, col: ["#fb7185", "#fde047", "#86efac", "#67e8f9"][i % 4] });
-      document.getElementById("rf").textContent = m.n;
-      document.getElementById("tr").textContent = "Trash 0/" + m.need;
-      document.getElementById("st").textContent = "Stars " + stars;
-      document.getElementById("say").textContent = SAYS[reef];
+    function spawn(kind) {
+      bits.push({
+        e: kind, trash: kind !== "🐟" && kind !== "🐠",
+        x: 40 + Math.random() * (W - 80), y: 120 + Math.random() * (H - 220)
+      });
     }
     function start() {
-      play = true; reef = 0; tool = "net";
+      play = true; n = 0; bits = [];
+      var i;
+      for (i = 0; i < 8; i++) spawn(["🧴", "🥤", "🛍️", "👟"][i % 4]);
+      spawn("🐟"); spawn("🐠"); spawn("🐟");
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      document.getElementById("dock").classList.add("on");
-      spawn();
+      document.getElementById("tr").textContent = "🗑️ 0/8";
+      document.getElementById("say").textContent = "Tap trash. Leave the fish!";
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    document.getElementById("net").onclick = function () { tool = "net"; this.classList.add("on"); document.getElementById("feed").classList.remove("on"); document.getElementById("boat").classList.remove("on"); };
-    document.getElementById("feed").onclick = function () { tool = "feed"; this.classList.add("on"); document.getElementById("net").classList.remove("on"); document.getElementById("boat").classList.remove("on"); };
-    document.getElementById("boat").onclick = function () { tool = "boat"; this.classList.add("on"); document.getElementById("net").classList.remove("on"); document.getElementById("feed").classList.remove("on"); };
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      if (e.clientY > H - 84) return;
-      if (tool === "boat") { boatX = e.clientX / W; return; }
-      if (tool === "feed") { stars++; document.getElementById("st").textContent = "Stars " + stars; fish.forEach(function (f) { f.x += (e.clientX / W - f.x) * 0.3; }); return; }
-      trash.forEach(function (o) {
-        if (o.got) return;
-        if (Math.hypot(e.clientX - o.x * W, e.clientY - o.y * H) < 36) {
-          o.got = 1; got++; stars++;
-          document.getElementById("tr").textContent = "Trash " + got + "/" + REEFS[reef].need;
-          document.getElementById("st").textContent = "Stars " + stars;
-          try { localStorage.setItem("alabryuu-ocean", JSON.stringify({ stars: stars })); } catch (err) {}
+      for (var i = bits.length - 1; i >= 0; i--) {
+        var b = bits[i], dx = e.clientX - b.x, dy = e.clientY - b.y;
+        if (dx * dx + dy * dy < 50 * 50) {
+          if (b.trash) {
+            bits.splice(i, 1); n++; stars++;
+            try { localStorage.setItem("alabryuu-ocean", JSON.stringify({ stars: stars })); } catch (err) {}
+            document.getElementById("tr").textContent = "🗑️ " + n + "/8";
+            document.getElementById("say").textContent = "Got it!";
+            if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else document.getElementById("say").textContent = "That's a friend! Tap trash.";
+          return;
         }
-      });
-      if (got >= REEFS[reef].need) {
-        reef++;
-        if (reef >= REEFS.length) {
-          play = false; document.getElementById("dock").classList.remove("on");
-          document.getElementById("wp").textContent = "⭐ " + stars;
-          document.getElementById("win").classList.remove("off");
-        } else spawn();
       }
     });
-    function loop() {
-      t += 0.016;
-      var night = REEFS[reef] && REEFS[reef].night;
-      var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, night ? "#0f172a" : "#7dd3fc"); g.addColorStop(1, "#0369a1");
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#0ea5e9"; x.fillRect(0, H * 0.22, W, 8);
-      em("🚤", boatX * W, H * 0.16, 44);
-      fish.forEach(function (f, fi) {
-        f.x += f.vx * 0.008; if (f.x > 1.1) f.x = -0.1;
-        em(FISH_EM[fi % FISH_EM.length], f.x * W, f.y * H + Math.sin(t * 3 + f.x) * 4, 28);
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#0ea5e9"; x.fillRect(0, 0, W, H);
+      em("🪸", 40, H * 0.8, 56); em("🪸", W - 40, H * 0.76, 64);
+      bits.forEach(function (b, i) {
+        b.y += Math.sin(t * 2 + i) * 0.3;
+        em(b.e, b.x, b.y, 56);
       });
-      trash.forEach(function (o, ti) {
-        if (o.got) return;
-        em(TRASH_EM[ti % TRASH_EM.length], o.x * W, o.y * H, 28);
-      });
-      em("🤿", boatX * W, H * 0.42, 32);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

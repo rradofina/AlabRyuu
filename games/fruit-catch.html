@@ -4,463 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Fruit Catch</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%; overflow: hidden;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: #14532d; color: #fff; touch-action: none; user-select: none;
-    }
-    button {
-      background: transparent; border: 0; appearance: none;
-      -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer;
-    }
-    .home {
-      position: fixed; top: 12px; left: 12px; z-index: 12;
-      color: #fff; text-decoration: none; font-weight: 800; font-size: 18px;
-      background: rgba(0,0,0,.28); padding: 8px 14px; border-radius: 999px;
-    }
-    canvas { display: block; width: 100%; height: 100%; }
-    .basket-hud {
-      position: fixed; top: 10px; right: 10px; z-index: 12;
-      width: 120px; background: #92400e; border: 4px solid #fde68a;
-      border-radius: 8px 8px 40px 40px; padding: 8px 8px 14px;
-      text-align: center; pointer-events: none; box-shadow: 0 6px 0 #451a03;
-    }
-    .basket-hud b { display: block; font-size: 14px; color: #fde68a; }
-    .nicks { display: flex; justify-content: center; gap: 4px; margin-top: 6px; }
-    .nicks i { width: 14px; height: 10px; background: #166534; border-radius: 0 0 8px 8px; }
-    .nicks i.ok { background: #86efac; }
-    #say {
-      position: fixed; left: 50%; top: 70px; transform: translateX(-50%);
-      z-index: 8; font-weight: 800; font-size: 20px; text-align: center;
-      text-shadow: 0 3px 0 #14532d; width: 90%; pointer-events: none;
-    }
-    #combo {
-      position: fixed; left: 50%; top: 30%; transform: translate(-50%, -10px);
-      font-weight: 800; font-size: 34px; color: #fde047;
-      text-shadow: 0 4px 0 #854d0e; opacity: 0; pointer-events: none; z-index: 8;
-    }
-    #combo.on { opacity: 1; }
-    .cover {
-      position: fixed; inset: 0; z-index: 10;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; gap: 12px; padding: 24px;
-      background: linear-gradient(180deg, rgba(20,83,45,.35), rgba(22,101,52,.5));
-    }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(36px, 10vw, 54px); text-shadow: 0 5px 0 #14532d; }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 320px; }
-    .btn {
-      background: #fde047; color: #422006; font-weight: 800; font-size: 26px;
-      padding: 16px 36px; border-radius: 22px; box-shadow: 0 8px 0 #ca8a04;
-    }
-    .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ca8a04; }
-    .btn.g { background: #86efac; box-shadow: 0 8px 0 #16a34a; color: #14532d; }
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div class="basket-hud"><b id="tree">Tree 1</b><b id="got">Fruit 0</b><div class="nicks" id="nicks"><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i></div></div>
-  <div id="say">Catch fruit!</div>
-  <div id="combo"></div>
+  <div id="hud"><b id="got">🍉 0/10</b></div>
+  <div id="say">Drag the basket. Catch fruit!</div>
   <div class="cover" id="title">
+    <div class="hero">🍉</div>
     <h1>Fruit Catch</h1>
-    <p>Drag the basket. Catch fruit. Skip rocks. Shake the trees!</p>
-    <button class="btn" id="go">Play</button>
+    <p>Move the basket. Catch 10 fruits!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <h1>Basket full!</h1>
-    <p id="winP">Five trees. Yum yum.</p>
-    <button class="btn g" id="again">Play again</button>
+    <div class="hero">🧺</div>
+    <h1>Fruit pile!</h1>
+    <p>Ten yummy catches.</p>
+    <button class="play g" id="again">Catch again</button>
   </div>
   <script>
   (function () {
-    var cv = document.getElementById("c"), g = cv.getContext("2d");
-    var W, H, t = 0, last = 0, mode = "title", stage = 0, score = 0, lives = 5;
-    var combo = 0, comboT = 0, shake = 0, golds = 0, bag = [];
-    var basket = { x: 0, y: 0, w: 124, h: 38 };
-    var drag = false, px = 0;
-    var fruit = [], rocks = [], leaves = [], drops = [], bees = [], birds = [];
-    var trees = [], clouds = [], grass = [], windP = [], foam = [];
-    var butterflies = [], juice = [], shadows = [], farmer = { wave: 0, blink: 0 };
-    var scare = { blink: 0, arm: 0 }, sunA = 0, wheel = [];
-    var STAGES = [
-      { n: "Sunny apple", kind: "apple", wind: 4, rain: 0, dusk: 0, gold: 0.08, need: 8, rock: 0.12, say: "Red apples. Soft drop!" },
-      { n: "Breeze pear", kind: "pear", wind: 46, rain: 0, dusk: 0, gold: 0.1, need: 9, rock: 0.16, say: "Wind! Slide the basket." },
-      { n: "Cherry rain", kind: "cherry", wind: 14, rain: 1, dusk: 0, gold: 0.12, need: 10, rock: 0.14, say: "Rain cherries. Skip rocks." },
-      { n: "Orange dusk", kind: "orange", wind: 18, rain: 0, dusk: 1, gold: 0.14, need: 10, rock: 0.18, say: "Warm dusk fruit." },
-      { n: "Gold harvest", kind: "mix", wind: 22, rain: 0, dusk: 0.4, gold: 0.32, need: 12, rock: 0.1, say: "Catch the gold ones!" }
-    ];
-    var KINDS = {
-      apple: { c: "#dc2626", l: "#16a34a", s: 16 },
-      pear: { c: "#a3e635", l: "#4d7c0f", s: 17 },
-      cherry: { c: "#e11d48", l: "#166534", s: 11 },
-      orange: { c: "#f97316", l: "#15803d", s: 17 },
-      gold: { c: "#facc15", l: "#ca8a04", s: 18 }
-    };
-
-    function beep(f, d, typ, vol) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        var o = ac.createOscillator(), a = ac.createGain();
-        o.type = typ || "sine"; o.frequency.value = f; a.gain.value = vol || 0.08;
-        o.connect(a); a.connect(ac.destination); o.start();
-        a.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
-        o.stop(ac.currentTime + d);
-      } catch (e) {}
-    }
-    function chord(ns, d) { for (var i = 0; i < ns.length; i++) beep(ns[i], d, "triangle", 0.045); }
-    function say(s) { document.getElementById("say").textContent = s; }
-    function hud() {
-      document.getElementById("tree").textContent = STAGES[Math.min(stage, 4)].n;
-      document.getElementById("got").textContent = "Fruit " + score;
-      var nicks = document.querySelectorAll("#nicks i");
-      for (var i = 0; i < nicks.length; i++) nicks[i].className = i < lives ? "ok" : "";
-    }
-    function popCombo() {
-      var el = document.getElementById("combo");
-      if (combo >= 3) { el.textContent = "Yum x" + combo + "!"; el.classList.add("on"); comboT = 0.85; }
+    var cv = document.getElementById("c"), x = cv.getContext("2d");
+    var W, H, t = 0, last = 0, play = false, n = 0, basket = 0.5, fruit = [];
+    var KINDS = ["🍎", "🍌", "🍇", "🍊", "🍉"];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
     function resize() {
-      W = cv.width = innerWidth; H = cv.height = innerHeight;
-      basket.x = W * 0.5; basket.y = H * 0.84;
-      if (!trees.length) seedWorld();
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
-    function seedWorld() {
-      trees = []; clouds = []; grass = []; bees = []; birds = [];
-      var i;
-      for (i = 0; i < 4; i++) trees.push({ x: 0.12 + i * 0.26, h: 0.42 + (i % 2) * 0.08, w: 0.22, shake: 0, dropT: 0.4 + i * 0.3 });
-      for (i = 0; i < 5; i++) clouds.push({ x: Math.random(), y: 0.08 + Math.random() * 0.16, w: 70 + Math.random() * 80, s: 8 + Math.random() * 10 });
-      for (i = 0; i < 40; i++) grass.push({ x: Math.random(), h: 10 + Math.random() * 16, ph: Math.random() * 6 });
-      for (i = 0; i < 3; i++) bees.push({ x: Math.random() * 400, y: 80 + Math.random() * 120, a: Math.random() * 6, s: 40 + Math.random() * 30 });
-      for (i = 0; i < 2; i++) birds.push({ x: Math.random(), y: 0.15 + Math.random() * 0.12, s: 30 + Math.random() * 20, fl: Math.random() * 4 });
-      butterflies = [];
-      for (i = 0; i < 5; i++) butterflies.push({ x: Math.random(), y: 0.35 + Math.random() * 0.25, ph: Math.random() * 6, c: i % 2 ? "#f472b6" : "#a78bfa", s: 18 + Math.random() * 16 });
-      wheel = [];
-      for (i = 0; i < 6; i++) wheel.push({ kind: "apple" });
-    }
-    function resetStage() {
-      var s = STAGES[stage];
-      fruit = []; rocks = []; leaves = []; drops = []; windP = [];
-      combo = 0;
-      say(s.say);
-      hud();
-      for (var i = 0; i < trees.length; i++) trees[i].shake = 0.4;
-    }
-    function startGame() {
-      mode = "play"; stage = 0; score = 0; lives = 5; golds = 0; bag = []; combo = 0;
+    addEventListener("resize", resize); resize();
+    function spawn() { fruit.push({ e: KINDS[(Math.random() * KINDS.length) | 0], x: 0.15 + Math.random() * 0.7, y: -0.05, vy: 0.28 + Math.random() * 0.12 }); }
+    function start() {
+      play = true; n = 0; fruit = []; basket = 0.5;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
-      resetStage();
-      chord([349, 440, 523], 0.16);
+      document.getElementById("got").textContent = "🍉 0/10";
+      document.getElementById("say").textContent = "Drag the basket!";
     }
-    function winGame() {
-      mode = "win";
-      document.getElementById("winP").textContent = "You caught " + score + " fruit. Gold: " + golds + "!";
-      document.getElementById("win").classList.remove("off");
-      chord([523, 659, 784], 0.3);
-    }
-    function nextStage() {
-      stage++;
-      if (stage >= 5) { winGame(); return; }
-      resetStage();
-      beep(700, 0.12, "triangle", 0.1);
-    }
-    function pickKind() {
-      var s = STAGES[stage];
-      if (Math.random() < s.gold) return "gold";
-      if (s.kind === "mix") {
-        var k = ["apple", "pear", "cherry", "orange"];
-        return k[(Math.random() * k.length) | 0];
-      }
-      return s.kind;
-    }
-    function spawnFruit(tx) {
-      var kind = pickKind();
-      var info = KINDS[kind];
-      fruit.push({
-        x: tx, y: H * 0.28, vx: (Math.random() - 0.5) * 40, vy: 20,
-        r: info.s, kind: kind, rot: 0, spin: (Math.random() - 0.5) * 4,
-        squash: 1, bounce: 0, caught: false
-      });
-    }
-    function spawnRock(tx) {
-      rocks.push({ x: tx, y: H * 0.26, vx: (Math.random() - 0.5) * 30, vy: 30, r: 12, rot: 0 });
-    }
-    function puff(x, y, c) {
-      for (var i = 0; i < 10; i++) {
-        leaves.push({
-          x: x, y: y, vx: (Math.random() - 0.5) * 160, vy: -40 - Math.random() * 80,
-          life: 0.5 + Math.random() * 0.5, c: c, s: 4 + Math.random() * 5, rot: Math.random() * 6
-        });
-      }
-    }
-    function em(ch,px,py,s){ g.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(ch,px,py); }
-    function fruitEm(kind) {
-      return kind === "pear" ? "🍐" : kind === "cherry" ? "🍒" : kind === "orange" ? "🍊" : kind === "gold" ? "🌟" : "🍎";
-    }
-    function drawFruit(f) {
-      em(fruitEm(f.kind), f.x, f.y, Math.max(22, (f.r || 14) * 2.2));
-    }
-    function drawRock(r) { em("🪨", r.x, r.y, Math.max(22, r.r * 2)); }
-    function drawBasket(x, y) {
-      var bob = Math.sin(t * 4) * 3;
-      em("🧺", x, y + bob, 48);
-      var show = bag.slice(-4), i;
-      for (i = 0; i < show.length; i++) em(fruitEm(show[i]), x - 18 + i * 12, y + 10 + bob, 14);
-    }
-    function drawTree(tr, kind) {
-      var sx = tr.x * W, base = H * 0.72;
-      var sh = Math.sin(t * 18) * tr.shake * 10;
-      g.save(); g.translate(sx + sh, base);
-      em("🌳", 0, -H * tr.h * 0.45, 72);
-      var hang = kind === "cherry" ? 7 : 4;
-      for (var i = 0; i < hang; i++) {
-        var fx = Math.sin(i * 1.7 + tr.x * 8) * 36;
-        var fy = -H * tr.h * 0.62 + Math.cos(i * 2) * 22;
-        var k = kind === "mix" ? (i % 2 ? "apple" : "orange") : kind;
-        drawFruit({ x: fx, y: fy, r: 7, kind: k, rot: 0, squash: 1 });
-      }
-      g.restore();
-    }
-    function blob(x, y, r) {
-      g.beginPath();
-      g.ellipse(x, y, r, r * 0.78, 0, 0, Math.PI * 2); g.fill();
-    }
-    function drawBee(b) {
-      var x = (b.x + Math.cos(t * 1.4 + b.a) * b.s);
-      var y = (b.y + Math.sin(t * 2 + b.a) * 18);
-      x = ((x % (W + 40)) + W + 40) % (W + 40) - 20;
-      em("🐝", x, y, 18);
-    }
-    function drawBird(b) {
-      var x = ((b.x + t * 0.04) % 1.2) * W - 40;
-      var y = b.y * H + Math.sin(t * 3 + b.fl) * 6;
-      em("🐦", x, y, 18);
-    }
-    function drawButterfly(b) {
-      var x = ((b.x + Math.sin(t * 0.4 + b.ph) * 0.12) % 1) * W;
-      var y = b.y * H + Math.sin(t * 2.2 + b.ph) * 14;
-      em("🦋", x, y, 20);
-    }
-    function drawScarecrow() { em("🎃", W * 0.08, H * 0.66, 40); }
-    function drawFarmer() { em("🧒", W * 0.92, H * 0.68 + Math.sin(t * 2) * 2, 36); }
-    function drawFence() {
-      g.strokeStyle = "#78350f"; g.lineWidth = 4;
-      g.beginPath(); g.moveTo(0, H * 0.74); g.lineTo(W, H * 0.74); g.stroke();
-      for (var i = 0; i < 12; i++) {
-        var x = i * (W / 11);
-        g.fillStyle = "#92400e";
-        g.fillRect(x, H * 0.7, 8, 28);
-      }
-    }
-    function drawSunPath() {
-      var s = STAGES[Math.min(stage, 4)];
-      sunA = s.dusk ? 1.1 : 0.35;
-    }
-    function drawJuice() {
-      for (var i = 0; i < juice.length; i++) {
-        var j = juice[i];
-        g.globalAlpha = Math.max(0, j.life);
-        g.fillStyle = j.c;
-        g.beginPath(); g.ellipse(j.x, j.y, j.s, j.s * 0.6, j.rot, 0, Math.PI * 2); g.fill();
-        g.globalAlpha = 1;
-      }
-    }
-    function drawBg() {
-      var s = STAGES[Math.min(stage, 4)];
-      var top = s.dusk ? "#fb923c" : s.rain ? "#64748b" : "#7dd3fc";
-      var midc = s.dusk ? "#fdba74" : "#bbf7d0";
-      var grd = g.createLinearGradient(0, 0, 0, H);
-      grd.addColorStop(0, top); grd.addColorStop(0.45, midc); grd.addColorStop(1, "#4d7c0f");
-      g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      if (s.dusk) em("🌇", W * 0.8, H * 0.18, 40);
-      else if (s.rain) em("🌧️", W * 0.16, H * 0.14, 36);
-      else em("☀️", W * 0.16, H * 0.14, 40);
-      var i;
-      for (i = 0; i < clouds.length; i++) {
-        var c = clouds[i];
-        var cx = ((c.x + t * c.s * 0.006) % 1.3) * W - 40;
-        em(s.rain ? "☁️" : "☁️", cx, c.y * H, 36);
-      }
-      g.fillStyle = "#365314";
-      g.beginPath(); g.ellipse(W * 0.2, H * 0.78, W * 0.5, 70, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#3f6212";
-      g.beginPath(); g.ellipse(W * 0.75, H * 0.8, W * 0.48, 80, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#4d7c0f";
-      g.fillRect(0, H * 0.72, W, H);
-      var kind = s.kind;
-      for (i = 0; i < trees.length; i++) drawTree(trees[i], kind);
-      for (i = 0; i < grass.length; i++) {
-        var gr = grass[i];
-        var gx = gr.x * W;
-        var sway = Math.sin(t * 3 + gr.ph) * (6 + s.wind * 0.08);
-        g.strokeStyle = i % 2 ? "#65a30d" : "#3f6212"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(gx, H * 0.9); g.quadraticCurveTo(gx + sway, H * 0.9 - gr.h, gx + sway * 1.2, H * 0.9 - gr.h - 4); g.stroke();
-      }
-      for (i = 0; i < bees.length; i++) drawBee(bees[i]);
-      for (i = 0; i < birds.length; i++) drawBird(birds[i]);
-      for (i = 0; i < butterflies.length; i++) drawButterfly(butterflies[i]);
-      drawFence();
-      drawScarecrow();
-      drawFarmer();
-      drawSunPath();
-    }
-    function catchOne(f) {
-      f.caught = true;
-      score += f.kind === "gold" ? 3 : 1;
-      if (f.kind === "gold") golds++;
-      combo++;
-      popCombo();
-      bag.push(f.kind);
-      if (bag.length > 8) bag.shift();
-      puff(f.x, basket.y, f.kind === "gold" ? "#fde047" : "#86efac");
-      for (var ji = 0; ji < 8; ji++) {
-        juice.push({
-          x: f.x, y: basket.y - 8,
-          vx: (Math.random() - 0.5) * 140, vy: -40 - Math.random() * 60,
-          life: 0.4 + Math.random() * 0.3, s: 3 + Math.random() * 4,
-          c: (KINDS[f.kind] || KINDS.apple).c, rot: Math.random() * 6
-        });
-      }
-      beep(f.kind === "gold" ? 820 : 540 + combo * 18, 0.07, "triangle", 0.08);
-      hud();
-      if (score >= STAGES[stage].need) nextStage();
-    }
-    function missFruit() {
-      combo = 0;
-      lives = Math.max(0, lives - 1);
-      hud();
-      beep(160, 0.07, "sine", 0.05);
-      if (lives <= 0) { lives = 5; say("New hearts. Try again!"); hud(); }
-    }
-    function update(dt) {
-      var s = STAGES[Math.min(stage, 4)];
-      t += dt;
-      if (comboT > 0) { comboT -= dt; if (comboT <= 0) document.getElementById("combo").classList.remove("on"); }
-      if (shake > 0) shake -= dt;
-      var i, f, tr;
-      for (i = 0; i < trees.length; i++) {
-        tr = trees[i];
-        tr.shake *= 0.92;
-        if (mode === "play") {
-          tr.dropT -= dt;
-          if (tr.dropT <= 0) {
-            tr.shake = 1;
-            spawnFruit(tr.x * W + (Math.random() - 0.5) * 36);
-            if (Math.random() < s.rock) spawnRock(tr.x * W + (Math.random() - 0.5) * 40);
-            puff(tr.x * W, H * 0.34, "#4d7c0f");
-            tr.dropT = 0.7 + Math.random() * 0.9 - stage * 0.05;
-            beep(220, 0.04, "sine", 0.03);
-          }
-        } else if (Math.random() < 0.01) {
-          tr.shake = 0.6;
-          spawnFruit(tr.x * W);
-        }
-      }
-      if (mode === "play") {
-        basket.x += (px - basket.x) * Math.min(1, dt * 11);
-        basket.x = Math.max(basket.w * 0.5, Math.min(W - basket.w * 0.5, basket.x));
-      } else {
-        basket.x = W * 0.5 + Math.sin(t) * 40;
-      }
-      for (i = fruit.length - 1; i >= 0; i--) {
-        f = fruit[i];
-        f.vx += s.wind * 0.4 * dt * Math.sin(t + f.x * 0.01);
-        f.vy += 420 * dt;
-        f.x += f.vx * dt; f.y += f.vy * dt;
-        f.rot += f.spin * dt;
-        if (f.y > H * 0.78 && f.bounce < 2 && f.vy > 0) {
-          f.vy *= -0.35; f.bounce++; f.squash = 1.45;
-          beep(140, 0.03, "sine", 0.03);
-        }
-        f.squash += (1 - f.squash) * dt * 10;
-        if (mode === "play" && f.y > basket.y - 16 && f.y < basket.y + 24 && Math.abs(f.x - basket.x) < basket.w * 0.48) {
-          catchOne(f); fruit.splice(i, 1); continue;
-        }
-        if (f.y > H + 20) { fruit.splice(i, 1); if (mode === "play") missFruit(); }
-      }
-      for (i = rocks.length - 1; i >= 0; i--) {
-        f = rocks[i];
-        f.vy += 400 * dt; f.x += f.vx * dt + s.wind * dt * 0.3; f.y += f.vy * dt; f.rot += dt * 3;
-        if (mode === "play" && f.y > basket.y - 10 && Math.abs(f.x - basket.x) < basket.w * 0.42) {
-          combo = 0; lives = Math.max(0, lives - 1); hud(); puff(f.x, f.y, "#a8a29e");
-          beep(120, 0.1, "square", 0.04); rocks.splice(i, 1);
-          say("Skip rocks!");
-          if (lives <= 0) { lives = 5; hud(); }
-          continue;
-        }
-        if (f.y > H) rocks.splice(i, 1);
-      }
-      if (s.rain) {
-        if (Math.random() < 0.6) drops.push({ x: Math.random() * W, y: -10, vy: 380 + Math.random() * 80 });
-        for (i = drops.length - 1; i >= 0; i--) {
-          drops[i].y += drops[i].vy * dt;
-          if (drops[i].y > H * 0.78) drops.splice(i, 1);
-        }
-      }
-      if (s.wind > 20 && Math.random() < 0.2) {
-        windP.push({ x: -10, y: 40 + Math.random() * H * 0.5, vx: 180 + s.wind, life: 1 });
-      }
-      for (i = windP.length - 1; i >= 0; i--) {
-        windP[i].x += windP[i].vx * dt; windP[i].life -= dt;
-        if (windP[i].life <= 0 || windP[i].x > W + 20) windP.splice(i, 1);
-      }
-      for (i = leaves.length - 1; i >= 0; i--) {
-        var lf = leaves[i];
-        lf.x += lf.vx * dt; lf.y += lf.vy * dt; lf.vy += 220 * dt; lf.life -= dt; lf.rot += dt * 4;
-        if (lf.life <= 0) leaves.splice(i, 1);
-      }
-      if (mode === "win" && Math.random() < 0.05) puff(Math.random() * W, H * 0.3, "#fde047");
-      for (i = juice.length - 1; i >= 0; i--) {
-        var jn = juice[i];
-        jn.x += jn.vx * dt; jn.y += jn.vy * dt; jn.vy += 220 * dt; jn.life -= dt;
-        if (jn.life <= 0) juice.splice(i, 1);
-      }
-    }
-    function draw() {
-      drawBg();
-      var i;
-      for (i = 0; i < drops.length; i++) {
-        g.strokeStyle = "rgba(191,219,254,.7)"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(drops[i].x, drops[i].y); g.lineTo(drops[i].x - 3, drops[i].y + 12); g.stroke();
-      }
-      for (i = 0; i < windP.length; i++) {
-        g.strokeStyle = "rgba(255,255,255,.25)"; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(windP[i].x, windP[i].y); g.quadraticCurveTo(windP[i].x + 20, windP[i].y - 8, windP[i].x + 40, windP[i].y); g.stroke();
-      }
-      for (i = 0; i < fruit.length; i++) drawFruit(fruit[i]);
-      for (i = 0; i < rocks.length; i++) drawRock(rocks[i]);
-      drawBasket(basket.x, basket.y);
-      drawJuice();
-      for (i = 0; i < leaves.length; i++) {
-        var lf = leaves[i];
-        g.save(); g.globalAlpha = Math.max(0, lf.life); g.translate(lf.x, lf.y); g.rotate(lf.rot);
-        g.fillStyle = lf.c;
-        g.beginPath(); g.ellipse(0, 0, lf.s, lf.s * 0.5, 0, 0, Math.PI * 2); g.fill();
-        g.restore();
-      }
-    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointermove", function (e) {
+      if (!play) return;
+      basket = Math.max(0.12, Math.min(0.88, e.clientX / W));
+    });
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play) return;
+      basket = Math.max(0.12, Math.min(0.88, e.clientX / W));
+    });
     function loop(now) {
-      requestAnimationFrame(loop);
       if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
-      update(dt);
-      draw();
+      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
+      em("🌳", 40, 120, 64); em("☀️", W - 50, 80, 56);
+      if (play) {
+        if (fruit.length < 3 && Math.random() < 0.04) spawn();
+        fruit.forEach(function (f) { f.y += f.vy * dt; });
+        var by = H * 0.78;
+        for (var i = fruit.length - 1; i >= 0; i--) {
+          var f = fruit[i], fx = f.x * W, fy = f.y * H;
+          if (Math.abs(fx - basket * W) < 50 && fy > by - 30 && fy < by + 30) {
+            fruit.splice(i, 1); n++;
+            document.getElementById("got").textContent = "🍉 " + n + "/10";
+            document.getElementById("say").textContent = "Yum!";
+            if (n >= 10) { play = false; document.getElementById("win").classList.remove("off"); }
+          } else if (fy > H) {
+            fruit.splice(i, 1);
+            document.getElementById("say").textContent = "Miss. Next one!";
+          }
+        }
+      }
+      fruit.forEach(function (f) { em(f.e, f.x * W, f.y * H, 56); });
+      em("🧺", basket * W, H * 0.78, 80);
+      requestAnimationFrame(loop);
     }
-    function pos(e) { var p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; }
-    cv.addEventListener("pointerdown", function (e) { drag = true; px = pos(e).x; });
-    cv.addEventListener("pointermove", function (e) { if (drag || e.buttons) px = pos(e).x; });
-    addEventListener("pointerup", function () { drag = false; });
-    cv.addEventListener("touchmove", function (e) { e.preventDefault(); px = e.touches[0].clientX; }, { passive: false });
-    document.getElementById("go").onclick = startGame;
-    document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); startGame(); };
-    addEventListener("resize", resize);
-    resize();
-    px = W * 0.5;
     requestAnimationFrame(loop);
   })();
   </script>

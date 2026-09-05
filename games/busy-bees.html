@@ -4,519 +4,91 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Busy Bees</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; background: #facc15; color: #422006; touch-action: none; user-select: none; -webkit-user-select: none; }
-    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent; font: inherit; color: inherit; cursor: pointer; }
-    canvas { display: block; width: 100%; height: 100%; }
-    .home { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; z-index: 8; color: #422006; text-decoration: none; font-weight: 800; font-size: 17px; background: #fff; padding: 8px 14px; border-radius: 999px; box-shadow: 0 3px 0 #ca8a04; touch-action: manipulation; }
-    #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; pointer-events: none; }
-    #hud b { font-weight: 800; font-size: 13px; background: #fffbeb; color: #854d0e; padding: 6px 10px; border-radius: 999px; }
-    #say { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 7; font-weight: 800; font-size: 17px; color: #422006; text-shadow: 0 2px 0 #fde047; pointer-events: none; text-align: center; width: 92%; }
-    .cover { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 20px; background: linear-gradient(#facc15, #86efac); }
-    .cover.off { display: none; }
-    h1 { font-size: clamp(32px, 9vw, 50px); color: #422006; text-shadow: 0 3px 0 #fff; }
-    .cover p { font-weight: 800; font-size: 18px; max-width: 340px; }
-    .btn { background: #f97316; color: #fff; font-weight: 800; font-size: 22px; padding: 14px 24px; border-radius: 999px; box-shadow: 0 7px 0 #c2410c; }
-    .btn.g { background: #86efac; box-shadow: 0 7px 0 #16a34a; color: #14532d; }
-  </style>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>html,body{background:#fde047}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="md">Spring</b><b id="hn">🍯 0</b><b id="wn">Breeze</b></div>
-  <div id="say">Tap flowers. Bees fly the path.</div>
+  <div id="hud"><b id="nv">🍯 0/6</b></div>
+  <div id="say">Tap the matching flower. Then the hive!</div>
   <div class="cover" id="title">
-    <div style="font-size:76px">🐝</div>
+    <div class="hero">🐝</div>
     <h1>Busy Bees</h1>
-    <p>Bees lerp on paths with a sine wiggle. Bloom flowers. Fill the hive. Wind later.</p>
-    <button class="btn" id="go">Buzz</button>
+    <p>Match the flower color. Take nectar home!</p>
+    <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div style="font-size:76px">🍯</div>
-    <h1>Hive full!</h1>
-    <p id="winP">Five meadows. Soft pollen.</p>
-    <button class="btn g" id="again">Buzz again</button>
+    <div class="hero">🍯</div>
+    <h1>Honey time!</h1>
+    <p>Six trips to the hive.</p>
+    <button class="play g" id="again">Fly again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    function em(ch,px,py,s){ x.font=s+"px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(ch,px,py); }
-    var W, H, last = 0, t = 0, play = false, meadow = 0, honey = 0, need = 8;
-    var bees = [], flowers = [], pollen = [], gusts = [], clouds = [];
-    var hive = { x: 0, y: 0, fill: 0 }, wind = 0, windT = 0;
-    var MEADS = [
-      { n: "Spring", sky: ["#7dd3fc", "#fde68a"], grass: "#86efac", wind: 0, need: 6, bees: 2 },
-      { n: "Clover", sky: ["#38bdf8", "#bbf7d0"], grass: "#4ade80", wind: 0.2, need: 7, bees: 3 },
-      { n: "Windy", sky: ["#93c5fd", "#fef08a"], grass: "#22c55e", wind: 0.8, need: 8, bees: 3 },
-      { n: "Sunset sip", sky: ["#fb923c", "#f9a8d4"], grass: "#65a30d", wind: 0.3, need: 8, bees: 4 },
-      { n: "Night jasmine", sky: ["#1e1b4b", "#312e81"], grass: "#14532d", wind: 0.15, need: 9, bees: 4 }
-    ];
-    var PETAL = ["#f472b6", "#facc15", "#fb7185", "#a78bfa", "#f97316", "#fff"];
-
-    function beep(f, d, typ) {
-      try {
-        var ac = beep.ac || (beep.ac = new (window.AudioContext || window.webkitAudioContext)());
-        if (ac.state === "suspended") ac.resume();
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.type = typ || "square"; o.frequency.value = f; g.gain.value = 0.07;
-        o.connect(g); g.connect(ac.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
-        o.stop(ac.currentTime + d);
-      } catch (e) {}
+    var W, H, t = 0, play = false, n = 0, want = "🌸", holding = 0;
+    var FLOW = ["🌸", "🌼", "🌺"];
+    function em(ch, px, py, s) {
+      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
     }
-    function say(s) { document.getElementById("say").textContent = s; }
-    function hud() {
-      var m = MEADS[meadow] || MEADS[0];
-      document.getElementById("md").textContent = m.n;
-      document.getElementById("hn").textContent = "🍯 " + honey + " / " + need;
-      document.getElementById("wn").textContent = wind > 0.4 ? "Wind!" : "Breeze";
+    function resize() {
+      var d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
     }
-    function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; hive.x = W * 0.84; hive.y = H * 0.28; }
     addEventListener("resize", resize); resize();
-
-    function lerp(a, b, u) { return a + (b - a) * u; }
-
-    function spawnMead() {
-      var m = MEADS[meadow];
-      need = m.need; honey = 0; hive.fill = 0; wind = m.wind; windT = 0;
-      flowers = []; bees = []; pollen = []; gusts = []; clouds = [];
-      var i, f;
-      for (i = 0; i < 8; i++) {
-        flowers.push({
-          x: 50 + (i % 4) * (W * 0.2) + (i > 3 ? 30 : 0),
-          y: H * 0.55 + (i % 3) * 50,
-          bloom: 0.15, col: PETAL[i % PETAL.length], pollen: 0, ph: i, open: 0
-        });
-      }
-      for (i = 0; i < m.bees; i++) {
-        bees.push({
-          x: hive.x, y: hive.y + 20, tx: hive.x, ty: hive.y,
-          u: 0, path: [], hold: 0, bag: 0, ph: i * 1.3, wing: 0
-        });
-      }
-      for (i = 0; i < 5; i++) clouds.push({ x: i * 140, y: 36 + (i % 3) * 18, s: 0.7 + (i % 2) * 0.3, ph: i });
-      hud();
-      say(m.n === "Windy" ? "Wind pushes the bees. Tap more flowers!" : "Tap a flower so it blooms. Bees will visit.");
+    function spots() {
+      return [
+        { e: FLOW[0], x: 0.22, y: 0.62 },
+        { e: FLOW[1], x: 0.50, y: 0.68 },
+        { e: FLOW[2], x: 0.78, y: 0.60 }
+      ];
     }
-
     function start() {
-      play = true; meadow = 0;
+      play = true; n = 0; holding = 0; want = FLOW[(Math.random() * 3) | 0];
       document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.remove("off");
       document.getElementById("win").classList.add("off");
-      spawnMead(); beep(500, 0.1);
+      document.getElementById("nv").textContent = "🍯 0/6";
+      document.getElementById("say").textContent = "Tap " + want + " then the hive!";
     }
-
-    function assignBee(b) {
-      var i, f, best = null;
-      for (i = 0; i < flowers.length; i++) {
-        f = flowers[i];
-        if (f.bloom > 0.7 && f.pollen < 3) {
-          if (!best || f.pollen < best.pollen) best = f;
-        }
-      }
-      if (b.bag >= 2 || !best) {
-        b.path = [{ x: b.x, y: b.y }, { x: hive.x, y: hive.y + 24 }];
-        b.u = 0; b.hold = 0; return;
-      }
-      b.path = [{ x: b.x, y: b.y }, { x: best.x, y: best.y - 18 }];
-      b.u = 0; b.hold = 0; b.target = best;
-    }
-
-    addEventListener("pointerdown", function (e) {
-      if (e.target.closest && e.target.closest("a,button")) return;
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var i, f, hit = false;
-      for (i = 0; i < flowers.length; i++) {
-        f = flowers[i];
-        if (Math.hypot(e.clientX - f.x, e.clientY - f.y) < 40) {
-          f.bloom = 1; f.open = 1; hit = true;
-          beep(700 + i * 20, 0.06);
-          say("Bloom! A bee is on the way.");
-        }
-      }
-      if (!hit) {
-        windT = 0.6;
-        gusts.push({ x: e.clientX, y: e.clientY, life: 0.5 });
-      }
-    });
-
-    function update(dt) {
-      t += dt;
-      var m = MEADS[meadow] || MEADS[0];
-      wind = m.wind + (windT > 0 ? 0.6 : 0);
-      if (windT > 0) windT -= dt;
-      var i, b, f, u, p0, p1;
-      for (i = 0; i < clouds.length; i++) clouds[i].x = (clouds[i].x + (12 + wind * 30) * dt) % (W + 80);
-      for (i = 0; i < flowers.length; i++) {
-        f = flowers[i];
-        f.ph += dt * 2;
-        if (f.open) f.bloom += (1 - f.bloom) * dt * 3;
-      }
-      if (!play) return;
-      for (i = 0; i < bees.length; i++) {
-        b = bees[i];
-        b.wing += dt * 28;
-        b.ph += dt;
-        if (!b.path || b.path.length < 2) assignBee(b);
-        if (b.hold > 0) { b.hold -= dt; continue; }
-        b.u = Math.min(1, b.u + dt * (0.55 + meadow * 0.05));
-        p0 = b.path[0]; p1 = b.path[1];
-        u = b.u * b.u * (3 - 2 * b.u);
-        b.x = lerp(p0.x, p1.x, u) + Math.sin(t * 5 + b.ph) * 10 + wind * 16 * Math.sin(t * 2);
-        b.y = lerp(p0.y, p1.y, u) + Math.sin(t * 7 + b.ph) * 8;
-        if (Math.random() < dt * 12) pollen.push({ x: b.x, y: b.y, vx: (Math.random() - 0.5) * 20, vy: 10, life: 0.6, col: "#fde047" });
-        if (b.u >= 1) {
-          if (b.target && Math.hypot(b.x - b.target.x, b.y - (b.target.y - 18)) < 30) {
-            b.target.pollen++; b.bag++; b.hold = 0.25; b.target = null;
-            beep(820, 0.05);
-          } else if (Math.hypot(b.x - hive.x, b.y - (hive.y + 24)) < 36) {
-            if (b.bag) {
-              honey += b.bag; hive.fill = Math.min(1, honey / need);
-              b.bag = 0; hud(); beep(540, 0.08);
-              if (honey >= need) {
-                meadow++;
-                if (meadow >= MEADS.length) {
-                  play = false;
-                  document.getElementById("winP").textContent = "Pollen trails. Five meadows. Hive cozy.";
-                  document.getElementById("win").classList.remove("off");
-                  beep(990, 0.2);
-                } else {
-                  say("Hive full! Next meadow: " + MEADS[meadow].n);
-                  spawnMead();
-                }
-                return;
-              }
-            }
+      var hiveX = W * 0.78, hiveY = H * 0.28;
+      var hx = e.clientX - hiveX, hy = e.clientY - hiveY;
+      if (hx * hx + hy * hy < 55 * 55) {
+        if (holding) {
+          holding = 0; n++;
+          document.getElementById("nv").textContent = "🍯 " + n + "/6";
+          if (n >= 6) { play = false; document.getElementById("win").classList.remove("off"); }
+          else {
+            want = FLOW[(Math.random() * 3) | 0];
+            document.getElementById("say").textContent = "Now " + want + "!";
           }
-          assignBee(b);
+        } else document.getElementById("say").textContent = "Get nectar first. Tap " + want;
+        return;
+      }
+      spots().forEach(function (s) {
+        var dx = e.clientX - s.x * W, dy = e.clientY - s.y * H;
+        if (dx * dx + dy * dy < 50 * 50) {
+          if (s.e === want) { holding = 1; document.getElementById("say").textContent = "Home to the hive!"; }
+          else document.getElementById("say").textContent = "Wrong flower. Want " + want;
         }
-      }
-      for (i = pollen.length - 1; i >= 0; i--) {
-        pollen[i].life -= dt * 1.6; pollen[i].x += pollen[i].vx * dt + wind * 20 * dt; pollen[i].y += pollen[i].vy * dt;
-        if (pollen[i].life <= 0) pollen.splice(i, 1);
-      }
-      for (i = gusts.length - 1; i >= 0; i--) {
-        gusts[i].life -= dt * 2;
-        if (gusts[i].life <= 0) gusts.splice(i, 1);
-      }
-    }
-
-    function drawSky() {
-      var m = MEADS[meadow] || MEADS[0];
-      var g = x.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, m.sky[0]); g.addColorStop(1, m.sky[1]);
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      if (meadow === 4) {
-        x.fillStyle = "#fff";
-        var s;
-        for (s = 0; s < 28; s++) {
-          x.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(t * 2 + s));
-          x.fillRect((s * 63) % W, 8 + (s * 31) % (H * 0.3), 2, 2);
-        }
-        x.globalAlpha = 1;
-      } else {
-        x.fillStyle = meadow === 3 ? "#fb923c" : "#fde047";
-        x.beginPath(); x.arc(W * 0.16, 54, 20, 0, Math.PI * 2); x.fill();
-      }
-      var i, c;
-      for (i = 0; i < clouds.length; i++) {
-        c = clouds[i];
-        em("☁️", c.x + 12, c.y, 28 * c.s);
-      }
-      x.fillStyle = m.grass;
-      x.fillRect(0, H * 0.7, W, H * 0.3);
-      x.fillStyle = meadow === 4 ? "#166534" : "#22c55e";
-      for (i = 0; i < 12; i++) {
-        x.fillRect(i * (W / 12), H * 0.68 + Math.sin(t * 2 + i) * wind * 4, 3, 16);
-      }
-    }
-
-    function drawHive() {
-      em("🍯", hive.x, hive.y + 18, 64);
-      x.fillStyle = "#854d0e"; x.font = "bold 12px Trebuchet MS"; x.textAlign = "center";
-      x.fillText(Math.round(hive.fill * 100) + "%", hive.x, hive.y - 16);
-    }
-
-    function drawFlower(f) {
-      x.save();
-      x.translate(f.x, f.y);
-      x.rotate(Math.sin(f.ph) * 0.08 + wind * 0.15);
-      var sc = 0.35 + f.bloom * 0.75;
-      x.scale(sc, sc);
-      em("🌸", 0, 0, 40);
-      x.restore();
-    }
-
-    function drawBee(b) {
-      x.save(); x.translate(b.x, b.y); x.rotate(Math.sin(b.ph) * 0.2);
-      em("🐝", 0, 0, 28 + Math.sin(b.wing) * 3);
-      if (b.bag) em("🌼", -12, 8, 14);
-      x.restore();
-    }
-
-    function draw() {
-      drawSky();
-      drawHive();
-      var i;
-      for (i = 0; i < flowers.length; i++) drawFlower(flowers[i]);
-      for (i = 0; i < pollen.length; i++) {
-        x.globalAlpha = Math.max(0, pollen[i].life);
-        x.fillStyle = pollen[i].col;
-        x.beginPath(); x.arc(pollen[i].x, pollen[i].y, 3, 0, Math.PI * 2); x.fill();
-      }
-      x.globalAlpha = 1;
-      for (i = 0; i < bees.length; i++) drawBee(bees[i]);
-      for (i = 0; i < gusts.length; i++) {
-        x.globalAlpha = Math.max(0, gusts[i].life);
-        x.strokeStyle = "#fff"; x.lineWidth = 2;
-        x.beginPath(); x.arc(gusts[i].x, gusts[i].y, 20 * (1 - gusts[i].life), 0, Math.PI * 2); x.stroke();
-      }
-      x.globalAlpha = 1;
-      if (wind > 0.45) {
-        x.strokeStyle = "rgba(255,255,255,.35)";
-        for (i = 0; i < 7; i++) {
-          x.beginPath(); x.moveTo(10, 90 + i * 28); x.lineTo(70 + Math.sin(t * 6 + i) * 16, 90 + i * 28); x.stroke();
-        }
-      }
-      x.fillStyle = "rgba(0,0,0,.2)";
-      x.fillRect(16, 8, W - 32, 6);
-      x.fillStyle = "#f59e0b";
-      x.fillRect(16, 8, Math.min(W - 32, ((meadow + hive.fill) / 5) * (W - 32)), 6);
-    }
-
-    
-    var ants=[], dripHoney=[], buzzTxt=[], clover=[];
-    function flavorUpdate(dt){
-      if(!ants.length){ var i; for(i=0;i<6;i++) ants.push({x:Math.random(),y:0.86,vx:0.05,ph:i}); }
-      if(!clover.length){ var i; for(i=0;i<12;i++) clover.push({x:Math.random(),y:0.72+Math.random()*0.2,ph:i}); }
-      var i;
-      for(i=0;i<ants.length;i++){ ants[i].x+=ants[i].vx*dt; ants[i].ph+=dt*6; if(ants[i].x>1) ants[i].x=0; }
-      for(i=0;i<clover.length;i++) clover[i].ph+=dt;
-      if(typeof hive!=="undefined" && hive.fill>0 && Math.random()<dt*2) dripHoney.push({x:hive.x,y:hive.y+50,life:0.8});
-      for(i=dripHoney.length-1;i>=0;i--){ dripHoney[i].life-=dt; dripHoney[i].y+=20*dt; if(dripHoney[i].life<=0) dripHoney.splice(i,1); }
-      if(typeof play!=="undefined" && play && Math.random()<dt*0.2) buzzTxt.push({txt:["bzz","sip","home","sweet"][Math.floor(Math.random()*4)],life:1});
-      for(i=buzzTxt.length-1;i>=0;i--){ buzzTxt[i].life-=dt; if(buzzTxt[i].life<=0) buzzTxt.splice(i,1); }
-    }
-    function flavorDraw(){
-      var i;
-      for(i=0;i<clover.length;i++){
-        x.fillStyle="#16a34a";
-        x.beginPath(); x.arc(clover[i].x*W, clover[i].y*H, 3,0,Math.PI*2); x.fill();
-      }
-      for(i=0;i<ants.length;i++){
-        x.fillStyle="#1c1917";
-        x.beginPath(); x.ellipse(ants[i].x*W, ants[i].y*H, 4, 2, 0,0,Math.PI*2); x.fill();
-      }
-      for(i=0;i<dripHoney.length;i++){
-        x.globalAlpha=Math.max(0,dripHoney[i].life);
-        x.fillStyle="#f59e0b"; x.beginPath(); x.ellipse(dripHoney[i].x,dripHoney[i].y,3,5,0,0,Math.PI*2); x.fill();
-      }
-      x.globalAlpha=1;
-      for(i=0;i<buzzTxt.length;i++){
-        x.globalAlpha=Math.max(0,buzzTxt[i].life);
-        x.fillStyle="#854d0e"; x.font="bold 14px Trebuchet MS"; x.textAlign="center";
-        x.fillText(buzzTxt[i].txt, W*0.5, 72);
-      }
-      x.globalAlpha=1;
-    }
-
-    function extraWorld(){
-      var _i,_a;
-      _a=0.08+0.04*Math.sin(t+0); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((0+t*8)%W, 20, 4, 3); /* wax 0 */
-      _a=0.08+0.04*Math.sin(t+1); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((47+t*8)%W, 51, 5, 4); /* honey 1 */
-      _a=0.08+0.04*Math.sin(t+2); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((94+t*8)%W, 82, 6, 5); /* meadow 2 */
-      _a=0.08+0.04*Math.sin(t+3); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((44+t*8)%W, 30, 7, 6); /* stem 3 */
-      _a=0.08+0.04*Math.sin(t+4); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((91+t*8)%W, 61, 8, 3); /* stripe 4 */
-      _a=0.08+0.04*Math.sin(t+5); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((41+t*8)%W, 92, 4, 4); /* wax 5 */
-      _a=0.08+0.04*Math.sin(t+6); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((88+t*8)%W, 40, 5, 5); /* honey 6 */
-      _a=0.08+0.04*Math.sin(t+7); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((38+t*8)%W, 71, 6, 6); /* meadow 7 */
-      _a=0.08+0.04*Math.sin(t+8); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((85+t*8)%W, 102, 7, 3); /* stem 8 */
-      _a=0.08+0.04*Math.sin(t+9); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((35+t*8)%W, 50, 8, 4); /* stripe 9 */
-      _a=0.08+0.04*Math.sin(t+10); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((82+t*8)%W, 81, 4, 5); /* wax 10 */
-      _a=0.08+0.04*Math.sin(t+11); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((32+t*8)%W, 29, 5, 6); /* honey 11 */
-      _a=0.08+0.04*Math.sin(t+12); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((79+t*8)%W, 60, 6, 3); /* meadow 12 */
-      _a=0.08+0.04*Math.sin(t+13); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((29+t*8)%W, 91, 7, 4); /* stem 13 */
-      _a=0.08+0.04*Math.sin(t+14); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((76+t*8)%W, 39, 8, 5); /* stripe 14 */
-      _a=0.08+0.04*Math.sin(t+15); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((26+t*8)%W, 70, 4, 6); /* wax 15 */
-      _a=0.08+0.04*Math.sin(t+16); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((73+t*8)%W, 101, 5, 3); /* honey 16 */
-      _a=0.08+0.04*Math.sin(t+17); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((23+t*8)%W, 49, 6, 4); /* meadow 17 */
-      _a=0.08+0.04*Math.sin(t+18); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((70+t*8)%W, 80, 7, 5); /* stem 18 */
-      _a=0.08+0.04*Math.sin(t+19); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((20+t*8)%W, 28, 8, 6); /* stripe 19 */
-      _a=0.08+0.04*Math.sin(t+20); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((67+t*8)%W, 59, 4, 3); /* wax 20 */
-      _a=0.08+0.04*Math.sin(t+21); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((17+t*8)%W, 90, 5, 4); /* honey 21 */
-      _a=0.08+0.04*Math.sin(t+22); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((64+t*8)%W, 38, 6, 5); /* meadow 22 */
-      _a=0.08+0.04*Math.sin(t+23); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((14+t*8)%W, 69, 7, 6); /* stem 23 */
-      _a=0.08+0.04*Math.sin(t+24); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((61+t*8)%W, 100, 8, 3); /* stripe 24 */
-      _a=0.08+0.04*Math.sin(t+25); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((11+t*8)%W, 48, 4, 4); /* wax 25 */
-      _a=0.08+0.04*Math.sin(t+26); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((58+t*8)%W, 79, 5, 5); /* honey 26 */
-      _a=0.08+0.04*Math.sin(t+27); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((8+t*8)%W, 27, 6, 6); /* meadow 27 */
-      _a=0.08+0.04*Math.sin(t+28); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((55+t*8)%W, 58, 7, 3); /* stem 28 */
-      _a=0.08+0.04*Math.sin(t+29); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((5+t*8)%W, 89, 8, 4); /* stripe 29 */
-      _a=0.08+0.04*Math.sin(t+30); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((52+t*8)%W, 37, 4, 5); /* wax 30 */
-      _a=0.08+0.04*Math.sin(t+31); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((2+t*8)%W, 68, 5, 6); /* honey 31 */
-      _a=0.08+0.04*Math.sin(t+32); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((49+t*8)%W, 99, 6, 3); /* meadow 32 */
-      _a=0.08+0.04*Math.sin(t+33); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((96+t*8)%W, 47, 7, 4); /* stem 33 */
-      _a=0.08+0.04*Math.sin(t+34); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((46+t*8)%W, 78, 8, 5); /* stripe 34 */
-      _a=0.08+0.04*Math.sin(t+35); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((93+t*8)%W, 26, 4, 6); /* wax 35 */
-      _a=0.08+0.04*Math.sin(t+36); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((43+t*8)%W, 57, 5, 3); /* honey 36 */
-      _a=0.08+0.04*Math.sin(t+37); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((90+t*8)%W, 88, 6, 4); /* meadow 37 */
-      _a=0.08+0.04*Math.sin(t+38); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((40+t*8)%W, 36, 7, 5); /* stem 38 */
-      _a=0.08+0.04*Math.sin(t+39); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((87+t*8)%W, 67, 8, 6); /* stripe 39 */
-      _a=0.08+0.04*Math.sin(t+40); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((37+t*8)%W, 98, 4, 3); /* wax 40 */
-      _a=0.08+0.04*Math.sin(t+41); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((84+t*8)%W, 46, 5, 4); /* honey 41 */
-      _a=0.08+0.04*Math.sin(t+42); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((34+t*8)%W, 77, 6, 5); /* meadow 42 */
-      _a=0.08+0.04*Math.sin(t+43); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((81+t*8)%W, 25, 7, 6); /* stem 43 */
-      _a=0.08+0.04*Math.sin(t+44); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((31+t*8)%W, 56, 8, 3); /* stripe 44 */
-      _a=0.08+0.04*Math.sin(t+45); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((78+t*8)%W, 87, 4, 4); /* wax 45 */
-      _a=0.08+0.04*Math.sin(t+46); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((28+t*8)%W, 35, 5, 5); /* honey 46 */
-      _a=0.08+0.04*Math.sin(t+47); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((75+t*8)%W, 66, 6, 6); /* meadow 47 */
-      _a=0.08+0.04*Math.sin(t+48); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((25+t*8)%W, 97, 7, 3); /* stem 48 */
-      _a=0.08+0.04*Math.sin(t+49); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((72+t*8)%W, 45, 8, 4); /* stripe 49 */
-      _a=0.08+0.04*Math.sin(t+50); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((22+t*8)%W, 76, 4, 5); /* wax 50 */
-      _a=0.08+0.04*Math.sin(t+51); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((69+t*8)%W, 24, 5, 6); /* honey 51 */
-      _a=0.08+0.04*Math.sin(t+52); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((19+t*8)%W, 55, 6, 3); /* meadow 52 */
-      _a=0.08+0.04*Math.sin(t+53); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((66+t*8)%W, 86, 7, 4); /* stem 53 */
-      _a=0.08+0.04*Math.sin(t+54); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((16+t*8)%W, 34, 8, 5); /* stripe 54 */
-      _a=0.08+0.04*Math.sin(t+55); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((63+t*8)%W, 65, 4, 6); /* wax 55 */
-      _a=0.08+0.04*Math.sin(t+56); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((13+t*8)%W, 96, 5, 3); /* honey 56 */
-      _a=0.08+0.04*Math.sin(t+57); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((60+t*8)%W, 44, 6, 4); /* meadow 57 */
-      _a=0.08+0.04*Math.sin(t+58); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((10+t*8)%W, 75, 7, 5); /* stem 58 */
-      _a=0.08+0.04*Math.sin(t+59); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((57+t*8)%W, 23, 8, 6); /* stripe 59 */
-      _a=0.08+0.04*Math.sin(t+60); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((7+t*8)%W, 54, 4, 3); /* wax 60 */
-      _a=0.08+0.04*Math.sin(t+61); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((54+t*8)%W, 85, 5, 4); /* honey 61 */
-      _a=0.08+0.04*Math.sin(t+62); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((4+t*8)%W, 33, 6, 5); /* meadow 62 */
-      _a=0.08+0.04*Math.sin(t+63); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((51+t*8)%W, 64, 7, 6); /* stem 63 */
-      _a=0.08+0.04*Math.sin(t+64); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((1+t*8)%W, 95, 8, 3); /* stripe 64 */
-      _a=0.08+0.04*Math.sin(t+65); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((48+t*8)%W, 43, 4, 4); /* wax 65 */
-      _a=0.08+0.04*Math.sin(t+66); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((95+t*8)%W, 74, 5, 5); /* honey 66 */
-      _a=0.08+0.04*Math.sin(t+67); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((45+t*8)%W, 22, 6, 6); /* meadow 67 */
-      _a=0.08+0.04*Math.sin(t+68); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((92+t*8)%W, 53, 7, 3); /* stem 68 */
-      _a=0.08+0.04*Math.sin(t+69); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((42+t*8)%W, 84, 8, 4); /* stripe 69 */
-      _a=0.08+0.04*Math.sin(t+70); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((89+t*8)%W, 32, 4, 5); /* wax 70 */
-      _a=0.08+0.04*Math.sin(t+71); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((39+t*8)%W, 63, 5, 6); /* honey 71 */
-      _a=0.08+0.04*Math.sin(t+72); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((86+t*8)%W, 94, 6, 3); /* meadow 72 */
-      _a=0.08+0.04*Math.sin(t+73); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((36+t*8)%W, 42, 7, 4); /* stem 73 */
-      _a=0.08+0.04*Math.sin(t+74); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((83+t*8)%W, 73, 8, 5); /* stripe 74 */
-      _a=0.08+0.04*Math.sin(t+75); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((33+t*8)%W, 21, 4, 6); /* wax 75 */
-      _a=0.08+0.04*Math.sin(t+76); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((80+t*8)%W, 52, 5, 3); /* honey 76 */
-      _a=0.08+0.04*Math.sin(t+77); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((30+t*8)%W, 83, 6, 4); /* meadow 77 */
-      _a=0.08+0.04*Math.sin(t+78); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((77+t*8)%W, 31, 7, 5); /* stem 78 */
-      _a=0.08+0.04*Math.sin(t+79); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((27+t*8)%W, 62, 8, 6); /* stripe 79 */
-      _a=0.08+0.04*Math.sin(t+80); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((74+t*8)%W, 93, 4, 3); /* wax 80 */
-      _a=0.08+0.04*Math.sin(t+81); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((24+t*8)%W, 41, 5, 4); /* honey 81 */
-      _a=0.08+0.04*Math.sin(t+82); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((71+t*8)%W, 72, 6, 5); /* meadow 82 */
-      _a=0.08+0.04*Math.sin(t+83); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((21+t*8)%W, 20, 7, 6); /* stem 83 */
-      _a=0.08+0.04*Math.sin(t+84); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((68+t*8)%W, 51, 8, 3); /* stripe 84 */
-      _a=0.08+0.04*Math.sin(t+85); x.fillStyle='#facc15'; x.globalAlpha=_a;
-      x.fillRect((18+t*8)%W, 82, 4, 4); /* wax 85 */
-      _a=0.08+0.04*Math.sin(t+86); x.fillStyle='#f59e0b'; x.globalAlpha=_a;
-      x.fillRect((65+t*8)%W, 30, 5, 5); /* honey 86 */
-      _a=0.08+0.04*Math.sin(t+87); x.fillStyle='#86efac'; x.globalAlpha=_a;
-      x.fillRect((15+t*8)%W, 61, 6, 6); /* meadow 87 */
-      _a=0.08+0.04*Math.sin(t+88); x.fillStyle='#166534'; x.globalAlpha=_a;
-      x.fillRect((62+t*8)%W, 92, 7, 3); /* stem 88 */
-      _a=0.08+0.04*Math.sin(t+89); x.fillStyle='#1c1917'; x.globalAlpha=_a;
-      x.fillRect((12+t*8)%W, 40, 8, 4); /* stripe 89 */
-      x.globalAlpha=1;
-    }
-
-    function loop(now) {
-      if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
-      update(dt); if(typeof flavorUpdate==='function') flavorUpdate(dt); draw(); if(typeof flavorDraw==='function') flavorDraw(); if(typeof extraWorld==='function') extraWorld();
+      });
+    });
+    function loop() {
+      t += 0.016;
+      x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
+      em("☀️", 50, 80, 48);
+      em("🍯", W * 0.78, H * 0.28, 80);
+      spots().forEach(function (s) { em(s.e, s.x * W, s.y * H, 72); });
+      em("🐝", W * (holding ? 0.55 : 0.28), H * 0.40 + Math.sin(t * 4) * 8, 64);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
   })();
   </script>
 </body>
