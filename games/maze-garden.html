@@ -72,12 +72,13 @@
       if (adj === 0) { drag = 1; return; }
       if (adj === 1) {
         bunny = p; drag = 1;
-        document.getElementById("say").textContent = "Hop! To the carrot.";
+        kidTap("🐰", "Hop! To the carrot.", innerWidth * 0.5, innerHeight * 0.5, 480);
         if (p.r === 4 && p.c === 4) {
           play = false; drag = 0;
+          kidYay();
           document.getElementById("win").classList.remove("off");
         }
-      } else document.getElementById("say").textContent = "Tap the next square.";
+      } else kidTap("🌿", "Tap the next square.", innerWidth * 0.5, innerHeight * 0.5, 240);
     }
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;

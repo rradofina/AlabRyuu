@@ -103,7 +103,8 @@
       hopCount++; if (hopCount > best) best = hopCount;
       if (hopCount % 5 === 0) stars += 1;
       persist();
-      document.getElementById("say").textContent = cheers[hopCount % cheers.length] + "  Hop " + hopCount;
+      kidTap("☁️", cheers[hopCount % cheers.length] + "  Hop " + hopCount, innerWidth * 0.5, innerHeight * 0.42, 480);
+      if (hopCount % 5 === 0) kidBurst(["⭐", "✨", "💛"], innerWidth * 0.5, innerHeight * 0.28);
     }
     function collectIfStar() {
       var c = cloudAt(on);
@@ -118,7 +119,7 @@
     document.getElementById("flutter").onclick = function () {
       if (!playing || hopPhase !== "idle") return;
       flutterT = 0.45;
-      document.getElementById("say").textContent = "Flutter!  Hop " + hopCount;
+      kidTap("🪽", "Flutter!  Hop " + hopCount, innerWidth * 0.5, innerHeight * 0.4, 620);
     };
     document.getElementById("deco").onclick = function () {
       if (!playing) return;
@@ -126,7 +127,7 @@
       if (!c) { snapToCloud(on); return; }
       c.decos.push({ ox: (Math.random() - 0.5) * 50, oy: 8 });
       decorations++; stars++; persist();
-      document.getElementById("say").textContent = "Pretty!  ★" + stars;
+      kidTap("🌸", "Pretty!  ★" + stars, innerWidth * 0.5, innerHeight * 0.5, 700);
     };
     cv.addEventListener("pointerdown", function () { if (playing) hop(); });
     function lerp(a, b, k) { return a + (b - a) * k; }
@@ -169,7 +170,7 @@
         for (var d = 0; d < c.decos.length; d++) em("🌸", px + c.decos[d].ox, py + c.decos[d].oy, 36);
         if (c.star) em("⭐", px + 40, py - 36, 40);
       }
-      em(hopPhase === "air" || flutterT > 0 ? "🧚" : "🧒", sx(kid.x), sy(kid.y) - 28, 72);
+      em(hopPhase === "air" || flutterT > 0 ? "🧚" : "🧒", sx(kid.x), sy(kid.y) - 28, 88);
       requestAnimationFrame(loop);
     }
     build();

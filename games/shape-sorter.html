@@ -16,7 +16,7 @@
   <div class="cover" id="title">
     <div class="hero">🔺</div>
     <h1>Shape Sorter</h1>
-    <p>Drag the shape to the matching hole.</p>
+    <p>TAP a shape. It jumps home!</p>
     <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
@@ -58,38 +58,32 @@
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("got").textContent = "0/6";
-      document.getElementById("say").textContent = "Drag a shape up!";
+      document.getElementById("say").textContent = "TAP a shape!";
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
+    function place(b) {
+      var h = null, i;
+      for (i = 0; i < holes.length; i++) if (holes[i].e === b.e) h = holes[i];
+      if (!h) return;
+      b.done = 1; b.x = h.x; b.y = h.y; n++;
+      document.getElementById("got").textContent = n + "/6";
+      kidTap(b.e, "Yes! Home.", h.x * innerWidth, h.y * innerHeight, 520);
+      if (n >= 6) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+    }
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      drag = -1;
-      bits.forEach(function (b, i) {
-        if (b.done) return;
-        var dx = kidPt(e, cv).x - b.x * W, dy = kidPt(e, cv).y - b.y * H;
-        if (dx * dx + dy * dy < 50 * 50) drag = i;
-      });
-    });
-    cv.addEventListener("pointermove", function (e) {
-      if (drag < 0 || !play) return;
-      bits[drag].x = kidPt(e, cv).x / W; bits[drag].y = kidPt(e, cv).y / H;
-    });
-    addEventListener("pointerup", function () {
-      if (drag < 0 || !play) return;
-      var b = bits[drag];
-      holes.forEach(function (h) {
-        var dx = b.x * W - h.x * W, dy = b.y * H - h.y * H;
-        if (dx * dx + dy * dy < 60 * 60) {
-          if (b.e === h.e) {
-            b.done = 1; b.x = h.x; b.y = h.y; n++;
-            document.getElementById("got").textContent = n + "/6";
-            document.getElementById("say").textContent = "Yes!";
-            if (n >= 6) { play = false; document.getElementById("win").classList.remove("off"); }
-          } else document.getElementById("say").textContent = "Wrong hole. Match the shape!";
-        }
-      });
-      drag = -1;
+      var p = kidPt(e, cv), i, best = -1, bestD = 80 * 80;
+      for (i = 0; i < bits.length; i++) {
+        if (bits[i].done) continue;
+        var dx = p.x - bits[i].x * W, dy = p.y - bits[i].y * H, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      if (best < 0) {
+        for (i = 0; i < bits.length; i++) if (!bits[i].done) { best = i; break; }
+      }
+      if (best < 0) return;
+      place(bits[best]);
     });
     function loop() {
       x.fillStyle = "#1e3a5f"; x.fillRect(0, 0, W, H);

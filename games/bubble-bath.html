@@ -52,16 +52,17 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      for (var i = bubbles.length - 1; i >= 0; i--) {
-        var dx = kidPt(e, cv).x - bubbles[i].x, dy = kidPt(e, cv).y - bubbles[i].y;
-        if (dx * dx + dy * dy < 70 * 70) {
-          bubbles.splice(i, 1); n++;
-          document.getElementById("pp").textContent = "🫧 " + n + "/12";
-          document.getElementById("say").textContent = "Pop!";
-          if (n >= 12) { play = false; document.getElementById("win").classList.remove("off"); }
-          return;
-        }
+      var p = kidPt(e, cv), i, best = -1, bestD = 85 * 85;
+      for (i = bubbles.length - 1; i >= 0; i--) {
+        var dx = p.x - bubbles[i].x, dy = p.y - bubbles[i].y, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
       }
+      if (best < 0 && bubbles.length) best = 0;
+      if (best < 0) { spawn(); kidTap("🫧", "Pop a bubble!", innerWidth * 0.5, innerHeight * 0.45, 400); return; }
+      var hit = bubbles.splice(best, 1)[0]; n++;
+      document.getElementById("pp").textContent = "🫧 " + n + "/12";
+      kidTap("💦", "Pop!  " + n + "/12", hit.x, hit.y, 480);
+      if (n >= 12) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
     });
     function loop(now) {
       if (!last) last = now;
@@ -71,11 +72,11 @@
       em("🛁", W * 0.5, H * 0.70, 96);
       em(n >= 12 ? "🦆" : "🐥", W * 0.5, H * 0.58, 72);
       if (play) {
-        if (bubbles.length < 6 && Math.random() < 0.06) spawn();
+        if (bubbles.length < 5) spawn();
         bubbles.forEach(function (b) { b.y -= b.vy * dt; });
         bubbles = bubbles.filter(function (b) { return b.y > 40; });
       }
-      bubbles.forEach(function (b) { em("🫧", b.x, b.y, 56); });
+      bubbles.forEach(function (b) { em("🫧", b.x, b.y, 72); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

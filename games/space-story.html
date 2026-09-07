@@ -65,7 +65,7 @@
     function boost() {
       if (!play) return;
       rocket.vy = -0.55;
-      document.getElementById("say").textContent = "Zoom!";
+      kidTap("🚀", "Zoom!", innerWidth * 0.5, innerHeight * rocket.y, 480);
     }
     cv.addEventListener("pointerdown", boost);
     function loop(now) {
@@ -88,9 +88,10 @@
             p.got = 1; got++; stars++; flags[p.k] = 1;
             try { localStorage.setItem("alabryuu-space", JSON.stringify({ scene: got, flags: flags })); } catch (e) {}
             hud();
-            document.getElementById("say").textContent = "Hi " + p.k + "!";
+            kidTap(p.k, "Hi " + p.k + "!", px, py, 560);
             if (got >= 5) {
               play = false;
+              kidYay();
               document.getElementById("wp").textContent = "⭐ " + stars + "  Five planet friends!";
               document.getElementById("win").classList.remove("off");
             }
@@ -98,8 +99,8 @@
           if (p.y > 1.1) p.y = -0.2;
         });
       }
-      planets.forEach(function (p) { if (!p.got) em(p.k, p.x * W, p.y * H, 64); });
-      em("🚀", W * 0.5, rocket.y * H, 88);
+      planets.forEach(function (p) { if (!p.got) em(p.k, p.x * W, p.y * H, 80); });
+      em("🚀", W * 0.5, rocket.y * H, 100);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

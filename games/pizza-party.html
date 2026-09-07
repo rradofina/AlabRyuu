@@ -6,34 +6,42 @@
   <title>Pizza Party</title>
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
-  <style>html,body{background:#7c2d12}</style>
+  <style>
+    html,body{background:#3d2214}
+    .dock button{min-width:72px}
+  </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="od">Toppings 0/3</b></div>
-  <div id="say">Tap Cheese, Tomato, Mush!</div>
+  <div id="hud"><b id="pc">🍕 0</b></div>
+  <div id="say">TAP a topping!</div>
   <div class="dock" id="dock">
-    <button id="ch"><span>🧀</span>Cheese</button>
-    <button id="tm"><span>🍅</span>Tomato</button>
-    <button id="ms"><span>🍄</span>Mush</button>
+    <button id="cheese"><span>🧀</span></button>
+    <button id="tomato"><span>🍅</span></button>
+    <button id="mush"><span>🍄</span></button>
+    <button id="olive"><span>🫒</span></button>
+    <button id="pep"><span>🌶️</span></button>
+    <button id="pine"><span>🍍</span></button>
   </div>
   <div class="cover" id="title">
     <div class="hero">🍕</div>
     <h1>Pizza Party</h1>
-    <p>Tap the three toppings!</p>
+    <p>Pile on toppings. Make a huge pizza!</p>
     <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">🍕</div>
-    <h1>Pizza ready!</h1>
-    <p>Hot and yummy.</p>
-    <button class="play g" id="again">Play again</button>
+    <div class="hero">😋</div>
+    <h1>YUM pizza!</h1>
+    <p>So many toppings.</p>
+    <button class="play g" id="again">Again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, play = false, have = { ch: 0, tm: 0, ms: 0 };
+    var W, H, play = false, bits = [], spin = 0, stars = 0;
+    var MENU = ["🧀", "🍅", "🍄", "🫒", "🌶️", "🍍"];
+    try { var sv = JSON.parse(localStorage.getItem("alabryuu-pizza") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function em(ch, px, py, s) {
       x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
       x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
@@ -46,22 +54,25 @@
       x.setTransform(d, 0, 0, d, 0, 0);
     }
     addEventListener("resize", resize); resize();
-    function count() { return have.ch + have.tm + have.ms; }
-    function hud() { document.getElementById("od").textContent = "Toppings " + count() + "/3"; }
     function start() {
-      play = true; have = { ch: 0, tm: 0, ms: 0 };
+      play = true; bits = [];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
-      document.getElementById("say").textContent = "Tap Cheese, Tomato, Mush!";
-      hud();
+      document.getElementById("pc").textContent = "🍕 0";
+      kidPing("TAP a topping!");
     }
-    function add(k, name) {
+    function add(kind) {
       if (!play) return;
-      have[k] = 1;
-      hud();
-      document.getElementById("say").textContent = name + " on!  " + count() + "/3";
-      if (count() >= 3) {
+      var ang = Math.random() * Math.PI * 2;
+      var r = 24 + Math.random() * 72;
+      bits.push({ e: kind, ox: Math.cos(ang) * r, oy: Math.sin(ang) * r, s: 48 + Math.random() * 24, pop: 1 });
+      stars++;
+      try { localStorage.setItem("alabryuu-pizza", JSON.stringify({ stars: stars })); } catch (e) {}
+      document.getElementById("pc").textContent = "🍕 " + bits.length;
+      kidTap(kind, bits.length >= 8 ? "YUM!!" : "More toppings!", innerWidth / 2, innerHeight * 0.4, 400 + bits.length * 35);
+      if (bits.length === 8) {
+        kidYay();
         play = false;
         document.getElementById("dock").classList.remove("on");
         document.getElementById("win").classList.remove("off");
@@ -69,24 +80,36 @@
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
-    document.getElementById("ch").onclick = function () { add("ch", "Cheese"); };
-    document.getElementById("tm").onclick = function () { add("tm", "Tomato"); };
-    document.getElementById("ms").onclick = function () { add("ms", "Mushroom"); };
+    document.getElementById("cheese").onclick = function () { add("🧀"); };
+    document.getElementById("tomato").onclick = function () { add("🍅"); };
+    document.getElementById("mush").onclick = function () { add("🍄"); };
+    document.getElementById("olive").onclick = function () { add("🫒"); };
+    document.getElementById("pep").onclick = function () { add("🌶️"); };
+    document.getElementById("pine").onclick = function () { add("🍍"); };
     cv.addEventListener("pointerdown", function () {
-      if (!play) return;
-      if (!have.ch) add("ch", "Cheese");
-      else if (!have.tm) add("tm", "Tomato");
-      else add("ms", "Mushroom");
+      if (play) add(MENU[bits.length % MENU.length]);
     });
     function loop() {
-      x.fillStyle = "#fed7aa"; x.fillRect(0, 0, W, H);
-      em("👨‍🍳", 60, 110, 64);
-      em("🫓", W * 0.5, H * 0.42, 150);
-      if (have.ch) em("🧀", W * 0.40, H * 0.40, 64);
-      if (have.tm) em("🍅", W * 0.58, H * 0.38, 64);
-      if (have.ms) em("🍄", W * 0.50, H * 0.50, 64);
-      if (count() >= 3) em("🍕", W * 0.5, H * 0.42, 130);
       requestAnimationFrame(loop);
+      spin += 0.005;
+      var sky = x.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#5a3320"); sky.addColorStop(1, "#2a160e");
+      x.fillStyle = sky; x.fillRect(0, 0, W, H);
+      em("🪵", W * 0.5, H * 0.78, 96);
+      em("🪵", W * 0.26, H * 0.8, 72);
+      em("🪵", W * 0.74, H * 0.8, 72);
+      var cx = W / 2, cy = H * 0.4;
+      x.save();
+      x.translate(cx, cy);
+      x.rotate(Math.sin(spin) * 0.05);
+      em("🍕", 0, 0, 176);
+      bits.forEach(function (b) {
+        if (b.pop > 0) b.pop -= 0.08;
+        var sc = b.s * (1 + Math.max(0, b.pop) * 0.6);
+        em(b.e, b.ox, b.oy, sc);
+      });
+      x.restore();
+      if (bits.length) em("✨", cx + 120, cy - 96, 40);
     }
     requestAnimationFrame(loop);
   })();

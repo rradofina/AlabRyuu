@@ -59,18 +59,23 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      reeds.forEach(function (r) {
-        var dx = kidPt(e, cv).x - r.x * W, dy = kidPt(e, cv).y - r.y * H;
-        if (dx * dx + dy * dy < 55 * 55 && !r.got) {
-          r.got = 1;
-          if (r.baby) {
-            n++;
-            document.getElementById("bb").textContent = "🐥 " + n + "/5";
-            document.getElementById("say").textContent = "Peep peep!";
-            if (n >= 5) { play = false; document.getElementById("win").classList.remove("off"); }
-          } else document.getElementById("say").textContent = "Just reeds. Keep looking!";
-        }
-      });
+      var p = kidPt(e, cv), best = null, bestD = 90 * 90, i;
+      for (i = 0; i < reeds.length; i++) {
+        if (reeds[i].got) continue;
+        var dx = p.x - reeds[i].x * W, dy = p.y - reeds[i].y * H, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = reeds[i]; }
+      }
+      if (!best) {
+        for (i = 0; i < reeds.length; i++) if (!reeds[i].got) { best = reeds[i]; break; }
+      }
+      if (!best) return;
+      best.got = 1;
+      if (best.baby) {
+        n++;
+        document.getElementById("bb").textContent = "🐥 " + n + "/5";
+        kidTap("🐥", "Peep peep!  " + n + "/5", best.x * innerWidth, best.y * innerHeight, 540);
+        if (n >= 5) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+      } else kidTap("🌾", "Just reeds. Keep looking!", best.x * innerWidth, best.y * innerHeight, 260);
     });
     function loop() {
       t += 0.016;
@@ -78,8 +83,8 @@
       x.fillStyle = "#4ade80"; x.fillRect(0, 0, W, 90);
       em("🦆", W * 0.5, 130, 80);
       reeds.forEach(function (r) {
-        if (r.got && r.baby) em("🐥", r.x * W, r.y * H, 64);
-        else em("🌾", r.x * W, r.y * H + Math.sin(t * 2 + r.x) * 3, 72);
+        if (r.got && r.baby) em("🐥", r.x * W, r.y * H, 80);
+        else em("🌾", r.x * W, r.y * H + Math.sin(t * 2 + r.x) * 3, 88);
       });
       requestAnimationFrame(loop);
     }

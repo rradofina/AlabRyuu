@@ -54,19 +54,17 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      for (var i = stars.length - 1; i >= 0; i--) {
-        var dx = kidPt(e, cv).x - stars[i].x, dy = kidPt(e, cv).y - stars[i].y;
-        if (dx * dx + dy * dy < 72 * 72) {
-          stars.splice(i, 1); n++;
-          document.getElementById("got").textContent = "⭐ " + n + "/10";
-          document.getElementById("say").textContent = "Got one!";
-          if (n >= 10) {
-            play = false;
-            document.getElementById("win").classList.remove("off");
-          }
-          return;
-        }
+      var p = kidPt(e, cv), i, best = -1, bestD = 90 * 90;
+      for (i = stars.length - 1; i >= 0; i--) {
+        var dx = p.x - stars[i].x, dy = p.y - stars[i].y, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
       }
+      if (best < 0 && stars.length) best = 0;
+      if (best < 0) { spawn(); kidTap("⭐", "Catch a star!", innerWidth * 0.5, innerHeight * 0.3, 400); return; }
+      var hit = stars.splice(best, 1)[0]; n++;
+      document.getElementById("got").textContent = "⭐ " + n + "/10";
+      kidTap("✨", "Got one!  " + n + "/10", hit.x, hit.y, 500);
+      if (n >= 10) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
     });
     function loop(now) {
       if (!last) last = now;
@@ -74,7 +72,7 @@
       x.fillStyle = "#0f172a"; x.fillRect(0, 0, W, H);
       em("🌙", W * 0.82, 90, 64);
       if (play) {
-        if (stars.length < 3 && Math.random() < 0.03) spawn();
+        if (stars.length < 3) spawn();
         stars.forEach(function (s) { s.y += s.s * dt; });
         for (var i = stars.length - 1; i >= 0; i--) {
           if (stars[i].y > H + 20) {
@@ -83,7 +81,7 @@
           }
         }
       }
-      stars.forEach(function (s) { em("⭐", s.x, s.y, 64); });
+      stars.forEach(function (s) { em("⭐", s.x, s.y, 80); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

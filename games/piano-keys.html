@@ -86,18 +86,20 @@
       b.onclick = function () {
         var i = +b.getAttribute("data-i");
         light(i);
-        if (!listen) return;
+        if (!listen) { kidPing("Watch first!"); return; }
+        kidBoom("🎵", innerWidth * 0.5, innerHeight * 0.38);
         if (i === seq[step]) {
           step++;
-          if (step < seq.length) document.getElementById("say").textContent = "Yes! Next key " + (seq[step] + 1);
+          kidPing(step < seq.length ? "Yes! Next key " + (seq[step] + 1) : "Yes!");
           if (step >= seq.length) {
             song++;
             if (song >= SONGS.length) {
               listen = false;
+              kidYay();
               document.getElementById("keys").classList.remove("on");
               document.getElementById("win").classList.remove("off");
             } else {
-              document.getElementById("say").textContent = "Nice song!";
+              kidPing("Nice song!");
               setTimeout(playSong, 500);
             }
           }

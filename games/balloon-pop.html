@@ -62,21 +62,22 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      for (var i = balls.length - 1; i >= 0; i--) {
-        var dx = kidPt(e, cv).x - balls[i].x, dy = kidPt(e, cv).y - balls[i].y;
-        if (dx * dx + dy * dy < 72 * 72) {
-          if (balls[i].e === want) {
-            balls.splice(i, 1); n++;
-            document.getElementById("got").textContent = n + "/8";
-            document.getElementById("say").textContent = "Pop!";
-            if (n === 4) { want = "🟡"; document.getElementById("say").textContent = "Now yellow! 🟡"; }
-            if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
-          } else {
-            document.getElementById("say").textContent = "Not that color. " + want;
-          }
-          return;
-        }
+      var p = kidPt(e, cv), i, best = -1, bestD = 90 * 90;
+      for (i = balls.length - 1; i >= 0; i--) {
+        var dx = p.x - balls[i].x, dy = p.y - balls[i].y, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
       }
+      if (best < 0) {
+        for (i = 0; i < balls.length; i++) if (balls[i].e === want) { best = i; break; }
+      }
+      if (best < 0) { kidTap(want, "Pop " + want + "!", innerWidth * 0.5, innerHeight * 0.4, 300); return; }
+      if (balls[best].e === want) {
+        var hit = balls.splice(best, 1)[0]; n++;
+        document.getElementById("got").textContent = n + "/8";
+        kidTap("💥", n === 4 ? "Now yellow! 🟡" : "Pop!  " + n + "/8", hit.x, hit.y, 520);
+        if (n === 4) want = "🟡";
+        if (n >= 8) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+      } else kidTap(balls[best].e, "Not that color. " + want, balls[best].x, balls[best].y, 240);
     });
     function loop(now) {
       if (!last) last = now;
@@ -84,7 +85,10 @@
       x.fillStyle = "#7dd3fc"; x.fillRect(0, 0, W, H);
       em("☁️", 60, 90, 56); em("☁️", W - 50, 120, 64);
       if (play) {
-        if (balls.length < 5 && Math.random() < 0.04) spawn();
+        if (balls.length < 5 && Math.random() < 0.06) spawn();
+        if (!balls.some(function (b) { return b.e === want; })) {
+          balls.push({ e: want, x: 60 + Math.random() * (W - 120), y: H * 0.55, vy: 24 });
+        }
         balls.forEach(function (b) { b.y -= b.vy * dt; });
         balls = balls.filter(function (b) { return b.y > -40; });
       }

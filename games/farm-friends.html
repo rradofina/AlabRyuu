@@ -70,23 +70,28 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      show.forEach(function (s) {
-        var dx = kidPt(e, cv).x - s.x * W, dy = kidPt(e, cv).y - s.y * H;
-        if (dx * dx + dy * dy < 60 * 60) {
-          if (s.want) {
-            round++;
-            if (round >= 6) { play = false; document.getElementById("win").classList.remove("off"); }
-            else deal();
-          } else document.getElementById("say").textContent = "Not that pal. " + ALL[round].q;
-        }
-      });
+      var p = kidPt(e, cv), hit = null, best = 90 * 90, i;
+      for (i = 0; i < show.length; i++) {
+        var dx = p.x - show[i].x * W, dy = p.y - show[i].y * H, d = dx * dx + dy * dy;
+        if (d < best) { best = d; hit = show[i]; }
+      }
+      if (!hit) {
+        for (i = 0; i < show.length; i++) if (show[i].want) { hit = show[i]; break; }
+      }
+      if (!hit) return;
+      if (hit.want) {
+        kidTap(hit.e, "Yes! " + hit.e, hit.x * innerWidth, hit.y * innerHeight, 560);
+        round++;
+        if (round >= 6) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+        else deal();
+      } else kidTap(hit.e, "Not that pal. " + ALL[round].q, hit.x * innerWidth, hit.y * innerHeight, 240);
     });
     function loop() {
       t += 0.016;
       x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.7, W, H);
       em("🏠", 50, 110, 56); em("🌾", W - 40, 130, 48);
-      show.forEach(function (s) { em(s.e, s.x * W, s.y * H + Math.sin(t * 2) * 3, 80); });
+      show.forEach(function (s) { em(s.e, s.x * W, s.y * H + Math.sin(t * 2) * 4, 100); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

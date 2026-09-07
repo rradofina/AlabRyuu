@@ -57,7 +57,9 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      crumbs.push({ x: kidPt(e, cv).x, y: kidPt(e, cv).y, life: 4 });
+      var p = kidPt(e, cv);
+      crumbs.push({ x: p.x, y: p.y, life: 4 });
+      kidTap("🍞", "Yum food!", p.x, p.y, 420);
     });
     function loop(now) {
       if (!last) last = now;
@@ -77,8 +79,10 @@
               c.life = 0; f.ate = 1; fed++;
               document.getElementById("fd").textContent = "🍞 " + fed + "/6";
               document.getElementById("say").textContent = "Yum " + f.e + "!";
+              kidBoom(f.e, f.x * W, f.y * H);
               if (fed >= 6) {
                 play = false;
+                kidYay();
                 document.getElementById("win").classList.remove("off");
               } else {
                 setTimeout(function () { f.ate = 0; }, 400);
@@ -87,8 +91,8 @@
           });
         });
       }
-      crumbs.forEach(function (c) { em("🍞", c.x, c.y, 40); });
-      fish.forEach(function (f) { em(f.e, f.x * W, f.y * H + Math.sin(t * 2) * 6, 72); });
+      crumbs.forEach(function (c) { em("🍞", c.x, c.y, 52); });
+      fish.forEach(function (f) { em(f.e, f.x * W, f.y * H + Math.sin(t * 2) * 6, 88); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

@@ -31,12 +31,12 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, play = false, step = 0, taps = 0;
+    var W, H, t = 0, play = false, step = 0, taps = 0, bits = [];
     var STEPS = [
-      { n: "Mix", e: "🥣", say: "Tap Mix 4 times!", need: 4, btn: "Mix", be: "🥣" },
-      { n: "Cut", e: "⭐", say: "Tap Cut for star cookies!", need: 3, btn: "Cut", be: "⭐" },
-      { n: "Bake", e: "🔥", say: "Tap Bake. Watch them cook!", need: 3, btn: "Bake", be: "🔥" },
-      { n: "Yum", e: "✨", say: "Tap Sprinkle!", need: 3, btn: "Sprinkle", be: "✨" }
+      { n: "Mix", e: "🥣", say: "Stir the bowl!", need: 4, btn: "Mix", be: "🥣", pop: "🥣" },
+      { n: "Cut", e: "⭐", say: "Cut star cookies!", need: 3, btn: "Cut", be: "⭐", pop: "⭐" },
+      { n: "Bake", e: "🍪", say: "Bake them warm!", need: 3, btn: "Bake", be: "🔥", pop: "🔥" },
+      { n: "Yum", e: "🍪", say: "Sprinkle sparkles!", need: 3, btn: "Yum", be: "✨", pop: "✨" }
     ];
     function em(ch, px, py, s) {
       x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
@@ -51,44 +51,53 @@
     function showStep() {
       var s = STEPS[step];
       document.getElementById("step").textContent = s.n;
-      document.getElementById("say").textContent = s.say;
       document.getElementById("act").innerHTML = "<span>" + s.be + "</span>" + s.btn;
+      kidPing(s.say);
     }
     function start() {
-      play = true; step = 0; taps = 0;
+      play = true; step = 0; taps = 0; bits = [];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
       showStep();
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
-    document.getElementById("act").onclick = function () {
+    function act() {
       if (!play) return;
+      var s = STEPS[step];
       taps++;
-      document.getElementById("say").textContent = STEPS[step].say + "  " + taps + "/" + STEPS[step].need;
-      if (taps >= STEPS[step].need) {
+      bits.push({ e: s.pop, x: W * 0.5 + (Math.random() - 0.5) * 140, y: H * 0.36 + (Math.random() - 0.5) * 80, life: 1 });
+      kidTap(s.pop, s.say + "  " + taps + "/" + s.need, innerWidth * 0.5, innerHeight * 0.4, 360 + taps * 50);
+      if (taps >= s.need) {
         step++; taps = 0;
         if (step >= STEPS.length) {
           play = false;
+          kidYay();
           document.getElementById("dock").classList.remove("on");
           document.getElementById("win").classList.remove("off");
         } else showStep();
       }
-    };
+    }
+    document.getElementById("go").onclick = start;
+    document.getElementById("again").onclick = start;
+    document.getElementById("act").onclick = act;
+    cv.addEventListener("pointerdown", act);
     function loop() {
       t += 0.016;
       x.fillStyle = "#fed7aa"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#b45309"; x.fillRect(0, H * 0.62, W, H);
-      em("👨‍🍳", 70, 120, 64);
-      var show = "🥣";
-      if (step === 1) show = "⭐";
-      if (step === 2) show = "🍪";
-      if (step >= 3) show = "🍪";
-      em(show, W * 0.5, H * 0.42, 110);
+      em("👨‍🍳", 70, 120, 72);
+      em("🔥", W * 0.18, H * 0.72, step >= 2 ? 56 : 36);
+      em("🔥", W * 0.82, H * 0.72, step >= 2 ? 56 : 36);
+      var show = STEPS[Math.min(step, 3)].e;
+      var bounce = 1 + Math.sin(t * 6) * 0.04;
+      em(show, W * 0.5, H * 0.42, 120 * bounce);
+      bits.forEach(function (b) {
+        b.life -= 0.02; b.y -= 0.8;
+        if (b.life > 0) { x.globalAlpha = b.life; em(b.e, b.x, b.y, 40); x.globalAlpha = 1; }
+      });
       if (step >= 3) {
-        em("✨", W * 0.5 - 50, H * 0.34, 40);
-        em("✨", W * 0.5 + 56, H * 0.36, 36);
+        em("✨", W * 0.5 - 56, H * 0.32, 44);
+        em("✨", W * 0.5 + 60, H * 0.34, 40);
       }
       requestAnimationFrame(loop);
     }

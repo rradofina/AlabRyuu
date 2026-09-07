@@ -63,16 +63,21 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      choices.forEach(function (c) {
-        var dx = kidPt(e, cv).x - c.x * W, dy = kidPt(e, cv).y - c.y * H;
-        if (dx * dx + dy * dy < 55 * 55) {
-          if (c.e === want) {
-            round++;
-            if (round >= 6) { play = false; document.getElementById("win").classList.remove("off"); }
-            else deal();
-          } else document.getElementById("say").textContent = "Not that shadow. Try again!";
-        }
-      });
+      var p = kidPt(e, cv), hit = null, best = 90 * 90, i;
+      for (i = 0; i < choices.length; i++) {
+        var dx = p.x - choices[i].x * W, dy = p.y - choices[i].y * H, d = dx * dx + dy * dy;
+        if (d < best) { best = d; hit = choices[i]; }
+      }
+      if (!hit) {
+        for (i = 0; i < choices.length; i++) if (choices[i].e === want) { hit = choices[i]; break; }
+      }
+      if (!hit) return;
+      if (hit.e === want) {
+        kidTap(hit.e, "Yes!", hit.x * innerWidth, hit.y * innerHeight, 540);
+        round++;
+        if (round >= 6) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+        else deal();
+      } else kidTap(hit.e, "Not that shadow. Try again!", hit.x * innerWidth, hit.y * innerHeight, 240);
     });
     function loop() {
       x.fillStyle = "#1e1b4b"; x.fillRect(0, 0, W, H);
@@ -81,7 +86,7 @@
       x.filter = "grayscale(1) brightness(0)";
       em(want, W * 0.5, H * 0.34, 110);
       x.restore();
-      choices.forEach(function (c) { em(c.e, c.x * W, c.y * H, 72); });
+      choices.forEach(function (c) { em(c.e, c.x * W, c.y * H, 92); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

@@ -69,17 +69,19 @@
       b.onclick = function () {
         if (!play) return;
         var i = +b.getAttribute("data-i");
+        kidTap(COLS[i].e, i === next ? "Yes!" : "Next is " + COLS[next].e, innerWidth * 0.5, innerHeight * 0.42, i === next ? 500 : 220);
         if (i === next) {
           next++;
           if (next >= COLS.length) {
             play = false;
+            kidYay();
             document.getElementById("dock").classList.remove("on");
             document.getElementById("win").classList.remove("off");
           } else {
             document.getElementById("nx").textContent = "Next " + COLS[next].e;
-            document.getElementById("say").textContent = "Yes! Now " + COLS[next].e;
+            kidPing("Yes! Now " + COLS[next].e);
           }
-        } else document.getElementById("say").textContent = "Next is " + COLS[next].e;
+        }
       };
     });
     function loop() {
@@ -87,10 +89,10 @@
       for (var i = 0; i < next; i++) {
         x.beginPath();
         x.arc(W * 0.5, H * 0.72, 40 + i * 28, Math.PI, 0);
-        x.strokeStyle = COLS[i].c; x.lineWidth = 18; x.stroke();
+        x.strokeStyle = COLS[i].c; x.lineWidth = 26; x.stroke();
       }
-      em("☁️", 60, 120, 56); em("☁️", W - 50, 140, 64);
-      if (next >= COLS.length) em("🌈", W * 0.5, H * 0.42, 96);
+      em("☁️", 60, 120, 64); em("☁️", W - 50, 140, 72);
+      if (next >= COLS.length) em("🌈", W * 0.5, H * 0.42, 120);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

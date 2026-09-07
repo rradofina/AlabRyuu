@@ -79,6 +79,7 @@
         var b = e.target.closest("button");
         if (!b) return;
         av[key] = b.getAttribute("data-v");
+        kidTap(b.textContent.trim() || "✨", "Nice pick!", innerWidth * 0.5, 160, 480);
         paint();
       });
     }
@@ -88,6 +89,7 @@
       try { localStorage.setItem("alabryuu-avatar", JSON.stringify(av)); } catch (e) {}
       document.getElementById("winE").textContent = av.hair;
       document.getElementById("winT").textContent = av.name + "!";
+      kidYay();
       document.getElementById("win").classList.remove("off");
     };
     document.getElementById("again").onclick = function () { document.getElementById("win").classList.add("off"); };

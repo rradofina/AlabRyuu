@@ -51,9 +51,9 @@
             b.classList.add("done");
             next++;
             document.getElementById("nx").textContent = next > 5 ? "Done!" : "Next " + next;
-            document.getElementById("say").textContent = n === 5 ? "All aboard!" : "Yes! Now " + next;
-            if (next > 5) document.getElementById("win").classList.remove("off");
-          } else document.getElementById("say").textContent = "Find " + next + "!";
+            kidTap("🚃", n === 5 ? "All aboard!" : "Yes! Now " + next, innerWidth * 0.5, innerHeight * 0.5, 400 + n * 40);
+            if (next > 5) { kidYay(); document.getElementById("win").classList.remove("off"); }
+          } else kidTap("🚂", "Find " + next + "!", innerWidth * 0.5, innerHeight * 0.5, 240);
         };
         box.appendChild(b);
       });

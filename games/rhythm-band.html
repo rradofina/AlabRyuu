@@ -77,24 +77,27 @@
     document.getElementById("again").onclick = start;
     btns.forEach(function (b) {
       b.onclick = function () {
-        if (!listen) return;
         var i = +b.getAttribute("data-i");
+        kidNote(320 + i * 80);
+        kidBoom(ICONS[i], innerWidth * 0.5, innerHeight * 0.42);
+        if (!listen) { kidPing("Watch first!"); return; }
         light(i);
         if (i === seq[step]) {
           step++;
-          if (step < seq.length) document.getElementById("say").textContent = "Yes! Next " + ICONS[seq[step]];
+          kidPing(step < seq.length ? "Yes! Next " + ICONS[seq[step]] : "Yes!");
           if (step >= seq.length) {
             if (seq.length >= 5) {
               listen = false;
+              kidYay();
               document.getElementById("pads").classList.remove("on");
               document.getElementById("win").classList.remove("off");
             } else {
-              document.getElementById("say").textContent = "Yes! Next song.";
+              kidPing("Yes! Next song.");
               setTimeout(nextRound, 500);
             }
           }
         } else {
-          document.getElementById("say").textContent = "Oops. Watch again!";
+          kidPing("Oops. Watch again!");
           playSeq();
         }
       };

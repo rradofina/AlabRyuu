@@ -117,5 +117,25 @@ canvas { display: block; width: 100%; height: 100%; }
   background: #fff;
   color: #1e1b4b;
 }
-.dock button span { display: block; font-size: 48px; line-height: 1; }
+.dock button span { display: block; font-size: 52px; line-height: 1; }
 .dock button.on { outline: 5px solid #ffd166; }
+.dock button:active { transform: scale(0.94); }
+#say.ping { animation: kidping 0.28s ease; }
+@keyframes kidping {
+  0% { transform: translateX(-50%) scale(1); }
+  40% { transform: translateX(-50%) scale(1.12); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+#pops { position: fixed; inset: 0; pointer-events: none; z-index: 45; }
+#pops .pop {
+  position: absolute;
+  font-size: 56px;
+  line-height: 1;
+  animation: kidpop 0.75s ease-out forwards;
+  transform: translate(-50%, -50%);
+}
+@keyframes kidpop {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.4); }
+  40% { opacity: 1; transform: translate(-50%, -70%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -140%) scale(1); }
+}

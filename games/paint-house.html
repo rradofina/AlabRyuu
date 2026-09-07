@@ -86,11 +86,13 @@
     function blob(px, py) {
       if (!inHouse(px, py)) return;
       x.fillStyle = color;
-      x.beginPath(); x.arc(px, py, 18, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.arc(px, py, 28, 0, Math.PI * 2); x.fill();
       painted++;
       document.getElementById("pc").textContent = "🎨 " + painted;
-      if (painted >= 24) {
+      if (painted === 1 || painted % 6 === 0) kidNote(400 + painted * 8);
+      if (painted >= 28) {
         play = false; drawing = 0;
+        kidYay();
         document.getElementById("dock").classList.remove("on");
         document.getElementById("win").classList.remove("off");
       }
@@ -104,7 +106,7 @@
     cv.addEventListener("pointermove", function (e) {
       if (!drawing || !play) return;
       if (inHouse(kidPt(e, cv).x, kidPt(e, cv).y)) {
-        x.strokeStyle = color; x.lineWidth = 28; x.lineCap = "round";
+        x.strokeStyle = color; x.lineWidth = 36; x.lineCap = "round";
         x.beginPath(); x.moveTo(lastX, lastY); x.lineTo(kidPt(e, cv).x, kidPt(e, cv).y); x.stroke();
         painted++;
         document.getElementById("pc").textContent = "🎨 " + painted;

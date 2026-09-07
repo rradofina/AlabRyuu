@@ -65,20 +65,22 @@
     }
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      for (var i = bits.length - 1; i >= 0; i--) {
-        var b = bits[i], dx = kidPt(e, cv).x - b.x * W, dy = kidPt(e, cv).y - b.y * H;
-        if (dx * dx + dy * dy < 70 * 70) {
-          if (b.e === "🍃") {
-            bits.splice(i, 1); n++; bugX = Math.min(0.8, bugX + 0.07);
-            document.getElementById("lv").textContent = "🍃 " + n + "/8";
-            document.getElementById("say").textContent = "Yum! Growing.";
-            if (n >= 8) { play = false; document.getElementById("win").classList.remove("off"); }
-          } else {
-            document.getElementById("say").textContent = "Ouch rock! Eat leaves.";
-          }
-          return;
-        }
+      var p = kidPt(e, cv), i, best = -1, bestD = 85 * 85;
+      for (i = bits.length - 1; i >= 0; i--) {
+        var dx = p.x - bits[i].x * W, dy = p.y - bits[i].y * H, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
       }
+      if (best < 0) {
+        for (i = 0; i < bits.length; i++) if (bits[i].e === "🍃") { best = i; break; }
+      }
+      if (best < 0) return;
+      var b = bits[best];
+      if (b.e === "🍃") {
+        bits.splice(best, 1); n++; bugX = Math.min(0.8, bugX + 0.07);
+        document.getElementById("lv").textContent = "🍃 " + n + "/8";
+        kidTap("🍃", "Yum! Growing.  " + n + "/8", b.x * innerWidth, b.y * innerHeight, 500);
+        if (n >= 8) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+      } else kidTap("🪨", "Ouch rock! Eat leaves.", b.x * innerWidth, b.y * innerHeight, 220);
     });
     function loop(now) {
       if (!last) last = now;
@@ -86,8 +88,8 @@
       x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.78, W, H);
       em("🌳", 40, 100, 64);
-      bits.forEach(function (b) { em(b.e, b.x * W, b.y * H, 64); });
-      em(n >= 8 ? "🦋" : "🐛", bugX * W, H * 0.70, 48 + n * 6);
+      bits.forEach(function (b) { em(b.e, b.x * W, b.y * H, 80); });
+      em(n >= 8 ? "🦋" : "🐛", bugX * W, H * 0.70, 64 + n * 6);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

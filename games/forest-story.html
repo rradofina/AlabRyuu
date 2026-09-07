@@ -69,7 +69,9 @@
       flags[ch.flag] = 1; stars++;
       try { localStorage.setItem("alabryuu-forest", JSON.stringify({ stars: stars, scene: si, flags: flags })); } catch (e) {}
       hud();
+      kidTap(ch.e || "🌲", "Nice pick!", innerWidth * 0.5, innerHeight * 0.4, 480);
       if (ch.next < 0) {
+        kidYay();
         document.getElementById("choice").classList.remove("on");
         document.getElementById("wp").textContent = "⭐ " + stars + "  Kind forest walk.";
         document.getElementById("win").classList.remove("off");

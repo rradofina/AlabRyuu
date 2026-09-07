@@ -58,7 +58,19 @@
     });
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      basket = Math.max(0.12, Math.min(0.88, kidPt(e, cv).x / W));
+      var p = kidPt(e, cv);
+      basket = Math.max(0.12, Math.min(0.88, p.x / W));
+      for (var i = fruit.length - 1; i >= 0; i--) {
+        var dx = p.x - fruit[i].x * W, dy = p.y - fruit[i].y * H;
+        if (dx * dx + dy * dy < 80 * 80) {
+          var got = fruit.splice(i, 1)[0]; n++;
+          document.getElementById("got").textContent = "🍉 " + n + "/10";
+          kidTap(got.e, "Yum!  " + n + "/10", p.x, p.y, 500);
+          if (n >= 10) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+          return;
+        }
+      }
+      kidNote(300);
     });
     function loop(now) {
       if (!last) last = now;
@@ -71,19 +83,19 @@
         var by = H * 0.78;
         for (var i = fruit.length - 1; i >= 0; i--) {
           var f = fruit[i], fx = f.x * W, fy = f.y * H;
-          if (Math.abs(fx - basket * W) < 50 && fy > by - 30 && fy < by + 30) {
+          if (Math.abs(fx - basket * W) < 70 && fy > by - 40 && fy < by + 40) {
             fruit.splice(i, 1); n++;
             document.getElementById("got").textContent = "🍉 " + n + "/10";
-            document.getElementById("say").textContent = "Yum!";
-            if (n >= 10) { play = false; document.getElementById("win").classList.remove("off"); }
+            kidTap(f.e, "Yum!  " + n + "/10", fx, fy, 500);
+            if (n >= 10) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
           } else if (fy > H) {
             fruit.splice(i, 1);
             document.getElementById("say").textContent = "Miss. Next one!";
           }
         }
       }
-      fruit.forEach(function (f) { em(f.e, f.x * W, f.y * H, 56); });
-      em("🧺", basket * W, H * 0.78, 80);
+      fruit.forEach(function (f) { em(f.e, f.x * W, f.y * H, 72); });
+      em("🧺", basket * W, H * 0.78, 96);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

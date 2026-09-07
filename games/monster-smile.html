@@ -47,21 +47,29 @@
     addEventListener("resize", resize); resize();
     function count() { return have.eyes + have.mouth + have.horn; }
     function start() {
-      play = true; have = { eyes: 0, mouth: 0, horn: 0 };
+      play = true; have = { eyes: 0, mouth: 0, horn: 0 }; pick = { eyes: 0, mouth: 0, horn: 0 };
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
       document.getElementById("bits").textContent = "0/3";
       document.getElementById("say").textContent = "Give eyes, mouth, and horns!";
     }
+    var LOOKS = {
+      eyes: ["👀", "🕶️", "🤓"],
+      mouth: ["😊", "😄", "😜"],
+      horn: ["🦄", "👑", "🎀"]
+    };
+    var pick = { eyes: 0, mouth: 0, horn: 0 };
     function add(k, word) {
       if (!play) return;
+      if (have[k]) pick[k] = (pick[k] + 1) % LOOKS[k].length;
       have[k] = 1;
       document.getElementById("bits").textContent = count() + "/3";
-      document.getElementById("say").textContent = word + "!";
+      kidTap(LOOKS[k][pick[k]], word + "!", innerWidth * 0.5, innerHeight * 0.4, 500);
       if (count() >= 3) {
         play = false; stars++;
         try { localStorage.setItem("alabryuu-monster", JSON.stringify({ stars: stars })); } catch (e) {}
+        kidYay();
         document.getElementById("dock").classList.remove("on");
         document.getElementById("win").classList.remove("off");
       }
@@ -73,10 +81,10 @@
     document.getElementById("horn").onclick = function () { add("horn", "Fancy horns"); };
     function loop() {
       x.fillStyle = "#6b21a8"; x.fillRect(0, 0, W, H);
-      em("🟣", W * 0.5, H * 0.42, 140);
-      if (have.horn) em("🦄", W * 0.5, H * 0.26, 56);
-      if (have.eyes) em("👀", W * 0.5, H * 0.40, 48);
-      if (have.mouth) em("😊", W * 0.5, H * 0.52, 48);
+      em("🟣", W * 0.5, H * 0.42, 168);
+      if (have.horn) em(LOOKS.horn[pick.horn], W * 0.5, H * 0.22, 72);
+      if (have.eyes) em(LOOKS.eyes[pick.eyes], W * 0.5, H * 0.40, 64);
+      if (have.mouth) em(LOOKS.mouth[pick.mouth], W * 0.5, H * 0.54, 64);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

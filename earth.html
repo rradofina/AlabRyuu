@@ -102,8 +102,10 @@
     function progress(n) {
       if (!play || !ERAS[era]) return;
       got += n; stars += n; save(); hud();
+      kidPing(ERAS[era].say + "  " + got + "/" + ERAS[era].need);
       if (got >= ERAS[era].need) {
         play = false;
+        kidYay();
         document.getElementById("cutE").textContent = CUT[era].e;
         document.getElementById("cutT").textContent = CUT[era].t;
         document.getElementById("cutP").textContent = CUT[era].p;
@@ -120,6 +122,7 @@
       if (tool === "sun") flashes.push({ x: px, y: py, life: 0.5 });
       else if (tool === "rain") rains.push({ x: px, y: py - 40, life: 0.8 });
       else life.push({ kind: era < 4 ? "🌱" : "🌿", a: rot + Math.atan2(dx, -dy), bob: t });
+      kidTap(tool === "sun" ? "☀️" : (tool === "rain" ? "🌧️" : "🌱"), null, px, py, 420);
       progress(1);
     }
     function setTool(name) {

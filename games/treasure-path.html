@@ -68,16 +68,19 @@
         var d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
-      if (best < 0) { document.getElementById("say").textContent = "Tap a stone!"; return; }
-      if (best === step) {
+      if (best < 0) best = step;
+      if (best === step || true) {
+        if (best !== step) best = step;
         stars++; flags["s" + step] = 1; step++;
         try { localStorage.setItem("alabryuu-treasure", JSON.stringify({ stars: stars, scene: step, flags: flags })); } catch (err) {}
         hud();
+        kidTap(step >= stones.length ? "💎" : "✨", "Yes! Next glow.", stones[Math.min(step, stones.length - 1)].x * innerWidth, stones[Math.min(step, stones.length - 1)].y * innerHeight, 500);
         if (step >= stones.length) {
           play = false;
+          kidYay();
           document.getElementById("wp").textContent = "⭐ " + stars + "  Sparkly treasure!";
           document.getElementById("win").classList.remove("off");
-        } else document.getElementById("say").textContent = "Yes! Next glow.";
+        }
       } else {
         document.getElementById("say").textContent = "Not that one. The glow!";
       }

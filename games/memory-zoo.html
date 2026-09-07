@@ -58,8 +58,9 @@
     }
     function flip(i, b) {
       var c = cards[i];
-      if (lock || c.open || c.done) return;
+      if (lock || c.open || c.done) { kidNote(240); return; }
       c.open = 1; b.textContent = c.e; b.classList.add("on");
+      kidTap(c.e, "Find a twin!", innerWidth * 0.5, innerHeight * 0.35, 460);
       open.push(c);
       if (open.length < 2) return;
       lock = true;
@@ -67,11 +68,12 @@
         open[0].done = open[1].done = 1;
         pairs++;
         document.getElementById("pr").textContent = pairs + "/4";
-        document.getElementById("say").textContent = "Match! " + open[0].e;
+        kidPing("Match! " + open[0].e);
+        kidBurst([open[0].e, "✨", "💛"], innerWidth * 0.5, innerHeight * 0.4);
         open = []; lock = false;
-        if (pairs >= 4) document.getElementById("win").classList.remove("off");
+        if (pairs >= 4) { kidYay(); document.getElementById("win").classList.remove("off"); }
       } else {
-        document.getElementById("say").textContent = "Try again!";
+        kidPing("Try again!");
         setTimeout(function () {
           open.forEach(function (o) { o.open = 0; o.el.textContent = "❓"; o.el.classList.remove("on"); });
           open = []; lock = false;

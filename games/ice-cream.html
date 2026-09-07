@@ -21,7 +21,7 @@
   <div class="cover" id="title">
     <div class="hero">🍦</div>
     <h1>Ice Cream Shop</h1>
-    <p>Stack scoops in order. Then serve!</p>
+    <p>Stack scoops. Then serve!</p>
     <button class="play" id="go">Scoop</button>
   </div>
   <div class="cover off" id="win">
@@ -33,7 +33,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, play = false, order = ["🍦", "🍫", "🍓"], stack = [];
+    var W, H, play = false, order = ["🍦", "🍫", "🍓"], stack = [], bounce = 0;
     var MAP = { v: "🍦", c: "🍫", s: "🍓" };
     var NAME = { "🍦": "Vanilla", "🍫": "Choco", "🍓": "Berry" };
     function em(ch, px, py, s) {
@@ -47,27 +47,29 @@
     }
     addEventListener("resize", resize); resize();
     function start() {
-      play = true; stack = [];
+      play = true; stack = []; bounce = 0;
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
       document.getElementById("od").textContent = order.join(" ");
-      document.getElementById("say").textContent = "First " + NAME[order[0]] + "!";
+      kidPing("First " + NAME[order[0]] + "!");
     }
     function add(k) {
       if (!play) return;
       var scoop = MAP[k];
       if (scoop === order[stack.length]) {
         stack.push(scoop);
-        document.getElementById("say").textContent = stack.length >= 3 ? "Serve!" : "Now " + NAME[order[stack.length]] + "!";
+        bounce = 1;
+        kidTap(scoop, stack.length >= 3 ? "YUM serve!" : "Now " + NAME[order[stack.length]] + "!", innerWidth * 0.5, innerHeight * 0.48, 480 + stack.length * 40);
         if (stack.length >= 3) {
           play = false;
+          kidYay();
           document.getElementById("dock").classList.remove("on");
           document.getElementById("win").classList.remove("off");
         }
       } else {
-        stack = [];
-        document.getElementById("say").textContent = "Oops. Start with " + NAME[order[0]] + "!";
+        bounce = 1;
+        kidTap(scoop, "Oops! Need " + NAME[order[stack.length]] + ".", innerWidth * 0.5, innerHeight * 0.48, 220);
       }
     }
     document.getElementById("go").onclick = start;
@@ -76,10 +78,13 @@
     document.getElementById("choc").onclick = function () { add("c"); };
     document.getElementById("ber").onclick = function () { add("s"); };
     function loop() {
+      if (bounce > 0) bounce -= 0.06;
       x.fillStyle = "#fda4af"; x.fillRect(0, 0, W, H);
-      em("🏪", 50, 110, 56);
-      em("🧇", W * 0.5, H * 0.64, 88);
-      stack.forEach(function (s, i) { em(s, W * 0.5, H * 0.52 - i * 44, 72); });
+      em("🏪", 56, 110, 64);
+      em("🧒", W * 0.16, H * 0.42, 72);
+      var jy = bounce > 0 ? Math.sin(bounce * 18) * 10 : 0;
+      em("🧇", W * 0.5, H * 0.66 + jy, 100);
+      stack.forEach(function (s, i) { em(s, W * 0.5, H * 0.52 - i * 52 + jy, 84); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

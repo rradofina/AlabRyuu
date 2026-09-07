@@ -55,20 +55,23 @@
     }
     function add(name) {
       if (!play) return;
-      if (name === ORDER[step]) {
+      if (name === ORDER[step] || true) {
+        if (name !== ORDER[step] && step < 3) {
+          name = ORDER[step];
+        }
+        if (step >= 3) return;
         step++;
-        if (step === 1) document.getElementById("say").textContent = "Now Mid!";
-        if (step === 2) document.getElementById("say").textContent = "Now Little!";
+        kidTap("⚪", step === 1 ? "Now Mid!" : (step === 2 ? "Now Little!" : "Yay! Face time."), innerWidth * 0.5, innerHeight * 0.5, 400 + step * 40);
         if (step === 3) {
-          document.getElementById("say").textContent = "Yay! Face time.";
           document.getElementById("dock").innerHTML = '<button id="face"><span>🥕</span>Face</button>';
           document.getElementById("face").onclick = function () {
             play = false;
+            kidYay();
             document.getElementById("dock").classList.remove("on");
             document.getElementById("win").classList.remove("off");
           };
         }
-      } else document.getElementById("say").textContent = "Stack in order: Big, Mid, Little.";
+      }
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = function () {
@@ -85,10 +88,10 @@
       x.fillStyle = "#e0f2fe"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#fff"; x.fillRect(0, H * 0.72, W, H);
       em("❄️", 40, 90, 40); em("❄️", W - 40, 110, 36);
-      if (step >= 1) em("⚪", W * 0.5, H * 0.64, 96);
-      if (step >= 2) em("⚪", W * 0.5, H * 0.50, 72);
-      if (step >= 3) em("⚪", W * 0.5, H * 0.38, 56);
-      if (!play && step >= 3) em("⛄", W * 0.5, H * 0.48, 120);
+      if (step >= 1) em("⚪", W * 0.5, H * 0.66, 110);
+      if (step >= 2) em("⚪", W * 0.5, H * 0.50, 86);
+      if (step >= 3) em("⚪", W * 0.5, H * 0.36, 68);
+      if (!play && step >= 3) em("⛄", W * 0.5, H * 0.48, 140);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

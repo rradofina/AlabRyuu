@@ -12,19 +12,19 @@
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
   <div id="hud"><b id="pc">🛤️ 0/3</b></div>
-  <div id="say">Tap a gap. Put a track!</div>
+  <div id="say">TAP! Put a track in the gap!</div>
   <div class="dock" id="dock">
-    <button id="lay"><span>🛤️</span>Put track</button>
+    <button id="lay"><span>🛤️</span>Track</button>
     <button id="goTrain"><span>🚂</span>Go</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero">🛤️</div>
+    <div class="hero">🚂</div>
     <h1>Train Tracks</h1>
-    <p>Put 3 tracks. Then Go!</p>
+    <p>Fill 3 gaps. Then choo choo!</p>
     <button class="play" id="go">Play</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">🚂</div>
+    <div class="hero">🏠</div>
     <h1>Choo choo!</h1>
     <p>The train made it home.</p>
     <button class="play g" id="again">Play again</button>
@@ -32,7 +32,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, play = false, laid = 0, riding = 0, train = 0, stars = 0;
+    var W, H, t = 0, play = false, laid = 0, riding = 0, train = 0, stars = 0, smoke = 0;
     var slots = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-train") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
     function em(ch, px, py, s) {
@@ -50,71 +50,78 @@
     function start() {
       play = true; laid = 0; riding = 0; train = 0;
       slots = [
-        { x: 0.18, y: 0.48, on: 1, lock: 1 },
-        { x: 0.38, y: 0.48, on: 0, lock: 0 },
-        { x: 0.56, y: 0.48, on: 0, lock: 0 },
-        { x: 0.74, y: 0.48, on: 0, lock: 0 },
-        { x: 0.90, y: 0.48, on: 1, lock: 1 }
+        { x: 0.14, y: 0.5, on: 1, lock: 1 },
+        { x: 0.33, y: 0.5, on: 0, lock: 0 },
+        { x: 0.52, y: 0.5, on: 0, lock: 0 },
+        { x: 0.71, y: 0.5, on: 0, lock: 0 },
+        { x: 0.90, y: 0.5, on: 1, lock: 1 }
       ];
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
       document.getElementById("pc").textContent = "🛤️ 0/3";
-      document.getElementById("say").textContent = "Tap Put track! Or tap a black gap.";
+      kidPing("TAP! Put a track in the gap!");
     }
     function layOne() {
-      if (!play || riding) return;
+      if (!play) return;
+      if (riding) { kidBoom("💨", innerWidth * 0.5, innerHeight * 0.4); kidNote(240); return; }
       var i;
       for (i = 0; i < slots.length; i++) {
         if (!slots[i].on && !slots[i].lock) {
           slots[i].on = 1; laid++;
           document.getElementById("pc").textContent = "🛤️ " + laid + "/3";
-          document.getElementById("say").textContent = laid >= 3 ? "Tap Go!" : "Nice! " + laid + "/3";
+          kidTap("🛤️", laid >= 3 ? "TAP Go!" : "Nice track! " + laid + "/3", slots[i].x * innerWidth, slots[i].y * innerHeight, 380 + laid * 40);
           if (laid >= 3) choo();
           return;
         }
       }
+      kidTap("🚂", "Tracks ready! TAP Go!", innerWidth * 0.5, innerHeight * 0.4, 300);
     }
     function choo() {
-      if (!play || riding || laid < 3) {
-        if (play && laid < 3) document.getElementById("say").textContent = "Need 3 tracks!";
-        return;
-      }
+      if (!play || riding) return;
+      if (laid < 3) { kidPing("Need 3 tracks!"); kidNote(200); return; }
       riding = 1; train = 0;
-      document.getElementById("say").textContent = "Choo choo!";
+      kidPing("Choo choo!!");
+      kidBurst(["💨", "🚂", "⭐"], innerWidth * 0.2, innerHeight * 0.36);
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
     document.getElementById("lay").onclick = layOne;
     document.getElementById("goTrain").onclick = choo;
-    cv.addEventListener("pointerdown", function (e) {
-      if (!play || riding) return;
-      var p = kidPt(e, cv), hit = 0;
-      slots.forEach(function (s) {
-        if (s.lock || s.on) return;
-        if (kidHit(p.x, p.y, s.x * W, s.y * H, 80)) hit = 1;
-      });
-      if (hit || true) layOne();
+    cv.addEventListener("pointerdown", function () {
+      if (!play) return;
+      if (laid >= 3 && !riding) choo();
+      else layOne();
     });
     function loop() {
       t += 0.016;
       x.fillStyle = "#64748b"; x.fillRect(0, 0, W, H);
-      x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.62, W, H);
-      em("🏠", W * 0.90, H * 0.34, 72);
-      if (!slots.length) em("🚂", W * 0.16, H * 0.36, 72);
-      else {
-        slots.forEach(function (s) { em(s.on ? "🛤️" : "⬛", s.x * W, s.y * H, 72); });
+      x.fillStyle = "#4ade80"; x.fillRect(0, H * 0.64, W, H);
+      em("🌲", W * 0.08, H * 0.3, 64);
+      em("🌲", W * 0.22, H * 0.26, 56);
+      em("🏠", W * 0.90, H * 0.32, 88);
+      if (slots.length) {
+        slots.forEach(function (s) { em(s.on ? "🛤️" : "⬛", s.x * W, s.y * H, 88); });
+        var tx, ty;
         if (riding) {
-          train += 0.014;
-          var i = Math.min(slots.length - 1, Math.floor(train * slots.length));
-          em("🚂", slots[i].x * W, slots[i].y * H - 48, 72);
+          train += 0.012;
+          var f = Math.min(0.999, train) * (slots.length - 1);
+          var a = Math.floor(f), b = Math.min(slots.length - 1, a + 1), k = f - a;
+          tx = (slots[a].x + (slots[b].x - slots[a].x) * k) * W;
+          ty = slots[a].y * H - 56;
+          smoke += 0.05;
+          if (smoke > 0.18) { smoke = 0; kidBoom("💨", tx, ty - 40); }
           if (train >= 1) {
             riding = 0; play = false; stars++;
             try { localStorage.setItem("alabryuu-train", JSON.stringify({ stars: stars })); } catch (e) {}
+            kidYay();
             document.getElementById("dock").classList.remove("on");
             document.getElementById("win").classList.remove("off");
           }
-        } else em("🚂", slots[0].x * W, slots[0].y * H - 48, 72);
+        } else {
+          tx = slots[0].x * W; ty = slots[0].y * H - 56;
+        }
+        em("🚂", tx, ty + Math.sin(t * 8) * (riding ? 3 : 0), 96);
       }
       requestAnimationFrame(loop);
     }

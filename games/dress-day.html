@@ -63,19 +63,24 @@
       document.getElementById("dock").classList.add("on");
       show();
     }
+    var worn = "";
     function pick(k) {
       if (!play) return;
       var d = DAYS[round];
+      var wearMap = { a: "😎", b: "🧥", c: "🧤" };
+      worn = wearMap[k];
       if (k === d.ok) {
         flags[k] = 1; stars++;
         try { localStorage.setItem("alabryuu-dress", JSON.stringify({ stars: stars, flags: flags })); } catch (e) {}
+        kidTap(d.wear, "Yes! Perfect!", innerWidth * 0.5, innerHeight * 0.28, 560);
         round++;
         if (round >= 3) {
           play = false;
+          kidYay();
           document.getElementById("dock").classList.remove("on");
           document.getElementById("win").classList.remove("off");
-        } else show();
-      } else document.getElementById("say").textContent = "Not for this weather. " + d.q;
+        } else { worn = ""; show(); }
+      } else kidTap(worn, "Try a different one!", innerWidth * 0.5, innerHeight * 0.28, 240);
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = start;
@@ -86,9 +91,9 @@
       var d = DAYS[Math.min(round, 2)];
       x.fillStyle = d.w === "☀️" ? "#7dd3fc" : (d.w === "🌧️" ? "#64748b" : "#e0f2fe");
       x.fillRect(0, 0, W, H);
-      em(d.w, W * 0.8, 90, 72);
-      em("🧒", W * 0.5, H * 0.42, 110);
-      if (play) em(d.wear, W * 0.5, H * 0.28, 48);
+      em(d.w, W * 0.8, 90, 88);
+      em("🧒", W * 0.5, H * 0.44, 128);
+      em(worn || d.wear, W * 0.5, H * 0.26, 72);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

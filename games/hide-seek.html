@@ -57,19 +57,23 @@
     document.getElementById("again").onclick = start;
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      spots.forEach(function (s) {
-        var dx = kidPt(e, cv).x - s.x * W, dy = kidPt(e, cv).y - s.y * H;
-        if (dx * dx + dy * dy < 60 * 60) {
-          if (s.got) return;
-          if (s.pal) {
-            s.got = 1; found++; stars++;
-            try { localStorage.setItem("alabryuu-hide", JSON.stringify({ stars: stars })); } catch (err) {}
-            document.getElementById("fd").textContent = found + "/3";
-            document.getElementById("say").textContent = "Hi " + s.pal + "!";
-            if (found >= 3) { play = false; document.getElementById("win").classList.remove("off"); }
-          } else document.getElementById("say").textContent = "Nobody here. Keep looking!";
-        }
-      });
+      var p = kidPt(e, cv), best = null, bestD = 95 * 95, i;
+      for (i = 0; i < spots.length; i++) {
+        var dx = p.x - spots[i].x * W, dy = p.y - spots[i].y * H, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = spots[i]; }
+      }
+      if (!best) {
+        for (i = 0; i < spots.length; i++) if (!spots[i].got && spots[i].pal) { best = spots[i]; break; }
+      }
+      if (!best) return;
+      if (best.got) { kidTap(best.pal, "Hi again!", best.x * innerWidth, best.y * innerHeight, 400); return; }
+      if (best.pal) {
+        best.got = 1; found++; stars++;
+        try { localStorage.setItem("alabryuu-hide", JSON.stringify({ stars: stars })); } catch (err) {}
+        document.getElementById("fd").textContent = found + "/3";
+        kidTap(best.pal, "Hi " + best.pal + "!  " + found + "/3", best.x * innerWidth, best.y * innerHeight, 540);
+        if (found >= 3) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+      } else kidTap(best.e === "bush" ? "🌿" : best.e, "Nobody here. Keep looking!", best.x * innerWidth, best.y * innerHeight, 260);
     });
     function loop() {
       t += 0.016;
@@ -78,8 +82,8 @@
       em("☀️", W * 0.84, 80, 56);
       spots.forEach(function (s) {
         var px = s.x * W, py = s.y * H;
-        if (s.got) em(s.pal, px, py - 10, 72);
-        else em(s.e === "bush" ? "🌿" : s.e, px, py, 80);
+        if (s.got) em(s.pal, px, py - 10, 92);
+        else em(s.e === "bush" ? "🌿" : s.e, px, py, 96);
       });
       requestAnimationFrame(loop);
     }

@@ -9,7 +9,7 @@
   <style>
     html,body{background:#fef3c7}
     .dock button{min-width:72px;min-height:84px}
-    .dock button span{font-size:40px}
+    .dock button span{font-size:44px}
     #say{color:#431407}
   </style>
 </head>
@@ -27,7 +27,7 @@
   <div class="cover" id="title">
     <div class="hero">🧱</div>
     <h1>Sandbox</h1>
-    <p>Stamp big things. Keep your town!</p>
+    <p>Stamp a town. It stays!</p>
     <button class="play" id="go">Build</button>
   </div>
   <div class="cover off" id="win">
@@ -42,9 +42,9 @@
     var W, H, t = 0, play = false, mission = 0, placed = 0, stars = 0, tool = "tree";
     var bits = [];
     var JOBS = [
-      { n: "House", need: 5, say: "TAP the sand! Stamp trees and a house." },
-      { n: "Garden", need: 5, say: "TAP again! Flowers and water." },
-      { n: "Town", need: 6, say: "TAP more houses and trees!" }
+      { n: "House", need: 5, say: "TAP the sand! Stamp a house and trees." },
+      { n: "Garden", need: 5, say: "TAP flowers and water!" },
+      { n: "Town", need: 6, say: "TAP more houses!" }
     ];
     var EMO = { tree: "🌳", house: "🏠", flower: "🌸", water: "💧" };
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-sandbox") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
@@ -62,7 +62,6 @@
       document.getElementById("ms").textContent = JOBS[Math.min(mission, JOBS.length - 1)].n;
       document.getElementById("bl").textContent = placed + "/" + JOBS[Math.min(mission, JOBS.length - 1)].need;
       document.getElementById("st").textContent = "⭐ " + stars;
-      document.getElementById("say").textContent = JOBS[Math.min(mission, JOBS.length - 1)].say;
     }
     function start() {
       play = true; mission = 0; placed = 0;
@@ -70,17 +69,21 @@
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
       hud();
+      kidPing(JOBS[0].say);
     }
     document.getElementById("go").onclick = start;
     document.getElementById("again").onclick = function () {
       document.getElementById("win").classList.add("off");
       play = true; mission = 0; placed = 0; hud();
       document.getElementById("dock").classList.add("on");
+      kidPing("Keep stamping!");
     };
     [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
       b.onclick = function () {
         tool = b.getAttribute("data-k");
         [].forEach.call(document.querySelectorAll("#dock button"), function (el) { el.classList.toggle("on", el === b); });
+        kidNote(400);
+        kidPing("Stamp " + EMO[tool] + "!");
       };
     });
     cv.addEventListener("pointerdown", function (e) {
@@ -88,21 +91,23 @@
       var p = kidPt(e, cv);
       if (p.y > H - 110) return;
       if (p.x < 110 && p.y < 56) return;
-      bits.push({ k: tool, x: p.x, y: p.y });
+      bits.push({ k: tool, x: p.x, y: p.y, s: 72 + Math.random() * 28, pop: 1 });
       placed++; stars++;
       try { localStorage.setItem("alabryuu-sandbox", JSON.stringify({ stars: stars, mission: mission })); } catch (err) {}
       hud();
+      kidTap(EMO[tool], JOBS[Math.min(mission, JOBS.length - 1)].say, p.x, p.y, 420);
       if (placed >= JOBS[mission].need) {
         mission++;
         placed = 0;
         if (mission >= JOBS.length) {
           play = false;
+          kidYay();
           document.getElementById("dock").classList.remove("on");
           document.getElementById("wp").textContent = "⭐ " + stars + "  Your town stays!";
           document.getElementById("win").classList.remove("off");
         } else {
-          document.getElementById("say").textContent = "Nice! " + JOBS[mission].say;
           hud();
+          kidPing("Nice! " + JOBS[mission].say);
         }
       }
     });
@@ -111,7 +116,10 @@
       x.fillStyle = "#fde68a"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#ca8a04";
       for (var i = 0; i < 10; i++) x.fillRect(0, H * 0.28 + i * 32, W, 6);
-      bits.forEach(function (b) { em(EMO[b.k] || "🌳", b.x, b.y, 64); });
+      bits.forEach(function (b) {
+        if (b.pop > 0) b.pop -= 0.08;
+        em(EMO[b.k] || "🌳", b.x, b.y, b.s * (1 + Math.max(0, b.pop) * 0.35));
+      });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

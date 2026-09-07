@@ -68,20 +68,24 @@
       if (!play) return;
       mix[k] = 1;
       var g = GOALS[round];
+      var emj = k === "r" ? "🔴" : (k === "y" ? "🟡" : "🔵");
+      kidTap(emj, "Mix " + g.n + "!", innerWidth * 0.68, innerHeight * 0.4, 420);
       if (mix.r === g.r && mix.y === g.y && mix.b === g.b) {
-        document.getElementById("say").textContent = "Yes! " + g.n + "!";
+        kidPing("Yes! " + g.n + "!");
+        kidBurst(["✨", "🎨", "💛"], innerWidth * 0.68, innerHeight * 0.4);
         round++;
         if (round >= GOALS.length) {
           play = false;
+          kidYay();
           document.getElementById("dock").classList.remove("on");
           document.getElementById("win").classList.remove("off");
         } else {
           mix = { r: 0, y: 0, b: 0 };
           document.getElementById("rnd").textContent = (round + 1) + "/5";
-          document.getElementById("say").textContent = "Now make " + GOALS[round].n + "!";
+          kidPing("Now make " + GOALS[round].n + "!");
         }
       } else if ((mix.r && !g.r) || (mix.y && !g.y) || (mix.b && !g.b)) {
-        document.getElementById("say").textContent = "Oops. Try again!";
+        kidPing("Oops. Try again!");
         mix = { r: 0, y: 0, b: 0 };
       }
     }

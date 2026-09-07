@@ -71,10 +71,11 @@
       if (!play) return;
       var p = pals[sel];
       p.happy = Math.min(3, p.happy + 1);
-      document.getElementById("say").textContent = kind + " " + p.e + "!";
+      kidTap(kind === "Yum" ? "🍖" : (kind === "Soft" ? "🤗" : "🎾"), kind + " " + p.e + "!", p.x * innerWidth, p.y * innerHeight, 500);
       hud();
       if (pals.every(function (q) { return q.happy >= 2; })) {
         play = false;
+        kidYay();
         document.getElementById("dock").classList.remove("on");
         document.getElementById("win").classList.remove("off");
       }
@@ -92,7 +93,7 @@
         if (d < bestD) { bestD = d; best = i; }
       }
       sel = best;
-      document.getElementById("say").textContent = "Hi " + pals[sel].e + "! Feed, Pet, or Play.";
+      act("Hi");
     });
     function loop() {
       t += 0.016;

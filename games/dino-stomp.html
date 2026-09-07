@@ -59,8 +59,18 @@
       for (i = 0; i < 5; i++) blooms.push({ x: 260 + i * 170, got: 0 });
       hud();
     }
-    function hop() { if (!play || dino.pose !== "walk") return; dino.pose = "crouch"; dino.poseT = 0; }
-    function stompNow() { if (!play || (dino.pose !== "walk" && dino.pose !== "land")) return; dino.pose = "stomp"; dino.poseT = 0; }
+    function hop() {
+      if (!play) return;
+      if (dino.pose !== "walk") { kidNote(260); return; }
+      dino.pose = "crouch"; dino.poseT = 0;
+      kidTap("⬆️", "Hop!", innerWidth * 0.28, innerHeight * 0.55, 480);
+    }
+    function stompNow() {
+      if (!play) return;
+      if (dino.pose !== "walk" && dino.pose !== "land") { kidNote(260); return; }
+      dino.pose = "stomp"; dino.poseT = 0;
+      kidTap("💥", "Stomp!", innerWidth * 0.28, innerHeight * 0.62, 360);
+    }
     function start() {
       play = true;
       document.getElementById("title").classList.add("off");

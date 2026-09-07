@@ -60,33 +60,35 @@
       if (!play) return;
       var hiveX = W * 0.78, hiveY = H * 0.28;
       var hx = kidPt(e, cv).x - hiveX, hy = kidPt(e, cv).y - hiveY;
-      if (hx * hx + hy * hy < 55 * 55) {
+      if (hx * hx + hy * hy < 80 * 80) {
         if (holding) {
           holding = 0; n++;
           document.getElementById("nv").textContent = "🍯 " + n + "/6";
-          if (n >= 6) { play = false; document.getElementById("win").classList.remove("off"); }
+          kidTap("🍯", n >= 6 ? "Honey time!" : "Now " + want + "!", hiveX, hiveY, 560);
+          if (n >= 6) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
           else {
             want = FLOW[(Math.random() * 3) | 0];
-            document.getElementById("say").textContent = "Now " + want + "!";
+            kidPing("Now " + want + "!");
           }
-        } else document.getElementById("say").textContent = "Get nectar first. Tap " + want;
+        } else kidTap("🍯", "Get nectar first. Tap " + want, hiveX, hiveY, 240);
         return;
       }
-      spots().forEach(function (s) {
-        var dx = kidPt(e, cv).x - s.x * W, dy = kidPt(e, cv).y - s.y * H;
-        if (dx * dx + dy * dy < 50 * 50) {
-          if (s.e === want) { holding = 1; document.getElementById("say").textContent = "Home to the hive!"; }
-          else document.getElementById("say").textContent = "Wrong flower. Want " + want;
-        }
-      });
+      var p = kidPt(e, cv), hit = null, best = 80 * 80, i, list = spots();
+      for (i = 0; i < list.length; i++) {
+        var dx = p.x - list[i].x * W, dy = p.y - list[i].y * H, d = dx * dx + dy * dy;
+        if (d < best) { best = d; hit = list[i]; }
+      }
+      if (!hit) return;
+      if (hit.e === want) { holding = 1; kidTap(hit.e, "Home to the hive!", hit.x * innerWidth, hit.y * innerHeight, 500); }
+      else kidTap(hit.e, "Wrong flower. Want " + want, hit.x * innerWidth, hit.y * innerHeight, 240);
     });
     function loop() {
       t += 0.016;
       x.fillStyle = "#86efac"; x.fillRect(0, 0, W, H);
       em("☀️", 50, 80, 48);
-      em("🍯", W * 0.78, H * 0.28, 80);
-      spots().forEach(function (s) { em(s.e, s.x * W, s.y * H, 72); });
-      em("🐝", W * (holding ? 0.55 : 0.28), H * 0.40 + Math.sin(t * 4) * 8, 64);
+      em("🍯", W * 0.78, H * 0.28, 96);
+      spots().forEach(function (s) { em(s.e, s.x * W, s.y * H, 92); });
+      em("🐝", W * (holding ? 0.55 : 0.28), H * 0.40 + Math.sin(t * 4) * 8, 80);
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
