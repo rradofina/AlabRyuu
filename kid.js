@@ -72,4 +72,21 @@
     w.kidBoom(emoji, x, y);
     if (msg) w.kidPing(msg);
   };
+  function armPlay() {
+    var go = document.getElementById("go");
+    var title = document.getElementById("title");
+    if (go) {
+      try { go.setAttribute("autofocus", ""); go.focus(); } catch (e) {}
+    }
+    if (title && go && !title.getAttribute("data-kid-go")) {
+      title.setAttribute("data-kid-go", "1");
+      title.addEventListener("pointerdown", function (e) {
+        if (title.classList.contains("off")) return;
+        if (e.target.closest && (e.target.closest("#go") || e.target.closest("a"))) return;
+        go.click();
+      });
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", armPlay);
+  else armPlay();
 })(window);
