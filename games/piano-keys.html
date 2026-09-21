@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Piano Keys</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>
     html,body{background:#111827}
-    .keys{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:none;gap:8px;z-index:40}
+    .keys{position:fixed;left:8px;right:8px;bottom:12px;display:none;gap:8px;z-index:40;justify-content:center}
     .keys.on{display:flex}
-    .keys button{width:64px;height:160px;border-radius:16px;background:#fff;color:#111;font-weight:900;font-size:28px;box-shadow:0 8px 0 #020617}
+    .keys button{flex:1;max-width:104px;height:158px;border-radius:18px;background:#fff;color:#111;font-weight:900;font-size:36px;box-shadow:0 8px 0 #020617}
     .keys button.lit{background:#fde047}
   </style>
 </head>
@@ -75,13 +75,11 @@
     }
     function start() {
       song = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("keys").classList.add("on");
       playSong();
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     btns.forEach(function (b) {
       b.onclick = function () {
         var i = +b.getAttribute("data-i");
@@ -95,9 +93,8 @@
             song++;
             if (song >= SONGS.length) {
               listen = false;
-              kidYay();
-              document.getElementById("keys").classList.remove("on");
-              document.getElementById("win").classList.remove("off");
+                            document.getElementById("keys").classList.remove("on");
+              kidFinish();
             } else {
               kidPing("Nice song!");
               setTimeout(playSong, 500);

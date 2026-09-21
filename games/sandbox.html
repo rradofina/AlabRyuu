@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Sandbox</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>
     html,body{background:#fef3c7}
     .dock button{min-width:72px;min-height:84px}
@@ -48,15 +48,8 @@
     ];
     var EMO = { tree: "🌳", house: "🏠", flower: "🌸", water: "💧" };
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-sandbox") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function hud() {
       document.getElementById("ms").textContent = JOBS[Math.min(mission, JOBS.length - 1)].n;
@@ -65,8 +58,7 @@
     }
     function start() {
       play = true; mission = 0; placed = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("dock").classList.add("on");
       hud();
       kidPing(JOBS[0].say);
@@ -101,10 +93,9 @@
         placed = 0;
         if (mission >= JOBS.length) {
           play = false;
-          kidYay();
-          document.getElementById("dock").classList.remove("on");
+                    document.getElementById("dock").classList.remove("on");
           document.getElementById("wp").textContent = "⭐ " + stars + "  Your town stays!";
-          document.getElementById("win").classList.remove("off");
+          kidFinish();
         } else {
           hud();
           kidPing("Nice! " + JOBS[mission].say);

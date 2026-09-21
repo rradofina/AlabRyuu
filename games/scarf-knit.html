@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Scarf Knit</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js?v=3"></script>
+  <style>html,body{background:#fbcfe8}</style>
+</head>
+<body>
+<script>
+kidChrome({
+  title: "Scarf Knit",
+  hero: "🧶",
+  blurb: "Tap the needle the arrow shows!",
+  say: "Tap the left needle!",
+  hud: "🧶 0/8",
+  winHero: "🧣",
+  winTitle: "Cozy!",
+  winText: "A scarf of eight stitches.",
+  again: "Knit again",
+  bg: "#fbcfe8"
+});
+(function () {
+  var S = kidStage();
+  var play = false, n = 0, side = 0;
+  function hint() { kidSay(side === 0 ? "Tap LEFT!" : "Tap RIGHT!"); }
+  function start() { play = true; n = 0; side = 0; kidBegin("Tap the left needle!", "🧶 0/8"); }
+  kidBind(start);
+  S.cv.addEventListener("pointerdown", function (e) {
+    if (!play) return;
+    var p = kidPt(e, S.cv);
+    var hit = p.x < S.W * 0.5 ? 0 : 1;
+    if (hit !== side) { kidMiss("🧶", side === 0 ? "Other needle! Left!" : "Other needle! Right!", p.x, p.y); return; }
+    n++; side = 1 - side;
+    kidTap("🧶", "Stitch!  " + n + "/8", p.x, S.H * 0.62, 420 + n * 24);
+    if (kidMark(n, 8, "🧶")) { play = false; kidFinish("A scarf of eight stitches."); }
+    else hint();
+  });
+  kidTick(function () {
+    S.bg("#fce7f3");
+    S.em(side === 0 ? "👈" : "👉", S.W * 0.5, S.H * 0.22, 88);
+    var i;
+    for (i = 0; i < n; i++) S.em("🧶", S.W * (0.18 + (i % 4) * 0.2), S.H * (0.36 + ((i / 4) | 0) * 0.12), 56);
+    S.em("🥢", S.W * 0.28, S.H * 0.72, side === 0 ? 120 : 90);
+    S.em("🥢", S.W * 0.72, S.H * 0.72, side === 1 ? 120 : 90);
+    S.ctx.fillStyle = "#9d174d";
+    S.ctx.font = "800 28px Trebuchet MS,sans-serif";
+    S.ctx.textAlign = "center";
+    S.ctx.fillText("LEFT", S.W * 0.28, S.H * 0.86);
+    S.ctx.fillText("RIGHT", S.W * 0.72, S.H * 0.86);
+  });
+})();
+</script>
+</body>
+</html>

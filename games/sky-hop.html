@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Sky Hop</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#1d4ed8} #hud b{background:#1e3a8a}</style>
 </head>
 <body>
@@ -37,17 +37,8 @@
     var kid = { x: 0, y: 0 };
     var camX = 0, camY = 0;
     var cheers = ["Higher!", "Nice hop!", "Keep going!", "Up up!", "Whee!"];
-    function em(ch, px, py, s) {
-      ctx.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(ch, px, py);
-    }
-    function resize() {
-      W = innerWidth; H = innerHeight;
-      var d = Math.min(devicePixelRatio || 1, 2);
-      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
-      cv.style.width = W + "px"; cv.style.height = H + "px";
-      ctx.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(ctx, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, ctx); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function sx(wx) { return wx - camX; }
     function sy(wy) { return H * 0.62 - (wy - camY); }
@@ -112,7 +103,7 @@
     }
     document.getElementById("go").onclick = function () {
       hopCount = 0; playing = true; build();
-      document.getElementById("title").classList.add("off");
+      kidBegin();
       document.getElementById("tools").classList.add("on");
     };
     document.getElementById("hop").onclick = hop;
@@ -168,7 +159,7 @@
         if (px < -160 || px > W + 160) continue;
         em("☁️", px, py, 92);
         for (var d = 0; d < c.decos.length; d++) em("🌸", px + c.decos[d].ox, py + c.decos[d].oy, 36);
-        if (c.star) em("⭐", px + 40, py - 36, 40);
+        if (c.star) em("⭐", px + 36, py - 48, 64);
       }
       em(hopPhase === "air" || flutterT > 0 ? "🧚" : "🧒", sx(kid.x), sy(kid.y) - 28, 88);
       requestAnimationFrame(loop);

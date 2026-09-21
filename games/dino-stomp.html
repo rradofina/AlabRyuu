@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Dino Stomp</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#14532d}</style>
 </head>
 <body>
@@ -36,15 +36,8 @@
     var dino = { y: 0, vy: 0, pose: "walk", poseT: 0 };
     var logs = [], blooms = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dino") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function save() { try { localStorage.setItem("alabryuu-dino", JSON.stringify({ stars: stars })); } catch (e) {} }
     function hud() {
@@ -73,14 +66,12 @@
     }
     function start() {
       play = true;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("dock").classList.add("on");
       document.getElementById("say").textContent = "Hop flowers. Stomp logs!";
       load();
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     document.getElementById("hop").onclick = hop;
     document.getElementById("stomp").onclick = stompNow;
     cv.addEventListener("pointerdown", function (e) {
@@ -91,9 +82,8 @@
     function cheer() {
       if (flowers >= 12 && play) {
         play = false;
-        document.getElementById("dock").classList.remove("on");
         document.getElementById("winP").textContent = "🌼 " + flowers + "  ⭐ " + stars;
-        document.getElementById("win").classList.remove("off");
+        kidFinish();
       } else if (flowers && flowers % 4 === 0) {
         document.getElementById("say").textContent = "Yes! Keep stomping!";
       }
@@ -138,7 +128,7 @@
       em("☀️", W * 0.84, 90, 56);
       em("🌳", 40, gY - 40, 64); em("🌳", W - 40, gY - 50, 72);
       x.fillStyle = "#4ade80"; x.fillRect(0, gY, W, H - gY);
-      blooms.forEach(function (f) { if (!f.got) em("🌼", f.x, gY - 28, 48); });
+      blooms.forEach(function (f) { if (!f.got) em("🌼", f.x, gY - 28, 64); });
       logs.forEach(function (o) { if (!o.smash) em("🪵", o.x, gY - 24, 64); });
       var dsz = dino.pose === "stomp" ? 92 : (dino.pose === "crouch" ? 64 : 80);
       em("🦕", 120, gY - 28 + dino.y, dsz);

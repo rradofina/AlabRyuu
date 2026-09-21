@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Bug Hunt</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#166534}</style>
 </head>
 <body>
@@ -30,15 +30,8 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, t = 0, play = false, n = 0, leaves = [];
     var BUGS = ["🐞", "🐛", "🦋", "🐝"];
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function start() {
       play = true; n = 0;
@@ -50,16 +43,14 @@
         { x: 0.78, y: 0.62, bug: "", open: 0 },
         { x: 0.48, y: 0.74, bug: "🐝", open: 0 }
       ];
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("got").textContent = "🐞 0/4";
       document.getElementById("say").textContent = "Flip the leaves!";
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var p = kidPt(e, cv), best = null, bestD = 90 * 90, i;
+      var p = kidPt(e, cv), best = null, bestD = 120 * 120, i;
       for (i = 0; i < leaves.length; i++) {
         if (leaves[i].open) continue;
         var dx = p.x - leaves[i].x * W, dy = p.y - leaves[i].y * H, d = dx * dx + dy * dy;
@@ -74,7 +65,7 @@
         n++;
         document.getElementById("got").textContent = "🐞 " + n + "/4";
         kidTap(best.bug, "Hi " + best.bug + "!  " + n + "/4", best.x * innerWidth, best.y * innerHeight, 540);
-        if (n >= 4) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+        if (n >= 4) { play = false; kidFinish(); }
       } else kidTap("🍂", "Just a leaf. Keep looking!", best.x * innerWidth, best.y * innerHeight, 280);
     });
     function loop() {

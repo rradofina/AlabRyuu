@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Monster Smile</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#581c87}</style>
 </head>
 <body>
@@ -35,21 +35,13 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, play = false, have = { eyes: 0, mouth: 0, horn: 0 }, stars = 0;
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-monster") || "null"); if (sv && sv.stars) stars = sv.stars; } catch (e) {}
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function count() { return have.eyes + have.mouth + have.horn; }
     function start() {
       play = true; have = { eyes: 0, mouth: 0, horn: 0 }; pick = { eyes: 0, mouth: 0, horn: 0 };
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("dock").classList.add("on");
       document.getElementById("bits").textContent = "0/3";
       document.getElementById("say").textContent = "Give eyes, mouth, and horns!";
@@ -69,13 +61,11 @@
       if (count() >= 3) {
         play = false; stars++;
         try { localStorage.setItem("alabryuu-monster", JSON.stringify({ stars: stars })); } catch (e) {}
-        kidYay();
-        document.getElementById("dock").classList.remove("on");
-        document.getElementById("win").classList.remove("off");
+                document.getElementById("dock").classList.remove("on");
+        kidFinish();
       }
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     document.getElementById("eyes").onclick = function () { add("eyes", "Googly eyes"); };
     document.getElementById("mouth").onclick = function () { add("mouth", "Big smile"); };
     document.getElementById("horn").onclick = function () { add("horn", "Fancy horns"); };

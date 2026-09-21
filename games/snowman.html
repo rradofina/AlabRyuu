@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Snowman Build</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#e0f2fe}</style>
 </head>
 <body>
@@ -35,20 +35,12 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, play = false, step = 0;
     var ORDER = ["big", "mid", "lit"];
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function start() {
       play = true; step = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("dock").classList.add("on");
       document.getElementById("say").textContent = "Tap Big first!";
       document.getElementById("st").textContent = "Stack";
@@ -66,9 +58,8 @@
           document.getElementById("dock").innerHTML = '<button id="face"><span>🥕</span>Face</button>';
           document.getElementById("face").onclick = function () {
             play = false;
-            kidYay();
-            document.getElementById("dock").classList.remove("on");
-            document.getElementById("win").classList.remove("off");
+                        document.getElementById("dock").classList.remove("on");
+            kidFinish();
           };
         }
       }

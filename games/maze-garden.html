@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Maze Garden</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#14532d}</style>
 </head>
 <body>
@@ -16,7 +16,7 @@
   <div class="cover" id="title">
     <div class="hero">🐰</div>
     <h1>Maze Garden</h1>
-    <p>Tap the next square. Help bunny!</p>
+    <p>Slide on the green squares to the carrot!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -37,17 +37,10 @@
       [0,1,1,1,1]
     ];
     var cols = 5, rows = 5, bunny = { r: 0, c: 0 };
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
-    function cell() { return Math.min((W - 40) / cols, (H - 200) / rows); }
+    function cell() { return Math.min((W - 16) / cols, (H - 140) / rows); }
     function origin() {
       var s = cell();
       return { x: (W - s * cols) / 2, y: 110 };
@@ -60,33 +53,42 @@
     }
     function start() {
       play = true; bunny = { r: 0, c: 0 };
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
-      document.getElementById("say").textContent = "Tap the next path square!";
+      kidBegin();
+      kidSay("Tap a green square!");
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
-    function tryStep(p) {
-      if (!p || !GRID[p.r][p.c]) { document.getElementById("say").textContent = "Stay on the light path!"; return; }
-      var adj = Math.abs(p.r - bunny.r) + Math.abs(p.c - bunny.c);
-      if (adj === 0) { drag = 1; return; }
-      if (adj === 1) {
-        bunny = p; drag = 1;
-        kidTap("🐰", "Hop! To the carrot.", innerWidth * 0.5, innerHeight * 0.5, 480);
-        if (p.r === 4 && p.c === 4) {
-          play = false; drag = 0;
-          kidYay();
-          document.getElementById("win").classList.remove("off");
-        }
-      } else kidTap("🌿", "Tap the next square.", innerWidth * 0.5, innerHeight * 0.5, 240);
+    kidBind(start);
+    function clearLine(r1, c1, r2, c2) {
+      if (r1 !== r2 && c1 !== c2) return false;
+      var dr = Math.sign(r2 - r1), dc = Math.sign(c2 - c1);
+      if (!dr && !dc) return true;
+      var r = r1, c = c1;
+      while (r !== r2 || c !== c2) {
+        r += dr; c += dc;
+        if (!GRID[r] || !GRID[r][c]) return false;
+      }
+      return true;
+    }
+    function tryStep(p, quiet) {
+      if (!p || !GRID[p.r][p.c]) {
+        if (!quiet) kidMiss("🌿", "Stay on the green path!", innerWidth * 0.5, innerHeight * 0.42);
+        return;
+      }
+      if (p.r === bunny.r && p.c === bunny.c) { drag = 1; return; }
+      if (!clearLine(bunny.r, bunny.c, p.r, p.c)) {
+        if (!quiet) kidMiss("🐰", "Slide along the green!", innerWidth * 0.5, innerHeight * 0.42);
+        return;
+      }
+      bunny = p; drag = 1;
+      kidTap("🐰", "Hop! To the carrot.", innerWidth * 0.5, innerHeight * 0.42, 480);
+      if (p.r === 4 && p.c === 4) { play = false; drag = 0; kidFinish(); }
     }
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      tryStep(at(kidPt(e, cv).x, kidPt(e, cv).y));
+      tryStep(at(kidPt(e, cv).x, kidPt(e, cv).y), false);
     });
     cv.addEventListener("pointermove", function (e) {
       if (!play || !drag) return;
-      tryStep(at(kidPt(e, cv).x, kidPt(e, cv).y));
+      tryStep(at(kidPt(e, cv).x, kidPt(e, cv).y), true);
     });
     addEventListener("pointerup", function () { drag = 0; });
     function loop() {
@@ -94,13 +96,15 @@
       var o = origin(), s = cell(), r, c;
       for (r = 0; r < rows; r++) for (c = 0; c < cols; c++) {
         var px = o.x + c * s, py = o.y + r * s;
+        var open = play && clearLine(bunny.r, bunny.c, r, c) && !(r === bunny.r && c === bunny.c);
         if (GRID[r][c]) {
-          x.fillStyle = "#bbf7d0";
-          x.fillRect(px + 6, py + 6, s - 12, s - 12);
-        } else em("🌳", px + s / 2, py + s / 2, Math.min(48, s * 0.7));
+          x.fillStyle = open ? "#86efac" : "#dcfce7";
+          x.fillRect(px + 4, py + 4, s - 8, s - 8);
+          if (open) em("🟢", px + s / 2, py + s / 2, Math.max(34, s * 0.4));
+        } else em("🌳", px + s / 2, py + s / 2, Math.max(54, s * 0.62));
       }
-      em("🥕", o.x + 4.5 * s, o.y + 4.5 * s, 48);
-      em("🐰", o.x + (bunny.c + 0.5) * s, o.y + (bunny.r + 0.5) * s, 56);
+      em("🥕", o.x + 4.5 * s, o.y + 4.5 * s, Math.max(64, s * 0.72));
+      em("🐰", o.x + (bunny.c + 0.5) * s, o.y + (bunny.r + 0.5) * s, Math.max(72, s * 0.8));
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

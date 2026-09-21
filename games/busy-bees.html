@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Busy Bees</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#fde047}</style>
 </head>
 <body>
@@ -30,15 +30,8 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, t = 0, play = false, n = 0, want = "🌸", holding = 0;
     var FLOW = ["🌸", "🌼", "🌺"];
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function spots() {
       return [
@@ -49,23 +42,21 @@
     }
     function start() {
       play = true; n = 0; holding = 0; want = FLOW[(Math.random() * 3) | 0];
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("nv").textContent = "🍯 0/6";
       document.getElementById("say").textContent = "Tap " + want + " then the hive!";
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
       var hiveX = W * 0.78, hiveY = H * 0.28;
       var hx = kidPt(e, cv).x - hiveX, hy = kidPt(e, cv).y - hiveY;
-      if (hx * hx + hy * hy < 80 * 80) {
+      if (hx * hx + hy * hy < 130 * 130) {
         if (holding) {
           holding = 0; n++;
           document.getElementById("nv").textContent = "🍯 " + n + "/6";
           kidTap("🍯", n >= 6 ? "Honey time!" : "Now " + want + "!", hiveX, hiveY, 560);
-          if (n >= 6) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+          if (n >= 6) { play = false; kidFinish(); }
           else {
             want = FLOW[(Math.random() * 3) | 0];
             kidPing("Now " + want + "!");
@@ -73,12 +64,12 @@
         } else kidTap("🍯", "Get nectar first. Tap " + want, hiveX, hiveY, 240);
         return;
       }
-      var p = kidPt(e, cv), hit = null, best = 80 * 80, i, list = spots();
+      var p = kidPt(e, cv), hit = null, best = 130 * 130, i, list = spots();
       for (i = 0; i < list.length; i++) {
         var dx = p.x - list[i].x * W, dy = p.y - list[i].y * H, d = dx * dx + dy * dy;
         if (d < best) { best = d; hit = list[i]; }
       }
-      if (!hit) return;
+      if (!hit) { kidMiss("🌸", "Tap a flower!", p.x, p.y); return; }
       if (hit.e === want) { holding = 1; kidTap(hit.e, "Home to the hive!", hit.x * innerWidth, hit.y * innerHeight, 500); }
       else kidTap(hit.e, "Wrong flower. Want " + want, hit.x * innerWidth, hit.y * innerHeight, 240);
     });

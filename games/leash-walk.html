@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Leash Walk</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js?v=3"></script>
+  <style>html,body{background:#d9f99d}</style>
+</head>
+<body>
+<script>
+kidChrome({
+  title: "Leash Walk",
+  hero: "🐕",
+  blurb: "The dog pulls. Tap that side!",
+  say: "Tap the way the dog pulls!",
+  hud: "🌸 0/5",
+  winHero: "🐶",
+  winTitle: "Good walk!",
+  winText: "Five flower sniffs.",
+  again: "Walk again",
+  bg: "#d9f99d"
+});
+(function () {
+  var S = kidStage();
+  var clock = 0, play = false, n = 0, pull = 1;
+  function fresh() {
+    pull = Math.random() < 0.5 ? -1 : 1;
+    kidSay(pull < 0 ? "Pulls left! Tap left!" : "Pulls right! Tap right!");
+  }
+  function start() { play = true; n = 0; kidBegin("Tap the pull side!", "🌸 0/5"); fresh(); }
+  kidBind(start);
+  S.cv.addEventListener("pointerdown", function (e) {
+    if (!play) return;
+    var p = kidPt(e, S.cv);
+    var side = p.x < S.W * 0.5 ? -1 : 1;
+    if (side === pull) {
+      n++;
+      kidTap("🌸", "Sniff!  " + n + "/5", S.W * 0.5, S.H * 0.55, 540);
+      if (kidMark(n, 5, "🌸")) { play = false; kidFinish("Five flower sniffs."); }
+      else fresh();
+    } else kidMiss("🐕", pull < 0 ? "Tap the left!" : "Tap the right!", p.x, p.y);
+  });
+  kidTick(function (dt) {
+    clock += dt;
+    S.bg("#ecfccb");
+    S.ctx.fillStyle = "#a3e635";
+    S.ctx.fillRect(S.W * 0.35, 0, S.W * 0.3, S.H);
+    S.em("🌸", S.W * 0.5, S.H * 0.58, 72);
+    var x = S.W * (0.5 + pull * 0.28);
+    S.em(pull < 0 ? "⬅️" : "➡️", x, S.H * 0.34, 72);
+    S.em("🐕", x, S.H * 0.48 + Math.sin(clock * 6) * 6, 110);
+  });
+})();
+</script>
+</body>
+</html>

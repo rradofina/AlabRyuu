@@ -5,24 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Hide and Seek</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#14532d}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="fd">0/3</b></div>
-  <div id="say">Find 3 hiding pals!</div>
+  <div id="hud"><b id="fd">0/4</b></div>
+  <div id="say">Find 4 hiding pals!</div>
   <div class="cover" id="title">
     <div class="hero">🔎</div>
     <h1>Hide and Seek</h1>
-    <p>Tap bushes and trees. Find friends!</p>
+    <p>Tap bushes and trees. Find 4 friends!</p>
     <button class="play" id="go" autofocus>Seek</button>
   </div>
   <div class="cover off" id="win">
     <div class="hero">🤗</div>
     <h1>Found you!</h1>
-    <p>Three pals giggled.</p>
+    <p>Four pals giggled.</p>
     <button class="play g" id="again">Seek again</button>
   </div>
   <script>
@@ -30,34 +30,26 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, t = 0, play = false, found = 0, stars = 0, spots = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-hide") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function start() {
       play = true; found = 0;
       spots = [
-        { e: "🌳", x: 0.22, y: 0.38, pal: "🦊", got: 0 },
-        { e: "bush", x: 0.72, y: 0.42, pal: "🐰", got: 0 },
-        { e: "🪨", x: 0.28, y: 0.64, pal: "", got: 0 },
-        { e: "⛺", x: 0.70, y: 0.66, pal: "🦉", got: 0 }
+        { e: "🌳", x: 0.18, y: 0.34, pal: "🦊", got: 0 },
+        { e: "bush", x: 0.78, y: 0.36, pal: "🐰", got: 0 },
+        { e: "🌻", x: 0.48, y: 0.52, pal: "🐸", got: 0 },
+        { e: "🪨", x: 0.22, y: 0.70, pal: "", got: 0 },
+        { e: "⛺", x: 0.74, y: 0.68, pal: "🦉", got: 0 }
       ];
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
-      document.getElementById("fd").textContent = "0/3";
-      document.getElementById("say").textContent = "Find 3 hiding pals!";
+      kidBegin();
+      document.getElementById("fd").textContent = "0/4";
+      document.getElementById("say").textContent = "Find 4 hiding pals!";
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var p = kidPt(e, cv), best = null, bestD = 95 * 95, i;
+      var p = kidPt(e, cv), best = null, bestD = 130 * 130, i;
       for (i = 0; i < spots.length; i++) {
         var dx = p.x - spots[i].x * W, dy = p.y - spots[i].y * H, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = spots[i]; }
@@ -70,9 +62,9 @@
       if (best.pal) {
         best.got = 1; found++; stars++;
         try { localStorage.setItem("alabryuu-hide", JSON.stringify({ stars: stars })); } catch (err) {}
-        document.getElementById("fd").textContent = found + "/3";
-        kidTap(best.pal, "Hi " + best.pal + "!  " + found + "/3", best.x * innerWidth, best.y * innerHeight, 540);
-        if (found >= 3) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+        document.getElementById("fd").textContent = found + "/4";
+        kidTap(best.pal, "Hi " + best.pal + "!  " + found + "/4", best.x * innerWidth, best.y * innerHeight, 540);
+        if (found >= 4) { play = false; kidFinish(); }
       } else kidTap(best.e === "bush" ? "🌿" : best.e, "Nobody here. Keep looking!", best.x * innerWidth, best.y * innerHeight, 260);
     });
     function loop() {
@@ -82,8 +74,8 @@
       em("☀️", W * 0.84, 80, 56);
       spots.forEach(function (s) {
         var px = s.x * W, py = s.y * H;
-        if (s.got) em(s.pal, px, py - 10, 92);
-        else em(s.e === "bush" ? "🌿" : s.e, px, py, 96);
+        if (s.got) em(s.pal, px, py - 10, 110);
+        else em(s.e === "bush" ? "🌿" : s.e, px, py, 110);
       });
       requestAnimationFrame(loop);
     }

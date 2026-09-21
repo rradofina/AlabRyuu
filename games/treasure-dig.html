@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Treasure Dig</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#f59e0b}</style>
 </head>
 <body>
@@ -31,17 +31,8 @@
     var W, H, play = false, n = 0, stars = 0, piles = [];
     var GEMS = ["💎", "👑", "⭐", "💍"];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dig") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = Math.floor(W * d); cv.height = Math.floor(H * d);
-      cv.style.width = W + "px"; cv.style.height = H + "px";
-      x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function start() {
       play = true; n = 0;
@@ -51,13 +42,11 @@
         { x: 0.30, y: 0.66, gem: GEMS[2], dug: 0, shake: 0 },
         { x: 0.70, y: 0.68, gem: GEMS[3], dug: 0, shake: 0 }
       ];
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("got").textContent = "💎 0/4";
       kidPing("TAP a sand pile!");
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
       var p = kidPt(e, cv), best = -1, bestD = 110 * 110, i;
@@ -80,8 +69,7 @@
       kidBurst(["✨", piles[best].gem, "💛"], piles[best].x * innerWidth, piles[best].y * innerHeight);
       if (n >= 4) {
         play = false;
-        kidYay();
-        document.getElementById("win").classList.remove("off");
+        kidFinish();
       }
     });
     function loop() {

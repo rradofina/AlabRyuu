@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Balloon Pop</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#7dd3fc}</style>
 </head>
 <body>
@@ -33,15 +33,8 @@
     var SET = [
       { e: "🔴", n: "red" }, { e: "🟡", n: "yellow" }, { e: "🔵", n: "blue" }, { e: "🟢", n: "green" }
     ];
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function spawn() {
       var s = SET[(Math.random() * SET.length) | 0];
@@ -49,8 +42,7 @@
     }
     function start() {
       play = true; n = 0; balls = []; want = "🔴";
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("got").textContent = "0/8";
       document.getElementById("say").textContent = "Pop the red ones! 🔴";
       for (var i = 0; i < 5; i++) {
@@ -58,11 +50,10 @@
         balls.push({ e: e, x: 50 + i * 70, y: H * 0.35 + (i % 3) * 90, vy: 28 + i * 4 });
       }
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var p = kidPt(e, cv), i, best = -1, bestD = 90 * 90;
+      var p = kidPt(e, cv), i, best = -1, bestD = 120 * 120;
       for (i = balls.length - 1; i >= 0; i--) {
         var dx = p.x - balls[i].x, dy = p.y - balls[i].y, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
@@ -76,7 +67,7 @@
         document.getElementById("got").textContent = n + "/8";
         kidTap("💥", n === 4 ? "Now yellow! 🟡" : "Pop!  " + n + "/8", hit.x, hit.y, 520);
         if (n === 4) want = "🟡";
-        if (n >= 8) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+        if (n >= 8) { play = false; kidFinish(); }
       } else kidTap(balls[best].e, "Not that color. " + want, balls[best].x, balls[best].y, 240);
     });
     function loop(now) {
@@ -92,7 +83,7 @@
         balls.forEach(function (b) { b.y -= b.vy * dt; });
         balls = balls.filter(function (b) { return b.y > -40; });
       }
-      balls.forEach(function (b) { em(b.e, b.x, b.y, 80); });
+      balls.forEach(function (b) { em(b.e, b.x, b.y, 96); });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);

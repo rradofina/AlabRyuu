@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Memory Zoo</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>
     html,body{background:#14532d;overflow:auto;touch-action:manipulation}
     .grid{position:fixed;left:50%;top:58%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:min(92vw,440px);z-index:2}
@@ -71,7 +71,7 @@
         kidPing("Match! " + open[0].e);
         kidBurst([open[0].e, "✨", "💛"], innerWidth * 0.5, innerHeight * 0.4);
         open = []; lock = false;
-        if (pairs >= 4) { kidYay(); document.getElementById("win").classList.remove("off"); }
+        if (pairs >= 4) { kidFinish(); }
       } else {
         kidPing("Try again!");
         setTimeout(function () {
@@ -81,12 +81,10 @@
       }
     }
     function start() {
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       deal();
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
   })();
   </script>
 </body>
