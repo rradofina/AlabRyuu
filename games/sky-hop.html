@@ -43,7 +43,6 @@
       "sky-hop/ryuu-hop.png",
       "sky-hop/ryuu-front.png",
       "sky-hop/cloud.png",
-      "sky-hop/island.png",
       "sky-hop/star.png",
       "sky-hop/boost-rocket.png",
       "shared/star.png",
@@ -71,8 +70,7 @@
     function spawnCloud(i) {
       clouds.push({
         i: i, x: i * 160, y: i * 40 + Math.sin(i * 0.9) * 30,
-        decos: [], star: i > 0 && i % 3 === 0 ? 1 : 0,
-        kind: i % 4 === 0 ? "island" : "cloud"
+        decos: [], star: i > 0 && i % 3 === 0 ? 1 : 0
       });
     }
     function ensureAhead() {
@@ -180,9 +178,11 @@
       for (i = 0; i < clouds.length; i++) {
         var c = clouds[i], cpx = sx(c.x), cpy = sy(c.y + Math.sin(T * 1.4 + c.i) * 6);
         if (cpx < -180 || cpx > W + 180) continue;
-        var plat = c.kind === "island" ? S["sky-hop/island.png"] : S["sky-hop/cloud.png"];
-        var fit = c.kind === "island" ? 130 : 108;
-        kidDraw(ctx, plat, cpx, cpy, { fit: fit, squashY: 1 + Math.sin(T * 2 + c.i) * 0.03 });
+        kidDraw(ctx, S["sky-hop/cloud.png"], cpx, cpy, {
+          fit: 108 + (c.i % 3) * 8,
+          squashY: 1 + Math.sin(T * 2 + c.i) * 0.03,
+          flipX: c.i % 2 === 1
+        });
         for (var d = 0; d < c.decos.length; d++) {
           kidDraw(ctx, S["dino-stomp/flower.png"], cpx + c.decos[d].ox, cpy + c.decos[d].oy - 8, { fit: 28 });
         }
