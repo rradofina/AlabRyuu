@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>AlabRyuu</title>
-  <link rel="preload" href="kid.js" as="script" />
+  <link rel="preload" href="kid.js?v=3" as="script" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -112,6 +112,19 @@
     .art.monster { background: linear-gradient(160deg, #7c3aed, #86efac); }
     .art.tracks { background: linear-gradient(160deg, #dc2626, #fde047); }
     .art.ocean { background: linear-gradient(160deg, #0369a1, #67e8f9); }
+    .art.cake { background: linear-gradient(160deg, #f59e0b, #fde68a); }
+    .art.tea { background: linear-gradient(160deg, #fb7185, #fecdd3); }
+    .art.yoyo { background: linear-gradient(160deg, #7c3aed, #fde047); }
+    .art.night { background: linear-gradient(160deg, #1e1b4b, #818cf8); }
+    .art.saw { background: linear-gradient(160deg, #0284c7, #fde68a); }
+    .art.wash { background: linear-gradient(160deg, #38bdf8, #e0f2fe); }
+    .art.popc { background: linear-gradient(160deg, #ea580c, #fde68a); }
+    .art.mail { background: linear-gradient(160deg, #2563eb, #fecaca); }
+    .art.roll { background: linear-gradient(160deg, #e0f2fe, #38bdf8); }
+    .art.knit { background: linear-gradient(160deg, #db2777, #fbcfe8); }
+    .art.orbit { background: linear-gradient(160deg, #312e81, #67e8f9); }
+    .art.leash { background: linear-gradient(160deg, #65a30d, #fde68a); }
+    .art.bob { background: linear-gradient(160deg, #0369a1, #bae6fd); }
     .meta { padding: 12px 14px 16px; }
     .name { font-size: 20px; font-weight: 800; }
     .tag { font-size: 14px; opacity: .75; margin-top: 2px; }
@@ -126,7 +139,7 @@
     <div class="logo">🦖✨</div>
     <h1>AlabRyuu</h1>
     <p class="sub">Alab's games. Tap a card to play.</p>
-    <p class="count">42 games</p>
+    <p class="count" id="count">55 games</p>
     <a class="avatar-chip" id="chip" href="games/avatar.html">Make your avatar</a>
   </header>
 
@@ -307,8 +320,61 @@
       <div class="art ocean">🌊</div>
       <div class="meta"><div class="name">Ocean Clean</div><div class="tag">Pick up trash</div><span class="pill">Play</span></div>
     </a>
+    <a class="card" data-type="play" href="games/pancake-flip.html">
+      <div class="art cake">🥞</div>
+      <div class="meta"><div class="name">Pancake Flip</div><div class="tag">Flip when gold</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/tea-party.html">
+      <div class="art tea">🍵</div>
+      <div class="meta"><div class="name">Tea Party</div><div class="tag">Pour to the line</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="jump" href="games/yo-yo.html">
+      <div class="art yoyo">🪀</div>
+      <div class="meta"><div class="name">Yo-yo</div><div class="tag">Tap at the bottom</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/constellation.html">
+      <div class="art night">✨</div>
+      <div class="meta"><div class="name">Star Connect</div><div class="tag">Join the dots</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/seesaw.html">
+      <div class="art saw">⚖️</div>
+      <div class="meta"><div class="name">Seesaw</div><div class="tag">Balance the pals</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/car-wash.html">
+      <div class="art wash">🧽</div>
+      <div class="meta"><div class="name">Car Wash</div><div class="tag">Rub the mud off</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/popcorn.html">
+      <div class="art popc">🍿</div>
+      <div class="meta"><div class="name">Popcorn</div><div class="tag">Tap when it pops</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/mail-round.html">
+      <div class="art mail">✉️</div>
+      <div class="meta"><div class="name">Mail Round</div><div class="tag">Match the house</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/snowball-roll.html">
+      <div class="art roll">☃️</div>
+      <div class="meta"><div class="name">Snowball Roll</div><div class="tag">Hold to the size</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/scarf-knit.html">
+      <div class="art knit">🧶</div>
+      <div class="meta"><div class="name">Scarf Knit</div><div class="tag">Left then right</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/orbit-dock.html">
+      <div class="art orbit">🌙</div>
+      <div class="meta"><div class="name">Orbit Dock</div><div class="tag">Tap when they kiss</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/leash-walk.html">
+      <div class="art leash">🐕</div>
+      <div class="meta"><div class="name">Leash Walk</div><div class="tag">Follow the pull</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/fishing-bob.html">
+      <div class="art bob">🎣</div>
+      <div class="meta"><div class="name">Fishing Bob</div><div class="tag">Tap when it dips</div><span class="pill">Play</span></div>
+    </a>
   </main>
   <script>
+    document.getElementById("count").textContent = document.querySelectorAll("#grid .card").length + " games";
     try {
       var a = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null");
       if (a && a.name) {

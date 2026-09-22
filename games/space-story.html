@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Space Story</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#0b1026}</style>
 </head>
 <body>
@@ -32,15 +32,8 @@
     var rocket = { y: 0.72, vy: 0 }, planets = [], flags = {};
     var KINDS = ["🪐", "🌕", "🌍", "🟠", "🟣"];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-space") || "{}"); } catch (e) { sv = {}; }
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function hud() {
       document.getElementById("pl").textContent = "🪐 " + got + "/5";
@@ -49,22 +42,27 @@
     function spawn() {
       planets = [];
       for (var i = 0; i < 5; i++) {
-        planets.push({ k: KINDS[i], x: 0.18 + i * 0.16, y: -0.15 - i * 0.28, got: 0 });
+        planets.push({ k: KINDS[i], x: i === 0 ? 0.5 : 0.28 + (i % 3) * 0.22, y: 0.58 - i * 0.16, got: 0 });
       }
     }
     function start() {
       play = true; got = 0; rocket.y = 0.72; rocket.vy = 0; flags = {};
       spawn();
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("say").textContent = "Tap to boost!";
       hud();
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     function boost() {
       if (!play) return;
       rocket.vy = -0.55;
+      var near = null, nd = 0.22 * 0.22, i;
+      for (i = 0; i < planets.length; i++) {
+        if (planets[i].got) continue;
+        var dy = planets[i].y - rocket.y, dx = planets[i].x - 0.5, d = dx * dx + dy * dy;
+        if (d < nd) { nd = d; near = planets[i]; }
+      }
+      if (near) { near.y += (rocket.y - 0.08 - near.y) * 0.65; near.x += (0.5 - near.x) * 0.65; }
       kidTap("🚀", "Zoom!", innerWidth * 0.5, innerHeight * rocket.y, 480);
     }
     cv.addEventListener("pointerdown", boost);
@@ -84,16 +82,15 @@
           p.y += 0.18 * dt;
           var px = p.x * W, py = p.y * H;
           var dx = px - W * 0.5, dy = py - rocket.y * H;
-          if (dx * dx + dy * dy < 70 * 70) {
+          if (dx * dx + dy * dy < 130 * 130) {
             p.got = 1; got++; stars++; flags[p.k] = 1;
             try { localStorage.setItem("alabryuu-space", JSON.stringify({ scene: got, flags: flags })); } catch (e) {}
             hud();
             kidTap(p.k, "Hi " + p.k + "!", px, py, 560);
             if (got >= 5) {
               play = false;
-              kidYay();
-              document.getElementById("wp").textContent = "⭐ " + stars + "  Five planet friends!";
-              document.getElementById("win").classList.remove("off");
+                            document.getElementById("wp").textContent = "⭐ " + stars + "  Five planet friends!";
+              kidFinish();
             }
           }
           if (p.y > 1.1) p.y = -0.2;

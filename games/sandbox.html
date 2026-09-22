@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Sandbox</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>
     html,body{background:#fef3c7}
     .dock button{min-width:72px;min-height:84px}
@@ -27,7 +27,7 @@
   <div class="cover" id="title">
     <div class="hero">🧱</div>
     <h1>Sandbox</h1>
-    <p>Stamp a town. It stays!</p>
+    <p>Stamp what each job asks!</p>
     <button class="play" id="go" autofocus>Build</button>
   </div>
   <div class="cover off" id="win">
@@ -42,32 +42,31 @@
     var W, H, t = 0, play = false, mission = 0, placed = 0, stars = 0, tool = "tree";
     var bits = [];
     var JOBS = [
-      { n: "House", need: 5, say: "TAP the sand! Stamp a house and trees." },
-      { n: "Garden", need: 5, say: "TAP flowers and water!" },
-      { n: "Town", need: 6, say: "TAP more houses!" }
+      { n: "House", need: 4, say: "Stamp a tree or a house!", ok: { tree: 1, house: 1 }, tool: "tree" },
+      { n: "Garden", need: 4, say: "Stamp a flower or water!", ok: { flower: 1, water: 1 }, tool: "flower" },
+      { n: "Town", need: 4, say: "Stamp more houses!", ok: { house: 1, tree: 1 }, tool: "house" }
     ];
     var EMO = { tree: "🌳", house: "🏠", flower: "🌸", water: "💧" };
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-sandbox") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function hud() {
       document.getElementById("ms").textContent = JOBS[Math.min(mission, JOBS.length - 1)].n;
       document.getElementById("bl").textContent = placed + "/" + JOBS[Math.min(mission, JOBS.length - 1)].need;
       document.getElementById("st").textContent = "⭐ " + stars;
     }
+    function pickTool(name) {
+      tool = name;
+      [].forEach.call(document.querySelectorAll("#dock button"), function (el) {
+        el.classList.toggle("on", el.getAttribute("data-k") === name);
+      });
+    }
     function start() {
       play = true; mission = 0; placed = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("dock").classList.add("on");
+      pickTool(JOBS[0].tool);
       hud();
       kidPing(JOBS[0].say);
     }
@@ -76,12 +75,12 @@
       document.getElementById("win").classList.add("off");
       play = true; mission = 0; placed = 0; hud();
       document.getElementById("dock").classList.add("on");
-      kidPing("Keep stamping!");
+      pickTool(JOBS[0].tool);
+      kidPing(JOBS[0].say);
     };
     [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
       b.onclick = function () {
-        tool = b.getAttribute("data-k");
-        [].forEach.call(document.querySelectorAll("#dock button"), function (el) { el.classList.toggle("on", el === b); });
+        pickTool(b.getAttribute("data-k"));
         kidNote(400);
         kidPing("Stamp " + EMO[tool] + "!");
       };
@@ -91,6 +90,11 @@
       var p = kidPt(e, cv);
       if (p.y > H - 110) return;
       if (p.x < 110 && p.y < 56) return;
+      var job = JOBS[Math.min(mission, JOBS.length - 1)];
+      if (!job.ok[tool]) {
+        kidMiss(EMO[tool], job.say, p.x, p.y);
+        return;
+      }
       bits.push({ k: tool, x: p.x, y: p.y, s: 72 + Math.random() * 28, pop: 1 });
       placed++; stars++;
       try { localStorage.setItem("alabryuu-sandbox", JSON.stringify({ stars: stars, mission: mission })); } catch (err) {}
@@ -101,11 +105,11 @@
         placed = 0;
         if (mission >= JOBS.length) {
           play = false;
-          kidYay();
-          document.getElementById("dock").classList.remove("on");
+                    document.getElementById("dock").classList.remove("on");
           document.getElementById("wp").textContent = "⭐ " + stars + "  Your town stays!";
-          document.getElementById("win").classList.remove("off");
+          kidFinish();
         } else {
+          pickTool(JOBS[mission].tool);
           hud();
           kidPing("Nice! " + JOBS[mission].say);
         }

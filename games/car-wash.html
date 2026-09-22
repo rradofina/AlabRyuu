@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Car Wash</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js?v=3"></script>
+  <style>html,body{background:#bae6fd}</style>
+</head>
+<body>
+<script>
+kidChrome({
+  title: "Car Wash",
+  hero: "🧽",
+  blurb: "Rub the mud spots until the car shines!",
+  say: "Rub the brown spots!",
+  hud: "🧽 0/6",
+  winHero: "✨",
+  winTitle: "Sparkly!",
+  winText: "The car is clean.",
+  again: "Wash again",
+  bg: "#bae6fd"
+});
+(function () {
+  var S = kidStage();
+  var spots, play = false, n = 0, rub = false, sx = 0, sy = 0;
+  var OFF = [[-80, -30], [50, -40], [-10, 20], [90, 24], [-100, 50], [10, -70]];
+  function place() {
+    var cx = S.W * 0.5, cy = S.H * 0.46;
+    if (!spots) spots = OFF.map(function () { return { got: 0 }; });
+    for (var i = 0; i < OFF.length; i++) {
+      spots[i].x = cx + OFF[i][0];
+      spots[i].y = cy + OFF[i][1];
+    }
+  }
+  function wipe(p, quiet) {
+    if (!play) return;
+    place();
+    sx = p.x; sy = p.y;
+    var i, best = -1, bestD = 150 * 150;
+    for (i = 0; i < spots.length; i++) {
+      if (spots[i].got) continue;
+      var dx = p.x - spots[i].x, dy = p.y - spots[i].y, d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    if (best < 0) { if (!quiet) kidMiss("🧽", "Rub the mud!", p.x, p.y); return; }
+    spots[best].got = 1; n++;
+    kidTap("💦", "Clean!  " + n + "/6", spots[best].x, spots[best].y, 500);
+    if (kidMark(n, 6, "🧽")) { play = false; rub = false; kidFinish("The car is clean."); }
+  }
+  function start() { play = true; n = 0; rub = false; spots = null; place(); kidBegin("Rub the mud!", "🧽 0/6"); }
+  kidBind(start);
+  S.cv.addEventListener("pointerdown", function (e) { rub = true; wipe(kidPt(e, S.cv), false); });
+  addEventListener("pointermove", function (e) { if (rub) wipe(kidPt(e, S.cv), true); });
+  addEventListener("pointerup", function () { rub = false; });
+  kidTick(function () {
+    place();
+    S.bg("#e0f2fe");
+    S.em(n >= 6 ? "✨" : "🚗", S.W * 0.5, S.H * 0.46, 140);
+    spots.forEach(function (s) { if (!s.got) S.em("🟤", s.x, s.y, 64); });
+    if (rub && play) S.em("🧽", sx, sy - 30, 72);
+  });
+})();
+</script>
+</body>
+</html>

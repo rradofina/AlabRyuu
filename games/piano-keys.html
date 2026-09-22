@@ -5,19 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Piano Keys</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>
     html,body{background:#111827}
-    .keys{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:none;gap:8px;z-index:40}
+    .keys{position:fixed;left:8px;right:8px;bottom:12px;display:none;gap:8px;z-index:40;justify-content:center}
     .keys.on{display:flex}
-    .keys button{width:64px;height:160px;border-radius:16px;background:#fff;color:#111;font-weight:900;font-size:28px;box-shadow:0 8px 0 #020617}
+    .keys button{flex:1;max-width:104px;height:158px;border-radius:18px;background:#fff;color:#111;font-weight:900;font-size:36px;box-shadow:0 8px 0 #020617}
     .keys button.lit{background:#fde047}
   </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <div id="hud"><b id="rd">Song 1</b></div>
-  <div id="say">Watch the keys glow. Copy!</div>
+  <div id="say">Tap the yellow key!</div>
   <div style="position:fixed;inset:0 0 190px 0;display:grid;place-items:center;font-size:110px;pointer-events:none" id="face">🎹</div>
   <div class="keys" id="keys">
     <button data-i="0">1</button>
@@ -29,7 +29,7 @@
   <div class="cover" id="title">
     <div class="hero">🎹</div>
     <h1>Piano Keys</h1>
-    <p>Copy the little song.</p>
+    <p>Tap the yellow key!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -54,59 +54,43 @@
         o.start(); setTimeout(function () { o.stop(); }, 280);
       } catch (e) {}
     }
-    function light(i) {
-      btns[i].classList.add("lit"); beep(i);
-      document.getElementById("face").textContent = String(i + 1);
-      document.getElementById("say").textContent = "Watch key " + (i + 1);
-      setTimeout(function () { btns[i].classList.remove("lit"); }, 650);
-    }
-    function playSong() {
-      var my = ++gen;
-      listen = false; step = 0; seq = SONGS[song];
+    function showTurn() {
+      listen = true; step = 0; seq = SONGS[song];
       document.getElementById("rd").textContent = "Song " + (song + 1);
-      document.getElementById("say").textContent = "Watch the yellow key...";
-      var i = 0;
-      function tick() {
-        if (my !== gen) return;
-        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn! Tap key " + (seq[0] + 1); return; }
-        light(seq[i]); i++; setTimeout(tick, 950);
-      }
-      setTimeout(tick, 700);
+      btns.forEach(function (b) { b.classList.remove("lit"); });
+      btns[seq[0]].classList.add("lit");
+      document.getElementById("face").textContent = String(seq[0] + 1);
+      document.getElementById("say").textContent = "Tap yellow key " + (seq[0] + 1) + "!";
     }
     function start() {
       song = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("keys").classList.add("on");
-      playSong();
+      showTurn();
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     btns.forEach(function (b) {
       b.onclick = function () {
         var i = +b.getAttribute("data-i");
-        light(i);
-        if (!listen) { kidPing("Watch first!"); return; }
+        beep(i);
+        if (!listen) return;
         kidBoom("🎵", innerWidth * 0.5, innerHeight * 0.38);
         if (i === seq[step]) {
           step++;
-          kidPing(step < seq.length ? "Yes! Next key " + (seq[step] + 1) : "Yes!");
           if (step >= seq.length) {
             song++;
             if (song >= SONGS.length) {
               listen = false;
-              kidYay();
               document.getElementById("keys").classList.remove("on");
-              document.getElementById("win").classList.remove("off");
-            } else {
-              kidPing("Nice song!");
-              setTimeout(playSong, 500);
-            }
+              kidFinish();
+            } else showTurn();
+          } else {
+            btns.forEach(function (k) { k.classList.remove("lit"); });
+            btns[seq[step]].classList.add("lit");
+            document.getElementById("face").textContent = String(seq[step] + 1);
+            kidPing("Yes! Key " + (seq[step] + 1));
           }
-        } else {
-          document.getElementById("say").textContent = "Oops. Watch again!";
-          playSong();
-        }
+        } else kidPing("Tap the yellow key!");
       };
     });
   })();

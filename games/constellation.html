@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Star Connect</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js?v=3"></script>
+  <style>html,body{background:#1e1b4b}</style>
+</head>
+<body>
+<script>
+kidChrome({
+  title: "Star Connect",
+  hero: "✨",
+  blurb: "Tap the stars in order. Make a picture!",
+  say: "Tap star 1!",
+  hud: "✨ 0/3",
+  winHero: "🌟",
+  winTitle: "Sky art!",
+  winText: "Three pictures drawn.",
+  again: "Draw again",
+  bg: "#1e1b4b"
+});
+(function () {
+  var S = kidStage();
+  var PICS = [
+    { name: "a heart", pts: [[0.18, 0.32], [0.82, 0.32], [0.5, 0.72]] },
+    { name: "a house", pts: [[0.22, 0.7], [0.5, 0.22], [0.78, 0.7]] },
+    { name: "a fish", pts: [[0.18, 0.55], [0.5, 0.28], [0.82, 0.55]] }
+  ];
+  var play = false, pic = 0, step = 0;
+  function shown() { return Math.min(pic, PICS.length - 1); }
+  function pt(i) {
+    var pts = PICS[shown()].pts;
+    var p = pts[Math.max(0, Math.min(i, pts.length - 1))];
+    return { x: S.W * p[0], y: S.H * (0.16 + p[1] * 0.7) };
+  }
+  function start() { play = true; pic = 0; step = 0; kidBegin("Tap star 1!", "✨ 0/3"); }
+  kidBind(start);
+  S.cv.addEventListener("pointerdown", function (e) {
+    if (!play) return;
+    var p = kidPt(e, S.cv), want = pt(step);
+    var dx = p.x - want.x, dy = p.y - want.y;
+    if (dx * dx + dy * dy > 160 * 160) { kidMiss("⭐", "Tap star " + (step + 1) + "!", want.x, want.y); return; }
+    step++;
+    kidTap("⭐", "Yes " + step + "!", want.x, want.y, 480 + step * 30);
+    if (step >= PICS[shown()].pts.length) {
+      var done = pic + 1;
+      kidBurst(["✨", "🌟", "💛"], S.W * 0.5, S.H * 0.4);
+      if (done >= PICS.length) {
+        play = false;
+        step = PICS[shown()].pts.length;
+        kidMark(done, 3, "✨");
+        kidFinish("Three pictures drawn.");
+      } else {
+        pic++; step = 0;
+        kidMark(done, 3, "✨");
+        kidSay("Now " + PICS[pic].name + "! Tap 1.");
+      }
+    }
+  });
+  kidTick(function () {
+    S.bg("#1e1b4b");
+    S.em("🌙", S.W * 0.84, 86, 64);
+    var pts = PICS[shown()].pts;
+    if (step > 1) {
+      S.ctx.strokeStyle = "#fde68a"; S.ctx.lineWidth = 8; S.ctx.lineCap = "round";
+      S.ctx.beginPath();
+      var a = pt(0); S.ctx.moveTo(a.x, a.y);
+      for (var i = 1; i < step; i++) { var b = pt(i); S.ctx.lineTo(b.x, b.y); }
+      S.ctx.stroke();
+    }
+    for (var k = 0; k < pts.length; k++) {
+      var q = pt(k);
+      S.em(k < step ? "🌟" : "⭐", q.x, q.y, k === step ? 78 : 64);
+      S.ctx.fillStyle = "#fff";
+      S.ctx.font = "800 28px Trebuchet MS,sans-serif";
+      S.ctx.textAlign = "center"; S.ctx.textBaseline = "middle";
+      if (k >= step) S.ctx.fillText(String(k + 1), q.x, q.y + 46);
+    }
+  });
+})();
+</script>
+</body>
+</html>

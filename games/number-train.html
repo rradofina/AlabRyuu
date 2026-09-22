@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Number Train</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>
     html,body{background:#0f172a}
     .cars{position:fixed;left:50%;top:54%;transform:translate(-50%,-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:14px;width:min(94vw,480px);z-index:2}
-    .cars button{width:100px;height:110px;border-radius:24px;background:#fff;color:#0f172a;font-weight:900;font-size:42px;box-shadow:0 8px 0 #020617}
+    .cars button{width:112px;height:124px;border-radius:24px;background:#fff;color:#0f172a;font-weight:900;font-size:46px;box-shadow:0 8px 0 #020617}
     .cars button span{display:block;font-size:36px}
     .cars button.done{opacity:.35}
   </style>
@@ -29,44 +29,38 @@
   <div class="cover off" id="win">
     <div class="hero">🥳</div>
     <h1>Choo choo!</h1>
-    <p>1 2 3 4 5 all aboard.</p>
+    <p>1 2 3 4 5 6 all aboard.</p>
     <button class="play g" id="again">Ride again</button>
   </div>
   <script>
   (function () {
-    var next = 1, nums = [1, 2, 3, 4, 5];
-    function shuffle(a) {
-      for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; }
-      return a;
-    }
+    var next = 1, nums = [1, 2, 3, 4, 5, 6];
     function deal() {
       next = 1;
       var box = document.getElementById("cars");
       box.innerHTML = "";
-      shuffle(nums.slice()).forEach(function (n) {
+      kidShuffle(nums.slice()).forEach(function (n) {
         var b = document.createElement("button");
         b.innerHTML = "<span>🚃</span>" + n;
         b.onclick = function () {
           if (n === next) {
             b.classList.add("done");
             next++;
-            document.getElementById("nx").textContent = next > 5 ? "Done!" : "Next " + next;
-            kidTap("🚃", n === 5 ? "All aboard!" : "Yes! Now " + next, innerWidth * 0.5, innerHeight * 0.5, 400 + n * 40);
-            if (next > 5) { kidYay(); document.getElementById("win").classList.remove("off"); }
-          } else kidTap("🚂", "Find " + next + "!", innerWidth * 0.5, innerHeight * 0.5, 240);
+            kidScore(next > 6 ? "Done!" : "Next " + next, "nx");
+            kidTap("🚃", n === 6 ? "All aboard!" : "Yes! Now " + next, innerWidth * 0.5, innerHeight * 0.42, 400 + n * 40);
+            if (next > 6) kidFinish();
+          } else kidMiss("🚂", "Find " + next + "!", innerWidth * 0.5, innerHeight * 0.42);
         };
         box.appendChild(b);
       });
-      document.getElementById("nx").textContent = "Next 1";
-      document.getElementById("say").textContent = "Tap 1 first!";
+      kidScore("Next 1", "nx");
+      kidSay("Tap 1 first!");
     }
     function start() {
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       deal();
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
   })();
   </script>
 </body>

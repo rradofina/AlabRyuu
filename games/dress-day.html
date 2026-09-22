@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Dress the Day</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#7c3aed}</style>
 </head>
 <body>
@@ -40,15 +40,8 @@
       { w: "❄️", q: "Snow! What keeps hands warm?", ok: "c", wear: "🧤" }
     ];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dress") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function show() {
       var d = DAYS[round];
@@ -58,8 +51,7 @@
     }
     function start() {
       play = true; round = 0; flags = {};
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("dock").classList.add("on");
       show();
     }
@@ -76,14 +68,12 @@
         round++;
         if (round >= 3) {
           play = false;
-          kidYay();
-          document.getElementById("dock").classList.remove("on");
-          document.getElementById("win").classList.remove("off");
+                    document.getElementById("dock").classList.remove("on");
+          kidFinish();
         } else { worn = ""; show(); }
       } else kidTap(worn, "Try a different one!", innerWidth * 0.5, innerHeight * 0.28, 240);
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     document.getElementById("sunwear").onclick = function () { pick("a"); };
     document.getElementById("rainwear").onclick = function () { pick("b"); };
     document.getElementById("snowwear").onclick = function () { pick("c"); };

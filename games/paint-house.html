@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Paint House</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#fef3c7} .dock button{min-width:72px;min-height:84px}</style>
 </head>
 <body>
@@ -38,14 +38,9 @@
     var W, H, play = false, color = "#f59e0b", drawing = 0, painted = 0, lastX = 0, lastY = 0;
     var AV = { shirt: "#ffd166" };
     try { var a = JSON.parse(localStorage.getItem("alabryuu-avatar") || "null"); if (a && a.shirt) AV.shirt = a.shirt; } catch (e) {}
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
     function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+      var b = kidFit(cv, x); W = b.W; H = b.H;
       drawHouse();
     }
     addEventListener("resize", resize);
@@ -64,15 +59,13 @@
     }
     function start() {
       play = true; painted = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       document.getElementById("dock").classList.add("on");
       resize();
       document.getElementById("say").textContent = "Drag on the walls!";
       document.getElementById("pc").textContent = "🎨 0";
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
       b.onclick = function () {
         color = b.getAttribute("data-c");
@@ -84,17 +77,16 @@
       return px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h && py < H - 120;
     }
     function blob(px, py) {
-      if (!inHouse(px, py)) return;
+      if (!inHouse(px, py)) { kidMiss("🎨", "Paint the house!", px, py); return; }
       x.fillStyle = color;
       x.beginPath(); x.arc(px, py, 28, 0, Math.PI * 2); x.fill();
       painted++;
       document.getElementById("pc").textContent = "🎨 " + painted;
       if (painted === 1 || painted % 6 === 0) kidNote(400 + painted * 8);
-      if (painted >= 28) {
+      if (painted >= 12) {
         play = false; drawing = 0;
-        kidYay();
-        document.getElementById("dock").classList.remove("on");
-        document.getElementById("win").classList.remove("off");
+                document.getElementById("dock").classList.remove("on");
+        kidFinish();
       }
     }
     cv.addEventListener("pointerdown", function (e) {
@@ -110,10 +102,9 @@
         x.beginPath(); x.moveTo(lastX, lastY); x.lineTo(kidPt(e, cv).x, kidPt(e, cv).y); x.stroke();
         painted++;
         document.getElementById("pc").textContent = "🎨 " + painted;
-        if (painted >= 40) {
+        if (painted >= 12) {
           play = false; drawing = 0;
-          document.getElementById("dock").classList.remove("on");
-          document.getElementById("win").classList.remove("off");
+          kidFinish();
         }
       }
       lastX = kidPt(e, cv).x; lastY = kidPt(e, cv).y;

@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Fish Friends</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#0369a1}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="fd">🍞 0/6</b></div>
-  <div id="say">Tap the water. Drop food!</div>
+  <div id="hud"><b id="fd">🍞 0/4</b></div>
+  <div id="say">Tap a fish to feed it!</div>
   <div class="cover" id="title">
     <div class="hero">🐟</div>
     <h1>Fish Friends</h1>
-    <p>Tap to drop food. Feed 6 fish!</p>
+    <p>Tap a fish. Feed 4 friends!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -30,15 +30,8 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, t = 0, last = 0, play = false, fed = 0;
     var fish = [], crumbs = [];
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function start() {
       play = true; fed = 0; crumbs = [];
@@ -48,18 +41,27 @@
         { e: "🐡", x: 0.75, y: 0.38, ate: 0 },
         { e: "🐟", x: 0.35, y: 0.7, ate: 0 }
       ];
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
-      document.getElementById("fd").textContent = "🍞 0/6";
-      document.getElementById("say").textContent = "Tap the water. Drop food!";
+      kidBegin();
+      document.getElementById("fd").textContent = "🍞 0/4";
+      document.getElementById("say").textContent = "Tap a fish!";
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var p = kidPt(e, cv);
-      crumbs.push({ x: p.x, y: p.y, life: 4 });
-      kidTap("🍞", "Yum food!", p.x, p.y, 420);
+      var p = kidPt(e, cv), best = null, bestD = 140 * 140, i;
+      for (i = 0; i < fish.length; i++) {
+        if (fish[i].ate) continue;
+        var dx = p.x - fish[i].x * W, dy = p.y - fish[i].y * H, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = fish[i]; }
+      }
+      if (!best) { kidMiss("🍞", "Tap a fish!", p.x, p.y); return; }
+      best.ate = 1; fed++;
+      document.getElementById("fd").textContent = "🍞 " + fed + "/4";
+      document.getElementById("say").textContent = "Yum " + best.e + "!";
+      kidTap("🍞", "Yum!  " + fed + "/4", best.x * W, best.y * H, 480);
+      kidBoom(best.e, best.x * W, best.y * H);
+      if (fed >= 4) { play = false; kidFinish(); }
+      else setTimeout(function () { best.ate = 0; }, 280);
     });
     function loop(now) {
       if (!last) last = now;
@@ -82,8 +84,7 @@
               kidBoom(f.e, f.x * W, f.y * H);
               if (fed >= 6) {
                 play = false;
-                kidYay();
-                document.getElementById("win").classList.remove("off");
+                kidFinish();
               } else {
                 setTimeout(function () { f.ate = 0; }, 400);
               }

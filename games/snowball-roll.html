@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Snowball Roll</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js?v=3"></script>
+  <style>html,body{background:#e0f2fe}</style>
+</head>
+<body>
+<script>
+kidChrome({
+  title: "Snowball Roll",
+  hero: "☃️",
+  blurb: "Hold to grow. A short hold fits the ring!",
+  say: "Hold to grow!",
+  hud: "☃️ 0/4",
+  winHero: "⛄",
+  winTitle: "Snow fort!",
+  winText: "Four good snowballs.",
+  again: "Roll again",
+  bg: "#e0f2fe",
+  extra: '<div class="dock" id="tools"><button id="hold"><span>✋</span>Hold</button></div>'
+});
+(function () {
+  var S = kidStage();
+  var play = false, n = 0, size = 48, hold = false;
+  function succeed() {
+    if (!play) return;
+    n++; size = 48; hold = false;
+    kidTap("☃️", "Snowball!  " + n + "/4", S.W * 0.5, S.H * 0.48, 560);
+    if (kidMark(n, 4, "☃️")) { play = false; kidFinish("Four good snowballs."); }
+    else kidSay("Hold to grow!");
+  }
+  function start() { play = true; n = 0; size = 48; hold = false; kidBegin("Hold to grow!", "☃️ 0/4"); kidDock(true); }
+  kidBind(start);
+  document.getElementById("hold").onpointerdown = function (e) {
+    if (!play) return;
+    e.preventDefault();
+    hold = true;
+  };
+  addEventListener("pointerdown", function (e) {
+    if (!play) return;
+    if (e.target.closest && e.target.closest("a,button")) return;
+    hold = true;
+  });
+  addEventListener("pointerup", function () {
+    if (!hold) return;
+    hold = false;
+    if (size >= 70) succeed();
+    else kidMiss("⚪", "Hold a little more!", S.W * 0.5, S.H * 0.48);
+  });
+  addEventListener("pointercancel", function () { hold = false; });
+  kidTick(function (dt) {
+    if (play && hold) {
+      size += dt * 80;
+      if (size >= 200) succeed();
+    }
+    S.bg("#f0f9ff");
+    S.ctx.strokeStyle = "#38bdf8"; S.ctx.lineWidth = 8;
+    S.ctx.beginPath(); S.ctx.arc(S.W * 0.5, S.H * 0.46, 86, 0, Math.PI * 2); S.ctx.stroke();
+    S.em("⚪", S.W * 0.5, S.H * 0.46, Math.max(36, size));
+    var i;
+    for (i = 0; i < n; i++) S.em("☃️", S.W * (0.22 + i * 0.18), S.H * 0.78, 64);
+  });
+})();
+</script>
+</body>
+</html>

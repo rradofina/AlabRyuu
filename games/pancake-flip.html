@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Pancake Flip</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js?v=3"></script>
+  <style>html,body{background:#fdba74}</style>
+</head>
+<body>
+<script>
+kidChrome({
+  title: "Pancake Flip",
+  hero: "🥞",
+  blurb: "Tap the pancake to flip it!",
+  say: "Tap to flip!",
+  hud: "🥞 0/5",
+  winHero: "😋",
+  winTitle: "Yum!",
+  winText: "Five gold flips.",
+  again: "Flip again",
+  bg: "#fdba74",
+  extra: '<div class="dock" id="tools"><button id="flip"><span>🥞</span>Flip</button></div>'
+});
+(function () {
+  var S = kidStage();
+  var play = false, n = 0, heat = 0.8, mood = "";
+  function face() { return heat >= 0.45 ? "🥞" : "🟡"; }
+  function note(key, msg) { if (mood === key) return; mood = key; kidSay(msg); }
+  function flip() {
+    if (!play) return;
+    n++; heat = 0; mood = "";
+    kidTap("🥞", n >= 5 ? "Breakfast!" : "Flip!  " + n + "/5", S.W * 0.5, S.H * 0.4, 560);
+    if (kidMark(n, 5, "🥞")) { play = false; kidFinish("Five gold flips."); }
+    else note("cook", "Next pancake!");
+  }
+  function start() { play = true; n = 0; heat = 0.8; mood = ""; kidBegin("Tap to flip!", "🥞 0/5"); kidDock(true); }
+  kidBind(start);
+  document.getElementById("flip").onclick = flip;
+  S.cv.addEventListener("pointerdown", function (e) {
+    if (kidPt(e, S.cv).y > S.H - 140) return;
+    flip();
+  });
+  kidTick(function (dt) {
+    if (play && heat < 0.8) heat = Math.min(0.8, heat + dt * 1.8);
+    if (play && heat >= 0.8) note("gold", "FLIP!");
+    S.bg("#ffedd5");
+    S.em("🍳", S.W * 0.5, S.H * 0.58, 160);
+    var bob = Math.sin((heat + n) * 9) * (heat >= 0.45 ? 10 : 2);
+    S.em(face(), S.W * 0.5, S.H * 0.44 + bob, heat >= 0.45 ? 128 : 104);
+  });
+})();
+</script>
+</body>
+</html>

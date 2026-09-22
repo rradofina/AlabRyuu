@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Popcorn</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js?v=3"></script>
+  <style>html,body{background:#ffedd5}</style>
+</head>
+<body>
+<script>
+kidChrome({
+  title: "Popcorn",
+  hero: "🍿",
+  blurb: "Tap the popped kernel!",
+  say: "POP! Tap it!",
+  hud: "🍿 0/6",
+  winHero: "😋",
+  winTitle: "Snack time!",
+  winText: "Six pops caught.",
+  again: "Pop again",
+  bg: "#ffedd5"
+});
+(function () {
+  var S = kidStage();
+  var play = false, n = 0, hot = 0, timer = 0, popped = true, said = "";
+  var spots = [[0.22, 0.42], [0.5, 0.36], [0.78, 0.42], [0.3, 0.62], [0.58, 0.66], [0.78, 0.6]];
+  function xy(i) { return { x: S.W * spots[i][0], y: S.H * spots[i][1] }; }
+  function note(k, m) { if (said === k) return; said = k; kidSay(m); }
+  function start() { play = true; n = 0; hot = 0; timer = 0; popped = true; said = ""; kidBegin("POP! Tap it!", "🍿 0/6"); }
+  kidBind(start);
+  S.cv.addEventListener("pointerdown", function (e) {
+    if (!play) return;
+    var p = kidPt(e, S.cv);
+    var i = kidNearest(p.x, p.y, spots, 120, function (_, k) { return xy(k); });
+    if (!popped) { kidMiss("🌽", "Wait for POP!", xy(hot).x, xy(hot).y); return; }
+    if (i < 0 || i !== hot) { kidMiss("🌽", "Wrong kernel!", xy(hot).x, xy(hot).y); return; }
+    var q = xy(hot);
+    n++; popped = false; timer = 0.35; said = "";
+    hot = (hot + 1) % spots.length;
+    kidTap("🍿", "Pop!  " + n + "/6", q.x, q.y, 640);
+    if (kidMark(n, 6, "🍿")) { play = false; kidFinish("Six pops caught."); }
+    else note("wait", "Watch...");
+  });
+  kidTick(function (dt) {
+    if (play && !popped) {
+      timer -= dt;
+      if (timer <= 0) { popped = true; note("pop", "POP! Tap it!"); }
+    } else if (play) note("pop", "POP! Tap it!");
+    S.bg("#fff7ed");
+    S.em("🍳", S.W * 0.5, S.H * 0.78, 120);
+    var shake = (!popped && timer < 0.25) ? Math.sin(timer * 80) * 8 : 0;
+    for (var i = 0; i < spots.length; i++) {
+      var q = xy(i);
+      var on = i === hot && popped;
+      S.em(i < n ? "✨" : (on ? "🍿" : "🌽"), q.x + (i === hot ? shake : 0), q.y, on ? 100 : 72);
+    }
+  });
+})();
+</script>
+</body>
+</html>

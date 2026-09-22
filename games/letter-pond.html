@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Letter Pond</title>
   <link rel="stylesheet" href="../kid.css" />
-  <script src="../kid.js"></script>
+  <script src="../kid.js?v=3"></script>
   <style>html,body{background:#0369a1}</style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="rd">1/8</b></div>
+  <div id="hud"><b id="rd">1/5</b></div>
   <div id="say">Tap A</div>
   <div class="cover" id="title">
     <div class="hero">🔤</div>
@@ -22,7 +22,7 @@
   <div class="cover off" id="win">
     <div class="hero">🐸</div>
     <h1>Letter star!</h1>
-    <p>Eight letters caught.</p>
+    <p>Five letters caught.</p>
     <button class="play g" id="again">Play again</button>
   </div>
   <script>
@@ -31,15 +31,8 @@
     var W, H, t = 0, play = false, round = 0, want = "A";
     var ABC = "ABCDEFGH".split("");
     var letters = [];
-    function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
-    }
-    function resize() {
-      var d = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
-    }
+    function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
+    function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
     addEventListener("resize", resize); resize();
     function deal() {
       want = ABC[round];
@@ -52,31 +45,26 @@
         return { L: L, x: 0.2 + (i % 2) * 0.55, y: 0.38 + ((i / 2) | 0) * 0.28 };
       });
       document.getElementById("say").textContent = "Tap " + want;
-      document.getElementById("rd").textContent = (round + 1) + "/8";
+      document.getElementById("rd").textContent = (round + 1) + "/5";
     }
     function start() {
       play = true; round = 0;
-      document.getElementById("title").classList.add("off");
-      document.getElementById("win").classList.add("off");
+      kidBegin();
       deal();
     }
-    document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = start;
+    kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var p = kidPt(e, cv), hit = null, best = 90 * 90, i;
+      var p = kidPt(e, cv), hit = null, best = 120 * 120, i;
       for (i = 0; i < letters.length; i++) {
         var dx = p.x - letters[i].x * W, dy = p.y - letters[i].y * H, d = dx * dx + dy * dy;
         if (d < best) { best = d; hit = letters[i]; }
       }
-      if (!hit) {
-        for (i = 0; i < letters.length; i++) if (letters[i].L === want) { hit = letters[i]; break; }
-      }
-      if (!hit) return;
+      if (!hit) { kidMiss("🔤", "Tap " + want + "!", p.x, p.y); return; }
       if (hit.L === want) {
         kidTap("⭐", "Yes " + want + "!", hit.x * innerWidth, hit.y * innerHeight, 540);
         round++;
-        if (round >= 8) { play = false; kidYay(); document.getElementById("win").classList.remove("off"); }
+        if (round >= 5) { play = false; kidFinish(); }
         else deal();
       } else kidTap("⭕", "Find " + want + "!", hit.x * innerWidth, hit.y * innerHeight, 240);
     });
@@ -86,9 +74,9 @@
       em("🐸", 50, H * 0.22, 64); em("🪷", W - 50, H * 0.28, 56);
       letters.forEach(function (L) {
         var px = L.x * W, py = L.y * H + Math.sin(t * 2 + L.x) * 6;
-        em("⭕", px, py, 88);
+        em("⭕", px, py, 120);
         x.fillStyle = "#0f172a";
-        x.font = "bold 48px Trebuchet MS,sans-serif";
+        x.font = "bold 68px Trebuchet MS,sans-serif";
         x.textAlign = "center"; x.textBaseline = "middle";
         x.fillText(L.L, px, py);
       });
