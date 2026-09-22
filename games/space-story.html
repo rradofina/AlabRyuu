@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#0b1026}</style>
 </head>
 <body>
@@ -15,13 +16,13 @@
   <div id="hud"><b id="pl">🪐 0/5</b><b id="st">⭐ 0</b></div>
   <div id="say">Tap to boost. Catch 5 planets!</div>
   <div class="cover" id="title">
-    <div class="hero">🚀</div>
+    <div class="hero"><img src="../assets/sprites/space-story/hero.png" alt="" width="96" height="96" /></div>
     <h1>Space Story</h1>
     <p>Boost the rocket. Catch planets!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">🌌</div>
+    <div class="hero"><img src="../assets/sprites/space-story/char1.png" alt="" width="96" height="96" /></div>
     <h1>Home among stars</h1>
     <p id="wp">Five planet friends!</p>
     <button class="play g" id="again">Fly again</button>
@@ -33,9 +34,12 @@
     var rocket = { y: 0.72, vy: 0 }, planets = [], flags = {};
     var KINDS = ["🪐", "🌕", "🌍", "🟠", "🟣"];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-space") || "{}"); } catch (e) { sv = {}; }
+    var SPR = {
+      "🚀": kidSprite("space-story/hero.png"),
+      "🌌": kidSprite("space-story/char1.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

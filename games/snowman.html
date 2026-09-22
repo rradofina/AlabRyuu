@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#e0f2fe}</style>
 </head>
 <body>
@@ -20,13 +21,13 @@
     <button id="lit"><span>⚪</span>Little</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero">⛄</div>
+    <div class="hero"><img src="../assets/sprites/snowman/hero.png" alt="" width="96" height="96" /></div>
     <h1>Snowman Build</h1>
     <p>Stack 3 snowballs. Then decorate!</p>
     <button class="play" id="go" autofocus>Build</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">⛄</div>
+    <div class="hero"><img src="../assets/sprites/snowman/hero.png" alt="" width="96" height="96" /></div>
     <h1>Hello snowman!</h1>
     <p>Carrot nose and all.</p>
     <button class="play g" id="again">Build again</button>
@@ -36,9 +37,12 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, play = false, step = 0;
     var ORDER = ["big", "mid", "lit"];
+    var SPR = {
+      "⛄": kidSprite("snowman/hero.png"),
+      "⚪": kidSprite("snowman/char1.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

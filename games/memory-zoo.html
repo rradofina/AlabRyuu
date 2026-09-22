@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>
     html,body{background:#14532d;height:100%;height:100dvh;overflow:hidden;touch-action:manipulation}
     .grid{position:fixed;left:50%;top:58%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:min(92%,440px);max-width:calc(100% - 16px);z-index:2}
@@ -20,7 +21,7 @@
   <div id="say">Find two the same!</div>
   <div class="grid" id="grid"></div>
   <div class="cover" id="title">
-    <div class="hero">🦁</div>
+    <div class="hero"><img src="../assets/sprites/memory-zoo/hero.png" alt="" width="96" height="96" /></div>
     <h1>Memory Zoo</h1>
     <p>Flip cards. Match the animals!</p>
     <button class="play" id="go" autofocus>Play</button>
@@ -33,6 +34,12 @@
   </div>
   <script>
   (function () {
+    var SPR = {
+      "🦁": kidSprite("memory-zoo/hero.png"),
+      "🐘": kidSprite("memory-zoo/char1.png"),
+      "🦒": kidSprite("memory-zoo/char2.png"),
+      "🐧": kidSprite("memory-zoo/prop1.png"),
+    };
     var ANIM = ["🦁", "🐘", "🦒", "🐧"];
     var cards = [], open = [], lock = false, pairs = 0;
     function shuffle(a) {
@@ -60,7 +67,7 @@
     function flip(i, b) {
       var c = cards[i];
       if (lock || c.open || c.done) { kidNote(240); return; }
-      c.open = 1; b.textContent = c.e; b.classList.add("on");
+      c.open = 1; kidFace(b, c.e, 64, SPR); b.classList.add("on");
       kidTap(c.e, "Find a twin!", innerWidth * 0.5, innerHeight * 0.35, 460);
       open.push(c);
       if (open.length < 2) return;

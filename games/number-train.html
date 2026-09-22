@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>
     html,body{background:#0f172a}
     .cars{position:fixed;left:50%;top:54%;transform:translate(-50%,-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:14px;width:min(94%,480px);max-width:calc(100% - 16px);z-index:2}
@@ -22,7 +23,7 @@
   <div style="position:fixed;top:120px;left:0;right:0;text-align:center;font-size:80px;pointer-events:none">🚂</div>
   <div class="cars" id="cars"></div>
   <div class="cover" id="title">
-    <div class="hero">🚂</div>
+    <div class="hero"><img src="../assets/sprites/number-train/hero.png" alt="" width="96" height="96" /></div>
     <h1>Number Train</h1>
     <p>Tap the cars in order.</p>
     <button class="play" id="go" autofocus>Play</button>
@@ -35,6 +36,10 @@
   </div>
   <script>
   (function () {
+    var SPR = {
+      "🚂": kidSprite("number-train/hero.png"),
+      "🚃": kidSprite("number-train/prop1.png"),
+    };
     var next = 1, nums = [1, 2, 3, 4, 5];
     function shuffle(a) {
       for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; }
@@ -46,7 +51,7 @@
       box.innerHTML = "";
       shuffle(nums.slice()).forEach(function (n) {
         var b = document.createElement("button");
-        b.innerHTML = "<span>🚃</span>" + n;
+        b.innerHTML = "<span>" + (SPR["🚃"] ? "<img src=\"" + SPR["🚃"].src + "\" alt=\"\" style=\"width:42px;height:auto\">" : "🚃") + "</span>" + n;
         b.onclick = function () {
           if (n === next) {
             b.classList.add("done");

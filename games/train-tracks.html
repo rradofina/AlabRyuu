@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#334155}</style>
 </head>
 <body>
@@ -19,13 +20,13 @@
     <button id="goTrain"><span>🚂</span>Go</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero">🚂</div>
+    <div class="hero"><img src="../assets/sprites/train-tracks/hero.png" alt="" width="96" height="96" /></div>
     <h1>Train Tracks</h1>
     <p>Fill 3 gaps. Then choo choo!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">🏠</div>
+    <div class="hero"><img src="../assets/sprites/train-tracks/char1.png" alt="" width="96" height="96" /></div>
     <h1>Choo choo!</h1>
     <p>The train made it home.</p>
     <button class="play g" id="again">Play again</button>
@@ -36,9 +37,13 @@
     var W, H, t = 0, play = false, laid = 0, riding = 0, train = 0, stars = 0, smoke = 0;
     var slots = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-train") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    var SPR = {
+      "🚂": kidSprite("train-tracks/hero.png"),
+      "🏠": kidSprite("train-tracks/char1.png"),
+      "🌲": kidSprite("train-tracks/char2.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

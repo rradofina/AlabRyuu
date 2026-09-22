@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#1e1b4b}</style>
 </head>
 <body>
@@ -20,13 +21,13 @@
     <button id="b" style="background:#3b82f6;color:#fff"><span>🔵</span>Blue</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero">🎨</div>
+    <div class="hero"><img src="../assets/sprites/color-mix/hero.png" alt="" width="96" height="96" /></div>
     <h1>Color Mix</h1>
     <p>Tap paints. Match the color!</p>
     <button class="play" id="go" autofocus>Mix</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">🌈</div>
+    <div class="hero"><img src="../assets/sprites/color-mix/prop1.png" alt="" width="96" height="96" /></div>
     <h1>Rainbow mixer!</h1>
     <p>Five matches.</p>
     <button class="play g" id="again">Mix again</button>
@@ -42,9 +43,13 @@
       { n: "Orange", r: 1, y: 1, b: 0, c: "#f97316" },
       { n: "Green", r: 0, y: 1, b: 1, c: "#22c55e" }
     ];
+    var SPR = {
+      "🎨": kidSprite("color-mix/hero.png"),
+      "🌈": kidSprite("color-mix/prop1.png"),
+      "🎯": kidSprite("color-mix/prop2.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

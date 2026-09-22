@@ -3,7 +3,20 @@
    and calling kidSprite / kidDraw. */
 (function (w) {
   var cache = {};
-  var base = w.KID_SPRITE_BASE || "../assets/sprites/";
+  function detectBase() {
+    if (w.KID_SPRITE_BASE) return w.KID_SPRITE_BASE;
+    var scripts = document.getElementsByTagName("script");
+    var i, src, dir;
+    for (i = 0; i < scripts.length; i++) {
+      src = scripts[i].getAttribute("src") || "";
+      if (src.indexOf("kid-sprites.js") !== -1) {
+        dir = src.replace(/kid-sprites\.js(\?.*)?$/, "");
+        return dir + "assets/sprites/";
+      }
+    }
+    return "../assets/sprites/";
+  }
+  var base = detectBase();
 
   function pathFor(key) {
     if (!key) return "";
@@ -66,6 +79,41 @@
   };
 
   /** Preload list; optional cb when all settle (load or error). */
+  /** Draw a mapped sprite, else fall back to the emoji stamp. */
+  w.kidStamp = function (ctx, ch, x, y, s, map) {
+    var img = map && map[ch];
+    if (img) {
+      var bob = Math.sin(Date.now() / 220 + (x || 0) * 0.02);
+      if (w.kidDraw(ctx, img, x, y, {
+        fit: (s || 64) * 1.08,
+        squashX: 1 - bob * 0.04,
+        squashY: 1 + bob * 0.05
+      })) return true;
+    }
+    ctx.font = (s || 64) + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(ch, x, y);
+    return false;
+  };
+
+  /** Swap an element's emoji for a sprite <img> when mapped. */
+  w.kidFace = function (el, emoji, px, map) {
+    if (!el) return;
+    var key = map && map[emoji];
+    if (!key) { el.textContent = emoji || ""; return; }
+    var img = w.kidSprite(key);
+    el.textContent = "";
+    var node = document.createElement("img");
+    node.alt = "";
+    node.src = img.src;
+    node.style.width = (px || 88) + "px";
+    node.style.height = "auto";
+    node.style.display = "block";
+    node.style.margin = "0 auto";
+    el.appendChild(node);
+  };
+
   w.kidSpriteReady = function (keys, cb) {
     var list = keys || [];
     var left = list.length;
