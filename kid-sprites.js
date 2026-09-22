@@ -102,11 +102,11 @@
     if (!el) return;
     var key = map && map[emoji];
     if (!key) { el.textContent = emoji || ""; return; }
-    var img = w.kidSprite(key);
+    var src = typeof key === "string" ? w.kidSprite(key).src : key.src;
     el.textContent = "";
     var node = document.createElement("img");
     node.alt = "";
-    node.src = img.src;
+    node.src = src;
     node.style.width = (px || 88) + "px";
     node.style.height = "auto";
     node.style.display = "block";
