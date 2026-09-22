@@ -8,9 +8,9 @@
   <script src="../kid.js"></script>
   <style>
     html,body{background:#4c1d95}
-    .pads{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:none;gap:12px;z-index:40}
+    .pads{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:none;gap:12px;z-index:40;width:min(100% - 16px,320px);max-width:calc(100% - 16px);justify-content:center}
     .pads.on{display:flex}
-    .pads button{width:92px;height:110px;border-radius:24px;background:#fff;font-weight:900;box-shadow:0 8px 0 #2e1065}
+    .pads button{flex:1 1 0;min-width:0;width:auto;height:110px;border-radius:24px;background:#fff;font-weight:900;box-shadow:0 8px 0 #2e1065}
     .pads button span{display:block;font-size:52px}
     .pads button.lit{outline:6px solid #fde047;background:#fde047}
   </style>

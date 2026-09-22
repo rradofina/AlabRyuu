@@ -8,7 +8,7 @@
   <script src="../kid.js"></script>
   <style>
     html,body{background:#14532d}
-    .choice{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:40;display:none;gap:16px}
+    .choice{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:40;display:none;gap:16px;width:min(100% - 16px,440px);max-width:calc(100% - 16px);flex-wrap:wrap;justify-content:center}
     .choice.on{display:flex}
     .choice button{min-width:150px;min-height:130px;border-radius:28px;background:#fff;color:#14532d;font-weight:900;font-size:18px;box-shadow:0 8px 0 #166534}
     .choice button span{display:block;font-size:64px;line-height:1}
