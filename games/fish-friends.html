@@ -11,12 +11,12 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="fd">🍞 0/6</b></div>
-  <div id="say">Tap the water. Drop food!</div>
+  <div id="hud"><b id="fd">🍞 0/4</b></div>
+  <div id="say">Tap a fish to feed it!</div>
   <div class="cover" id="title">
     <div class="hero">🐟</div>
     <h1>Fish Friends</h1>
-    <p>Tap to drop food. Feed 6 fish!</p>
+    <p>Tap a fish. Feed 4 friends!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -42,15 +42,26 @@
         { e: "🐟", x: 0.35, y: 0.7, ate: 0 }
       ];
       kidBegin();
-      document.getElementById("fd").textContent = "🍞 0/6";
-      document.getElementById("say").textContent = "Tap the water. Drop food!";
+      document.getElementById("fd").textContent = "🍞 0/4";
+      document.getElementById("say").textContent = "Tap a fish!";
     }
     kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var p = kidPt(e, cv);
-      crumbs.push({ x: p.x, y: p.y, life: 4 });
-      kidTap("🍞", "Yum food!", p.x, p.y, 420);
+      var p = kidPt(e, cv), best = null, bestD = 1e15, i;
+      for (i = 0; i < fish.length; i++) {
+        if (fish[i].ate) continue;
+        var dx = p.x - fish[i].x * W, dy = p.y - fish[i].y * H, d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = fish[i]; }
+      }
+      if (!best) return;
+      best.ate = 1; fed++;
+      document.getElementById("fd").textContent = "🍞 " + fed + "/4";
+      document.getElementById("say").textContent = "Yum " + best.e + "!";
+      kidTap("🍞", "Yum!  " + fed + "/4", best.x * W, best.y * H, 480);
+      kidBoom(best.e, best.x * W, best.y * H);
+      if (fed >= 4) { play = false; kidFinish(); }
+      else setTimeout(function () { best.ate = 0; }, 280);
     });
     function loop(now) {
       if (!last) last = now;

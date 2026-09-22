@@ -13,8 +13,8 @@
 kidChrome({
   title: "Popcorn",
   hero: "🍿",
-  blurb: "Wait for POP, then tap that kernel!",
-  say: "Watch for the pop!",
+  blurb: "Tap the popped kernel!",
+  say: "POP! Tap it!",
   hud: "🍿 0/6",
   winHero: "😋",
   winTitle: "Snack time!",
@@ -24,31 +24,28 @@ kidChrome({
 });
 (function () {
   var S = kidStage();
-  var play = false, n = 0, hot = 0, timer = 0.5, popped = false, said = "";
+  var play = false, n = 0, hot = 0, timer = 0, popped = true, said = "";
   var spots = [[0.22, 0.42], [0.5, 0.36], [0.78, 0.42], [0.3, 0.62], [0.58, 0.66], [0.78, 0.6]];
   function xy(i) { return { x: S.W * spots[i][0], y: S.H * spots[i][1] }; }
   function note(k, m) { if (said === k) return; said = k; kidSay(m); }
-  function start() { play = true; n = 0; hot = 0; timer = 0.45; popped = false; said = ""; kidBegin("Watch for the pop!", "🍿 0/6"); }
+  function start() { play = true; n = 0; hot = 0; timer = 0; popped = true; said = ""; kidBegin("POP! Tap it!", "🍿 0/6"); }
   kidBind(start);
   S.cv.addEventListener("pointerdown", function (e) {
     if (!play) return;
     var p = kidPt(e, S.cv);
-    var i = kidNearest(p.x, p.y, spots, 90, function (_, k) { return xy(k); });
-    if (i < 0) { kidMiss("🌽", "Tap a kernel!", p.x, p.y); return; }
-    if (i === hot && popped) {
-      n++; popped = false; timer = 0.35; said = "";
-      hot = (hot + 1) % spots.length;
-      kidTap("🍿", "Pop!  " + n + "/6", xy(i).x, xy(i).y, 640);
-      if (kidMark(n, 6, "🍿")) { play = false; kidFinish("Six pops caught."); }
-    } else kidMiss("🌽", "Wait for POP!", xy(hot).x, xy(hot).y);
+    if (!popped) { kidMiss("🌽", "Almost — next pop!", xy(hot).x, xy(hot).y); return; }
+    var q = xy(hot);
+    n++; popped = false; timer = 0.35; said = "";
+    hot = (hot + 1) % spots.length;
+    kidTap("🍿", "Pop!  " + n + "/6", q.x, q.y, 640);
+    if (kidMark(n, 6, "🍿")) { play = false; kidFinish("Six pops caught."); }
+    else note("wait", "Watch...");
   });
   kidTick(function (dt) {
-    if (play) {
+    if (play && !popped) {
       timer -= dt;
-      if (!popped && timer <= 0) { popped = true; timer = 1.5; note("pop", "POP! Tap it!"); }
-      else if (popped && timer <= 0) { popped = false; timer = 0.45; said = ""; note("miss", "It hid. Watch!"); }
-      else if (!popped) note("wait", "Watch...");
-    }
+      if (timer <= 0) { popped = true; note("pop", "POP! Tap it!"); }
+    } else if (play) note("pop", "POP! Tap it!");
     S.bg("#fff7ed");
     S.em("🍳", S.W * 0.5, S.H * 0.78, 120);
     var shake = (!popped && timer < 0.25) ? Math.sin(timer * 80) * 8 : 0;

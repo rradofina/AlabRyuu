@@ -11,7 +11,7 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="got">0/8</b></div>
+  <div id="hud"><b id="got">0/6</b></div>
   <div id="say">Pop the red ones! 🔴</div>
   <div class="cover" id="title">
     <div class="hero">🎈</div>
@@ -43,7 +43,7 @@
     function start() {
       play = true; n = 0; balls = []; want = "🔴";
       kidBegin();
-      document.getElementById("got").textContent = "0/8";
+      document.getElementById("got").textContent = "0/6";
       document.getElementById("say").textContent = "Pop the red ones! 🔴";
       for (var i = 0; i < 5; i++) {
         var e = i < 2 ? "🔴" : SET[(1 + i) % SET.length].e;
@@ -64,10 +64,10 @@
       if (best < 0) { kidTap(want, "Pop " + want + "!", innerWidth * 0.5, innerHeight * 0.4, 300); return; }
       if (balls[best].e === want) {
         var hit = balls.splice(best, 1)[0]; n++;
-        document.getElementById("got").textContent = n + "/8";
-        kidTap("💥", n === 4 ? "Now yellow! 🟡" : "Pop!  " + n + "/8", hit.x, hit.y, 520);
-        if (n === 4) want = "🟡";
-        if (n >= 8) { play = false; kidFinish(); }
+        document.getElementById("got").textContent = n + "/6";
+        kidTap("💥", n === 3 ? "Now yellow! 🟡" : "Pop!  " + n + "/6", hit.x, hit.y, 520);
+        if (n === 3) want = "🟡";
+        if (n >= 6) { play = false; kidFinish(); }
       } else kidTap(balls[best].e, "Not that color. " + want, balls[best].x, balls[best].y, 240);
     });
     function loop(now) {

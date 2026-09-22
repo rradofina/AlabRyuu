@@ -11,7 +11,7 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="rnd">1/5</b></div>
+  <div id="hud"><b id="rnd">1/3</b></div>
   <div id="say">Mix to match!</div>
   <div class="dock" id="dock">
     <button id="r" style="background:#ef4444;color:#fff"><span>🔴</span>Red</button>
@@ -27,7 +27,7 @@
   <div class="cover off" id="win">
     <div class="hero">🌈</div>
     <h1>Rainbow mixer!</h1>
-    <p>Five matches.</p>
+    <p>Three colors.</p>
     <button class="play g" id="again">Mix again</button>
   </div>
   <script>
@@ -37,9 +37,7 @@
     var GOALS = [
       { n: "Orange", r: 1, y: 1, b: 0, c: "#f97316" },
       { n: "Green", r: 0, y: 1, b: 1, c: "#22c55e" },
-      { n: "Purple", r: 1, y: 0, b: 1, c: "#a855f7" },
-      { n: "Orange", r: 1, y: 1, b: 0, c: "#f97316" },
-      { n: "Green", r: 0, y: 1, b: 1, c: "#22c55e" }
+      { n: "Purple", r: 1, y: 0, b: 1, c: "#a855f7" }
     ];
     function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
     function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }
@@ -54,7 +52,7 @@
       kidBegin();
       document.getElementById("dock").classList.add("on");
       document.getElementById("say").textContent = "Make " + GOALS[0].n + "!";
-      document.getElementById("rnd").textContent = "1/5";
+      document.getElementById("rnd").textContent = "1/3";
     }
     function add(k) {
       if (!play) return;
@@ -72,7 +70,7 @@
           kidFinish();
         } else {
           mix = { r: 0, y: 0, b: 0 };
-          document.getElementById("rnd").textContent = (round + 1) + "/5";
+          document.getElementById("rnd").textContent = (round + 1) + "/3";
           kidPing("Now make " + GOALS[round].n + "!");
         }
       } else if ((mix.r && !g.r) || (mix.y && !g.y) || (mix.b && !g.b)) {

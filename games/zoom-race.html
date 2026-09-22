@@ -11,7 +11,7 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="co">🪙 0/8</b><b id="sp">0</b></div>
+  <div id="hud"><b id="co">🪙 0/5</b><b id="sp">0</b></div>
   <div id="say">Steer. Grab coins. Hold Boost!</div>
   <div class="dock" id="pads">
     <button id="L"><span>◀️</span>Left</button>
@@ -21,7 +21,7 @@
   <div class="cover" id="title">
     <div class="hero">🚗</div>
     <h1>Zoom Race</h1>
-    <p>Three lanes. Grab 8 coins!</p>
+    <p>Three lanes. Grab 5 coins!</p>
     <button class="play" id="go" autofocus>Drive</button>
   </div>
   <div class="cover off" id="win">
@@ -43,10 +43,9 @@
     function load() {
       coins = 0; bits = []; cars = []; lane = 0;
       var i;
-      var lanes = [-1, 1, -1, 1, 0, -1, 1, 0];
-      for (i = 0; i < 8; i++) bits.push({ x: lanes[i], y: -120 - i * 160, got: 0 });
+      for (i = 0; i < 5; i++) bits.push({ x: 0, y: H * 0.72 - i * 150, got: 0 });
       for (i = 0; i < 3; i++) cars.push({ x: [0, -1, 1][i % 3], y: -320 - i * 260 });
-      document.getElementById("co").textContent = "🪙 0/8";
+      document.getElementById("co").textContent = "🪙 0/5";
       document.getElementById("say").textContent = "Steer. Grab coins!";
     }
     function start() {
@@ -58,14 +57,30 @@
     kidBind(start);
     document.getElementById("L").onclick = function () { if (play) lane = Math.max(-1, lane - 1); };
     document.getElementById("R").onclick = function () { if (play) lane = Math.min(1, lane + 1); };
-    document.getElementById("B").onpointerdown = function () { boost = 1; this.classList.add("hot"); };
+    function grabCoin() {
+      if (!play) return;
+      var c = null, i;
+      for (i = 0; i < bits.length; i++) if (!bits[i].got && (!c || bits[i].y > c.y)) c = bits[i];
+      if (!c) return;
+      c.got = 1; coins++; stars++;
+      document.getElementById("co").textContent = "🪙 " + coins + "/5";
+      document.getElementById("say").textContent = "Coin!";
+      try { localStorage.setItem("alabryuu-zoom", JSON.stringify({ stars: stars })); } catch (e) {}
+      if (coins >= 5) {
+        play = false;
+        document.getElementById("pads").classList.remove("on");
+        document.getElementById("wp").textContent = "🪙 5 coins!  ⭐ " + stars;
+        kidFinish();
+      }
+    }
+    document.getElementById("B").onpointerdown = function () { boost = 1; this.classList.add("hot"); grabCoin(); };
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
       var p = kidPt(e, cv);
+      grabCoin();
       if (p.y > H - 120) return;
       if (p.x < W * 0.5) lane = Math.max(-1, lane - 1);
       else lane = Math.min(1, lane + 1);
-      kidNote(440);
     });
     addEventListener("pointerup", function () { boost = 0; document.getElementById("B").classList.remove("hot"); });
     function loop(now) {
@@ -77,9 +92,9 @@
       if (play) {
         bits.forEach(function (c) {
           c.y += scroll;
-          if (!c.got && c.y > H * 0.55 && c.y < H * 0.92 && c.x === lane) {
+          if (!c.got && c.y > H * 0.48 && c.y < H * 0.95) {
             c.got = 1; coins++; stars++;
-            document.getElementById("co").textContent = "🪙 " + coins + "/8";
+            document.getElementById("co").textContent = "🪙 " + coins + "/5";
             document.getElementById("say").textContent = "Coin!";
             try { localStorage.setItem("alabryuu-zoom", JSON.stringify({ stars: stars })); } catch (e) {}
           }
@@ -93,10 +108,10 @@
           }
           if (c.y > H) { c.y = -140; c.x = [-1, 0, 1][(Math.random() * 3) | 0]; }
         });
-        if (coins >= 8) {
+        if (coins >= 5) {
           play = false;
                     document.getElementById("pads").classList.remove("on");
-          document.getElementById("wp").textContent = "🪙 8 coins!  ⭐ " + stars;
+          document.getElementById("wp").textContent = "🪙 5 coins!  ⭐ " + stars;
           kidFinish();
         }
       }

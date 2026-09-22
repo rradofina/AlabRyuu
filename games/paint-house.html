@@ -77,13 +77,17 @@
       return px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h && py < H - 120;
     }
     function blob(px, py) {
-      if (!inHouse(px, py)) return;
+      if (!inHouse(px, py)) {
+        var box = houseBox();
+        px = box.x + box.w * 0.5;
+        py = box.y + box.h * 0.45;
+      }
       x.fillStyle = color;
       x.beginPath(); x.arc(px, py, 28, 0, Math.PI * 2); x.fill();
       painted++;
       document.getElementById("pc").textContent = "🎨 " + painted;
       if (painted === 1 || painted % 6 === 0) kidNote(400 + painted * 8);
-      if (painted >= 28) {
+      if (painted >= 12) {
         play = false; drawing = 0;
                 document.getElementById("dock").classList.remove("on");
         kidFinish();
@@ -102,7 +106,7 @@
         x.beginPath(); x.moveTo(lastX, lastY); x.lineTo(kidPt(e, cv).x, kidPt(e, cv).y); x.stroke();
         painted++;
         document.getElementById("pc").textContent = "🎨 " + painted;
-        if (painted >= 28) {
+        if (painted >= 12) {
           play = false; drawing = 0;
           kidFinish();
         }

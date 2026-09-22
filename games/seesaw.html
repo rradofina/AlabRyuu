@@ -13,8 +13,8 @@
 kidChrome({
   title: "Seesaw",
   hero: "⚖️",
-  blurb: "Tap the pal with the same dots!",
-  say: "Match the dots!",
+  blurb: "Tap the pal with the same number!",
+  say: "Match the number!",
   hud: "⚖️ 0/4",
   winHero: "😄",
   winTitle: "Balanced!",
@@ -32,16 +32,32 @@ kidChrome({
   ];
   var play = false, round = 0, tip = -0.4, goal = -0.4, lock = false;
   function dots(x, y, w) {
-    var i;
-    for (i = 0; i < w; i++) S.em("⚪", x + (i - (w - 1) / 2) * 26, y, 26);
+    S.ctx.fillStyle = "#0f172a";
+    S.ctx.font = "800 44px Trebuchet MS,sans-serif";
+    S.ctx.textAlign = "center";
+    S.ctx.textBaseline = "middle";
+    S.ctx.fillText(String(w), x, y);
   }
-  function start() { play = true; round = 0; tip = -0.4; goal = -0.4; lock = false; kidBegin("Match the dots!", "⚖️ 0/4"); }
+  function mix(list) {
+    var a = list.slice(), i, j, t;
+    for (i = a.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function start() {
+    play = true; round = 0; tip = -0.4; goal = -0.4; lock = false;
+    var r;
+    for (r = 0; r < ROUNDS.length; r++) ROUNDS[r].R = mix(ROUNDS[r].R);
+    kidBegin("Match the number!", "⚖️ 0/4");
+  }
   kidBind(start);
   S.cv.addEventListener("pointerdown", function (e) {
     if (!play || lock) return;
     var p = kidPt(e, S.cv);
     var opts = ROUNDS[round].R;
-    var i = kidNearest(p.x, p.y, opts, 90, function (_, k) {
+    var i = kidNearest(p.x, p.y, opts, 520, function (_, k) {
       return { x: S.W * (0.22 + k * 0.28), y: S.H * 0.78 };
     });
     if (i < 0) { kidMiss("⚖️", "Tap a pal!", p.x, p.y); return; }
@@ -52,9 +68,9 @@ kidChrome({
         round++;
         if (kidMark(round, 4, "⚖️")) { play = false; kidFinish("Four even seesaws."); return; }
         tip = -0.4; goal = -0.4; lock = false;
-        kidSay("Match the dots!");
+        kidSay("Match the number!");
       }, 650);
-    } else kidMiss(opts[i][0], "Count the dots!", S.W * (0.22 + i * 0.28), S.H * 0.78);
+    } else kidMiss(opts[i][0], "Find " + ROUNDS[round].L[1] + "!", S.W * (0.22 + i * 0.28), S.H * 0.78);
   });
   kidTick(function (dt) {
     tip += (goal - tip) * Math.min(1, dt * 6);

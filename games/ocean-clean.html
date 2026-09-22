@@ -11,12 +11,12 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="tr">🗑️ 0/8</b></div>
+  <div id="hud"><b id="tr">🗑️ 0/5</b></div>
   <div id="say">TAP the trash! Not the fish.</div>
   <div class="cover" id="title">
     <div class="hero">🌊</div>
     <h1>Ocean Clean</h1>
-    <p>Tap 8 bits of trash. Save the fish!</p>
+    <p>Tap 5 bits of trash. Save the fish!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -50,7 +50,7 @@
         { e: "🐠", x: 0.62, y: 0.72 }
       ];
       kidBegin();
-      document.getElementById("tr").textContent = "🗑️ 0/8";
+      document.getElementById("tr").textContent = "🗑️ 0/5";
       kidPing("TAP the trash!");
     }
     kidBind(start);
@@ -77,11 +77,11 @@
       var b = bits[best];
       bits.splice(best, 1); n++; stars++;
       try { localStorage.setItem("alabryuu-ocean", JSON.stringify({ stars: stars })); } catch (err) {}
-      document.getElementById("tr").textContent = "🗑️ " + n + "/8";
-      kidTap("💦", "Got it!  " + n + "/8", b.x * innerWidth, b.y * innerHeight, 440);
+      document.getElementById("tr").textContent = "🗑️ " + n + "/5";
+      kidTap("💦", "Got it!  " + n + "/5", b.x * innerWidth, b.y * innerHeight, 440);
       kidBoom("🗑️", b.x * innerWidth, b.y * innerHeight);
       if (n === 4) pals.push({ e: "🐡", x: 0.35, y: 0.58 });
-      if (n >= 8) {
+      if (n >= 5) {
         play = false;
         pals.push({ e: "🐬", x: 0.5, y: 0.48 });
         kidFinish();

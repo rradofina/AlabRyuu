@@ -33,10 +33,10 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, t = 0, play = false, step = 0, taps = 0, bits = [];
     var STEPS = [
-      { n: "Mix", e: "🥣", say: "Stir the bowl!", need: 4, btn: "Mix", be: "🥣", pop: "🥣" },
-      { n: "Cut", e: "⭐", say: "Cut star cookies!", need: 3, btn: "Cut", be: "⭐", pop: "⭐" },
-      { n: "Bake", e: "🍪", say: "Bake them warm!", need: 3, btn: "Bake", be: "🔥", pop: "🔥" },
-      { n: "Yum", e: "🍪", say: "Sprinkle sparkles!", need: 3, btn: "Yum", be: "✨", pop: "✨" }
+      { n: "Mix", e: "🥣", say: "Stir the bowl!", need: 2, btn: "Mix", be: "🥣", pop: "🥣" },
+      { n: "Cut", e: "⭐", say: "Cut star cookies!", need: 2, btn: "Cut", be: "⭐", pop: "⭐" },
+      { n: "Bake", e: "🍪", say: "Bake them warm!", need: 2, btn: "Bake", be: "🔥", pop: "🔥" },
+      { n: "Yum", e: "🍪", say: "Sprinkle sparkles!", need: 2, btn: "Yum", be: "✨", pop: "✨" }
     ];
     function em(ch, px, py, s) { kidEm(x, ch, px, py, s); }
     function resize() { var b = kidFit(cv, x); W = b.W; H = b.H; }

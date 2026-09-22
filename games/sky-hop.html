@@ -32,7 +32,7 @@
     var cv = document.getElementById("c"), ctx = cv.getContext("2d");
     var W = 390, H = 700, T = 0, playing = false;
     var clouds = [], on = 0, hopCount = 0, best = save.best || 0, stars = save.stars || 0, decorations = save.decos || 0;
-    var hopPhase = "idle", hopT = 0, flutterT = 0, stuck = 0;
+    var hopPhase = "idle", hopT = 0, flutterT = 0, stuck = 0, hopQueue = 0;
     var hopFrom = { x: 0, y: 0 }, hopTo = { x: 0, y: 0 };
     var kid = { x: 0, y: 0 };
     var camX = 0, camY = 0;
@@ -82,9 +82,11 @@
     function hop() {
       if (!playing) return;
       if (hopPhase !== "idle") {
+        hopQueue = 1;
         if (stuck > 1.6) snapToCloud(on);
-        else return;
+        return;
       }
+      hopQueue = 0;
       ensureAhead();
       var here = cloudAt(on), next = cloudAt(on + 1);
       if (!here || !next) { snapToCloud(on); document.getElementById("say").textContent = "Hop again!"; return; }
@@ -139,6 +141,7 @@
         if (k >= 1) {
           hopPhase = "idle"; on++; ensureAhead(); recycleBehind();
           snapToCloud(on); collectIfStar();
+          if (hopQueue) hop();
         }
       } else if (flutterT > 0) {
         flutterT -= dt;

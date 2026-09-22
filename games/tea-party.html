@@ -13,48 +13,45 @@
 kidChrome({
   title: "Tea Party",
   hero: "🍵",
-  blurb: "Hold to pour. Let go when the cup is full!",
-  say: "Hold to pour!",
+  blurb: "Tap to pour a cup for each pal!",
+  say: "Tap to pour!",
   hud: "🍵 0/4",
   winHero: "🧸",
   winTitle: "Tea time!",
   winText: "Four happy cups.",
   again: "Pour again",
   bg: "#fecdd3",
-  extra: '<div class="dock" id="tools"><button id="pour"><span>🫖</span>Hold</button></div>'
+  extra: '<div class="dock" id="tools"><button id="pour"><span>🫖</span>Pour</button></div>'
 });
 (function () {
   var S = kidStage();
   var pals = ["🐻", "🐰", "🐱", "🐶"];
   var play = false, cup = 0, fill = 0, hold = false, done = [0, 0, 0, 0];
-  function noteRelease() {
-    if (fill > 0.58 && fill < 0.96) {
-      done[cup] = 1; cup++; fill = 0;
-      kidTap("🍵", cup >= 4 ? "Party!" : "Just right!", S.W * 0.5, S.H * 0.42, 580);
-      if (kidMark(cup, 4, "🍵")) { play = false; kidFinish("Four happy cups."); }
-      else kidSay("Hold to pour for " + pals[cup] + "!");
-    } else if (fill > 0) {
-      kidMiss("🫖", "A bit more tea!", S.W * 0.5, S.H * 0.4);
-      fill = Math.max(0, fill - 0.15);
-    }
+  function succeed() {
+    if (!play || cup >= 4) return;
+    done[cup] = 1; cup++; fill = 0; hold = false;
+    kidTap("🍵", cup >= 4 ? "Party!" : "Tea!", S.W * 0.5, S.H * 0.42, 580);
+    if (kidMark(cup, 4, "🍵")) { play = false; kidFinish("Four happy cups."); }
+    else kidSay("Tap to pour for " + pals[cup] + "!");
   }
   function start() {
     play = true; cup = 0; fill = 0; hold = false; done = [0, 0, 0, 0];
-    kidBegin("Hold to pour!", "🍵 0/4");
+    kidBegin("Tap to pour!", "🍵 0/4");
     kidDock(true);
   }
   kidBind(start);
+  document.getElementById("pour").onclick = function () { if (play) succeed(); };
   addEventListener("pointerdown", function (e) {
     if (!play) return;
-    if (e.target.closest && e.target.closest("a")) return;
+    if (e.target.closest && e.target.closest("a,button")) return;
     hold = true;
   });
-  addEventListener("pointerup", function () { if (!hold) return; hold = false; noteRelease(); });
+  addEventListener("pointerup", function () { if (!hold) return; hold = false; succeed(); });
   addEventListener("pointercancel", function () { hold = false; });
   kidTick(function (dt) {
     if (play && hold) {
-      fill += dt * 0.42;
-      if (fill > 1) { fill = 0; kidMiss("💦", "Too full! Try again!", S.W * 0.5, S.H * 0.36); }
+      fill += dt * 1.5;
+      if (fill >= 0.8) succeed();
     }
     S.bg("#ffe4e6");
     var i;

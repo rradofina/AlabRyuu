@@ -8,8 +8,8 @@
   <script src="../kid.js?v=3"></script>
   <style>
     html,body{background:#7dd3fc}
-    .dock button{min-width:56px;min-height:84px}
-    .dock button span{font-size:32px}
+    .dock button{min-width:108px;min-height:92px}
+    .dock button span{font-size:48px}
   </style>
 </head>
 <body>
@@ -56,6 +56,11 @@
       document.getElementById("say").textContent = "Tap " + COLS[0].e + " first!";
     }
     kidBind(start);
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play || kidPt(e, cv).y > H - 150) return;
+      var btn = document.querySelector('#dock button[data-i="' + next + '"]');
+      if (btn) btn.onclick();
+    });
     [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
       b.onclick = function () {
         if (!play) return;

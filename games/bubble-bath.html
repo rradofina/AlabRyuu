@@ -11,12 +11,12 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="pp">🫧 0/8</b></div>
+  <div id="hud"><b id="pp">🫧 0/5</b></div>
   <div id="say">Pop bubbles. Wash the duck!</div>
   <div class="cover" id="title">
     <div class="hero">🛁</div>
     <h1>Bubble Bath</h1>
-    <p>Pop 8 bubbles. Duck gets clean!</p>
+    <p>Pop 5 bubbles. Duck gets clean!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -37,7 +37,7 @@
       play = true; n = 0; bubbles = [];
       for (var i = 0; i < 5; i++) bubbles.push({ x: 50 + i * 70, y: H * 0.35 + (i % 2) * 80, vy: 45 });
       kidBegin();
-      document.getElementById("pp").textContent = "🫧 0/8";
+      document.getElementById("pp").textContent = "🫧 0/5";
       document.getElementById("say").textContent = "Pop the bubbles!";
     }
     kidBind(start);
@@ -51,9 +51,9 @@
       if (best < 0 && bubbles.length) best = 0;
       if (best < 0) { spawn(); kidTap("🫧", "Pop a bubble!", innerWidth * 0.5, innerHeight * 0.45, 400); return; }
       var hit = bubbles.splice(best, 1)[0]; n++;
-      document.getElementById("pp").textContent = "🫧 " + n + "/8";
-      kidTap("💦", "Pop!  " + n + "/8", hit.x, hit.y, 480);
-      if (n >= 8) { play = false; kidFinish(); }
+      document.getElementById("pp").textContent = "🫧 " + n + "/5";
+      kidTap("💦", "Pop!  " + n + "/5", hit.x, hit.y, 480);
+      if (n >= 5) { play = false; kidFinish(); }
     });
     function loop(now) {
       if (!last) last = now;
@@ -61,7 +61,7 @@
       x.fillStyle = "#bae6fd"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#38bdf8"; x.fillRect(0, H * 0.58, W, H);
       em("🛁", W * 0.5, H * 0.70, 96);
-      em(n >= 8 ? "🦆" : "🐥", W * 0.5, H * 0.58, 96);
+      em(n >= 5 ? "🦆" : "🐥", W * 0.5, H * 0.58, 96);
       if (play) {
         if (bubbles.length < 5) spawn();
         bubbles.forEach(function (b) { b.y -= b.vy * dt; });

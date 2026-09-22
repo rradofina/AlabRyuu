@@ -11,7 +11,7 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="rd">1/8</b></div>
+  <div id="hud"><b id="rd">1/5</b></div>
   <div id="say">Tap A</div>
   <div class="cover" id="title">
     <div class="hero">🔤</div>
@@ -22,7 +22,7 @@
   <div class="cover off" id="win">
     <div class="hero">🐸</div>
     <h1>Letter star!</h1>
-    <p>Eight letters caught.</p>
+    <p>Five letters caught.</p>
     <button class="play g" id="again">Play again</button>
   </div>
   <script>
@@ -45,7 +45,7 @@
         return { L: L, x: 0.2 + (i % 2) * 0.55, y: 0.38 + ((i / 2) | 0) * 0.28 };
       });
       document.getElementById("say").textContent = "Tap " + want;
-      document.getElementById("rd").textContent = (round + 1) + "/8";
+      document.getElementById("rd").textContent = (round + 1) + "/5";
     }
     function start() {
       play = true; round = 0;
@@ -67,7 +67,7 @@
       if (hit.L === want) {
         kidTap("⭐", "Yes " + want + "!", hit.x * innerWidth, hit.y * innerHeight, 540);
         round++;
-        if (round >= 8) { play = false; kidFinish(); }
+        if (round >= 5) { play = false; kidFinish(); }
         else deal();
       } else kidTap("⭕", "Find " + want + "!", hit.x * innerWidth, hit.y * innerHeight, 240);
     });

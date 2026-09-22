@@ -17,8 +17,8 @@
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
-  <div id="hud"><b id="rd">1/5</b></div>
-  <div id="say">Watch. Then copy!</div>
+  <div id="hud"><b id="rd">1/3</b></div>
+  <div id="say">Tap the yellow one!</div>
   <div style="position:fixed;inset:0;display:grid;place-items:center;font-size:120px;pointer-events:none" id="face">🥁</div>
   <div class="pads" id="pads">
     <button data-i="0"><span>🥁</span>Drum</button>
@@ -29,7 +29,7 @@
   <div class="cover" id="title">
     <div class="hero">🥁</div>
     <h1>Rhythm Band</h1>
-    <p>Watch the glow. Tap the same!</p>
+    <p>Tap the yellow instrument!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -42,61 +42,41 @@
   (function () {
     var seq = [], listen = false, step = 0, gen = 0, ICONS = ["🥁", "🎺", "🎸", "🎹"];
     var btns = [].slice.call(document.querySelectorAll("#pads button"));
-    function light(i) {
-      btns[i].classList.add("lit");
-      document.getElementById("face").textContent = ICONS[i];
-      setTimeout(function () { btns[i].classList.remove("lit"); }, 700);
-    }
-    function playSeq() {
-      var my = ++gen;
-      listen = false; step = 0;
-      document.getElementById("say").textContent = "Watch the glow...";
-      var i = 0;
-      function tick() {
-        if (my !== gen) return;
-        if (i >= seq.length) { listen = true; document.getElementById("say").textContent = "Your turn! Tap " + ICONS[seq[0]]; return; }
-        light(seq[i]);
-        document.getElementById("say").textContent = "Watch " + ICONS[seq[i]] + "  (" + (i + 1) + "/" + seq.length + ")";
-        i++; setTimeout(tick, 1100);
-      }
-      setTimeout(tick, 700);
-    }
-    function nextRound() {
-      seq.push((Math.random() * 4) | 0);
-      document.getElementById("rd").textContent = seq.length + "/5";
-      playSeq();
+    function showStep() {
+      listen = true;
+      btns.forEach(function (b) { b.classList.remove("lit"); });
+      btns[seq[step]].classList.add("lit");
+      document.getElementById("face").textContent = ICONS[seq[step]];
+      document.getElementById("say").textContent = "Tap " + ICONS[seq[step]] + "!";
+      document.getElementById("rd").textContent = seq.length + "/3";
     }
     function start() {
-      seq = []; round = 0;
+      seq = [(Math.random() * 4) | 0]; step = 0;
       kidBegin();
       document.getElementById("pads").classList.add("on");
-      nextRound();
+      showStep();
     }
     kidBind(start);
     btns.forEach(function (b) {
       b.onclick = function () {
         var i = +b.getAttribute("data-i");
         kidNote(320 + i * 80);
+        if (!listen) return;
         kidBoom(ICONS[i], innerWidth * 0.5, innerHeight * 0.42);
-        if (!listen) { kidPing("Watch first!"); return; }
-        light(i);
         if (i === seq[step]) {
           step++;
-          kidPing(step < seq.length ? "Yes! Next " + ICONS[seq[step]] : "Yes!");
           if (step >= seq.length) {
-            if (seq.length >= 5) {
+            if (seq.length >= 3) {
               listen = false;
-                            document.getElementById("pads").classList.remove("on");
+              document.getElementById("pads").classList.remove("on");
               kidFinish();
             } else {
-              kidPing("Yes! Next song.");
-              setTimeout(nextRound, 500);
+              seq.push((Math.random() * 4) | 0);
+              step = 0;
+              showStep();
             }
-          }
-        } else {
-          kidPing("Oops. Watch again!");
-          playSeq();
-        }
+          } else showStep();
+        } else kidPing("Tap the yellow one!");
       };
     });
   })();

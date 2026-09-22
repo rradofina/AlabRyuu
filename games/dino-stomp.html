@@ -32,7 +32,7 @@
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
-    var W, H, t = 0, last = 0, play = false, flowers = 0, stars = 0;
+    var W, H, t = 0, last = 0, play = false, flowers = 0, stars = 0, queued = "";
     var dino = { y: 0, vy: 0, pose: "walk", poseT: 0 };
     var logs = [], blooms = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-dino") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
@@ -54,13 +54,15 @@
     }
     function hop() {
       if (!play) return;
-      if (dino.pose !== "walk") { kidNote(260); return; }
+      if (dino.pose !== "walk") { queued = "hop"; document.getElementById("say").textContent = "Hopping!"; return; }
+      queued = "";
       dino.pose = "crouch"; dino.poseT = 0;
       kidTap("⬆️", "Hop!", innerWidth * 0.28, innerHeight * 0.55, 480);
     }
     function stompNow() {
       if (!play) return;
-      if (dino.pose !== "walk" && dino.pose !== "land") { kidNote(260); return; }
+      if (dino.pose !== "walk" && dino.pose !== "land") { queued = "stomp"; document.getElementById("say").textContent = "Stomp soon!"; return; }
+      queued = "";
       dino.pose = "stomp"; dino.poseT = 0;
       kidTap("💥", "Stomp!", innerWidth * 0.28, innerHeight * 0.62, 360);
     }
@@ -80,7 +82,7 @@
       if (kidPt(e, cv).x < W * 0.5) hop(); else stompNow();
     });
     function cheer() {
-      if (flowers >= 12 && play) {
+      if (flowers >= 6 && play) {
         play = false;
         document.getElementById("winP").textContent = "🌼 " + flowers + "  ⭐ " + stars;
         kidFinish();
@@ -98,7 +100,11 @@
         else if (dino.pose === "air") { dino.vy += 1200 * dt; dino.y += dino.vy * dt; if (dino.y >= 0) { dino.y = 0; dino.pose = "land"; dino.poseT = 0; } }
         else if (dino.pose === "land") { if (dino.poseT > 0.14) dino.pose = "walk"; }
         else if (dino.pose === "stomp") { dino.y = 10; if (dino.poseT > 0.26) dino.pose = "walk"; }
-        else dino.y = Math.sin(t * 8) * 3;
+        else {
+          dino.y = Math.sin(t * 8) * 3;
+          if (queued === "hop") hop();
+          else if (queued === "stomp") stompNow();
+        }
         logs.forEach(function (o) {
           if (o.smash) { o.x -= spd * dt; if (o.x < -80) { o.x = W + 140; o.smash = 0; } return; }
           o.x -= spd * dt;

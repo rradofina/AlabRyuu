@@ -150,7 +150,7 @@
       if (!drag) return;
       var p = kidPt(e, cv);
       var dx = p.x - lastX;
-      if (Math.abs(dx) > 14) { rot += dx * 0.012; lastX = p.x; moved = 1; }
+      if (Math.abs(dx) > 42) { rot += dx * 0.012; lastX = p.x; moved = 1; }
     });
     addEventListener("pointerup", function (e) {
       if (!drag) return;

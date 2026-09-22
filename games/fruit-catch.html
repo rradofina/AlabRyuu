@@ -11,12 +11,12 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="got">🍉 0/10</b></div>
+  <div id="hud"><b id="got">🍉 0/6</b></div>
   <div id="say">Drag the basket. Catch fruit!</div>
   <div class="cover" id="title">
     <div class="hero">🍉</div>
     <h1>Fruit Catch</h1>
-    <p>Move the basket. Catch 10 fruits!</p>
+    <p>Move the basket. Catch 6 fruits!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -39,7 +39,7 @@
       fruit.push({ e: "🍎", x: 0.3, y: 0.15, vy: 0.32 });
       fruit.push({ e: "🍌", x: 0.7, y: 0.02, vy: 0.28 });
       kidBegin();
-      document.getElementById("got").textContent = "🍉 0/10";
+      document.getElementById("got").textContent = "🍉 0/6";
       document.getElementById("say").textContent = "Drag the basket!";
     }
     kidBind(start);
@@ -55,13 +55,19 @@
         var dx = p.x - fruit[i].x * W, dy = p.y - fruit[i].y * H;
         if (dx * dx + dy * dy < 80 * 80) {
           var got = fruit.splice(i, 1)[0]; n++;
-          document.getElementById("got").textContent = "🍉 " + n + "/10";
-          kidTap(got.e, "Yum!  " + n + "/10", p.x, p.y, 500);
-          if (n >= 10) { play = false; kidFinish(); }
+          document.getElementById("got").textContent = "🍉 " + n + "/6";
+          kidTap(got.e, "Yum!  " + n + "/6", p.x, p.y, 500);
+          if (n >= 6) { play = false; kidFinish(); }
           return;
         }
       }
-      kidNote(300);
+      if (fruit.length) {
+        var near = fruit[fruit.length - 1];
+        fruit.pop(); n++;
+        document.getElementById("got").textContent = "🍉 " + n + "/6";
+        kidTap(near.e, "Yum!  " + n + "/6", near.x * W, near.y * H, 500);
+        if (n >= 6) { play = false; kidFinish(); }
+      }
     });
     function loop(now) {
       if (!last) last = now;
@@ -76,9 +82,9 @@
           var f = fruit[i], fx = f.x * W, fy = f.y * H;
           if (Math.abs(fx - basket * W) < 120 && fy > by - 70 && fy < by + 56) {
             fruit.splice(i, 1); n++;
-            document.getElementById("got").textContent = "🍉 " + n + "/10";
-            kidTap(f.e, "Yum!  " + n + "/10", fx, fy, 500);
-            if (n >= 10) { play = false; kidFinish(); }
+            document.getElementById("got").textContent = "🍉 " + n + "/6";
+            kidTap(f.e, "Yum!  " + n + "/6", fx, fy, 500);
+            if (n >= 6) { play = false; kidFinish(); }
           } else if (fy > H) {
             fruit.splice(i, 1);
             document.getElementById("say").textContent = "Miss. Next one!";

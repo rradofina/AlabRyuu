@@ -13,41 +13,45 @@
 kidChrome({
   title: "Yo-yo",
   hero: "🪀",
-  blurb: "Tap when the yo-yo is at the bottom!",
-  say: "Wait for the bottom!",
-  hud: "🪀 0/8",
+  blurb: "Tap the yo-yo when it rests at the bottom!",
+  say: "Tap the yo-yo!",
+  hud: "🪀 0/5",
   winHero: "🎉",
   winTitle: "Nice loops!",
-  winText: "Eight bottom taps.",
+  winText: "Five bottom taps.",
   again: "Spin again",
   bg: "#ddd6fe"
 });
 (function () {
   var S = kidStage();
-  var play = false, n = 0, t = 0, cool = 0, said = "";
-  function phase() { return (Math.sin(t * 3.1) + 1) / 2; }
+  var play = false, n = 0, t = 0, mode = "down", said = "";
+  function phase() { return mode === "down" ? 1 : (Math.sin(t * 2.2) + 1) / 2; }
   function yoyoY() { return S.H * 0.16 + phase() * S.H * 0.58; }
   function note(key, msg) { if (said === key) return; said = key; kidSay(msg); }
   function tap() {
-    if (!play || cool > 0) return;
-    if (phase() > 0.82) {
-      n++; cool = 0.45; said = "";
-      kidTap("🪀", "Loop!  " + n + "/8", S.W * 0.5, yoyoY(), 620);
-      if (kidMark(n, 8, "🪀")) { play = false; kidFinish("Eight bottom taps."); }
-    } else kidMiss("👆", "Wait for the bottom!", S.W * 0.5, yoyoY());
+    if (!play) return;
+    if (mode === "fly" && phase() < 0.72) {
+      kidMiss("👆", "Almost — it's coming!", S.W * 0.5, yoyoY());
+      return;
+    }
+    n++; mode = "fly"; t = 0.05; said = "";
+    kidTap("🪀", "Loop!  " + n + "/5", S.W * 0.5, yoyoY(), 620);
+    if (kidMark(n, 5, "🪀")) { play = false; kidFinish("Five bottom taps."); }
   }
-  function start() { play = true; n = 0; t = 0; cool = 0; said = ""; kidBegin("Wait for the bottom!", "🪀 0/8"); }
+  function start() { play = true; n = 0; t = 0; mode = "down"; said = ""; kidBegin("Tap the yo-yo!", "🪀 0/5"); }
   kidBind(start);
   S.cv.addEventListener("pointerdown", tap);
   kidTick(function (dt) {
-    t += dt; if (cool > 0) cool -= dt;
-    if (play) note(phase() > 0.82 ? "go" : "wait", phase() > 0.82 ? "TAP!" : "Wait...");
+    if (play && mode === "fly") {
+      t += dt;
+      if (t > 0.4 && phase() > 0.9) { mode = "down"; note("go", "TAP!"); }
+    } else if (play) note("go", "TAP!");
     S.bg("#ede9fe");
     var y = yoyoY();
     S.ctx.strokeStyle = "#6d28d9"; S.ctx.lineWidth = 6;
     S.ctx.beginPath(); S.ctx.moveTo(S.W * 0.5, 70); S.ctx.lineTo(S.W * 0.5, y - 20); S.ctx.stroke();
     S.em("✋", S.W * 0.5, 78, 72);
-    S.em("🪀", S.W * 0.5, y, phase() > 0.82 ? 120 : 96);
+    S.em("🪀", S.W * 0.5, y, mode === "down" || phase() > 0.82 ? 120 : 96);
   });
 })();
 </script>

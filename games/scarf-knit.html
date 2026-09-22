@@ -15,28 +15,34 @@ kidChrome({
   hero: "🧶",
   blurb: "Tap the needle the arrow shows!",
   say: "Tap the left needle!",
-  hud: "🧶 0/8",
+  hud: "🧶 0/6",
   winHero: "🧣",
   winTitle: "Cozy!",
-  winText: "A scarf of eight stitches.",
+  winText: "A scarf of six stitches.",
   again: "Knit again",
-  bg: "#fbcfe8"
+  bg: "#fbcfe8",
+  extra: '<div class="dock" id="tools"><button id="left"><span>👈</span>Left</button><button id="right"><span>👉</span>Right</button></div>'
 });
 (function () {
   var S = kidStage();
   var play = false, n = 0, side = 0;
   function hint() { kidSay(side === 0 ? "Tap LEFT!" : "Tap RIGHT!"); }
-  function start() { play = true; n = 0; side = 0; kidBegin("Tap the left needle!", "🧶 0/8"); }
+  function start() { play = true; n = 0; side = 0; kidBegin("Tap the left needle!", "🧶 0/6"); kidDock(true); }
   kidBind(start);
-  S.cv.addEventListener("pointerdown", function (e) {
+  function knit(hit, p) {
     if (!play) return;
-    var p = kidPt(e, S.cv);
-    var hit = p.x < S.W * 0.5 ? 0 : 1;
     if (hit !== side) { kidMiss("🧶", side === 0 ? "Other needle! Left!" : "Other needle! Right!", p.x, p.y); return; }
     n++; side = 1 - side;
-    kidTap("🧶", "Stitch!  " + n + "/8", p.x, S.H * 0.62, 420 + n * 24);
-    if (kidMark(n, 8, "🧶")) { play = false; kidFinish("A scarf of eight stitches."); }
+    kidTap("🧶", "Stitch!  " + n + "/6", p.x, S.H * 0.62, 420 + n * 24);
+    if (kidMark(n, 6, "🧶")) { play = false; kidFinish("A scarf of six stitches."); }
     else hint();
+  }
+  document.getElementById("left").onclick = function () { knit(0, { x: S.W * 0.28, y: S.H * 0.6 }); };
+  document.getElementById("right").onclick = function () { knit(1, { x: S.W * 0.72, y: S.H * 0.6 }); };
+  S.cv.addEventListener("pointerdown", function (e) {
+    var p = kidPt(e, S.cv);
+    if (p.y > S.H - 140) return;
+    knit(p.x < S.W * 0.5 ? 0 : 1, p);
   });
   kidTick(function () {
     S.bg("#fce7f3");

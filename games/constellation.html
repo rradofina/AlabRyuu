@@ -25,9 +25,9 @@ kidChrome({
 (function () {
   var S = kidStage();
   var PICS = [
-    { name: "a heart", pts: [[0.5, 0.28], [0.72, 0.36], [0.62, 0.58], [0.5, 0.74], [0.38, 0.58], [0.28, 0.36]] },
-    { name: "a house", pts: [[0.3, 0.62], [0.3, 0.4], [0.5, 0.24], [0.7, 0.4], [0.7, 0.62]] },
-    { name: "a fish", pts: [[0.28, 0.48], [0.42, 0.34], [0.68, 0.42], [0.46, 0.58], [0.3, 0.56]] }
+    { name: "a heart", pts: [[0.18, 0.32], [0.82, 0.32], [0.5, 0.72]] },
+    { name: "a house", pts: [[0.22, 0.7], [0.5, 0.22], [0.78, 0.7]] },
+    { name: "a fish", pts: [[0.18, 0.55], [0.5, 0.28], [0.82, 0.55]] }
   ];
   var play = false, pic = 0, step = 0;
   function pt(i) {
@@ -39,9 +39,8 @@ kidChrome({
   S.cv.addEventListener("pointerdown", function (e) {
     if (!play) return;
     var p = kidPt(e, S.cv), want = pt(step);
-    var i = kidNearest(p.x, p.y, PICS[pic].pts, 78, function (_, k) { return pt(k); });
-    if (i < 0) { kidMiss("⭐", "Tap star " + (step + 1) + "!", p.x, p.y); return; }
-    if (i !== step) { kidMiss("🔢", "Tap star " + (step + 1) + "!", want.x, want.y); return; }
+    var dx = p.x - want.x, dy = p.y - want.y;
+    if (dx * dx + dy * dy > 160 * 160) { kidMiss("⭐", "Tap star " + (step + 1) + "!", want.x, want.y); return; }
     step++;
     kidTap("⭐", "Yes " + step + "!", want.x, want.y, 480 + step * 30);
     if (step >= PICS[pic].pts.length) {

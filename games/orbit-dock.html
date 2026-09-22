@@ -13,8 +13,8 @@
 kidChrome({
   title: "Orbit Dock",
   hero: "🌙",
-  blurb: "Tap when the moon kisses the sparkle!",
-  say: "Watch the moon!",
+  blurb: "Tap when the moon meets the sparkle!",
+  say: "Tap the sparkle!",
   hud: "🌙 0/5",
   winHero: "🪐",
   winTitle: "Docked!",
@@ -25,7 +25,7 @@ kidChrome({
 (function () {
   var S = kidStage();
   var FACES = ["🌙", "🌕", "⭐", "🪐", "✨"];
-  var play = false, n = 0, ang = 0, said = "";
+  var play = false, n = 0, ang = -Math.PI / 2, said = "", parked = true;
   var dock = -Math.PI / 2;
   function diff() {
     var d = Math.atan2(Math.sin(ang - dock), Math.cos(ang - dock));
@@ -33,26 +33,26 @@ kidChrome({
   }
   function note(k, m) { if (said === k) return; said = k; kidSay(m); }
   function pos(a, r) { return { x: S.W * 0.5 + Math.cos(a) * r, y: S.H * 0.48 + Math.sin(a) * r }; }
-  function start() { play = true; n = 0; ang = 0; said = ""; kidBegin("Watch the moon!", "🌙 0/5"); }
+  function start() { play = true; n = 0; ang = dock; parked = true; said = ""; kidBegin("Tap the sparkle!", "🌙 0/5"); }
   kidBind(start);
   S.cv.addEventListener("pointerdown", function () {
     if (!play) return;
-    if (diff() < 0.62) {
-      n++; said = "";
+    if (parked || diff() < 1.05) {
+      n++; said = ""; parked = false; ang = dock + 1.15;
       kidTap(FACES[(n - 1) % FACES.length], "Docked!  " + n + "/5", S.W * 0.5, S.H * 0.28, 600);
       if (kidMark(n, 5, "🌙")) { play = false; kidFinish("Five moons home."); }
-    } else kidMiss("🌙", "Wait till they kiss!", S.W * 0.5, S.H * 0.3);
+    } else kidMiss("🌙", "Almost — wait for the sparkle!", S.W * 0.5, S.H * 0.3);
   });
   kidTick(function (dt) {
-    if (play) {
-      ang += dt * 1.35;
-      note(diff() < 0.62 ? "go" : "wait", diff() < 0.62 ? "TAP!" : "Watch...");
-    }
+    if (play && !parked) {
+      ang += dt * 1.15;
+      if (diff() < 0.42) { parked = true; ang = dock; note("go", "TAP!"); }
+    } else if (play) note("go", "TAP!");
     var r = Math.min(S.W, S.H) * 0.28;
     S.bg("#0f172a");
     S.em("🌍", S.W * 0.5, S.H * 0.48, 110);
     var d = pos(dock, r);
-    S.em(diff() < 0.62 ? "✨" : "⭐", d.x, d.y, diff() < 0.62 ? 72 : 48);
+    S.em(parked || diff() < 0.7 ? "✨" : "⭐", d.x, d.y, parked || diff() < 0.7 ? 80 : 52);
     var m = pos(ang, r);
     S.em(FACES[n % FACES.length], m.x, m.y, 80);
   });

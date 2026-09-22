@@ -53,6 +53,7 @@
         }
         if (step >= 3) return;
         step++;
+        document.getElementById("st").textContent = step + "/4";
         kidTap("⚪", step === 1 ? "Now Mid!" : (step === 2 ? "Now Little!" : "Yay! Face time."), innerWidth * 0.5, innerHeight * 0.5, 400 + step * 40);
         if (step === 3) {
           document.getElementById("dock").innerHTML = '<button id="face"><span>🥕</span>Face</button>';
@@ -75,6 +76,15 @@
     document.getElementById("big").onclick = function () { add("big"); };
     document.getElementById("mid").onclick = function () { add("mid"); };
     document.getElementById("lit").onclick = function () { add("lit"); };
+    cv.addEventListener("pointerdown", function (e) {
+      if (!play || kidPt(e, cv).y > H - 130) return;
+      if (step >= 3) {
+        var face = document.getElementById("face");
+        if (face && face.onclick) face.onclick();
+        return;
+      }
+      add(ORDER[step]);
+    });
     function loop() {
       x.fillStyle = "#e0f2fe"; x.fillRect(0, 0, W, H);
       x.fillStyle = "#fff"; x.fillRect(0, H * 0.72, W, H);

@@ -13,8 +13,8 @@
 kidChrome({
   title: "Fishing Bob",
   hero: "🎣",
-  blurb: "Wait for the bobber to dip. Then tap!",
-  say: "Watch the bobber!",
+  blurb: "Tap when the bobber is red!",
+  say: "Tap the red bobber!",
   hud: "🐟 0/5",
   winHero: "🐠",
   winTitle: "Nice casts!",
@@ -24,19 +24,19 @@ kidChrome({
 });
 (function () {
   var S = kidStage();
-  var play = false, n = 0, phase = "wait", timer = 0.8, splash = 0, said = "";
+  var play = false, n = 0, phase = "dip", timer = 0, splash = 0, said = "";
   var FISH = ["🐟", "🐠", "🐡", "🐟", "🐠"];
   function note(k, m) { if (said === k) return; said = k; kidSay(m); }
   function start() {
-    play = true; n = 0; phase = "wait"; timer = 0.7; splash = 0; said = "";
-    kidBegin("Watch the bobber!", "🐟 0/5");
+    play = true; n = 0; phase = "dip"; timer = 0; splash = 0; said = "";
+    kidBegin("TAP! It dipped!", "🐟 0/5");
   }
   kidBind(start);
   S.cv.addEventListener("pointerdown", function (e) {
     if (!play) return;
     var p = kidPt(e, S.cv);
     if (phase === "dip") {
-      phase = "wait"; timer = 0.6 + Math.random() * 0.5; splash = 0.8; said = "";
+      phase = "wait"; timer = 0.45; splash = 0.8; said = "";
       n++;
       kidTap(FISH[(n - 1) % FISH.length], "Hi fish!  " + n + "/5", p.x, S.H * 0.5, 580);
       if (kidMark(n, 5, "🐟")) { play = false; kidFinish("Five fish said hi."); }
@@ -45,10 +45,11 @@ kidChrome({
   kidTick(function (dt) {
     if (splash > 0) splash -= dt;
     if (play) {
-      timer -= dt;
-      if (phase === "wait" && timer <= 0) { phase = "dip"; timer = 1.6; note("dip", "TAP! It dipped!"); }
-      else if (phase === "dip" && timer <= 0) { phase = "wait"; timer = 0.7; said = ""; note("gone", "It swam. Watch!"); }
-      else if (phase === "wait") note("wait", "Watch...");
+      if (phase === "wait") {
+        timer -= dt;
+        if (timer <= 0) { phase = "dip"; note("dip", "TAP! It dipped!"); }
+        else note("wait", "Watch...");
+      } else note("dip", "TAP!");
     }
     S.bg("#bae6fd");
     S.ctx.fillStyle = "#0284c7";

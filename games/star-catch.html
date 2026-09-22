@@ -11,12 +11,12 @@
 <body>
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="got">⭐ 0/10</b></div>
+  <div id="hud"><b id="got">⭐ 0/6</b></div>
   <div id="say">Tap the falling stars!</div>
   <div class="cover" id="title">
     <div class="hero">⭐</div>
     <h1>Star Catch</h1>
-    <p>Tap 10 falling stars.</p>
+    <p>Tap 6 falling stars.</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -39,7 +39,7 @@
       stars.push({ x: W * 0.7, y: H * 0.42, s: 80 });
       stars.push({ x: W * 0.5, y: H * 0.18, s: 60 });
       kidBegin();
-      document.getElementById("got").textContent = "⭐ 0/10";
+      document.getElementById("got").textContent = "⭐ 0/6";
       document.getElementById("say").textContent = "Tap the falling stars!";
     }
     kidBind(start);
@@ -53,9 +53,9 @@
       if (best < 0 && stars.length) best = 0;
       if (best < 0) { spawn(); kidTap("⭐", "Catch a star!", innerWidth * 0.5, innerHeight * 0.3, 400); return; }
       var hit = stars.splice(best, 1)[0]; n++;
-      document.getElementById("got").textContent = "⭐ " + n + "/10";
-      kidTap("✨", "Got one!  " + n + "/10", hit.x, hit.y, 500);
-      if (n >= 10) { play = false; kidFinish(); }
+      document.getElementById("got").textContent = "⭐ " + n + "/6";
+      kidTap("✨", "Got one!  " + n + "/6", hit.x, hit.y, 500);
+      if (n >= 6) { play = false; kidFinish(); }
     });
     function loop(now) {
       if (!last) last = now;
