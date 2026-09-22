@@ -61,10 +61,7 @@
         var dx = p.x - bits[i].x * W, dy = p.y - bits[i].y * H, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
-      var leaf = -1;
-      for (i = 0; i < bits.length; i++) if (bits[i].e === "🍃") { leaf = i; break; }
-      if (leaf >= 0) best = leaf;
-      if (best < 0) return;
+      if (best < 0) { kidMiss("🍃", "Eat a leaf!", p.x, p.y); return; }
       var b = bits[best];
       if (b.e === "🍃") {
         bits.splice(best, 1); n++; bugX = Math.min(0.8, bugX + 0.07);

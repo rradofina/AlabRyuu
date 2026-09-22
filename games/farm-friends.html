@@ -66,10 +66,7 @@
         var dx = p.x - show[i].x * W, dy = p.y - show[i].y * H, d = dx * dx + dy * dy;
         if (d < best) { best = d; hit = show[i]; }
       }
-      if (!hit) {
-        for (i = 0; i < show.length; i++) if (show[i].want) { hit = show[i]; break; }
-      }
-      if (!hit) return;
+      if (!hit) { kidMiss("🐮", "Tap a pal!", p.x, p.y); return; }
       if (hit.want) {
         kidTap(hit.e, "Yes! " + hit.e, hit.x * innerWidth, hit.y * innerHeight, 560);
         round++;

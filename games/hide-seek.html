@@ -54,10 +54,7 @@
         var dx = p.x - spots[i].x * W, dy = p.y - spots[i].y * H, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = spots[i]; }
       }
-      if (!best) {
-        for (i = 0; i < spots.length; i++) if (!spots[i].got && spots[i].pal) { best = spots[i]; break; }
-      }
-      if (!best) return;
+      if (!best) { kidMiss("🌿", "Look in a bush!", p.x, p.y); return; }
       if (best.got) { kidTap(best.pal, "Hi again!", best.x * innerWidth, best.y * innerHeight, 400); return; }
       if (best.pal) {
         best.got = 1; found++; stars++;

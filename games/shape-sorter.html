@@ -70,10 +70,7 @@
         var dx = p.x - bits[i].x * W, dy = p.y - bits[i].y * H, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
-      if (best < 0) {
-        for (i = 0; i < bits.length; i++) if (!bits[i].done) { best = i; break; }
-      }
-      if (best < 0) return;
+      if (best < 0) { kidMiss("🔺", "Tap a shape!", p.x, p.y); return; }
       place(bits[best]);
     });
     function loop() {

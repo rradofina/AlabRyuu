@@ -48,8 +48,7 @@
         var dx = p.x - bubbles[i].x, dy = p.y - bubbles[i].y, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
-      if (best < 0 && bubbles.length) best = 0;
-      if (best < 0) { spawn(); kidTap("🫧", "Pop a bubble!", innerWidth * 0.5, innerHeight * 0.45, 400); return; }
+      if (best < 0) { kidMiss("🫧", "Tap a bubble!", p.x, p.y); return; }
       var hit = bubbles.splice(best, 1)[0]; n++;
       document.getElementById("pp").textContent = "🫧 " + n + "/5";
       kidTap("💦", "Pop!  " + n + "/5", hit.x, hit.y, 480);

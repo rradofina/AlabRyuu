@@ -30,8 +30,10 @@ kidChrome({
     { name: "a fish", pts: [[0.18, 0.55], [0.5, 0.28], [0.82, 0.55]] }
   ];
   var play = false, pic = 0, step = 0;
+  function shown() { return Math.min(pic, PICS.length - 1); }
   function pt(i) {
-    var p = PICS[pic].pts[i];
+    var pts = PICS[shown()].pts;
+    var p = pts[Math.max(0, Math.min(i, pts.length - 1))];
     return { x: S.W * p[0], y: S.H * (0.16 + p[1] * 0.7) };
   }
   function start() { play = true; pic = 0; step = 0; kidBegin("Tap star 1!", "✨ 0/3"); }
@@ -43,17 +45,25 @@ kidChrome({
     if (dx * dx + dy * dy > 160 * 160) { kidMiss("⭐", "Tap star " + (step + 1) + "!", want.x, want.y); return; }
     step++;
     kidTap("⭐", "Yes " + step + "!", want.x, want.y, 480 + step * 30);
-    if (step >= PICS[pic].pts.length) {
-      pic++; step = 0;
+    if (step >= PICS[shown()].pts.length) {
+      var done = pic + 1;
       kidBurst(["✨", "🌟", "💛"], S.W * 0.5, S.H * 0.4);
-      if (kidMark(pic, 3, "✨")) { play = false; kidFinish("Three pictures drawn."); }
-      else kidSay("Now " + PICS[pic].name + "! Tap 1.");
+      if (done >= PICS.length) {
+        play = false;
+        step = PICS[shown()].pts.length;
+        kidMark(done, 3, "✨");
+        kidFinish("Three pictures drawn.");
+      } else {
+        pic++; step = 0;
+        kidMark(done, 3, "✨");
+        kidSay("Now " + PICS[pic].name + "! Tap 1.");
+      }
     }
   });
   kidTick(function () {
     S.bg("#1e1b4b");
     S.em("🌙", S.W * 0.84, 86, 64);
-    var pts = PICS[Math.min(pic, 2)].pts;
+    var pts = PICS[shown()].pts;
     if (step > 1) {
       S.ctx.strokeStyle = "#fde68a"; S.ctx.lineWidth = 8; S.ctx.lineCap = "round";
       S.ctx.beginPath();

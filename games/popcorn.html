@@ -33,7 +33,9 @@ kidChrome({
   S.cv.addEventListener("pointerdown", function (e) {
     if (!play) return;
     var p = kidPt(e, S.cv);
-    if (!popped) { kidMiss("🌽", "Almost — next pop!", xy(hot).x, xy(hot).y); return; }
+    var i = kidNearest(p.x, p.y, spots, 120, function (_, k) { return xy(k); });
+    if (!popped) { kidMiss("🌽", "Wait for POP!", xy(hot).x, xy(hot).y); return; }
+    if (i < 0 || i !== hot) { kidMiss("🌽", "Wrong kernel!", xy(hot).x, xy(hot).y); return; }
     var q = xy(hot);
     n++; popped = false; timer = 0.35; said = "";
     hot = (hot + 1) % spots.length;

@@ -76,12 +76,13 @@
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
       if (kidPt(e, cv).y > H - 120) return;
-      var i, best = sel, bestD = 120 * 120;
+      var pt = kidPt(e, cv), i, best = -1, bestD = 140 * 140;
       for (i = 0; i < pals.length; i++) {
-        var dx = kidPt(e, cv).x - pals[i].x * W, dy = kidPt(e, cv).y - pals[i].y * H;
+        var dx = pt.x - pals[i].x * W, dy = pt.y - pals[i].y * H;
         var d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
+      if (best < 0) { kidMiss("🐶", "Tap a pet!", pt.x, pt.y); return; }
       sel = best;
       act("Hi");
     });

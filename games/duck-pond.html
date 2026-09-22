@@ -54,10 +54,7 @@
         var dx = p.x - reeds[i].x * W, dy = p.y - reeds[i].y * H, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = reeds[i]; }
       }
-      if (!best) {
-        for (i = 0; i < reeds.length; i++) if (!reeds[i].got) { best = reeds[i]; break; }
-      }
-      if (!best) return;
+      if (!best) { kidMiss("🌾", "Tap the reeds!", p.x, p.y); return; }
       best.got = 1;
       if (best.baby) {
         n++;

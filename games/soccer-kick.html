@@ -12,14 +12,14 @@
   <a class="home" href="../index.html">← Home</a>
   <canvas id="c"></canvas>
   <div id="hud"><b id="gl">⚽ 0</b></div>
-  <div id="say">TAP Kick! Smash the ball!</div>
+  <div id="say">Kick! Every one scores.</div>
   <div class="dock" id="dock">
     <button id="kick"><span>👟</span>Kick</button>
   </div>
   <div class="cover" id="title">
     <div class="hero">⚽</div>
     <h1>Soccer Kick</h1>
-    <p>Kick the ball. Score 5 goals!</p>
+    <p>Every kick scores. The keeper just waves!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
@@ -42,7 +42,7 @@
       kidBegin();
       document.getElementById("dock").classList.add("on");
       document.getElementById("gl").textContent = "⚽ 0";
-      kidPing("TAP Kick! Smash the ball!");
+      kidPing("Kick! The keeper just waves.");
     }
     function kick() {
       if (!play) return;
@@ -80,7 +80,7 @@
           try { localStorage.setItem("alabryuu-soccer", JSON.stringify({ stars: stars })); } catch (e) {}
           document.getElementById("gl").textContent = "⚽ " + goals;
           kidBurst(["🎉", "⚽", "✨", "💛"], innerWidth * 0.5, 140);
-                    kidPing("GOAL!!  " + goals + "/5");
+          kidPing("GOAL!!  " + goals + "/5");
           if (goals >= 5) {
             play = false;
             document.getElementById("dock").classList.remove("on");

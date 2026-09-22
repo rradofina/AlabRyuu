@@ -97,7 +97,10 @@
       if (hopCount % 5 === 0) stars += 1;
       persist();
       kidTap("☁️", cheers[hopCount % cheers.length] + "  Hop " + hopCount, innerWidth * 0.5, innerHeight * 0.42, 480);
-      if (hopCount % 5 === 0) kidBurst(["⭐", "✨", "💛"], innerWidth * 0.5, innerHeight * 0.28);
+      if (hopCount % 5 === 0) {
+        document.getElementById("say").textContent = hopCount + " hops! You are winning!";
+        kidBurst(["⭐", "✨", "💛"], innerWidth * 0.5, innerHeight * 0.28);
+      }
     }
     function collectIfStar() {
       var c = cloudAt(on);

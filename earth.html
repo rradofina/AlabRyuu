@@ -103,12 +103,16 @@
         document.getElementById("cut").classList.remove("off");
       }
     }
+    var TOOLN = { sun: "Sun", rain: "Rain", plant: "Plant" };
+    var TOOLE = { sun: "☀️", rain: "🌧️", plant: "🌱" };
     function applyTool(px, py) {
       if (!play || !ERAS[era]) return;
-      var want = ERAS[era].want;
-      tool = want;
-      setTool(want);
       if (px == null) { px = cx(); py = cy(); }
+      var want = ERAS[era].want;
+      if (tool !== want) {
+        kidMiss(TOOLE[want], "Need " + TOOLE[want] + " " + TOOLN[want] + "!", px, py);
+        return;
+      }
       var dx = px - cx(), dy = py - cy();
       if (tool === "sun") flashes.push({ x: px, y: py, life: 0.5 });
       else if (tool === "rain") rains.push({ x: px, y: py - 40, life: 0.8 });

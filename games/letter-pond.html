@@ -60,10 +60,7 @@
         var dx = p.x - letters[i].x * W, dy = p.y - letters[i].y * H, d = dx * dx + dy * dy;
         if (d < best) { best = d; hit = letters[i]; }
       }
-      if (!hit) {
-        for (i = 0; i < letters.length; i++) if (letters[i].L === want) { hit = letters[i]; break; }
-      }
-      if (!hit) return;
+      if (!hit) { kidMiss("🔤", "Tap " + want + "!", p.x, p.y); return; }
       if (hit.L === want) {
         kidTap("⭐", "Yes " + want + "!", hit.x * innerWidth, hit.y * innerHeight, 540);
         round++;

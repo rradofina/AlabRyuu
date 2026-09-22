@@ -13,15 +13,15 @@
 kidChrome({
   title: "Tea Party",
   hero: "🍵",
-  blurb: "Tap to pour a cup for each pal!",
-  say: "Tap to pour!",
+  blurb: "Hold to pour. A short hold fills the cup!",
+  say: "Hold to pour!",
   hud: "🍵 0/4",
   winHero: "🧸",
   winTitle: "Tea time!",
   winText: "Four happy cups.",
   again: "Pour again",
   bg: "#fecdd3",
-  extra: '<div class="dock" id="tools"><button id="pour"><span>🫖</span>Pour</button></div>'
+  extra: '<div class="dock" id="tools"><button id="pour"><span>🫖</span>Hold</button></div>'
 });
 (function () {
   var S = kidStage();
@@ -32,26 +32,35 @@ kidChrome({
     done[cup] = 1; cup++; fill = 0; hold = false;
     kidTap("🍵", cup >= 4 ? "Party!" : "Tea!", S.W * 0.5, S.H * 0.42, 580);
     if (kidMark(cup, 4, "🍵")) { play = false; kidFinish("Four happy cups."); }
-    else kidSay("Tap to pour for " + pals[cup] + "!");
+    else kidSay("Hold to pour for " + pals[cup] + "!");
   }
   function start() {
     play = true; cup = 0; fill = 0; hold = false; done = [0, 0, 0, 0];
-    kidBegin("Tap to pour!", "🍵 0/4");
+    kidBegin("Hold to pour!", "🍵 0/4");
     kidDock(true);
   }
   kidBind(start);
-  document.getElementById("pour").onclick = function () { if (play) succeed(); };
+  document.getElementById("pour").onpointerdown = function (e) {
+    if (!play) return;
+    e.preventDefault();
+    hold = true;
+  };
   addEventListener("pointerdown", function (e) {
     if (!play) return;
     if (e.target.closest && e.target.closest("a,button")) return;
     hold = true;
   });
-  addEventListener("pointerup", function () { if (!hold) return; hold = false; succeed(); });
+  addEventListener("pointerup", function () {
+    if (!hold) return;
+    hold = false;
+    if (fill >= 0.22) succeed();
+    else kidMiss("🫖", "Hold a little more!", S.W * 0.5, S.H * 0.4);
+  });
   addEventListener("pointercancel", function () { hold = false; });
   kidTick(function (dt) {
     if (play && hold) {
-      fill += dt * 1.5;
-      if (fill >= 0.8) succeed();
+      fill += dt * 0.7;
+      if (fill >= 0.85) succeed();
     }
     S.bg("#ffe4e6");
     var i;

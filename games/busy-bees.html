@@ -69,10 +69,8 @@
         var dx = p.x - list[i].x * W, dy = p.y - list[i].y * H, d = dx * dx + dy * dy;
         if (d < best) { best = d; hit = list[i]; }
       }
-      if (!hit || hit.e !== want) {
-        for (i = 0; i < list.length; i++) if (list[i].e === want) { hit = list[i]; break; }
-      }
-      if (!hit) return;
+      if (!hit) { kidMiss(want, "Tap " + want + "!", p.x, p.y); return; }
+      if (hit.e !== want) { kidMiss(want, "Not that flower. Tap " + want + "!", p.x, p.y); return; }
       holding = 1; kidTap(hit.e, "Home to the hive!", hit.x * innerWidth, hit.y * innerHeight, 500);
     });
     function loop() {

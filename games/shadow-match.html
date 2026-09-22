@@ -59,10 +59,7 @@
         var dx = p.x - choices[i].x * W, dy = p.y - choices[i].y * H, d = dx * dx + dy * dy;
         if (d < best) { best = d; hit = choices[i]; }
       }
-      if (!hit) {
-        for (i = 0; i < choices.length; i++) if (choices[i].e === want) { hit = choices[i]; break; }
-      }
-      if (!hit) return;
+      if (!hit) { kidMiss(want, "Tap a shadow!", p.x, p.y); return; }
       if (hit.e === want) {
         kidTap(hit.e, "Yes!", hit.x * innerWidth, hit.y * innerHeight, 540);
         round++;

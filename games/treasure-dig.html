@@ -49,15 +49,12 @@
     kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var p = kidPt(e, cv), best = -1, bestD = 110 * 110, i;
+      var p = kidPt(e, cv), best = -1, bestD = 130 * 130, i;
       for (i = 0; i < piles.length; i++) {
         var dx = p.x - piles[i].x * W, dy = p.y - piles[i].y * H, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
-      if (best < 0) {
-        for (i = 0; i < piles.length; i++) if (!piles[i].dug) { best = i; break; }
-      }
-      if (best < 0) return;
+      if (best < 0) { kidMiss("⛏️", "Tap a sand pile!", p.x, p.y); return; }
       if (piles[best].dug) {
         kidTap(piles[best].gem, "Shiny!", piles[best].x * innerWidth, piles[best].y * innerHeight, 700);
         return;

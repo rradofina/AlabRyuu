@@ -48,13 +48,13 @@
     kidBind(start);
     cv.addEventListener("pointerdown", function (e) {
       if (!play) return;
-      var p = kidPt(e, cv), best = null, bestD = 1e15, i;
+      var p = kidPt(e, cv), best = null, bestD = 140 * 140, i;
       for (i = 0; i < fish.length; i++) {
         if (fish[i].ate) continue;
         var dx = p.x - fish[i].x * W, dy = p.y - fish[i].y * H, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = fish[i]; }
       }
-      if (!best) return;
+      if (!best) { kidMiss("🍞", "Tap a fish!", p.x, p.y); return; }
       best.ate = 1; fed++;
       document.getElementById("fd").textContent = "🍞 " + fed + "/4";
       document.getElementById("say").textContent = "Yum " + best.e + "!";

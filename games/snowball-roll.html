@@ -13,41 +13,49 @@
 kidChrome({
   title: "Snowball Roll",
   hero: "☃️",
-  blurb: "Tap or hold to roll a snowball!",
-  say: "Tap to roll!",
+  blurb: "Hold to grow. A short hold fits the ring!",
+  say: "Hold to grow!",
   hud: "☃️ 0/4",
   winHero: "⛄",
   winTitle: "Snow fort!",
   winText: "Four good snowballs.",
   again: "Roll again",
   bg: "#e0f2fe",
-  extra: '<div class="dock" id="tools"><button id="hold"><span>✋</span>Roll</button></div>'
+  extra: '<div class="dock" id="tools"><button id="hold"><span>✋</span>Hold</button></div>'
 });
 (function () {
   var S = kidStage();
   var play = false, n = 0, size = 48, hold = false;
-  function release() {
+  function succeed() {
     if (!play) return;
-    if (size < 90) size += 80;
     n++; size = 48; hold = false;
     kidTap("☃️", "Snowball!  " + n + "/4", S.W * 0.5, S.H * 0.48, 560);
     if (kidMark(n, 4, "☃️")) { play = false; kidFinish("Four good snowballs."); }
-    else kidSay("Tap to roll!");
+    else kidSay("Hold to grow!");
   }
-  function start() { play = true; n = 0; size = 48; hold = false; kidBegin("Tap to roll!", "☃️ 0/4"); kidDock(true); }
+  function start() { play = true; n = 0; size = 48; hold = false; kidBegin("Hold to grow!", "☃️ 0/4"); kidDock(true); }
   kidBind(start);
-  document.getElementById("hold").onclick = function () { if (play && !hold) release(); };
+  document.getElementById("hold").onpointerdown = function (e) {
+    if (!play) return;
+    e.preventDefault();
+    hold = true;
+  };
   addEventListener("pointerdown", function (e) {
     if (!play) return;
     if (e.target.closest && e.target.closest("a,button")) return;
     hold = true;
   });
-  addEventListener("pointerup", function () { if (!hold) return; hold = false; release(); });
+  addEventListener("pointerup", function () {
+    if (!hold) return;
+    hold = false;
+    if (size >= 70) succeed();
+    else kidMiss("⚪", "Hold a little more!", S.W * 0.5, S.H * 0.48);
+  });
   addEventListener("pointercancel", function () { hold = false; });
   kidTick(function (dt) {
     if (play && hold) {
-      size += dt * 160;
-      if (size >= 130) release();
+      size += dt * 80;
+      if (size >= 200) succeed();
     }
     S.bg("#f0f9ff");
     S.ctx.strokeStyle = "#38bdf8"; S.ctx.lineWidth = 8;

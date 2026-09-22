@@ -50,8 +50,7 @@
         var dx = p.x - stars[i].x, dy = p.y - stars[i].y, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
-      if (best < 0 && stars.length) best = 0;
-      if (best < 0) { spawn(); kidTap("⭐", "Catch a star!", innerWidth * 0.5, innerHeight * 0.3, 400); return; }
+      if (best < 0) { kidMiss("⭐", "Tap a star!", p.x, p.y); return; }
       var hit = stars.splice(best, 1)[0]; n++;
       document.getElementById("got").textContent = "⭐ " + n + "/6";
       kidTap("✨", "Got one!  " + n + "/6", hit.x, hit.y, 500);

@@ -46,13 +46,13 @@
       document.getElementById("st").textContent = "Stack";
     }
     function add(name) {
-      if (!play) return;
-      if (name === ORDER[step] || true) {
-        if (name !== ORDER[step] && step < 3) {
-          name = ORDER[step];
-        }
-        if (step >= 3) return;
-        step++;
+      if (!play || step >= 3) return;
+      if (name !== ORDER[step]) {
+        var word = step === 0 ? "Big" : (step === 1 ? "Mid" : "Little");
+        kidMiss("⚪", "Tap " + word + "!", innerWidth * 0.5, innerHeight * 0.55);
+        return;
+      }
+      { step++;
         document.getElementById("st").textContent = step + "/4";
         kidTap("⚪", step === 1 ? "Now Mid!" : (step === 2 ? "Now Little!" : "Yay! Face time."), innerWidth * 0.5, innerHeight * 0.5, 400 + step * 40);
         if (step === 3) {

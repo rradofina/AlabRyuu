@@ -22,7 +22,7 @@
   <div class="cover off" id="win">
     <div class="hero">🧺</div>
     <h1>Fruit pile!</h1>
-    <p>Ten yummy catches.</p>
+    <p>Six yummy catches.</p>
     <button class="play g" id="again">Catch again</button>
   </div>
   <script>
@@ -53,7 +53,7 @@
       basket = Math.max(0.12, Math.min(0.88, p.x / W));
       for (var i = fruit.length - 1; i >= 0; i--) {
         var dx = p.x - fruit[i].x * W, dy = p.y - fruit[i].y * H;
-        if (dx * dx + dy * dy < 80 * 80) {
+        if (dx * dx + dy * dy < 110 * 110) {
           var got = fruit.splice(i, 1)[0]; n++;
           document.getElementById("got").textContent = "🍉 " + n + "/6";
           kidTap(got.e, "Yum!  " + n + "/6", p.x, p.y, 500);
@@ -61,13 +61,7 @@
           return;
         }
       }
-      if (fruit.length) {
-        var near = fruit[fruit.length - 1];
-        fruit.pop(); n++;
-        document.getElementById("got").textContent = "🍉 " + n + "/6";
-        kidTap(near.e, "Yum!  " + n + "/6", near.x * W, near.y * H, 500);
-        if (n >= 6) { play = false; kidFinish(); }
-      }
+      kidMiss("🧺", "Move under the fruit!", p.x, p.y);
     });
     function loop(now) {
       if (!last) last = now;

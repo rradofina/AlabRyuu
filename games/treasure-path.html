@@ -59,9 +59,12 @@
         var d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
-      if (best < 0) best = step;
-      if (best === step || true) {
-        if (best !== step) best = step;
+      if (best < 0) { kidMiss("✨", "Tap the glowing stone!", kidPt(e, cv).x, kidPt(e, cv).y); return; }
+      if (best !== step) {
+        document.getElementById("say").textContent = "Not that one. The glow!";
+        return;
+      }
+      if (best === step) {
         stars++; flags["s" + step] = 1; step++;
         try { localStorage.setItem("alabryuu-treasure", JSON.stringify({ stars: stars, scene: step, flags: flags })); } catch (err) {}
         hud();

@@ -77,11 +77,7 @@
       return px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h && py < H - 120;
     }
     function blob(px, py) {
-      if (!inHouse(px, py)) {
-        var box = houseBox();
-        px = box.x + box.w * 0.5;
-        py = box.y + box.h * 0.45;
-      }
+      if (!inHouse(px, py)) { kidMiss("🎨", "Paint the house!", px, py); return; }
       x.fillStyle = color;
       x.beginPath(); x.arc(px, py, 28, 0, Math.PI * 2); x.fill();
       painted++;

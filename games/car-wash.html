@@ -38,13 +38,13 @@ kidChrome({
     if (!play) return;
     place();
     sx = p.x; sy = p.y;
-    var i, best = -1, bestD = 1e15;
+    var i, best = -1, bestD = 150 * 150;
     for (i = 0; i < spots.length; i++) {
       if (spots[i].got) continue;
       var dx = p.x - spots[i].x, dy = p.y - spots[i].y, d = dx * dx + dy * dy;
       if (d < bestD) { bestD = d; best = i; }
     }
-    if (best < 0) return;
+    if (best < 0) { if (!quiet) kidMiss("🧽", "Rub the mud!", p.x, p.y); return; }
     spots[best].got = 1; n++;
     kidTap("💦", "Clean!  " + n + "/6", spots[best].x, spots[best].y, 500);
     if (kidMark(n, 6, "🧽")) { play = false; rub = false; kidFinish("The car is clean."); }

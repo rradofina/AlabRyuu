@@ -56,10 +56,7 @@
         var dx = p.x - leaves[i].x * W, dy = p.y - leaves[i].y * H, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = leaves[i]; }
       }
-      if (!best) {
-        for (i = 0; i < leaves.length; i++) if (!leaves[i].open) { best = leaves[i]; break; }
-      }
-      if (!best) { kidTap("🍃", "All flipped!", innerWidth * 0.5, innerHeight * 0.5, 300); return; }
+      if (!best) { kidMiss("🍃", "Flip a leaf!", p.x, p.y); return; }
       best.open = 1;
       if (best.bug) {
         n++;

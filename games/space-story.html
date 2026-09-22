@@ -56,7 +56,7 @@
     function boost() {
       if (!play) return;
       rocket.vy = -0.55;
-      var near = null, nd = 1e15, i;
+      var near = null, nd = 0.22 * 0.22, i;
       for (i = 0; i < planets.length; i++) {
         if (planets[i].got) continue;
         var dy = planets[i].y - rocket.y, dx = planets[i].x - 0.5, d = dx * dx + dy * dy;

@@ -32,11 +32,13 @@ kidChrome({
   ];
   var play = false, round = 0, tip = -0.4, goal = -0.4, lock = false;
   function dots(x, y, w) {
+    var i;
+    for (i = 0; i < w; i++) S.em("⚪", x + (i - (w - 1) / 2) * 50, y, 48);
     S.ctx.fillStyle = "#0f172a";
-    S.ctx.font = "800 44px Trebuchet MS,sans-serif";
+    S.ctx.font = "800 36px Trebuchet MS,sans-serif";
     S.ctx.textAlign = "center";
     S.ctx.textBaseline = "middle";
-    S.ctx.fillText(String(w), x, y);
+    S.ctx.fillText(String(w), x, y + 42);
   }
   function mix(list) {
     var a = list.slice(), i, j, t;
@@ -58,7 +60,7 @@ kidChrome({
     var p = kidPt(e, S.cv);
     var opts = ROUNDS[round].R;
     var i = kidNearest(p.x, p.y, opts, 520, function (_, k) {
-      return { x: S.W * (0.22 + k * 0.28), y: S.H * 0.78 };
+      return { x: S.W * (0.22 + k * 0.28), y: S.H * 0.70 };
     });
     if (i < 0) { kidMiss("⚖️", "Tap a pal!", p.x, p.y); return; }
     if (opts[i][1] === ROUNDS[round].L[1]) {
@@ -70,7 +72,7 @@ kidChrome({
         tip = -0.4; goal = -0.4; lock = false;
         kidSay("Match the number!");
       }, 650);
-    } else kidMiss(opts[i][0], "Find " + ROUNDS[round].L[1] + "!", S.W * (0.22 + i * 0.28), S.H * 0.78);
+    } else kidMiss(opts[i][0], "Find " + ROUNDS[round].L[1] + "!", S.W * (0.22 + i * 0.28), S.H * 0.70);
   });
   kidTick(function (dt) {
     tip += (goal - tip) * Math.min(1, dt * 6);
@@ -85,8 +87,8 @@ kidChrome({
     var opts = ROUNDS[Math.min(round, 3)].R, i;
     for (i = 0; i < opts.length; i++) {
       var x = S.W * (0.22 + i * 0.28);
-      S.em(opts[i][0], x, S.H * 0.78, 86);
-      dots(x, S.H * 0.78 + 58, opts[i][1]);
+      S.em(opts[i][0], x, S.H * 0.70, 86);
+      dots(x, S.H * 0.70 + 48, opts[i][1]);
     }
   });
 })();

@@ -58,10 +58,7 @@
         var dx = p.x - balls[i].x, dy = p.y - balls[i].y, d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = i; }
       }
-      if (best < 0) {
-        for (i = 0; i < balls.length; i++) if (balls[i].e === want) { best = i; break; }
-      }
-      if (best < 0) { kidTap(want, "Pop " + want + "!", innerWidth * 0.5, innerHeight * 0.4, 300); return; }
+      if (best < 0) { kidMiss(want, "Pop " + want + "!", p.x, p.y); return; }
       if (balls[best].e === want) {
         var hit = balls.splice(best, 1)[0]; n++;
         document.getElementById("got").textContent = n + "/6";
