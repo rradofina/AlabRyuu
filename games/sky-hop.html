@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#1d4ed8} #hud b{background:#1e3a8a}</style>
 </head>
 <body>
@@ -20,7 +21,7 @@
     <button id="deco"><span>🌸</span>Pretty</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero">🧚</div>
+    <div class="hero"><img src="../assets/sprites/sky-hop/ryuu-hop.png" alt="" width="88" height="110" /></div>
     <h1>Sky Hop</h1>
     <p>Hop the clouds. Climb forever!</p>
     <button class="play" id="go" autofocus>Play</button>
@@ -38,10 +39,16 @@
     var kid = { x: 0, y: 0 };
     var camX = 0, camY = 0;
     var cheers = ["Higher!", "Nice hop!", "Keep going!", "Up up!", "Whee!"];
-    function em(ch, px, py, s) {
-      ctx.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(ch, px, py);
-    }
+    var S = kidSprites([
+      "sky-hop/ryuu-hop.png",
+      "sky-hop/ryuu-front.png",
+      "sky-hop/cloud.png",
+      "sky-hop/island.png",
+      "sky-hop/star.png",
+      "sky-hop/boost-rocket.png",
+      "shared/star.png",
+      "dino-stomp/flower.png"
+    ]);
     function resize() {
       W = innerWidth; H = innerHeight;
       var d = Math.min(devicePixelRatio || 1, 2);
@@ -64,7 +71,8 @@
     function spawnCloud(i) {
       clouds.push({
         i: i, x: i * 160, y: i * 40 + Math.sin(i * 0.9) * 30,
-        decos: [], star: i > 0 && i % 3 === 0 ? 1 : 0
+        decos: [], star: i > 0 && i % 3 === 0 ? 1 : 0,
+        kind: i % 4 === 0 ? "island" : "cloud"
       });
     }
     function ensureAhead() {
@@ -104,7 +112,7 @@
       hopCount++; if (hopCount > best) best = hopCount;
       if (hopCount % 5 === 0) stars += 1;
       persist();
-      kidTap("☁️", cheers[hopCount % cheers.length] + "  Hop " + hopCount, innerWidth * 0.5, innerHeight * 0.42, 480);
+      kidTap("⬆️", cheers[hopCount % cheers.length] + "  Hop " + hopCount, innerWidth * 0.5, innerHeight * 0.42, 480);
       if (hopCount % 5 === 0) kidBurst(["⭐", "✨", "💛"], innerWidth * 0.5, innerHeight * 0.28);
     }
     function collectIfStar() {
@@ -120,7 +128,7 @@
     document.getElementById("flutter").onclick = function () {
       if (!playing || hopPhase !== "idle") return;
       flutterT = 0.45;
-      kidTap("🪽", "Flutter!  Hop " + hopCount, innerWidth * 0.5, innerHeight * 0.4, 620);
+      kidTap("🚀", "Flutter!  Hop " + hopCount, innerWidth * 0.5, innerHeight * 0.4, 620);
     };
     document.getElementById("deco").onclick = function () {
       if (!playing) return;
@@ -162,16 +170,46 @@
       var g = ctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, "#1e3a8a"); g.addColorStop(0.45, "#2563eb"); g.addColorStop(1, "#7dd3fc");
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-      em("☀️", W * 0.82, 80, 72);
+      // soft parallax stars / far clouds
       var i;
-      for (i = 0; i < clouds.length; i++) {
-        var c = clouds[i], px = sx(c.x), py = sy(c.y + Math.sin(T * 1.4 + c.i) * 6);
-        if (px < -160 || px > W + 160) continue;
-        em("☁️", px, py, 92);
-        for (var d = 0; d < c.decos.length; d++) em("🌸", px + c.decos[d].ox, py + c.decos[d].oy, 36);
-        if (c.star) em("⭐", px + 40, py - 36, 40);
+      for (i = 0; i < 8; i++) {
+        var px = ((i * 97 + T * 8) % (W + 40)) - 20;
+        var py = 40 + (i * 53) % (H * 0.45);
+        kidDraw(ctx, S["sky-hop/star.png"], px, py, { fit: 16 + (i % 3) * 4, alpha: 0.35 + (i % 3) * 0.1, rot: T * 0.4 + i });
       }
-      em(hopPhase === "air" || flutterT > 0 ? "🧚" : "🧒", sx(kid.x), sy(kid.y) - 28, 88);
+      for (i = 0; i < clouds.length; i++) {
+        var c = clouds[i], cpx = sx(c.x), cpy = sy(c.y + Math.sin(T * 1.4 + c.i) * 6);
+        if (cpx < -180 || cpx > W + 180) continue;
+        var plat = c.kind === "island" ? S["sky-hop/island.png"] : S["sky-hop/cloud.png"];
+        var fit = c.kind === "island" ? 130 : 108;
+        kidDraw(ctx, plat, cpx, cpy, { fit: fit, squashY: 1 + Math.sin(T * 2 + c.i) * 0.03 });
+        for (var d = 0; d < c.decos.length; d++) {
+          kidDraw(ctx, S["dino-stomp/flower.png"], cpx + c.decos[d].ox, cpy + c.decos[d].oy - 8, { fit: 28 });
+        }
+        if (c.star) {
+          kidDraw(ctx, S["shared/star.png"], cpx + 36, cpy - 40 + Math.sin(T * 5 + c.i) * 4, {
+            fit: 36, rot: Math.sin(T * 3) * 0.2, squashX: 1 + Math.sin(T * 6) * 0.06
+          });
+        }
+      }
+      var hopping = hopPhase === "air" || flutterT > 0;
+      var body = hopping ? S["sky-hop/ryuu-hop.png"] : S["sky-hop/ryuu-front.png"];
+      var sq = { x: 1, y: 1 };
+      if (hopPhase === "air") {
+        var hk = Math.min(1, hopT / 0.55);
+        sq = { x: 1 - Math.sin(hk * Math.PI) * 0.08, y: 1 + Math.sin(hk * Math.PI) * 0.12 };
+      } else if (flutterT > 0) {
+        sq = { x: 1.05, y: 0.92 + Math.sin(flutterT * 20) * 0.06 };
+      } else {
+        var wob = Math.sin(T * 3);
+        sq = { x: 1 + wob * 0.04, y: 1 - wob * 0.04 };
+      }
+      kidDraw(ctx, body, sx(kid.x), sy(kid.y) - 36, { fit: 92, squashX: sq.x, squashY: sq.y });
+      if (flutterT > 0) {
+        kidDraw(ctx, S["sky-hop/boost-rocket.png"], sx(kid.x) + 42, sy(kid.y) + 10, {
+          fit: 40, rot: -0.4, alpha: 0.9
+        });
+      }
       requestAnimationFrame(loop);
     }
     build();
