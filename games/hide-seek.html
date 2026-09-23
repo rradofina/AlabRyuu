@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#14532d}</style>
 </head>
 <body>
@@ -31,9 +32,13 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, t = 0, play = false, found = 0, stars = 0, spots = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-hide") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    var SPR = {
+      "🦊": kidSprite("hide-seek/hero.png"),
+      "🐰": kidSprite("hide-seek/char1.png"),
+      "🦉": kidSprite("hide-seek/prop1.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

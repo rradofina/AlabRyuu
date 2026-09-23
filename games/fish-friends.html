@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#0369a1}</style>
 </head>
 <body>
@@ -15,13 +16,13 @@
   <div id="hud"><b id="fd">🍞 0/6</b></div>
   <div id="say">Tap the water. Drop food!</div>
   <div class="cover" id="title">
-    <div class="hero">🐟</div>
+    <div class="hero"><img src="../assets/sprites/fish-friends/hero.png" alt="" width="96" height="96" /></div>
     <h1>Fish Friends</h1>
     <p>Tap to drop food. Feed 6 fish!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">🐠</div>
+    <div class="hero"><img src="../assets/sprites/fish-friends/prop1.png" alt="" width="96" height="96" /></div>
     <h1>Full tummies!</h1>
     <p>All the fish said yum.</p>
     <button class="play g" id="again">Feed again</button>
@@ -31,9 +32,13 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, t = 0, last = 0, play = false, fed = 0;
     var fish = [], crumbs = [];
+    var SPR = {
+      "🐟": kidSprite("fish-friends/hero.png"),
+      "🐠": kidSprite("fish-friends/prop1.png"),
+      "🐡": kidSprite("fish-friends/prop2.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

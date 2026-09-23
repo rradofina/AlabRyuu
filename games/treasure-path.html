@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#431407}</style>
 </head>
 <body>
@@ -21,7 +22,7 @@
     <button class="play" id="go" autofocus>Walk</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">💎</div>
+    <div class="hero"><img src="../assets/sprites/treasure-path/char1.png" alt="" width="96" height="96" /></div>
     <h1>Treasure!</h1>
     <p id="wp">You found it.</p>
     <button class="play g" id="again">Walk again</button>
@@ -32,9 +33,14 @@
     var W, H, t = 0, play = false, step = 0, stars = 0, flags = {};
     var stones = [];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-treasure") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
+    var SPR = {
+      "🧒": kidSprite("treasure-path/hero.png"),
+      "💎": kidSprite("treasure-path/char1.png"),
+      "🪨": kidSprite("treasure-path/prop1.png"),
+      "🌴": kidSprite("treasure-path/prop2.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

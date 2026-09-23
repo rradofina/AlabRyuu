@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#14532d}</style>
 </head>
 <body>
@@ -15,13 +16,13 @@
   <div id="hud"><b>🐰 to 🥕</b></div>
   <div id="say">Drag the bunny to the carrot!</div>
   <div class="cover" id="title">
-    <div class="hero">🐰</div>
+    <div class="hero"><img src="../assets/sprites/maze-garden/hero.png" alt="" width="96" height="96" /></div>
     <h1>Maze Garden</h1>
     <p>Tap the next square. Help bunny!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">🥕</div>
+    <div class="hero"><img src="../assets/sprites/maze-garden/char1.png" alt="" width="96" height="96" /></div>
     <h1>Crunch!</h1>
     <p>Bunny found dinner.</p>
     <button class="play g" id="again">Play again</button>
@@ -38,9 +39,13 @@
       [0,1,1,1,1]
     ];
     var cols = 5, rows = 5, bunny = { r: 0, c: 0 };
+    var SPR = {
+      "🐰": kidSprite("maze-garden/hero.png"),
+      "🥕": kidSprite("maze-garden/char1.png"),
+      "🌳": kidSprite("maze-garden/char2.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

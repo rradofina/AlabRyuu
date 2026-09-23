@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>html,body{background:#581c87}</style>
 </head>
 <body>
@@ -20,7 +21,7 @@
     <button id="horn"><span>🦄</span>Horns</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero">😄</div>
+    <div class="hero"><img src="../assets/sprites/monster-smile/hero.png" alt="" width="96" height="96" /></div>
     <h1>Monster Smile</h1>
     <p>Make a silly friendly face!</p>
     <button class="play" id="go" autofocus>Make</button>
@@ -36,9 +37,12 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, play = false, have = { eyes: 0, mouth: 0, horn: 0 }, stars = 0;
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-monster") || "null"); if (sv && sv.stars) stars = sv.stars; } catch (e) {}
+    var SPR = {
+      "😄": kidSprite("monster-smile/hero.png"),
+      "🟣": kidSprite("monster-smile/char1.png"),
+    };
     function em(ch, px, py, s) {
-      x.font = s + "px Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(ch, px, py);
+      kidStamp(x, ch, px, py, s, SPR);
     }
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);

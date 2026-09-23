@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../kid.css" />
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
+  <script src="../kid-sprites.js"></script>
   <style>
     html,body{background:#14532d}
     .choice{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:40;display:none;gap:16px;width:min(100% - 16px,440px);max-width:calc(100% - 16px);flex-wrap:wrap;justify-content:center}
@@ -30,7 +31,7 @@
     <button id="b"><span>🍓</span><b id="bt">Pick berries</b></button>
   </div>
   <div class="cover" id="title">
-    <div class="hero">🦊</div>
+    <div class="hero"><img src="../assets/sprites/forest-story/hero.png" alt="" width="96" height="96" /></div>
     <h1>Forest Story</h1>
     <p>Pick a path. Help forest friends!</p>
     <button class="play" id="go" autofocus>Play</button>
@@ -43,6 +44,10 @@
   </div>
   <script>
   (function () {
+    var SPR = {
+      "🦊": kidSprite("forest-story/hero.png"),
+      "🌲": kidSprite("forest-story/prop1.png"),
+    };
     var stars = 0, si = 0, flags = {};
     var SCENES = [
       { pic: "🌲", line: "A path in the trees.", a: { e: "🦊", t: "Help fox", next: 1, flag: "fox" }, b: { e: "🍓", t: "Pick berries", next: 2, flag: "berry" } },
@@ -57,11 +62,11 @@
     function show(i) {
       si = i;
       var s = SCENES[i];
-      document.getElementById("pic").textContent = s.pic;
+      kidFace(document.getElementById("pic"), s.pic, 120, SPR);
       document.getElementById("line").textContent = s.line;
-      document.getElementById("a").querySelector("span").textContent = s.a.e;
+      kidFace(document.getElementById("a").querySelector("span"), s.a.e, 64, SPR);
       document.getElementById("at").textContent = s.a.t;
-      document.getElementById("b").querySelector("span").textContent = s.b.e;
+      kidFace(document.getElementById("b").querySelector("span"), s.b.e, 64, SPR);
       document.getElementById("bt").textContent = s.b.t;
       document.getElementById("choice").classList.add("on");
     }
