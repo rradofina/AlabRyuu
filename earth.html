@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="kid.css" />
   <script src="kid.js"></script>
   <script src="kid-keys.js"></script>
-  <script src="kid-sprites.js"></script>
   <style>
     html, body { background: #042f4a; }
     #tools button { background: #fff; color: #082f49; }
@@ -16,7 +15,7 @@
     #tools .ico.rain { width: 22px; height: 30px; border-radius: 40% 40% 46% 46%; background: #38bdf8; }
     #tools .ico.plant { width: 18px; height: 32px; border-radius: 40% 40% 8px 8px; background: #22c55e; }
     #tSun.on, #tRain.on, #tPlant.on { outline: 5px solid #ffd166; }
-    #cutE img, #win .hero img { width: 96px; height: auto; }
+    .hero svg { display: block; margin: 0 auto; }
   </style>
 </head>
 <body>
@@ -30,19 +29,19 @@
     <button id="tPlant"><span class="ico plant"></span>Kelp</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero"><img src="assets/sprites/earth/hero.png" alt="" width="96" height="96" /></div>
+    <div class="hero"><svg viewBox="0 0 96 96" width="96" height="96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="#38bdf8" stroke="#e0f2fe" stroke-width="6"/><path d="M14 46c12-10 22-10 34 0s22 10 34 0" fill="none" stroke="#e0f2fe" stroke-width="4" stroke-linecap="round"/><path d="M16 60c12-8 20-8 32 0s20 8 32 0" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round"/></svg></div>
     <h1>Little Earth</h1>
     <p>Warm the sea. Watch it swim!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="cut">
-    <div class="hero" id="cutE"><img src="assets/sprites/fish-friends/hero.png" alt="" width="96" height="96" /></div>
+    <div class="hero" id="cutE"><svg viewBox="0 0 96 96" width="96" height="96" aria-hidden="true"><polygon points="22,48 6,32 12,48 6,64" fill="#e11d48" stroke="#1e1b4b" stroke-width="4" stroke-linejoin="round"/><ellipse cx="54" cy="48" rx="28" ry="18" fill="#fb7185" stroke="#1e1b4b" stroke-width="4"/><circle cx="68" cy="44" r="3.5" fill="#1e1b4b"/></svg></div>
     <h1 id="cutT">Seas!</h1>
     <p id="cutP">Blue water wins.</p>
     <button class="play g" id="cutGo">Next</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero"><img src="assets/sprites/fish-friends/prop2.png" alt="" width="96" height="96" /></div>
+    <div class="hero"><svg viewBox="0 0 96 96" width="96" height="96" aria-hidden="true"><ellipse cx="46" cy="50" rx="26" ry="18" fill="#4ade80" stroke="#1e1b4b" stroke-width="4"/><ellipse cx="70" cy="48" rx="12" ry="9" fill="#86efac" stroke="#1e1b4b" stroke-width="4"/><circle cx="76" cy="46" r="2.5" fill="#1e1b4b"/></svg></div>
     <h1>Our sea!</h1>
     <p id="winP">You grew the ocean.</p>
     <button class="play g" id="again">Play again</button>
@@ -56,7 +55,6 @@
     var reduceQ = window.matchMedia("(prefers-reduced-motion: reduce)");
     var motion = reduceQ.matches ? 0.35 : 1;
     if (reduceQ.addEventListener) reduceQ.addEventListener("change", function () { motion = reduceQ.matches ? 0.35 : 1; });
-    var FISH = kidSprite("fish-friends/hero.png");
     var ERAS = [
       { n: "Warm sea", say: "Tap the water!", need: 3, want: "sun" },
       { n: "Rain", say: "Tap for rain!", need: 3, want: "rain" },
@@ -163,7 +161,7 @@
       for (i = swimmers.length - 1; i >= 0; i--) {
         s = swimmers[i];
         dx = px - s.x; dy = py - s.y;
-        rad = s.size * 0.85;
+        rad = Math.max(64, s.size);
         if (dx * dx + dy * dy <= rad * rad) return s;
       }
       return null;
@@ -333,13 +331,8 @@
       if (s.vx < 0) x.scale(-1, 1);
       if (s.happy > 0) x.rotate(Math.sin((0.7 - s.happy) * 18) * 0.45);
       x.scale(happy, 1 + Math.sin(wiggle) * 0.06);
-      if (s.kind === "fish" && FISH.complete && FISH.naturalWidth) {
-        kidDraw(x, FISH, s.size * 0.05, 0, {
-          fit: s.size * 1.15,
-          squashX: 1 + Math.sin(wiggle) * 0.08,
-          squashY: 1 - Math.sin(wiggle) * 0.05
-        });
-      } else if (s.kind === "fish2") drawFishShape(s.size, wiggle, "#fbbf24", "#f59e0b");
+      if (s.kind === "fish") drawFishShape(s.size, wiggle, "#fb7185", "#e11d48");
+      else if (s.kind === "fish2") drawFishShape(s.size, wiggle, "#fbbf24", "#f59e0b");
       else if (s.kind === "fish3") drawFishShape(s.size, wiggle, "#22d3ee", "#0891b2");
       else if (s.kind === "turtle") drawTurtle(s.size, wiggle);
       else if (s.kind === "whale") drawWhale(s.size, wiggle);
