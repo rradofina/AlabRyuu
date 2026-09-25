@@ -57,12 +57,17 @@
     var sy = opts.squashY != null ? opts.squashY : 1;
     var rot = opts.rot || 0;
     var alpha = opts.alpha != null ? opts.alpha : 1;
+    /* Full bitmap by default so a source rect cannot slice the character. */
+    var srcX = 0, srcY = 0, srcW = img.naturalWidth, srcH = img.naturalHeight;
+    if (opts.src && opts.src.length === 4) {
+      srcX = opts.src[0]; srcY = opts.src[1]; srcW = opts.src[2]; srcH = opts.src[3];
+    }
     ctx.save();
     ctx.translate(cx, cy);
     if (rot) ctx.rotate(rot);
     if (opts.flipX) ctx.scale(-1, 1);
     ctx.globalAlpha = alpha;
-    ctx.drawImage(img, (-dw / 2) * sx, (-dh / 2) * sy, dw * sx, dh * sy);
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, (-dw / 2) * sx, (-dh / 2) * sy, dw * sx, dh * sy);
     ctx.restore();
     return true;
   };

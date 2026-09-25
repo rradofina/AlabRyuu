@@ -8,7 +8,10 @@
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
   <script src="../kid-sprites.js"></script>
-  <style>html,body{background:#14532d}</style>
+  <style>
+    html,body{background:#14532d}
+    .hero img { width: 140px; height: 110px; object-fit: contain; object-position: center; }
+  </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
@@ -20,7 +23,7 @@
     <button id="stomp"><span>💥</span>Stomp</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero"><img src="../assets/sprites/dino-stomp/dino-idle.png" alt="" width="96" height="74" /></div>
+    <div class="hero"><img src="../assets/sprites/dino-stomp/dino-idle.png" alt="" /></div>
     <h1>Dino Stomp</h1>
     <p>Hop flowers. Stomp rocks. Keep going!</p>
     <button class="play" id="go" autofocus>Play</button>
@@ -36,6 +39,7 @@
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, t = 0, last = 0, play = false, flowers = 0, stars = 0;
     var dino = { y: 0, vy: 0, pose: "walk", poseT: 0 };
+    var got = 0;
     var logs = [], blooms = [];
     var S = kidSprites([
       "dino-stomp/dino-idle.png",
@@ -64,9 +68,11 @@
     }
     function ground() { return H * 0.70; }
     function load() {
-      logs = []; blooms = []; flowers = 0; dino.y = 0; dino.vy = 0; dino.pose = "walk";
+      logs = []; blooms = []; flowers = 0; got = 0; dino.y = 0; dino.vy = 0; dino.pose = "walk";
       var i, sizes = ["lg", "md", "sm"];
-      for (i = 0; i < 4; i++) logs.push({ x: W + 80 + i * 220, smash: 0, kind: sizes[i % 3] });
+      var gap = Math.max(200, Math.min(280, W * 0.28));
+      var startX = Math.max(300, W * 0.72);
+      for (i = 0; i < 4; i++) logs.push({ x: startX + i * gap, smash: 0, done: 0, kind: sizes[i % 3] });
       for (i = 0; i < 5; i++) blooms.push({ x: 260 + i * 170, got: 0, bob: Math.random() * 6 });
       hud();
     }
@@ -80,7 +86,7 @@
       if (!play) return;
       if (dino.pose !== "walk" && dino.pose !== "land") { kidNote(260); return; }
       dino.pose = "stomp"; dino.poseT = 0;
-      kidTap("💥", "Stomp!", innerWidth * 0.28, innerHeight * 0.62, 360);
+      kidNote(360);
     }
     function start() {
       play = true;
@@ -99,15 +105,42 @@
       if (kidPt(e, cv).y > H - 120) return;
       if (kidPt(e, cv).x < W * 0.5) hop(); else stompNow();
     });
-    function cheer() {
-      if (flowers >= 12 && play) {
+    function scoreHit(kind) {
+      got++; stars++;
+      if (kind === "flower") flowers++;
+      save(); hud();
+      document.getElementById("say").textContent = kind === "flower" ? "Flower!" : "Stomp!";
+      if (got >= 8 && play) {
         play = false;
         document.getElementById("dock").classList.remove("on");
         document.getElementById("winP").textContent = "🌼 " + flowers + "  ⭐ " + stars;
         document.getElementById("win").classList.remove("off");
-      } else if (flowers && flowers % 4 === 0) {
-        document.getElementById("say").textContent = "Yes! Keep stomping!";
       }
+    }
+    function dinoMetrics(gY) {
+      var air = dino.pose === "air" || dino.pose === "crouch" || dino.pose === "stomp";
+      var spr = air ? S["dino-stomp/dino-jump.png"] : S["dino-stomp/dino-idle.png"];
+      var dh = dino.pose === "stomp" ? 96 : (dino.pose === "crouch" ? 74 : 102);
+      var nw = (spr && spr.naturalWidth) || 220;
+      var nh = (spr && spr.naturalHeight) || 150;
+      var dw = dh * (nw / nh);
+      var sq = { x: 1, y: 1 };
+      if (dino.pose === "crouch") sq = { x: 1.12, y: 0.86 };
+      else if (dino.pose === "land") sq = kidSquash(Math.min(1, dino.poseT / 0.14));
+      else if (dino.pose === "stomp") sq = { x: 1.16, y: 0.84 };
+      else if (dino.pose === "walk") {
+        var wob = Math.sin(t * 8);
+        sq = { x: 1 + wob * 0.03, y: 1 - wob * 0.03 };
+      }
+      var footFrac = 0.94;
+      var midFrac = air ? 0.62 : 0.55;
+      var footX = Math.max(160, Math.min(230, W * 0.24));
+      var cx = footX - (midFrac - 0.5) * dw * sq.x;
+      var cy = (gY + dino.y) - (footFrac - 0.5) * dh * sq.y;
+      var half = (dw * sq.x) / 2;
+      if (cx - half < 8) cx += 8 - (cx - half);
+      half = (dw * sq.x) / 2;
+      return { spr: spr, dw: dw, dh: dh, sq: sq, cx: cx, cy: cy, left: cx - half * 0.9, right: cx + half * 0.9 };
     }
     function drawHill(gY) {
       x.fillStyle = "#86efac";
@@ -132,29 +165,32 @@
         if (dino.pose === "crouch") { dino.y = 8; if (dino.poseT > 0.14) { dino.pose = "air"; dino.vy = -460; dino.poseT = 0; } }
         else if (dino.pose === "air") { dino.vy += 1200 * dt; dino.y += dino.vy * dt; if (dino.y >= 0) { dino.y = 0; dino.pose = "land"; dino.poseT = 0; } }
         else if (dino.pose === "land") { if (dino.poseT > 0.14) dino.pose = "walk"; }
-        else if (dino.pose === "stomp") { dino.y = 10; if (dino.poseT > 0.26) dino.pose = "walk"; }
+        else if (dino.pose === "stomp") { dino.y = 10; if (dino.poseT > 0.42) dino.pose = "walk"; }
         else dino.y = Math.sin(t * 8) * 3;
+        var box = dinoMetrics(gY);
         logs.forEach(function (o) {
-          if (o.smash) { o.x -= spd * dt; if (o.x < -80) { o.x = W + 140; o.smash = 0; } return; }
+          if (o.smash) { o.x -= spd * dt; if (o.x < -80) { o.x = W + 140; o.smash = 0; o.done = 0; } return; }
           o.x -= spd * dt;
-          var hit = o.x > 60 && o.x < 180 && dino.y > -24;
-          if (hit && dino.pose === "stomp") {
-            o.smash = 1; flowers++; stars++; save(); hud(); cheer();
-            document.getElementById("say").textContent = "Stomp!";
-          } else if (hit && (dino.pose === "air" || dino.pose === "land")) {
-            o.x = W + 60;
-            document.getElementById("say").textContent = "Hop over! Stomp next time.";
-          } else if (hit && dino.pose === "walk") {
-            o.x = W + 40;
+          var rockFit = o.kind === "lg" ? 72 : (o.kind === "md" ? 56 : 42);
+          var rockR = rockFit * 0.42;
+          var overlap = !o.done && o.x + rockR > box.left && o.x - rockR < box.right;
+          var cleared = dino.y < -rockFit * 0.5;
+          if (overlap && dino.pose === "stomp") {
+            o.smash = 1; o.done = 1; scoreHit("stomp");
+            kidNote(420);
+          } else if (overlap && dino.pose === "air" && cleared) {
+            o.done = 1;
+          } else if (overlap && (dino.pose === "walk" || dino.pose === "land" || dino.pose === "crouch")) {
+            o.done = 1;
             document.getElementById("say").textContent = "Oops! Tap Stomp.";
+            kidNote(220);
           }
-          if (o.x < -80) { o.x = W + 160; o.smash = 0; }
+          if (o.x < -80) { o.x = W + 160; o.smash = 0; o.done = 0; }
         });
         blooms.forEach(function (f) {
           f.x -= spd * dt;
-          if (!f.got && f.x > 70 && f.x < 180 && (dino.pose === "air" || dino.pose === "land")) {
-            f.got = 1; flowers++; stars++; save(); hud(); cheer();
-            document.getElementById("say").textContent = "Flower!";
+          if (!f.got && f.x > box.left && f.x < box.right && (dino.pose === "air" || dino.pose === "land")) {
+            f.got = 1; scoreHit("flower");
           }
           if (f.x < -40) { f.x = W + 100; f.got = 0; }
         });
@@ -181,18 +217,8 @@
         var fit = o.kind === "lg" ? 72 : (o.kind === "md" ? 56 : 42);
         kidDraw(x, S[key], o.x, gY - fit * 0.28, { fit: fit });
       });
-      var air = dino.pose === "air" || dino.pose === "crouch";
-      var spr = air || dino.pose === "stomp" ? S["dino-stomp/dino-jump.png"] : S["dino-stomp/dino-idle.png"];
-      var dFit = dino.pose === "stomp" ? 108 : (dino.pose === "crouch" ? 78 : 92);
-      var sq = { x: 1, y: 1 };
-      if (dino.pose === "crouch") sq = { x: 1.18, y: 0.82 };
-      else if (dino.pose === "land") sq = kidSquash(Math.min(1, dino.poseT / 0.14));
-      else if (dino.pose === "stomp") sq = { x: 1.22, y: 0.78 };
-      else if (dino.pose === "walk") {
-        var wob = Math.sin(t * 8);
-        sq = { x: 1 + wob * 0.03, y: 1 - wob * 0.03 };
-      }
-      kidDraw(x, spr, 120, gY - 36 + dino.y, { fit: dFit, squashX: sq.x, squashY: sq.y });
+      var body = dinoMetrics(gY);
+      kidDraw(x, body.spr, body.cx, body.cy, { w: body.dw, h: body.dh, squashX: body.sq.x, squashY: body.sq.y });
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
