@@ -10,8 +10,10 @@
   <script src="../kid-sprites.js"></script>
   <style>
     html,body{background:#fef3c7}
-    .dock button{min-width:72px;min-height:84px}
-    .dock button span{font-size:44px}
+    .dock{flex-wrap:nowrap;width:min(100% - 16px, 520px);gap:8px}
+    .dock button{min-width:0;flex:1 1 0;min-height:76px;padding:4px 2px;font-size:14px}
+    .dock button span{font-size:34px}
+    #clear{background:#86efac;color:#14532d}
     #say{color:#431407}
   </style>
 </head>
@@ -25,6 +27,7 @@
     <button data-k="house"><span>🏠</span></button>
     <button data-k="flower"><span>🌸</span></button>
     <button data-k="water"><span>💧</span></button>
+    <button type="button" id="clear"><span>🧹</span>Clear</button>
   </div>
   <div class="cover" id="title">
     <div class="hero"><img src="../assets/sprites/sandbox/char3.png" alt="" width="96" height="96" /></div>
@@ -36,7 +39,7 @@
     <div class="hero">🌟</div>
     <h1>Builder star!</h1>
     <p id="wp">A real little town.</p>
-    <button class="play g" id="again">Keep building</button>
+    <button class="play g" id="again">Start over</button>
   </div>
   <script>
   (function () {
@@ -70,22 +73,30 @@
       document.getElementById("bl").textContent = placed + "/" + JOBS[Math.min(mission, JOBS.length - 1)].need;
       document.getElementById("st").textContent = "⭐ " + stars;
     }
-    function start() {
-      play = true; mission = 0; placed = 0;
+    function freshSand(hello) {
+      bits = [];
+      play = true;
+      mission = 0;
+      placed = 0;
+      tool = "tree";
+      [].forEach.call(document.querySelectorAll("#dock button[data-k]"), function (el) {
+        el.classList.toggle("on", el.getAttribute("data-k") === "tree");
+      });
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("dock").classList.add("on");
       hud();
-      kidPing(JOBS[0].say);
+      kidPing(hello);
     }
+    function start() { freshSand(JOBS[0].say); }
     document.getElementById("go").onclick = start;
-    document.getElementById("again").onclick = function () {
-      document.getElementById("win").classList.add("off");
-      play = true; mission = 0; placed = 0; hud();
-      document.getElementById("dock").classList.add("on");
-      kidPing("Keep stamping!");
+    document.getElementById("again").onclick = function () { freshSand("Fresh sand!"); };
+    document.getElementById("clear").onclick = function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      freshSand("Fresh sand!");
     };
-    [].forEach.call(document.querySelectorAll("#dock button"), function (b) {
+    [].forEach.call(document.querySelectorAll("#dock button[data-k]"), function (b) {
       b.onclick = function () {
         tool = b.getAttribute("data-k");
         [].forEach.call(document.querySelectorAll("#dock button"), function (el) { el.classList.toggle("on", el === b); });
