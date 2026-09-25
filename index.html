@@ -37,6 +37,33 @@
     }
     .sub { opacity: .85; font-size: 18px; margin-top: 6px; }
     .count { margin-top: 8px; font-weight: 800; font-size: 15px; opacity: .8; }
+    .find, .finder, .none { width: min(100%, 520px); margin-left: auto; margin-right: auto; }
+    .find {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      margin-top: 16px; min-height: 80px; padding: 12px 28px; border-radius: 999px;
+      background: #ffd166; color: #3b2100; font-weight: 900; font-size: clamp(26px, 6vw, 32px);
+      box-shadow: 0 8px 0 #c98a12;
+    }
+    .find .glass, .none .glass { font-size: 40px; line-height: 1; }
+    .find:focus-visible, .finder button:focus-visible, .none button:focus-visible, .finder input:focus-visible {
+      outline: 5px solid #fff; outline-offset: 4px;
+    }
+    .finder { display: flex; gap: 8px; margin-top: 16px; }
+    .finder[hidden], .find[hidden], .none[hidden] { display: none; }
+    .finder input {
+      flex: 1; min-width: 0; min-height: 80px; border: 0; border-radius: 28px;
+      padding: 0 18px; font: 800 26px "Trebuchet MS", "Comic Sans MS", sans-serif; color: #1e1b4b;
+    }
+    .finder button, .none button {
+      min-width: 80px; min-height: 80px; border-radius: 28px; background: #fff; color: #1e1b4b;
+      font-size: 36px; font-weight: 900;
+    }
+    .none { text-align: center; margin-top: 8px; margin-bottom: 8px; }
+    .none p { font-size: clamp(26px, 6vw, 34px); font-weight: 900; margin: 6px 0 12px; }
+    .none button {
+      width: 100%; font-size: 24px; background: #86efac; color: #14532d;
+      box-shadow: 0 8px 0 #16a34a;
+    }
     .avatar-chip {
       display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px;
       margin-top: 14px; padding: 8px 14px; border-radius: 999px;
@@ -132,7 +159,14 @@
     <div class="logo">🦖✨</div>
     <h1>AlabRyuu</h1>
     <p class="sub">Alab's games. Tap a card to play.</p>
-    <p class="count">42 games</p>
+    <button type="button" class="find" id="find" aria-expanded="false" aria-controls="finder">
+      <span class="glass" aria-hidden="true">🔍</span> Find a game
+    </button>
+    <div class="finder" id="finder" hidden>
+      <input id="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dino, car, fish…" aria-label="Find a game" />
+      <button type="button" id="find-x" aria-label="Close search">✕</button>
+    </div>
+    <p class="count" id="count">42 games</p>
     <a class="avatar-chip" id="chip" href="games/avatar.html">Make your avatar</a>
   </header>
 
@@ -142,6 +176,12 @@
     <button data-type="story">Story</button>
     <button data-type="make">Make</button>
     <button data-type="play">Play</button>
+  </div>
+
+  <div class="none" id="none" hidden>
+    <div class="glass" aria-hidden="true">🔍</div>
+    <p>No games found</p>
+    <button type="button" id="show-all">Show all games</button>
   </div>
 
   <main class="grid" id="grid">
@@ -322,15 +362,148 @@
         chip.innerHTML = '<span class="dot" style="background:' + (a.shirt || "#ffd166") + '">' + (a.hair || "🧒") + "</span>" + a.name + " " + (a.pet || "");
       }
     } catch (e) {}
+    var KEYS = {
+      "little earth": "earth world",
+      "sky hop": "sky jump cloud",
+      "dino stomp": "dino dinosaur",
+      "zoom race": "car race zoom",
+      "forest story": "forest tree story",
+      "space story": "space rocket story",
+      "treasure path": "treasure",
+      "sandbox": "sand build",
+      "my avatar": "avatar face",
+      "pet park": "pet dog cat",
+      "paint house": "paint house color",
+      "cookie bakery": "cookie bake",
+      "color mix": "paint color mix",
+      "star catch": "star",
+      "fish friends": "fish",
+      "memory zoo": "zoo animal memory",
+      "balloon pop": "balloon",
+      "rhythm band": "music band drum song",
+      "number train": "train car number",
+      "letter pond": "letter abc",
+      "maze garden": "maze bunny",
+      "hide and seek": "hide seek",
+      "bubble bath": "bubble bath",
+      "pizza party": "pizza",
+      "fruit catch": "fruit",
+      "shape sorter": "shape",
+      "farm friends": "farm animal cow",
+      "dress the day": "dress clothes",
+      "ice cream shop": "ice cream icecream",
+      "bug hunt": "bug",
+      "piano keys": "music piano song",
+      "soccer kick": "soccer ball",
+      "duck pond": "duck",
+      "shadow match": "shadow",
+      "treasure dig": "dig treasure",
+      "rainbow paint": "paint rainbow color",
+      "caterpillar": "bug butterfly",
+      "snowman build": "snow",
+      "busy bees": "bee",
+      "monster smile": "monster",
+      "train tracks": "train car track",
+      "ocean clean": "ocean fish water"
+    };
+    var query = "";
+    var kind = "all";
+    var findBtn = document.getElementById("find");
+    var finder = document.getElementById("finder");
+    var qInput = document.getElementById("q");
+    var none = document.getElementById("none");
+    var countEl = document.getElementById("count");
+
+    function haystack(card) {
+      var name = (card.querySelector(".name").textContent || "").toLowerCase();
+      var tag = (card.querySelector(".tag").textContent || "").toLowerCase();
+      var extra = KEYS[name] || "";
+      return (name + " " + tag + " " + extra).toLowerCase();
+    }
+    function textHit(hay, q) {
+      if (!q) return true;
+      if (hay.indexOf(q) !== -1) return true;
+      var words = hay.split(/[^a-z0-9]+/).filter(Boolean);
+      var parts = q.split(/[^a-z0-9]+/).filter(Boolean);
+      return parts.every(function (part) {
+        return words.some(function (w) { return w.indexOf(part) !== -1; });
+      });
+    }
+    function apply() {
+      var q = query.toLowerCase().trim();
+      var shown = 0;
+      document.querySelectorAll(".card").forEach(function (c) {
+        var typeOk = kind === "all" || c.getAttribute("data-type") === kind;
+        var textOk = textHit(haystack(c), q);
+        var hide = !(typeOk && textOk);
+        c.classList.toggle("hide", hide);
+        if (!hide) shown++;
+      });
+      none.hidden = shown !== 0;
+      countEl.textContent = shown + (shown === 1 ? " game" : " games");
+    }
+    function setKind(next) {
+      kind = next;
+      document.querySelectorAll(".filters button").forEach(function (x) {
+        x.classList.toggle("on", x.getAttribute("data-type") === next);
+      });
+    }
+    function openSearch() {
+      findBtn.hidden = true;
+      finder.hidden = false;
+      findBtn.setAttribute("aria-expanded", "true");
+      qInput.focus();
+    }
+    function closeSearch(clear) {
+      if (clear) {
+        query = "";
+        qInput.value = "";
+        setKind("all");
+        apply();
+      }
+      finder.hidden = true;
+      findBtn.hidden = false;
+      findBtn.setAttribute("aria-expanded", "false");
+      findBtn.focus();
+    }
+    findBtn.addEventListener("click", openSearch);
+    document.getElementById("find-x").addEventListener("click", function () { closeSearch(true); });
+    document.getElementById("show-all").addEventListener("click", function () { closeSearch(true); });
+    qInput.addEventListener("input", function () {
+      query = qInput.value;
+      if (query.trim()) setKind("all");
+      apply();
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && !finder.hidden) {
+        ev.preventDefault();
+        closeSearch(true);
+      }
+    });
+    qInput.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        closeSearch(true);
+        return;
+      }
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        var vis = [];
+        document.querySelectorAll(".card").forEach(function (c) {
+          if (!c.classList.contains("hide")) vis.push(c);
+        });
+        if (vis.length === 1) window.location.href = vis[0].getAttribute("href");
+      }
+    });
     document.getElementById("filters").addEventListener("click", function (ev) {
       var b = ev.target.closest("button");
       if (!b) return;
-      document.querySelectorAll(".filters button").forEach(function (x) { x.classList.toggle("on", x === b); });
-      var t = b.getAttribute("data-type");
-      document.querySelectorAll(".card").forEach(function (c) {
-        c.classList.toggle("hide", t !== "all" && c.getAttribute("data-type") !== t);
-      });
+      query = "";
+      qInput.value = "";
+      setKind(b.getAttribute("data-type"));
+      apply();
     });
+    apply();
   </script>
 </body>
 </html>
