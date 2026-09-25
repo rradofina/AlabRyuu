@@ -4,10 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>AlabRyuu</title>
+  <link rel="preload" href="kid.js" as="script" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       min-height: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      overflow-x: clip;
       font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
       background: #0b0830;
       color: #fff;
@@ -34,8 +38,9 @@
     .sub { opacity: .85; font-size: 18px; margin-top: 6px; }
     .count { margin-top: 8px; font-weight: 800; font-size: 15px; opacity: .8; }
     .avatar-chip {
-      display: inline-flex; align-items: center; gap: 8px;
+      display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px;
       margin-top: 14px; padding: 8px 14px; border-radius: 999px;
+      max-width: 100%;
       background: rgba(255,255,255,.14); text-decoration: none; color: #fff;
       font-weight: 800; font-size: 16px;
     }
@@ -45,7 +50,7 @@
     }
     .filters {
       display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
-      margin: 18px auto 22px; max-width: 720px;
+      margin: 18px auto 22px; width: 100%; max-width: 720px;
     }
     .filters button {
       background: rgba(255,255,255,.12); color: #fff; font-weight: 800;
@@ -56,6 +61,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 16px;
+      width: 100%;
       max-width: 720px;
       margin: 0 auto;
     }
@@ -69,6 +75,7 @@
     .art {
       height: 120px; display: flex; align-items: center; justify-content: center; font-size: 64px;
     }
+    .art img { width: 92px; height: 92px; object-fit: contain; filter: drop-shadow(0 4px 0 rgba(0,0,0,.18)); }
     .art.earth { background: linear-gradient(160deg, #1e3a8a, #22c55e 70%); }
     .art.sky { background: linear-gradient(160deg, #38bdf8, #f9a8d4); }
     .art.dino { background: linear-gradient(160deg, #14532d, #84cc16); }
@@ -113,8 +120,8 @@
     .art.ocean { background: linear-gradient(160deg, #0369a1, #67e8f9); }
     .art.market { background: linear-gradient(160deg, #dc2626, #fde047); }
     .meta { padding: 12px 14px 16px; }
-    .name { font-size: 20px; font-weight: 800; }
-    .tag { font-size: 14px; opacity: .75; margin-top: 2px; }
+    .name { font-size: 20px; font-weight: 800; overflow-wrap: anywhere; }
+    .tag { font-size: 14px; opacity: .75; margin-top: 2px; overflow-wrap: anywhere; }
     .pill {
       display: inline-block; margin-top: 10px; background: #ffd166; color: #3b2100;
       font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 999px;
@@ -140,119 +147,119 @@
 
   <main class="grid" id="grid">
     <a class="card" data-type="play" href="earth.html">
-      <div class="art earth">🌍</div>
+      <div class="art earth"><img src="assets/sprites/earth/hero.png" alt=""></div>
       <div class="meta"><div class="name">Little Earth</div><div class="tag">Grow the world</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="jump" href="games/sky-hop.html">
-      <div class="art sky">☁️</div>
+      <div class="art sky"><img src="assets/sprites/sky-hop/ryuu-hop.png" alt=""></div>
       <div class="meta"><div class="name">Sky Hop</div><div class="tag">Jump the clouds</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="jump" href="games/dino-stomp.html">
-      <div class="art dino">🦕</div>
+      <div class="art dino"><img src="assets/sprites/dino-stomp/dino-idle.png" alt=""></div>
       <div class="meta"><div class="name">Dino Stomp</div><div class="tag">Hop the logs</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="jump" href="games/zoom-race.html">
-      <div class="art zoom">🚗</div>
+      <div class="art zoom"><img src="assets/sprites/zoom-race/racer.png" alt=""></div>
       <div class="meta"><div class="name">Zoom Race</div><div class="tag">Tap to zoom</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="story" href="games/forest-story.html">
-      <div class="art forest">🦊</div>
+      <div class="art forest"><img src="assets/sprites/forest-story/hero.png" alt=""></div>
       <div class="meta"><div class="name">Forest Story</div><div class="tag">A walk in trees</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="story" href="games/space-story.html">
-      <div class="art space">🚀</div>
+      <div class="art space"><img src="assets/sprites/space-story/hero.png" alt=""></div>
       <div class="meta"><div class="name">Space Story</div><div class="tag">Rocket friends</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="story" href="games/treasure-path.html">
-      <div class="art treasure">⭐</div>
+      <div class="art treasure"><img src="assets/sprites/treasure-path/hero.png" alt=""></div>
       <div class="meta"><div class="name">Treasure Path</div><div class="tag">Pick a path</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/sandbox.html">
-      <div class="art sand">🧱</div>
+      <div class="art sand"><img src="assets/sprites/sandbox/hero.png" alt=""></div>
       <div class="meta"><div class="name">Sandbox</div><div class="tag">Build anything</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/avatar.html">
-      <div class="art avatar">🧒</div>
+      <div class="art avatar"><img src="assets/sprites/avatar/hero.png" alt=""></div>
       <div class="meta"><div class="name">My Avatar</div><div class="tag">Make your kid</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/pet-park.html">
-      <div class="art pet">🐶</div>
+      <div class="art pet"><img src="assets/sprites/pet-park/hero.png" alt=""></div>
       <div class="meta"><div class="name">Pet Park</div><div class="tag">Feed and nap</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/paint-house.html">
-      <div class="art house">🏠</div>
+      <div class="art house"><img src="assets/sprites/paint-house/hero.png" alt=""></div>
       <div class="meta"><div class="name">Paint House</div><div class="tag">Color the rooms</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/cookie-bakery.html">
-      <div class="art cookie">🍪</div>
+      <div class="art cookie"><img src="assets/sprites/cookie-bakery/hero.png" alt=""></div>
       <div class="meta"><div class="name">Cookie Bakery</div><div class="tag">Bake a cookie</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/color-mix.html">
-      <div class="art paint">🎨</div>
+      <div class="art paint"><img src="assets/sprites/color-mix/hero.png" alt=""></div>
       <div class="meta"><div class="name">Color Mix</div><div class="tag">Mix the paints</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/star-catch.html">
-      <div class="art star">⭐</div>
+      <div class="art star"><img src="assets/sprites/star-catch/hero.png" alt=""></div>
       <div class="meta"><div class="name">Star Catch</div><div class="tag">Catch the stars</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/fish-friends.html">
-      <div class="art fish">🐟</div>
+      <div class="art fish"><img src="assets/sprites/fish-friends/hero.png" alt=""></div>
       <div class="meta"><div class="name">Fish Friends</div><div class="tag">Feed the fish</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/memory-zoo.html">
-      <div class="art zoo">🦁</div>
+      <div class="art zoo"><img src="assets/sprites/memory-zoo/hero.png" alt=""></div>
       <div class="meta"><div class="name">Memory Zoo</div><div class="tag">Match the animals</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/balloon-pop.html">
-      <div class="art balloon">🎈</div>
+      <div class="art balloon"><img src="assets/sprites/balloon-pop/hero.png" alt=""></div>
       <div class="meta"><div class="name">Balloon Pop</div><div class="tag">Pop the color</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/rhythm-band.html">
-      <div class="art band">🥁</div>
+      <div class="art band"><img src="assets/sprites/rhythm-band/hero.png" alt=""></div>
       <div class="meta"><div class="name">Rhythm Band</div><div class="tag">Copy the beat</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/number-train.html">
-      <div class="art train">🚂</div>
+      <div class="art train"><img src="assets/sprites/number-train/hero.png" alt=""></div>
       <div class="meta"><div class="name">Number Train</div><div class="tag">Count the cars</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/letter-pond.html">
-      <div class="art pond">🔤</div>
+      <div class="art pond"><img src="assets/sprites/letter-pond/hero.png" alt=""></div>
       <div class="meta"><div class="name">Letter Pond</div><div class="tag">Catch the letters</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/maze-garden.html">
-      <div class="art maze">🐰</div>
+      <div class="art maze"><img src="assets/sprites/maze-garden/hero.png" alt=""></div>
       <div class="meta"><div class="name">Maze Garden</div><div class="tag">Help the bunny</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/hide-seek.html">
-      <div class="art hide">🔎</div>
+      <div class="art hide"><img src="assets/sprites/hide-seek/hero.png" alt=""></div>
       <div class="meta"><div class="name">Hide and Seek</div><div class="tag">Find the animals</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/bubble-bath.html">
-      <div class="art bath">🛁</div>
+      <div class="art bath"><img src="assets/sprites/bubble-bath/hero.png" alt=""></div>
       <div class="meta"><div class="name">Bubble Bath</div><div class="tag">Pop the bubbles</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/pizza-party.html">
-      <div class="art pizza">🍕</div>
+      <div class="art pizza"><img src="assets/sprites/pizza-party/hero.png" alt=""></div>
       <div class="meta"><div class="name">Pizza Party</div><div class="tag">Make the order</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/fruit-catch.html">
-      <div class="art fruit">🍉</div>
+      <div class="art fruit"><img src="assets/sprites/fruit-catch/hero.png" alt=""></div>
       <div class="meta"><div class="name">Fruit Catch</div><div class="tag">Tap the fruit</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/shape-sorter.html">
-      <div class="art shape">🔺</div>
+      <div class="art shape"><img src="assets/sprites/shape-sorter/hero.png" alt=""></div>
       <div class="meta"><div class="name">Shape Sorter</div><div class="tag">Match the holes</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/farm-friends.html">
-      <div class="art farm">🐄</div>
+      <div class="art farm"><img src="assets/sprites/farm-friends/hero.png" alt=""></div>
       <div class="meta"><div class="name">Farm Friends</div><div class="tag">Find the animal</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/dress-day.html">
-      <div class="art dress">👗</div>
+      <div class="art dress"><img src="assets/sprites/dress-day/hero.png" alt=""></div>
       <div class="meta"><div class="name">Dress the Day</div><div class="tag">Clothes for weather</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/ice-cream.html">
-      <div class="art cream">🍦</div>
+      <div class="art cream"><img src="assets/sprites/ice-cream/hero.png" alt=""></div>
       <div class="meta"><div class="name">Ice Cream Shop</div><div class="tag">Stack the scoops</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/dragon-market.html">
@@ -260,55 +267,55 @@
       <div class="meta"><div class="name">Dragon Market</div><div class="tag">Buy snacks in Chinese</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/bug-hunt.html">
-      <div class="art bug">🐞</div>
+      <div class="art bug"><img src="assets/sprites/bug-hunt/hero.png" alt=""></div>
       <div class="meta"><div class="name">Bug Hunt</div><div class="tag">Flip the leaves</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/piano-keys.html">
-      <div class="art piano">🎹</div>
+      <div class="art piano"><img src="assets/sprites/piano-keys/hero.png" alt=""></div>
       <div class="meta"><div class="name">Piano Keys</div><div class="tag">Play the song</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="jump" href="games/soccer-kick.html">
-      <div class="art soccer">⚽</div>
+      <div class="art soccer"><img src="assets/sprites/soccer-kick/hero.png" alt=""></div>
       <div class="meta"><div class="name">Soccer Kick</div><div class="tag">Kick a goal</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/duck-pond.html">
-      <div class="art duck">🦆</div>
+      <div class="art duck"><img src="assets/sprites/duck-pond/hero.png" alt=""></div>
       <div class="meta"><div class="name">Duck Pond</div><div class="tag">Find the babies</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/shadow-match.html">
-      <div class="art shadow">🌙</div>
+      <div class="art shadow"><img src="assets/sprites/shadow-match/hero.png" alt=""></div>
       <div class="meta"><div class="name">Shadow Match</div><div class="tag">Match the shadow</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/treasure-dig.html">
-      <div class="art dig">💎</div>
+      <div class="art dig"><img src="assets/sprites/treasure-dig/hero.png" alt=""></div>
       <div class="meta"><div class="name">Treasure Dig</div><div class="tag">Dig the sand</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/rainbow-paint.html">
-      <div class="art rainbow">🌈</div>
+      <div class="art rainbow"><img src="assets/sprites/rainbow-paint/hero.png" alt=""></div>
       <div class="meta"><div class="name">Rainbow Paint</div><div class="tag">Paint in order</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/caterpillar.html">
-      <div class="art cater">🐛</div>
+      <div class="art cater"><img src="assets/sprites/caterpillar/hero.png" alt=""></div>
       <div class="meta"><div class="name">Caterpillar</div><div class="tag">Grow and fly</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/snowman.html">
-      <div class="art snow">⛄</div>
+      <div class="art snow"><img src="assets/sprites/snowman/hero.png" alt=""></div>
       <div class="meta"><div class="name">Snowman Build</div><div class="tag">Stack the snow</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/busy-bees.html">
-      <div class="art bee">🐝</div>
+      <div class="art bee"><img src="assets/sprites/busy-bees/hero.png" alt=""></div>
       <div class="meta"><div class="name">Busy Bees</div><div class="tag">Match the flower</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="make" href="games/monster-smile.html">
-      <div class="art monster">😄</div>
+      <div class="art monster"><img src="assets/sprites/monster-smile/hero.png" alt=""></div>
       <div class="meta"><div class="name">Monster Smile</div><div class="tag">Make a silly face</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/train-tracks.html">
-      <div class="art tracks">🛤️</div>
+      <div class="art tracks"><img src="assets/sprites/train-tracks/hero.png" alt=""></div>
       <div class="meta"><div class="name">Train Tracks</div><div class="tag">Connect the path</div><span class="pill">Play</span></div>
     </a>
     <a class="card" data-type="play" href="games/ocean-clean.html">
-      <div class="art ocean">🌊</div>
+      <div class="art ocean"><img src="assets/sprites/ocean-clean/hero.png" alt=""></div>
       <div class="meta"><div class="name">Ocean Clean</div><div class="tag">Pick up trash</div><span class="pill">Play</span></div>
     </a>
   </main>
