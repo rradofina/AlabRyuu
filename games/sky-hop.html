@@ -8,7 +8,11 @@
   <script src="../kid.js"></script>
   <script src="../kid-keys.js"></script>
   <script src="../kid-sprites.js"></script>
-  <style>html,body{background:#1d4ed8} #hud b{background:#1e3a8a}</style>
+  <style>
+    html,body{background:#1d4ed8}
+    #hud b{background:#1e3a8a}
+    .hero img { width: 128px; height: 150px; object-fit: contain; object-position: center; }
+  </style>
 </head>
 <body>
   <a class="home" href="../index.html">← Home</a>
@@ -21,7 +25,7 @@
     <button id="deco"><span>🌸</span>Pretty</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero"><img src="../assets/sprites/sky-hop/ryuu-hop.png" alt="" width="88" height="110" /></div>
+    <div class="hero"><img src="../assets/sprites/sky-hop/ryuu-hop.png" alt="" /></div>
     <h1>Sky Hop</h1>
     <p>Hop the clouds. Climb forever!</p>
     <button class="play" id="go" autofocus>Play</button>
@@ -204,7 +208,14 @@
         var wob = Math.sin(T * 3);
         sq = { x: 1 + wob * 0.04, y: 1 - wob * 0.04 };
       }
-      kidDraw(ctx, body, sx(kid.x), sy(kid.y) - 36, { fit: 92, squashX: sq.x, squashY: sq.y });
+      var dh = Math.max(88, Math.min(132, H * 0.2));
+      var nw = body.naturalWidth || 1, nh = body.naturalHeight || 1;
+      var dw = dh * (nw / nh);
+      var footFrac = 0.93;
+      var midFrac = hopping ? 0.6 : 0.42;
+      var dragonX = sx(kid.x) - (midFrac - 0.5) * dw * sq.x;
+      var dragonY = sy(kid.y) - (footFrac - 0.5) * dh * sq.y;
+      kidDraw(ctx, body, dragonX, dragonY, { w: dw, h: dh, squashX: sq.x, squashY: sq.y });
       if (flutterT > 0) {
         kidDraw(ctx, S["sky-hop/boost-rocket.png"], sx(kid.x) + 42, sy(kid.y) + 10, {
           fit: 40, rot: -0.4, alpha: 0.9

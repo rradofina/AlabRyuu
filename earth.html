@@ -7,81 +7,78 @@
   <link rel="stylesheet" href="kid.css" />
   <script src="kid.js"></script>
   <script src="kid-keys.js"></script>
-  <script src="kid-sprites.js"></script>
   <style>
-    html, body { background: #020617; }
-    #tools button { background: #fff; }
-    #tSun { background: #fde047; color: #78350f; }
-    #tRain { background: #38bdf8; color: #082f49; }
-    #tPlant { background: #86efac; color: #14532d; }
+    html, body { background: #042f4a; }
+    #tools button { background: #fff; color: #082f49; }
+    #tools .ico { display: block; width: 36px; height: 36px; margin: 0 auto 2px; }
+    #tools .ico.sun { border-radius: 50%; background: #fde047; box-shadow: 0 0 0 4px #facc15; }
+    #tools .ico.rain { width: 22px; height: 30px; border-radius: 40% 40% 46% 46%; background: #38bdf8; }
+    #tools .ico.plant { width: 18px; height: 32px; border-radius: 40% 40% 8px 8px; background: #22c55e; }
+    #tSun.on, #tRain.on, #tPlant.on { outline: 5px solid #ffd166; }
+    .hero svg { display: block; margin: 0 auto; }
   </style>
 </head>
 <body>
   <a class="home" href="index.html">← Home</a>
   <canvas id="c"></canvas>
-  <div id="hud"><b id="eraN">🔥 Hot rock</b><b id="stars">⭐ 0</b></div>
-  <div id="say">Tap Play to grow Earth</div>
+  <div id="hud"><b id="eraN">Warm sea</b><b id="stars">Stars 0</b></div>
+  <div id="say">Tap Play to fill the sea</div>
   <div class="dock" id="tools">
-    <button id="tSun"><span>☀️</span>Sun</button>
-    <button id="tRain"><span>🌧️</span>Rain</button>
-    <button id="tPlant"><span>🌱</span>Plant</button>
+    <button id="tSun"><span class="ico sun"></span>Sun</button>
+    <button id="tRain"><span class="ico rain"></span>Rain</button>
+    <button id="tPlant"><span class="ico plant"></span>Kelp</button>
   </div>
   <div class="cover" id="title">
-    <div class="hero"><img src="assets/sprites/earth/hero.png" alt="" width="96" height="96" /></div>
+    <div class="hero"><svg viewBox="0 0 96 96" width="96" height="96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="#38bdf8" stroke="#e0f2fe" stroke-width="6"/><path d="M14 46c12-10 22-10 34 0s22 10 34 0" fill="none" stroke="#e0f2fe" stroke-width="4" stroke-linecap="round"/><path d="M16 60c12-8 20-8 32 0s20 8 32 0" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round"/></svg></div>
     <h1>Little Earth</h1>
-    <p>Warm the rock. Then fill the sea!</p>
+    <p>Warm the sea. Watch it swim!</p>
     <button class="play" id="go" autofocus>Play</button>
   </div>
   <div class="cover off" id="cut">
-    <div class="hero" id="cutE">🌊</div>
+    <div class="hero" id="cutE"><svg viewBox="0 0 96 96" width="96" height="96" aria-hidden="true"><polygon points="22,48 6,32 12,48 6,64" fill="#e11d48" stroke="#1e1b4b" stroke-width="4" stroke-linejoin="round"/><ellipse cx="54" cy="48" rx="28" ry="18" fill="#fb7185" stroke="#1e1b4b" stroke-width="4"/><circle cx="68" cy="44" r="3.5" fill="#1e1b4b"/></svg></div>
     <h1 id="cutT">Seas!</h1>
     <p id="cutP">Blue water wins.</p>
     <button class="play g" id="cutGo">Next</button>
   </div>
   <div class="cover off" id="win">
-    <div class="hero">🎉</div>
-    <h1>Our Earth!</h1>
-    <p id="winP">You grew the globe.</p>
+    <div class="hero"><svg viewBox="0 0 96 96" width="96" height="96" aria-hidden="true"><ellipse cx="46" cy="50" rx="26" ry="18" fill="#4ade80" stroke="#1e1b4b" stroke-width="4"/><ellipse cx="70" cy="48" rx="12" ry="9" fill="#86efac" stroke="#1e1b4b" stroke-width="4"/><circle cx="76" cy="46" r="2.5" fill="#1e1b4b"/></svg></div>
+    <h1>Our sea!</h1>
+    <p id="winP">You grew the ocean.</p>
     <button class="play g" id="again">Play again</button>
   </div>
   <script>
   (function () {
     var cv = document.getElementById("c"), x = cv.getContext("2d");
     var W, H, play = false, era = 0, stars = 0, got = 0, tool = "sun", t = 0, last = 0;
-    var rot = 0, drag = 0, lastX = 0, moved = 0;
-    var life = [], flashes = [], rains = [];
-    var CUT = [
-      { e: "🌋", t: "Warm!", p: "The rock glows." },
-      { e: "🌊", t: "Seas!", p: "Blue water wins." },
-      { e: "🪷", t: "Plants!", p: "Lilies sit on waves." },
-      { e: "🐟", t: "Fish!", p: "Friends in water." },
-      { e: "🌿", t: "Kelp!", p: "Tall kelp in the sea." },
-      { e: "🦕", t: "Dinos!", p: "Big pals swim." },
-      { e: "🐦", t: "Birds!", p: "Wings over water." },
-      { e: "🦊", t: "Pals!", p: "Friends on waves." },
-      { e: "🧒", t: "Home!", p: "Kids come home." }
-    ];
+    var drag = 0, lastX = 0, moved = 0;
+    var kelp = [], flashes = [], rains = [], bubbles = [], splashes = [];
+    var reduceQ = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var motion = reduceQ.matches ? 0.35 : 1;
+    if (reduceQ.addEventListener) reduceQ.addEventListener("change", function () { motion = reduceQ.matches ? 0.35 : 1; });
     var ERAS = [
-      { n: "🔥 Hot rock", say: "Tap the globe! ☀️", need: 3, want: "sun" },
-      { n: "🌊 Seas", say: "Tap the sea! 🌧️", need: 3, want: "rain" },
-      { n: "🌱 Plants", say: "Tap to plant! 🌱", need: 3, want: "plant" },
-      { n: "🐟 Fish", say: "Tap the fish! ☀️", need: 3, want: "sun" },
-      { n: "🌿 Kelp", say: "Grow kelp! 🌱", need: 3, want: "plant" },
-      { n: "🦕 Dinos", say: "Boop pals! ☀️", need: 3, want: "sun" },
-      { n: "🐦 Birds", say: "Sun for wings! ☀️", need: 3, want: "sun" },
-      { n: "🦊 Animals", say: "Tap pals! ☀️", need: 3, want: "sun" },
-      { n: "🧒 People", say: "Friends! ☀️", need: 3, want: "sun" }
+      { n: "Warm sea", say: "Tap the water!", need: 3, want: "sun" },
+      { n: "Rain", say: "Tap for rain!", need: 3, want: "rain" },
+      { n: "Kelp", say: "Tap to grow kelp!", need: 3, want: "plant" },
+      { n: "Fish", say: "Tap a swimmer!", need: 3, want: "sun" },
+      { n: "Turtle", say: "Boop the turtle!", need: 3, want: "sun" },
+      { n: "Whale", say: "Say hi to the whale!", need: 3, want: "sun" },
+      { n: "Jelly", say: "Tap the jelly!", need: 3, want: "sun" },
+      { n: "Octopus", say: "Tap the octopus!", need: 3, want: "sun" },
+      { n: "Reef home", say: "Friends in the sea!", need: 3, want: "sun" }
+    ];
+    var CUT = [
+      { t: "Warm!", p: "The sea glows." },
+      { t: "Rain!", p: "Drops kiss the waves." },
+      { t: "Kelp!", p: "Green ribbons sway." },
+      { t: "Fish!", p: "A school swims by." },
+      { t: "Turtle!", p: "Slow and happy." },
+      { t: "Whale!", p: "A big gentle pal." },
+      { t: "Jelly!", p: "Soft bells drift." },
+      { t: "Octopus!", p: "Arms wave hello." },
+      { t: "Home!", p: "The reef is full." }
     ];
     try { var sv = JSON.parse(localStorage.getItem("alabryuu-earth") || "{}"); if (sv.stars) stars = sv.stars; } catch (e) {}
-    var SPR = {
-      "🌍": kidSprite("earth/hero.png"),
-      "🦕": kidSprite("earth/char1.png"),
-      "🦊": kidSprite("earth/prop1.png"),
-      "🐟": kidSprite("earth/prop2.png"),
-    };
-    function em(ch, px, py, s) {
-      kidStamp(x, ch, px, py, s, SPR);
-    }
+
     function resize() {
       var d = Math.min(devicePixelRatio || 1, 2);
       W = innerWidth; H = innerHeight;
@@ -90,47 +87,46 @@
       x.setTransform(d, 0, 0, d, 0, 0);
     }
     addEventListener("resize", resize); resize();
+
+    var swimmers = [];
+    function addSwimmer(kind, x0, y0, speed, size) {
+      swimmers.push({
+        kind: kind, x: x0, y: y0, vx: speed, baseY: y0,
+        phase: Math.random() * 6, size: size, happy: 0, spin: 0
+      });
+    }
+    function school() {
+      swimmers = [];
+      addSwimmer("fish", W * 0.2, H * 0.28, 70, 54);
+      addSwimmer("fish2", W * 0.55, H * 0.36, -58, 48);
+      addSwimmer("fish3", W * 0.75, H * 0.58, 64, 44);
+      addSwimmer("turtle", W * 0.35, H * 0.62, 36, 62);
+      addSwimmer("whale", W * 0.1, H * 0.48, 28, 96);
+      addSwimmer("jelly", W * 0.68, H * 0.22, -32, 50);
+      addSwimmer("octo", W * 0.82, H * 0.7, -40, 58);
+    }
+    school();
+
     function save() { try { localStorage.setItem("alabryuu-earth", JSON.stringify({ stars: stars, era: era })); } catch (e) {} }
     function hud() {
-      document.getElementById("eraN").textContent = ERAS[era] ? ERAS[era].n + "  " + got + "/" + ERAS[era].need : "🌍 Home";
-      document.getElementById("stars").textContent = "⭐ " + stars;
+      document.getElementById("eraN").textContent = ERAS[era] ? ERAS[era].n + "  " + got + "/" + ERAS[era].need : "Home";
+      document.getElementById("stars").textContent = "Stars " + stars;
       document.getElementById("say").textContent = ERAS[era] ? ERAS[era].say + "  " + got + "/" + ERAS[era].need : "Home!";
     }
-    function cx() { return W * 0.5; }
-    function cy() { return H * 0.44; }
-    function R() { return Math.min(W, H) * 0.30; }
-    function spawnEraLife() {
-      life = [];
-      var kinds = { 2: ["🪷", 4], 3: ["🐟", 5], 4: ["🌿", 5], 5: ["🦕", 3], 6: ["🐦", 4], 7: ["🦊", 4], 8: ["🧒", 3] };
-      var spec = kinds[era];
-      if (!spec) return;
-      for (var i = 0; i < spec[1]; i++) life.push({ kind: spec[0], a: i * (Math.PI * 2 / spec[1]), bob: i });
-    }
+    function gx() { return W * 0.5; }
+    function gy() { return H * 0.42; }
+    function GR() { return Math.min(W, H) * 0.28; }
     function progress(n) {
       if (!play || !ERAS[era]) return;
       got += n; stars += n; save(); hud();
-      kidPing(ERAS[era].say + "  " + got + "/" + ERAS[era].need);
+      kidPing(ERAS[era].say);
       if (got >= ERAS[era].need) {
         play = false;
         kidYay();
-        document.getElementById("cutE").textContent = CUT[era].e;
         document.getElementById("cutT").textContent = CUT[era].t;
         document.getElementById("cutP").textContent = CUT[era].p;
         document.getElementById("cut").classList.remove("off");
       }
-    }
-    function applyTool(px, py) {
-      if (!play || !ERAS[era]) return;
-      var want = ERAS[era].want;
-      tool = want;
-      setTool(want);
-      if (px == null) { px = cx(); py = cy(); }
-      var dx = px - cx(), dy = py - cy();
-      if (tool === "sun") flashes.push({ x: px, y: py, life: 0.5 });
-      else if (tool === "rain") rains.push({ x: px, y: py - 40, life: 0.8 });
-      else life.push({ kind: era < 4 ? "🌱" : "🌿", a: rot + Math.atan2(dx, -dy), bob: t });
-      kidTap(tool === "sun" ? "☀️" : (tool === "rain" ? "🌧️" : "🌱"), null, px, py, 420);
-      progress(1);
     }
     function setTool(name) {
       tool = name;
@@ -138,8 +134,42 @@
       document.getElementById("tRain").classList.toggle("on", name === "rain");
       document.getElementById("tPlant").classList.toggle("on", name === "plant");
     }
+    function applyTool(px, py) {
+      if (!play || !ERAS[era]) return;
+      var want = ERAS[era].want;
+      setTool(want);
+      if (px == null) { px = gx(); py = gy(); }
+      if (want === "sun") flashes.push({ x: px, y: py, life: 0.45 });
+      else if (want === "rain") {
+        for (var i = 0; i < 5; i++) rains.push({ x: px - 40 + i * 20, y: py - 80, life: 0.7 });
+      } else if (kelp.length < 8) {
+        kelp.push({ x: px, y: py, h: 50 + Math.random() * 40, phase: Math.random() * 4 });
+      }
+      kidNote(want === "sun" ? 520 : (want === "rain" ? 440 : 360));
+      progress(1);
+    }
+    function cheer(s, px, py) {
+      s.happy = 0.7;
+      s.spin = 0;
+      splashes.push({ x: px, y: py, life: 0.55, r: 10 });
+      if (bubbles.length < 18) bubbles.push({ x: px, y: py, r: 6 + Math.random() * 6, vy: 40, pop: 0 });
+      kidNote(680);
+      kidPing("Splash!");
+    }
+    function hitSwimmer(px, py) {
+      var i, s, dx, dy, rad;
+      for (i = swimmers.length - 1; i >= 0; i--) {
+        s = swimmers[i];
+        dx = px - s.x; dy = py - s.y;
+        rad = Math.max(64, s.size);
+        if (dx * dx + dy * dy <= rad * rad) return s;
+      }
+      return null;
+    }
     function start() {
-      play = true; era = 0; got = 0; setTool("sun"); life = []; flashes = []; rains = [];
+      play = true; era = 0; got = 0; setTool("sun");
+      kelp = []; flashes = []; rains = []; splashes = [];
+      school();
       document.getElementById("title").classList.add("off");
       document.getElementById("win").classList.add("off");
       document.getElementById("cut").classList.add("off");
@@ -152,93 +182,324 @@
       document.getElementById("cut").classList.add("off");
       era++;
       if (era >= ERAS.length) {
-        document.getElementById("winP").textContent = "⭐ " + stars + "  The globe is home.";
+        document.getElementById("winP").textContent = "Stars " + stars + "  The sea is home.";
         document.getElementById("win").classList.remove("off");
         document.getElementById("tools").classList.remove("on");
         play = false;
       } else {
-        got = 0; play = true; spawnEraLife();
+        got = 0; play = true;
         setTool(ERAS[era].want);
         hud(); save();
       }
     };
-    document.getElementById("tSun").onclick = function () { setTool("sun"); applyTool(cx(), cy()); };
-    document.getElementById("tRain").onclick = function () { setTool("rain"); applyTool(cx(), cy()); };
-    document.getElementById("tPlant").onclick = function () { setTool("plant"); applyTool(cx(), cy()); };
+    document.getElementById("tSun").onclick = function () { setTool("sun"); applyTool(gx(), gy()); };
+    document.getElementById("tRain").onclick = function () { setTool("rain"); applyTool(gx(), gy() - 20); };
+    document.getElementById("tPlant").onclick = function () { setTool("plant"); applyTool(gx() + (Math.random() - 0.5) * 80, gy() + GR() * 0.2); };
     cv.addEventListener("pointerdown", function (e) { var p = kidPt(e, cv); drag = 1; lastX = p.x; moved = 0; });
     addEventListener("pointermove", function (e) {
       if (!drag) return;
       var p = kidPt(e, cv);
-      var dx = p.x - lastX;
-      if (Math.abs(dx) > 14) { rot += dx * 0.012; lastX = p.x; moved = 1; }
+      if (Math.abs(p.x - lastX) > 14) { lastX = p.x; moved = 1; }
     });
     addEventListener("pointerup", function (e) {
       if (!drag) return;
       drag = 0;
-      if (play && !moved) {
-        var p = kidPt(e, cv);
-        applyTool(p.x, p.y);
-      }
+      if (!play || moved) return;
+      var p = kidPt(e, cv);
+      var s = hitSwimmer(p.x, p.y);
+      applyTool(p.x, p.y);
+      if (s) cheer(s, p.x, p.y);
     });
     addEventListener("pointercancel", function () { drag = 0; });
-    function drawGlobe() {
-      var gx = cx(), gy = cy(), r = R();
+
+    function ink(draw, fill) {
+      x.lineJoin = "round";
+      x.lineWidth = 5;
+      x.strokeStyle = "#1e1b4b";
+      x.fillStyle = fill;
+      draw();
+      x.stroke();
+      x.fill();
+    }
+    function drawFishShape(s, wiggle, body, fin) {
+      var tail = Math.sin(wiggle) * 0.5;
       x.save();
-      x.beginPath(); x.arc(gx, gy, r, 0, Math.PI * 2); x.clip();
-      if (era === 0) {
-        x.fillStyle = "#7c2d12"; x.fillRect(gx - r, gy - r, r * 2, r * 2);
-        for (var i = 0; i < 10; i++) {
-          var ang = rot + i * 0.7;
-          em(i % 2 ? "🔥" : "🪨", gx + Math.sin(ang) * r * 0.5, gy + Math.cos(ang * 1.1) * r * 0.45, 48);
+      x.translate(-s * 0.15, 0);
+      x.rotate(tail);
+      ink(function () {
+        x.beginPath();
+        x.moveTo(0, 0);
+        x.lineTo(-s * 0.42, -s * 0.22);
+        x.lineTo(-s * 0.28, 0);
+        x.lineTo(-s * 0.42, s * 0.22);
+        x.closePath();
+      }, fin);
+      x.restore();
+      ink(function () {
+        x.beginPath();
+        x.ellipse(s * 0.08, 0, s * 0.4, s * 0.24, 0, 0, Math.PI * 2);
+      }, body);
+      x.fillStyle = "#fff";
+      x.beginPath(); x.arc(s * 0.28, -s * 0.04, s * 0.07, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#1e1b4b";
+      x.beginPath(); x.arc(s * 0.3, -s * 0.04, s * 0.035, 0, Math.PI * 2); x.fill();
+    }
+    function drawTurtle(s, wiggle) {
+      var flip = Math.sin(wiggle) * s * 0.08;
+      ink(function () {
+        x.beginPath();
+        x.ellipse(0, 0, s * 0.34, s * 0.26, 0, 0, Math.PI * 2);
+      }, "#4ade80");
+      ink(function () {
+        x.beginPath();
+        x.ellipse(s * 0.28, s * 0.02, s * 0.14, s * 0.1, 0, 0, Math.PI * 2);
+      }, "#86efac");
+      x.strokeStyle = "#166534"; x.lineWidth = 3;
+      x.beginPath(); x.arc(0, 2, s * 0.16, 0.4, Math.PI - 0.4); x.stroke();
+      x.fillStyle = "#86efac";
+      x.beginPath(); x.ellipse(-s * 0.22, flip, s * 0.1, s * 0.06, -0.4, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.ellipse(s * 0.05, s * 0.2 + flip, s * 0.08, s * 0.05, 0.2, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#1e1b4b";
+      x.beginPath(); x.arc(s * 0.34, 0, 3, 0, Math.PI * 2); x.fill();
+    }
+    function drawWhale(s, wiggle) {
+      var tail = Math.sin(wiggle) * 0.35;
+      x.save();
+      x.translate(-s * 0.42, 0);
+      x.rotate(tail);
+      ink(function () {
+        x.beginPath();
+        x.moveTo(0, 0);
+        x.quadraticCurveTo(-s * 0.2, -s * 0.16, -s * 0.28, -s * 0.02);
+        x.quadraticCurveTo(-s * 0.16, 0, -s * 0.28, s * 0.12);
+        x.quadraticCurveTo(-s * 0.12, s * 0.04, 0, 0);
+      }, "#60a5fa");
+      x.restore();
+      ink(function () {
+        x.beginPath();
+        x.ellipse(s * 0.05, 0, s * 0.42, s * 0.2, 0, 0, Math.PI * 2);
+      }, "#93c5fd");
+      x.fillStyle = "#fff";
+      x.beginPath(); x.ellipse(s * 0.02, s * 0.06, s * 0.16, s * 0.08, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#1e3a8a";
+      x.beginPath(); x.arc(s * 0.28, -s * 0.04, 4, 0, Math.PI * 2); x.fill();
+    }
+    function drawJelly(s, wiggle) {
+      ink(function () {
+        x.beginPath();
+        x.arc(0, -s * 0.05, s * 0.28, Math.PI, 0);
+        x.quadraticCurveTo(s * 0.2, s * 0.12, 0, s * 0.05);
+        x.quadraticCurveTo(-s * 0.2, s * 0.12, -s * 0.28, -s * 0.05);
+      }, "#f9a8d4");
+      x.strokeStyle = "#f472b6"; x.lineWidth = 3; x.lineCap = "round";
+      for (var i = -2; i <= 2; i++) {
+        var ox = i * s * 0.1;
+        x.beginPath();
+        x.moveTo(ox, s * 0.06);
+        x.quadraticCurveTo(ox + Math.sin(wiggle + i) * 8, s * 0.28, ox + Math.sin(wiggle * 1.3 + i) * 10, s * 0.42);
+        x.stroke();
+      }
+    }
+    function drawOcto(s, wiggle) {
+      ink(function () {
+        x.beginPath();
+        x.ellipse(0, -s * 0.08, s * 0.28, s * 0.22, 0, 0, Math.PI * 2);
+      }, "#c084fc");
+      x.strokeStyle = "#7e22ce"; x.lineWidth = 4; x.lineCap = "round";
+      for (var i = 0; i < 6; i++) {
+        var ox = -s * 0.22 + i * s * 0.09;
+        x.beginPath();
+        x.moveTo(ox, s * 0.05);
+        x.quadraticCurveTo(ox + Math.sin(wiggle + i) * 10, s * 0.28, ox + Math.sin(wiggle * 1.4 + i) * 12, s * 0.4);
+        x.stroke();
+      }
+      x.fillStyle = "#fff";
+      x.beginPath(); x.arc(-s * 0.08, -s * 0.1, 5, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.arc(s * 0.1, -s * 0.1, 5, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#1e1b4b";
+      x.beginPath(); x.arc(-s * 0.06, -s * 0.1, 2.5, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.arc(s * 0.12, -s * 0.1, 2.5, 0, Math.PI * 2); x.fill();
+    }
+    function drawSwimmer(s) {
+      var bob = Math.sin(t * 2.2 * motion + s.phase) * 8 * (0.4 + motion);
+      var y = s.baseY + bob;
+      s.y = y;
+      var wiggle = t * (6 * motion) + s.phase;
+      var happy = s.happy > 0 ? 1 + Math.sin((0.7 - s.happy) * 14) * 0.12 : 1;
+      x.save();
+      x.translate(s.x, y);
+      if (s.vx < 0) x.scale(-1, 1);
+      if (s.happy > 0) x.rotate(Math.sin((0.7 - s.happy) * 18) * 0.45);
+      x.scale(happy, 1 + Math.sin(wiggle) * 0.06);
+      if (s.kind === "fish") drawFishShape(s.size, wiggle, "#fb7185", "#e11d48");
+      else if (s.kind === "fish2") drawFishShape(s.size, wiggle, "#fbbf24", "#f59e0b");
+      else if (s.kind === "fish3") drawFishShape(s.size, wiggle, "#22d3ee", "#0891b2");
+      else if (s.kind === "turtle") drawTurtle(s.size, wiggle);
+      else if (s.kind === "whale") drawWhale(s.size, wiggle);
+      else if (s.kind === "jelly") drawJelly(s.size, wiggle);
+      else if (s.kind === "octo") drawOcto(s.size, wiggle);
+      else drawFishShape(s.size, wiggle, "#fda4af", "#fb7185");
+      x.restore();
+    }
+    function waveBand(y0, amp, color, alpha) {
+      x.beginPath();
+      x.moveTo(0, H);
+      var step = Math.max(16, W / 24);
+      for (var px = 0; px <= W + step; px += step) {
+        var wy = y0 + Math.sin(px * 0.018 + t * 1.4 * motion) * amp + Math.sin(px * 0.008 + t * 0.7 * motion) * amp * 0.45;
+        if (px === 0) x.lineTo(0, wy);
+        else x.lineTo(px, wy);
+      }
+      x.lineTo(W, H);
+      x.closePath();
+      x.globalAlpha = alpha;
+      x.fillStyle = color;
+      x.fill();
+      x.globalAlpha = 1;
+    }
+    function drawGlobe() {
+      var cX = gx(), cY = gy(), r = GR();
+      x.save();
+      x.beginPath(); x.arc(cX, cY, r, 0, Math.PI * 2); x.clip();
+      var g = x.createLinearGradient(cX, cY - r, cX, cY + r);
+      g.addColorStop(0, "#38bdf8");
+      g.addColorStop(1, "#075985");
+      x.fillStyle = g;
+      x.fillRect(cX - r, cY - r, r * 2, r * 2);
+      x.strokeStyle = "rgba(255,255,255,.45)";
+      x.lineWidth = 3;
+      for (var b = 0; b < 4; b++) {
+        x.beginPath();
+        for (var px = -r; px <= r; px += 8) {
+          var wy = cY - r * 0.2 + b * 18 + Math.sin(px * 0.05 + t * 2 * motion + b) * 5;
+          if (px === -r) x.moveTo(cX + px, wy);
+          else x.lineTo(cX + px, wy);
         }
-        em("🌋", gx, gy, 84);
-      } else {
-        x.fillStyle = "#0369a1"; x.fillRect(gx - r, gy - r, r * 2, r * 2);
-        for (var j = 0; j < 12; j++) {
-          var a2 = rot + j * 0.55;
-          em("🌊", gx + Math.sin(a2) * r * 0.58, gy + Math.cos(a2 * 0.9) * r * 0.46, 52);
-        }
+        x.stroke();
       }
       x.restore();
-      x.beginPath(); x.arc(gx, gy, r, 0, Math.PI * 2);
-      x.strokeStyle = era === 0 ? "#ea580c" : "#7dd3fc"; x.lineWidth = 8; x.stroke();
+      x.beginPath(); x.arc(cX, cY, r, 0, Math.PI * 2);
+      x.strokeStyle = "#e0f2fe"; x.lineWidth = 8; x.stroke();
     }
     function loop(now) {
       if (!last) last = now;
-      var dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
-      if (!drag) rot += dt * 0.15;
-      x.fillStyle = "#020617"; x.fillRect(0, 0, W, H);
-      var i;
-      for (i = 0; i < 14; i++) em("✨", (i * 73 + rot * 20) % W, (i * 41) % (H * 0.88), 18);
-      em("☀️", W * 0.14, 90, 56);
-      em("🌙", W * 0.88, 100, 48);
-      if (era >= 1) {
-        em("☁️", W * 0.22 + Math.sin(t) * 8, 140, 56);
-        em("☁️", W * 0.78, 160, 48);
+      var dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      t += dt * motion;
+      var m = motion;
+      var i, s;
+      for (i = 0; i < swimmers.length; i++) {
+        s = swimmers[i];
+        s.x += s.vx * dt * m;
+        if (s.x < 24) { s.x = 24; s.vx = Math.abs(s.vx); }
+        if (s.x > W - 24) { s.x = W - 24; s.vx = -Math.abs(s.vx); }
+        if (s.happy > 0) s.happy -= dt;
       }
+      if (bubbles.length < 14 && Math.random() < dt * 3) {
+        bubbles.push({
+          x: 20 + Math.random() * (W - 40),
+          y: H * 0.55 + Math.random() * H * 0.35,
+          r: 4 + Math.random() * 8,
+          vy: 28 + Math.random() * 36,
+          pop: 0
+        });
+      }
+      var sky = x.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#082f49");
+      sky.addColorStop(0.45, "#0369a1");
+      sky.addColorStop(1, "#0c4a6e");
+      x.fillStyle = sky;
+      x.fillRect(0, 0, W, H);
+      for (i = 0; i < 10; i++) {
+        var tw = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 2 + i));
+        x.globalAlpha = tw * 0.7;
+        x.fillStyle = "#fef9c3";
+        x.beginPath();
+        x.arc((i * 97) % W, 24 + (i * 37) % (H * 0.22), 1.6, 0, Math.PI * 2);
+        x.fill();
+      }
+      x.globalAlpha = 1;
       drawGlobe();
-      for (i = 0; i < life.length; i++) {
-        var L = life[i], a = L.a + rot;
-        em(L.kind, cx() + Math.sin(a) * R() * 0.72, cy() + Math.cos(a) * R() * 0.40 + Math.sin(t * 2 + L.bob) * 4, 56);
+      waveBand(H * 0.72, 10, "#0284c7", 0.55);
+      waveBand(H * 0.8, 14, "#0ea5e9", 0.7);
+      waveBand(H * 0.88, 8, "#7dd3fc", 0.45);
+      for (i = 0; i < kelp.length; i++) {
+        var k = kelp[i];
+        var sway = Math.sin(t * 2 + k.phase) * 16 * (0.5 + m);
+        x.strokeStyle = "#166534";
+        x.lineWidth = 8;
+        x.lineCap = "round";
+        x.beginPath();
+        x.moveTo(k.x, k.y + 10);
+        x.quadraticCurveTo(k.x + sway, k.y - k.h * 0.45, k.x + sway * 0.4, k.y - k.h);
+        x.stroke();
+        x.strokeStyle = "#4ade80";
+        x.lineWidth = 4;
+        x.stroke();
       }
+      for (i = 0; i < swimmers.length; i++) drawSwimmer(swimmers[i]);
+      for (i = bubbles.length - 1; i >= 0; i--) {
+        var b = bubbles[i];
+        if (b.pop > 0) {
+          b.pop -= dt;
+          x.globalAlpha = Math.max(0, b.pop * 2);
+          x.strokeStyle = "#e0f2fe";
+          x.lineWidth = 2;
+          x.beginPath();
+          x.arc(b.x, b.y, b.r + (0.4 - b.pop) * 28, 0, Math.PI * 2);
+          x.stroke();
+          if (b.pop <= 0) bubbles.splice(i, 1);
+        } else {
+          b.y -= b.vy * dt * m;
+          b.x += Math.sin(t * 2 + b.y * 0.05) * 12 * dt;
+          x.globalAlpha = 0.75;
+          x.strokeStyle = "#e0f2fe";
+          x.lineWidth = 2;
+          x.beginPath();
+          x.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          x.stroke();
+          if (b.y < H * 0.16) b.pop = 0.35;
+        }
+      }
+      x.globalAlpha = 1;
       for (i = flashes.length - 1; i >= 0; i--) {
         flashes[i].life -= dt;
         x.globalAlpha = Math.max(0, flashes[i].life * 2);
-        em("☀️", flashes[i].x, flashes[i].y, 64);
+        x.fillStyle = "#fde047";
+        x.beginPath();
+        x.arc(flashes[i].x, flashes[i].y, 28 + (0.45 - flashes[i].life) * 40, 0, Math.PI * 2);
+        x.fill();
         if (flashes[i].life <= 0) flashes.splice(i, 1);
       }
       for (i = rains.length - 1; i >= 0; i--) {
-        rains[i].life -= dt; rains[i].y += 70 * dt;
+        rains[i].life -= dt;
+        rains[i].y += 140 * dt * m;
         x.globalAlpha = Math.max(0, rains[i].life);
-        em("💧", rains[i].x, rains[i].y, 40);
+        x.strokeStyle = "#bae6fd";
+        x.lineWidth = 3;
+        x.beginPath();
+        x.moveTo(rains[i].x, rains[i].y);
+        x.lineTo(rains[i].x - 2, rains[i].y + 14);
+        x.stroke();
         if (rains[i].life <= 0) rains.splice(i, 1);
+      }
+      for (i = splashes.length - 1; i >= 0; i--) {
+        splashes[i].life -= dt;
+        splashes[i].r += 50 * dt;
+        x.globalAlpha = Math.max(0, splashes[i].life * 1.6);
+        x.strokeStyle = "#fff";
+        x.lineWidth = 3;
+        x.beginPath();
+        x.arc(splashes[i].x, splashes[i].y, splashes[i].r, 0, Math.PI * 2);
+        x.stroke();
+        if (splashes[i].life <= 0) splashes.splice(i, 1);
       }
       x.globalAlpha = 1;
       requestAnimationFrame(loop);
     }
     hud();
     requestAnimationFrame(loop);
-    if (/shot=ocean/.test(location.search)) { start(); era = 1; spawnEraLife(); setTool("rain"); hud(); }
+    if (/shot=ocean/.test(location.search)) { start(); }
   })();
   </script>
 </body>
