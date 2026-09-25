@@ -83,6 +83,8 @@
   w.kidStamp = function (ctx, ch, x, y, s, map) {
     var img = map && map[ch];
     if (img) {
+      /* Image is on the way: skip the emoji flash instead of stamping text. */
+      if (!img.complete || !img.naturalWidth) return true;
       var bob = Math.sin(Date.now() / 220 + (x || 0) * 0.02);
       if (w.kidDraw(ctx, img, x, y, {
         fit: (s || 64) * 1.08,
@@ -114,7 +116,47 @@
     el.appendChild(node);
   };
 
+  function cachedImages() {
+    var out = [], k;
+    for (k in cache) if (Object.prototype.hasOwnProperty.call(cache, k)) out.push(cache[k]);
+    return out;
+  }
+
+  /** Hold the Play button until every sprite requested so far has settled. */
+  function armPlay() {
+    var go = document.getElementById("go");
+    if (!go || go.getAttribute("data-kid-armed")) return;
+    go.setAttribute("data-kid-armed", "1");
+    var imgs = cachedImages();
+    var pending = false, i;
+    for (i = 0; i < imgs.length; i++) if (!imgs[i].complete) pending = true;
+    if (!pending) return;
+    var label = go.textContent;
+    go.disabled = true;
+    go.setAttribute("aria-busy", "true");
+    go.textContent = "Loading…";
+    w.kidSpriteReady(null, function () {
+      go.disabled = false;
+      go.removeAttribute("aria-busy");
+      go.textContent = label;
+    });
+  }
+
   w.kidSpriteReady = function (keys, cb) {
+    if (!keys) {
+      var imgs = cachedImages();
+      var left = imgs.length;
+      if (!left) { if (cb) cb(); return; }
+      function tick() { left--; if (left <= 0 && cb) cb(); }
+      for (var n = 0; n < imgs.length; n++) {
+        if (imgs[n].complete) tick();
+        else {
+          imgs[n].addEventListener("load", tick);
+          imgs[n].addEventListener("error", tick);
+        }
+      }
+      return;
+    }
     var list = keys || [];
     var left = list.length;
     if (!left) { if (cb) cb(); return; }
@@ -131,4 +173,7 @@
       }
     }
   };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", armPlay);
+  else armPlay();
 })(window);
