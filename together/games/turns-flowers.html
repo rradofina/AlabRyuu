@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Flower Turns</title>
+<link rel="stylesheet" href="../../kid.css"/>
+<style>
+  html, body { background: #4ade80; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><g fill="#7c3aed" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'><circle cx="46" cy="28" r="12"/><circle cx="64" cy="40" r="12"/><circle cx="58" cy="60" r="12"/><circle cx="34" cy="60" r="12"/><circle cx="28" cy="40" r="12"/></g><circle cx="46" cy="46" r="9" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+  <h1>Flower Turns</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><g fill="#7c3aed" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'><circle cx="46" cy="28" r="12"/><circle cx="64" cy="40" r="12"/><circle cx="58" cy="60" r="12"/><circle cx="34" cy="60" r="12"/><circle cx="28" cy="40" r="12"/></g><circle cx="46" cy="46" r="9" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+  <h1>Both of you!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../../kid.js"></script>
+<script src="../../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Flower Turns","kind":"turns","goal":3,"age":6,"sky":"#4ade80","ground":"#bbf7d0","shape":"flower","colors":["#7c3aed","#fb923c","#ffffff"],"match":false,"scene":"garden","motion":"still"});</script>
+</body>
+</html>
