@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Butterflies Basket</title>
+<link rel="stylesheet" href="../../kid.css"/>
+<style>
+  html, body { background: #e879f9; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="28" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="64" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="30" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="62" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="42" y="28" width="8" height="40" rx="4" fill="#44403c"/></svg></div>
+  <h1>Butterflies Basket</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="28" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="64" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="30" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="62" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="42" y="28" width="8" height="40" rx="4" fill="#44403c"/></svg></div>
+  <h1>Nice!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../../kid.js"></script>
+<script src="../../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Butterflies Basket","kind":"drag","goal":3,"age":4,"sky":"#e879f9","ground":"#fae8ff","shape":"butterfly","colors":["#a855f7","#ffffff","#e879f9"],"match":false,"scene":"garden","motion":"still"});</script>
+</body>
+</html>

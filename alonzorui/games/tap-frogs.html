@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Tap Frogs</title>
+<link rel="stylesheet" href="../../kid.css"/>
+<style>
+  html, body { background: #84cc16; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="54" rx="30" ry="20" fill="#4d7c0f" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="32" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="34" cy="34" r="4" fill="#1e293b"/><circle cx="62" cy="34" r="4" fill="#1e293b"/></svg></div>
+  <h1>Tap Frogs</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="54" rx="30" ry="20" fill="#4d7c0f" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="32" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="34" cy="34" r="4" fill="#1e293b"/><circle cx="62" cy="34" r="4" fill="#1e293b"/></svg></div>
+  <h1>Nice!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../../kid.js"></script>
+<script src="../../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Tap Frogs","kind":"tap","goal":3,"age":4,"sky":"#84cc16","ground":"#ecfccb","shape":"frog","colors":["#4d7c0f","#ffffff","#84cc16"],"match":false,"scene":"garden","motion":"still"});</script>
+</body>
+</html>

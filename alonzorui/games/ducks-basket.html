@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Ducks Basket</title>
+<link rel="stylesheet" href="../../kid.css"/>
+<style>
+  html, body { background: #38bdf8; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+  <h1>Ducks Basket</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+  <h1>Nice!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../../kid.js"></script>
+<script src="../../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Ducks Basket","kind":"drag","goal":3,"age":4,"sky":"#38bdf8","ground":"#e0f2fe","shape":"duck","colors":["#facc15","#ffffff","#38bdf8"],"match":false,"scene":"sea","motion":"still"});</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Hearts Basket</title>
+<link rel="stylesheet" href="../../kid.css"/>
+<style>
+  html, body { background: #fb7185; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M46 78 C20 56 10 40 18 28 C26 16 40 20 46 32 C52 20 66 16 74 28 C82 40 72 56 46 78Z"/></svg></div>
+  <h1>Hearts Basket</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M46 78 C20 56 10 40 18 28 C26 16 40 20 46 32 C52 20 66 16 74 28 C82 40 72 56 46 78Z"/></svg></div>
+  <h1>Nice!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../../kid.js"></script>
+<script src="../../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Hearts Basket","kind":"drag","goal":3,"age":4,"sky":"#fb7185","ground":"#fecdd3","shape":"heart","colors":["#fb7185","#ffffff","#fb7185"],"match":false,"scene":"sky","motion":"still"});</script>
+</body>
+</html>
