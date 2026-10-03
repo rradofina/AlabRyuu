@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Candy Jars</title>
+<link rel="stylesheet" href="../kid.css"/>
+<style>
+  html, body { background: #f9a8d4; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+  <h1>Candy Jars</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+  <h1>Nice!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../kid.js"></script>
+<script src="../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Candy Jars","kind":"drag","goal":4,"age":6,"sky":"#f9a8d4","ground":"#fce7f3","shape":"circle","colors":["#fb7185","#a78bfa","#fde047"],"match":false,"scene":"sky","motion":"still"});</script>
+</body>
+</html>

@@ -152,7 +152,15 @@
       display: inline-block; margin-top: 10px; background: #ffd166; color: #3b2100;
       font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 999px;
     }
-  </style>
+
+    .hubs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 16px auto 0; width: min(100%, 720px); }
+    .hubs a { flex: 1 1 180px; min-height: 96px; display: flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; font-weight: 900; font-size: clamp(22px, 5vw, 30px); border-radius: 28px; padding: 12px; box-shadow: 0 8px 0 rgba(0,0,0,.25); }
+    .hubs a.alab { background: #ffd166; color: #3b2100; }
+    .hubs a.alonzo { background: #fb923c; color: #7c2d12; }
+    .hubs a.both { background: #c4b5fd; color: #2e1065; }
+    .hubs a.on { outline: 5px solid #fff; outline-offset: 3px; }
+    .hubs a:focus-visible { outline: 5px solid #fff; outline-offset: 4px; }
+    </style>
 </head>
 <body>
   <header>
@@ -166,8 +174,13 @@
       <input id="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dino, car, fish…" aria-label="Find a game" />
       <button type="button" id="find-x" aria-label="Close search">✕</button>
     </div>
-    <p class="count" id="count">42 games</p>
+    <p class="count" id="count">83 games</p>
     <a class="avatar-chip" id="chip" href="games/avatar.html">Make your avatar</a>
+    <nav class="hubs" aria-label="Homes">
+      <a class="alab on" href="/" aria-current="page">AlabRyuu</a>
+      <a class="alonzo" href="/alonzorui/">AlonzoRui</a>
+      <a class="both" href="/together/">Together</a>
+    </nav>
   </header>
 
   <div class="filters" id="filters">
@@ -353,6 +366,172 @@
       <div class="art ocean"><img src="assets/sprites/ocean-clean/hero.png" alt=""></div>
       <div class="meta"><div class="name">Ocean Clean</div><div class="tag">Pick up trash</div><span class="pill">Play</span></div>
     </a>
+    <!-- pack-cards -->
+    <a class="card" data-type="play" href="games/bubble-tap.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#38bdf8)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+      <div class="meta"><div class="name">Bubble Tap</div><div class="tag">Pop the bright bubbles</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/star-garden.html">
+      <div class="art" style="background:linear-gradient(160deg,#312e81,#fde047)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' points="46,8 56,34 84,34 62,52 70,80 46,64 22,80 30,52 8,34 36,34"/></svg></div>
+      <div class="meta"><div class="name">Star Garden</div><div class="tag">Catch the gold stars</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="jump" href="games/heart-hop.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb7185,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M46 78 C20 56 10 40 18 28 C26 16 40 20 46 32 C52 20 66 16 74 28 C82 40 72 56 46 78Z"/></svg></div>
+      <div class="meta"><div class="name">Heart Hop</div><div class="tag">Tap the pink hearts</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/cloud-catch.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="34" cy="50" rx="16" ry="12" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="52" cy="46" rx="18" ry="14" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="66" cy="52" rx="12" ry="10" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Cloud Catch</div><div class="tag">Tap every cloud</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/fish-pond.html">
+      <div class="art" style="background:linear-gradient(160deg,#0284c7,#38bdf8)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="48" cy="48" rx="26" ry="16" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="18,48 6,34 6,62" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="44" r="3" fill="#1e1b4b"/></svg></div>
+      <div class="meta"><div class="name">Fish Pond</div><div class="tag">Tap the blue fish</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/flower-dots.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><g fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'><circle cx="46" cy="28" r="12"/><circle cx="64" cy="40" r="12"/><circle cx="58" cy="60" r="12"/><circle cx="34" cy="60" r="12"/><circle cx="28" cy="40" r="12"/></g><circle cx="46" cy="46" r="9" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Flower Dots</div><div class="tag">Tap the flowers</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="jump" href="games/balloon-lift.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="40" rx="22" ry="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="46,64 40,74 52,74" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 74 Q54 82 46 90" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Balloon Lift</div><div class="tag">Tap the balloons</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/sunny-day.html">
+      <div class="art" style="background:linear-gradient(160deg,#fde047,#f59e0b)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="16" fill="#f59e0b" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><g stroke="#f59e0b" stroke-width="5" stroke-linecap="round"><path d="M46 8v10M46 74v10M8 46h10M74 46h10M18 18l8 8M66 66l8 8M74 18l-8 8M26 66l-8 8"/></g></svg></div>
+      <div class="meta"><div class="name">Sunny Day</div><div class="tag">Grow the sun</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/moon-night.html">
+      <div class="art" style="background:linear-gradient(160deg,#1e1b4b,#fef9c3)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fef9c3" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M58 14 A32 32 0 1 0 58 78 A24 24 0 1 1 58 14Z"/></svg></div>
+      <div class="meta"><div class="name">Moon Night</div><div class="tag">Tap the moons</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/tree-grow.html">
+      <div class="art" style="background:linear-gradient(160deg,#22c55e,#15803d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="40" y="52" width="12" height="26" rx="3" fill="#92400e"/><circle cx="46" cy="40" r="24" fill="#15803d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tree Grow</div><div class="tag">Grow a tall tree</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/little-houses.html">
+      <div class="art" style="background:linear-gradient(160deg,#fdba74,#fb923c)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,12 82,42 10,42" fill="#7f1d1d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="22" y="42" width="48" height="36" fill="#fb923c" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="40" y="56" width="12" height="22" fill="#fde68a"/></svg></div>
+      <div class="meta"><div class="name">Little Houses</div><div class="tag">Tap the houses</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/car-parade.html">
+      <div class="art" style="background:linear-gradient(160deg,#93c5fd,#2563eb)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="14" y="40" width="64" height="24" rx="8" fill="#2563eb" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="28" y="26" width="32" height="16" rx="6" fill="#e0f2fe" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="30" cy="66" r="8" fill="#1e293b"/><circle cx="64" cy="66" r="8" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Car Parade</div><div class="tag">Tap the bright cars</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/bug-friends.html">
+      <div class="art" style="background:linear-gradient(160deg,#84cc16,#65a30d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="52" rx="24" ry="18" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="30" r="12" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M40 22 L30 10 M52 22 L62 10" fill="none" stroke="#1e293b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Bug Friends</div><div class="tag">Tap the bugs</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/duck-family.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#facc15)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+      <div class="meta"><div class="name">Duck Family</div><div class="tag">Bring ducks to the pond</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/gem-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#6d28d9,#22d3ee)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,10 74,46 46,82 18,46" fill="#22d3ee" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Gem Basket</div><div class="tag">Drop gems in the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/apple-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="52" r="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 28 Q52 16 56 22" fill="none" stroke="#166534" stroke-width="4"/><ellipse cx="60" cy="30" rx="10" ry="6" fill="#22c55e"/></svg></div>
+      <div class="meta"><div class="name">Apple Basket</div><div class="tag">Fill the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/boat-bay.html">
+      <div class="art" style="background:linear-gradient(160deg,#06b6d4,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="16,48 76,48 64,70 28,70" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="46,46 46,16 70,46" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Boat Bay</div><div class="tag">Tap the boats</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/frog-pads.html">
+      <div class="art" style="background:linear-gradient(160deg,#a3e635,#65a30d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="54" rx="30" ry="20" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="32" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="34" cy="34" r="4" fill="#1e293b"/><circle cx="62" cy="34" r="4" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Frog Pads</div><div class="tag">Tap the frogs</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="jump" href="games/kite-hill.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,8 78,46 46,78 14,46" fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 78 L40 88 L54 92" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Kite Hill</div><div class="tag">Tap the kites</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/butterfly-field.html">
+      <div class="art" style="background:linear-gradient(160deg,#e879f9,#a855f7)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="28" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="64" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="30" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="62" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="42" y="28" width="8" height="40" rx="4" fill="#44403c"/></svg></div>
+      <div class="meta"><div class="name">Butterfly Field</div><div class="tag">Tap the butterflies</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/leaf-pile.html">
+      <div class="art" style="background:linear-gradient(160deg,#84cc16,#15803d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="48" rx="18" ry="30" transform="rotate(30 46 48)" fill="#15803d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Leaf Pile</div><div class="tag">Rake leaves into the pile</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/shell-shore.html">
+      <div class="art" style="background:linear-gradient(160deg,#fdba74,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M14 62 A32 32 0 0 1 78 62 Z"/><path d="M46 62 L46 32 M46 62 L28 36 M46 62 L64 36" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Shell Shore</div><div class="tag">Tap the shells</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/lantern-glow.html">
+      <div class="art" style="background:linear-gradient(160deg,#4338ca,#fbbf24)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="16" fill="#fbbf24" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><g stroke="#fbbf24" stroke-width="5" stroke-linecap="round"><path d="M46 8v10M46 74v10M8 46h10M74 46h10M18 18l8 8M66 66l8 8M74 18l-8 8M26 66l-8 8"/></g></svg></div>
+      <div class="meta"><div class="name">Lantern Glow</div><div class="tag">Tap the lanterns</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/candy-jars.html">
+      <div class="art" style="background:linear-gradient(160deg,#f9a8d4,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+      <div class="meta"><div class="name">Candy Jars</div><div class="tag">Fill the jar</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/drum-circle.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb923c,#dc2626)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="22" y="36" width="48" height="32" fill="#dc2626" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="46" cy="36" rx="24" ry="8" fill="#fde68a" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Drum Circle</div><div class="tag">Tap the drums</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/nest-eggs.html">
+      <div class="art" style="background:linear-gradient(160deg,#fde68a,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="50" rx="22" ry="30" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Nest Eggs</div><div class="tag">Tuck the eggs in</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/hat-shop.html">
+      <div class="art" style="background:linear-gradient(160deg,#fbbf24,#7c3aed)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="30" y="24" width="32" height="28" fill="#7c3aed" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="14" y="50" width="64" height="10" rx="3" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Hat Shop</div><div class="tag">Put hats in the box</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/cake-stack.html">
+      <div class="art" style="background:linear-gradient(160deg,#f9a8d4,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="18" y="48" width="56" height="22" rx="4" fill="#f9a8d4" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="24" y="32" width="44" height="18" fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="28" r="6" fill="#ef4444"/></svg></div>
+      <div class="meta"><div class="name">Cake Stack</div><div class="tag">Grow the cake</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/seed-sprout.html">
+      <div class="art" style="background:linear-gradient(160deg,#86efac,#22c55e)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><g fill="#22c55e" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'><circle cx="46" cy="28" r="12"/><circle cx="64" cy="40" r="12"/><circle cx="58" cy="60" r="12"/><circle cx="34" cy="60" r="12"/><circle cx="28" cy="40" r="12"/></g><circle cx="46" cy="46" r="9" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Seed Sprout</div><div class="tag">Grow the sprout</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/sun-climb.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#f59e0b)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="16" fill="#f59e0b" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><g stroke="#f59e0b" stroke-width="5" stroke-linecap="round"><path d="M46 8v10M46 74v10M8 46h10M74 46h10M18 18l8 8M66 66l8 8M74 18l-8 8M26 66l-8 8"/></g></svg></div>
+      <div class="meta"><div class="name">Sun Climb</div><div class="tag">Grow the morning</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/rainbow-drops.html">
+      <div class="art" style="background:linear-gradient(160deg,#818cf8,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M46 10 C70 40 72 58 46 78 C20 58 22 40 46 10Z"/></svg></div>
+      <div class="meta"><div class="name">Rainbow Drops</div><div class="tag">Tap the drops</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/pebble-path.html">
+      <div class="art" style="background:linear-gradient(160deg,#a8a29e,#78716c)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#78716c" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+      <div class="meta"><div class="name">Pebble Path</div><div class="tag">Stack the pebbles</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/cupcake-box.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb7185,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="18" y="48" width="56" height="22" rx="4" fill="#f9a8d4" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="24" y="32" width="44" height="18" fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="28" r="6" fill="#ef4444"/></svg></div>
+      <div class="meta"><div class="name">Cupcake Box</div><div class="tag">Pack the cupcakes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/pond-lilies.html">
+      <div class="art" style="background:linear-gradient(160deg,#06b6d4,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><g fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'><circle cx="46" cy="28" r="12"/><circle cx="64" cy="40" r="12"/><circle cx="58" cy="60" r="12"/><circle cx="34" cy="60" r="12"/><circle cx="28" cy="40" r="12"/></g><circle cx="46" cy="46" r="9" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Pond Lilies</div><div class="tag">Tap the lilies</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/firefly-jar.html">
+      <div class="art" style="background:linear-gradient(160deg,#312e81,#fde047)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' points="46,8 56,34 84,34 62,52 70,80 46,64 22,80 30,52 8,34 36,34"/></svg></div>
+      <div class="meta"><div class="name">Firefly Jar</div><div class="tag">Catch the lights</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="jump" href="games/rocket-pops.html">
+      <div class="art" style="background:linear-gradient(160deg,#1e1b4b,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,8 78,46 46,78 14,46" fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 78 L40 88 L54 92" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Rocket Pops</div><div class="tag">Tap the rockets</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/bird-homes.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#38bdf8)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+      <div class="meta"><div class="name">Bird Homes</div><div class="tag">Bring birds home</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="make" href="games/block-tower.html">
+      <div class="art" style="background:linear-gradient(160deg,#c4b5fd,#8b5cf6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,12 82,42 10,42" fill="#7f1d1d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="22" y="42" width="48" height="36" fill="#8b5cf6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="40" y="56" width="12" height="22" fill="#fde68a"/></svg></div>
+      <div class="meta"><div class="name">Block Tower</div><div class="tag">Grow the tower</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/train-toot.html">
+      <div class="art" style="background:linear-gradient(160deg,#fecaca,#dc2626)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="14" y="40" width="64" height="24" rx="8" fill="#dc2626" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="28" y="26" width="32" height="16" rx="6" fill="#e0f2fe" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="30" cy="66" r="8" fill="#1e293b"/><circle cx="64" cy="66" r="8" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Train Toot</div><div class="tag">Tap the trains</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/comet-sweep.html">
+      <div class="art" style="background:linear-gradient(160deg,#0f172a,#67e8f9)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon fill="#67e8f9" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' points="46,8 56,34 84,34 62,52 70,80 46,64 22,80 30,52 8,34 36,34"/></svg></div>
+      <div class="meta"><div class="name">Comet Sweep</div><div class="tag">Tap the comets</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/picnic-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="52" r="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 28 Q52 16 56 22" fill="none" stroke="#166534" stroke-width="4"/><ellipse cx="60" cy="30" rx="10" ry="6" fill="#22c55e"/></svg></div>
+      <div class="meta"><div class="name">Picnic Basket</div><div class="tag">Pack the picnic</div><span class="pill">Play</span></div>
+    </a>
+    <!-- /pack-cards -->
   </main>
   <script>
     try {
