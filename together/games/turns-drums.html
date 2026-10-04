@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Drum Turns</title>
+<link rel="stylesheet" href="../../kid.css"/>
+<style>
+  html, body { background: #fb923c; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="22" y="36" width="48" height="32" fill="#7c3aed" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="46" cy="36" rx="24" ry="8" fill="#fde68a" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+  <h1>Drum Turns</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="22" y="36" width="48" height="32" fill="#7c3aed" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="46" cy="36" rx="24" ry="8" fill="#fde68a" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+  <h1>Both of you!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../../kid.js"></script>
+<script src="../../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Drum Turns","kind":"turns","goal":3,"age":6,"sky":"#fb923c","ground":"#ffedd5","shape":"drum","colors":["#7c3aed","#fb923c","#ffffff"],"match":false,"scene":"sky","motion":"still"});</script>
+</body>
+</html>
