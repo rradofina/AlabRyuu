@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Firefly Jar</title>
+<link rel="stylesheet" href="../kid.css"/>
+<style>
+  html, body { background: #312e81; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' points="46,8 56,34 84,34 62,52 70,80 46,64 22,80 30,52 8,34 36,34"/></svg></div>
+  <h1>Firefly Jar</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' points="46,8 56,34 84,34 62,52 70,80 46,64 22,80 30,52 8,34 36,34"/></svg></div>
+  <h1>Nice!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../kid.js"></script>
+<script src="../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Firefly Jar","kind":"drag","goal":4,"age":6,"sky":"#312e81","ground":"#1e1b4b","shape":"star","colors":["#fde047","#fef9c3","#a3e635"],"match":false,"scene":"night","motion":"still"});</script>
+</body>
+</html>
