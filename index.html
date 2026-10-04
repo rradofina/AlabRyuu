@@ -160,9 +160,98 @@
     .hubs a.both { background: #c4b5fd; color: #2e1065; }
     .hubs a.on { outline: 5px solid #fff; outline-offset: 3px; }
     .hubs a:focus-visible { outline: 5px solid #fff; outline-offset: 4px; }
+    .grove {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    header, .filters, .none, .grid { position: relative; z-index: 1; }
+    .vine {
+      position: absolute;
+      top: -8px;
+      width: 190px;
+      height: 280px;
+    }
+    .vine-l { left: -18px; }
+    .vine-r { right: -18px; transform: scaleX(-1); }
+    .vine-top {
+      top: -6px;
+      left: 50%;
+      width: 220px;
+      height: 78px;
+      transform: translateX(-50%);
+    }
+    .leaf {
+      position: absolute;
+      top: 0;
+      left: var(--x);
+      width: var(--s);
+      height: var(--s);
+      animation: leaf-drift var(--d) linear var(--delay) infinite;
+    }
+    .leaf-shape { display: block; width: 100%; height: 100%; }
+    .leaf-shape.twirl { animation: leaf-twirl 0.8s ease; }
+    @keyframes leaf-drift {
+      0% { transform: translate3d(0, -18vh, 0) rotate(0deg); }
+      50% { transform: translate3d(var(--sway), 48vh, 0) rotate(160deg); }
+      100% { transform: translate3d(0, 112vh, 0) rotate(320deg); }
+    }
+    @keyframes leaf-twirl {
+      to { transform: rotate(360deg); }
+    }
+    @media (max-width: 520px) {
+      .vine { width: 112px; height: 168px; }
+      .vine-top { width: 140px; height: 52px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .leaf {
+        animation: none;
+        top: var(--park);
+        transform: rotate(var(--rot));
+      }
+      .leaf-shape.twirl { animation: none; }
+    }
     </style>
 </head>
 <body>
+  <div class="grove" aria-hidden="true">
+    <svg class="vine vine-l" viewBox="0 0 180 280">
+      <path d="M18 0 C 28 54, 78 36, 52 96 S 8 150, 40 198 S 86 236, 48 272" fill="none" stroke="#166534" stroke-width="8" stroke-linecap="round"/>
+      <g fill="#22c55e" stroke="#14532d" stroke-width="2">
+        <path d="M46 58c12 4 22 16 18 30-10 0-20-8-28-2 2-14 4-22 10-28z" transform="rotate(-20 46 70)"/>
+        <path d="M78 108c14 2 20 18 12 30-12-2-22-12-26-4 2-12 6-20 14-26z" transform="rotate(24 70 120)"/>
+        <path d="M28 168c12 6 24 14 18 28-10 2-20-6-26 0 0-12 2-20 8-28z"/>
+        <path d="M62 214c10 4 20 14 14 26-8 0-16-8-22-2 2-10 4-18 8-24z" transform="rotate(-16 60 220)"/>
+      </g>
+      <path d="M40 62c-2 10-6 16-12 22M70 116c2 10 0 18-6 26M34 174c-2 8-2 16 4 22M58 220c0 8-4 14-8 20" fill="none" stroke="#14532d" stroke-width="1.5"/>
+    </svg>
+    <svg class="vine vine-r" viewBox="0 0 180 280">
+      <path d="M18 0 C 28 54, 78 36, 52 96 S 8 150, 40 198 S 86 236, 48 272" fill="none" stroke="#3f6212" stroke-width="8" stroke-linecap="round"/>
+      <g fill="#4ade80" stroke="#14532d" stroke-width="2">
+        <path d="M50 46c14 2 24 16 16 30-12-2-22-10-26-2 0-12 4-22 10-28z"/>
+        <path d="M24 112c12 6 22 12 16 28-10 0-18-8-24 0 0-12 2-20 8-28z" transform="rotate(18 30 120)"/>
+        <path d="M72 176c12 4 18 16 10 28-10-2-18-10-22-2 2-12 6-18 12-26z"/>
+        <path d="M36 230c10 4 18 12 12 24-8 0-16-8-20 0 0-10 2-16 8-24z"/>
+      </g>
+    </svg>
+    <svg class="vine vine-top" viewBox="0 0 220 78">
+      <path d="M8 18 C 50 8, 70 40, 110 22 S 170 4, 212 20" fill="none" stroke="#166534" stroke-width="6" stroke-linecap="round"/>
+      <g fill="#86efac" stroke="#14532d" stroke-width="2">
+        <path d="M48 20c8 2 14 10 8 18-6 0-12-6-16-2 2-6 4-12 8-16z"/>
+        <path d="M108 16c10 0 16 10 10 18-8-2-14-8-16-2 0-6 2-12 6-16z"/>
+        <path d="M164 18c8 2 14 10 8 16-6 0-12-6-14-2 0-6 2-10 6-14z"/>
+      </g>
+    </svg>
+    <span class="leaf" style="--x:6%; --s:34px; --d:22s; --delay:-4s; --sway:18px; --park:8%; --rot:-18deg"><svg class="leaf-shape" viewBox="0 0 48 48"><path fill="#22c55e" stroke="#14532d" stroke-width="2" d="M24 4c12 8 20 18 16 32-10-2-18-10-24 4C6 24 10 10 24 4z"/><path d="M22 12c-2 8-6 16-12 24" fill="none" stroke="#14532d" stroke-width="1.6"/></svg></span>
+    <span class="leaf" style="--x:16%; --s:28px; --d:26s; --delay:-12s; --sway:-22px; --park:18%; --rot:24deg"><svg class="leaf-shape" viewBox="0 0 48 48"><path fill="#f59e0b" stroke="#92400e" stroke-width="2" d="M24 6c10 6 18 16 14 28-8 0-16-8-20 4C8 24 12 10 24 6z"/><path d="M22 14c-1 8-4 14-10 20" fill="none" stroke="#92400e" stroke-width="1.6"/></svg></span>
+    <span class="leaf" style="--x:78%; --s:40px; --d:20s; --delay:-7s; --sway:16px; --park:6%; --rot:12deg"><svg class="leaf-shape" viewBox="0 0 48 48"><path fill="#4ade80" stroke="#14532d" stroke-width="2" d="M26 4c12 10 18 20 12 32-10-4-16-8-22 2C6 22 12 8 26 4z"/><path d="M24 12c-2 8-4 16-10 22" fill="none" stroke="#14532d" stroke-width="1.6"/></svg></span>
+    <span class="leaf" style="--x:88%; --s:30px; --d:24s; --delay:-16s; --sway:-14px; --park:22%; --rot:-30deg"><svg class="leaf-shape" viewBox="0 0 48 48"><path fill="#ea580c" stroke="#9a3412" stroke-width="2" d="M24 5c11 7 18 16 14 30-8-1-16-8-22 3C8 22 12 8 24 5z"/><path d="M22 12c-2 8-5 14-11 22" fill="none" stroke="#9a3412" stroke-width="1.6"/></svg></span>
+    <span class="leaf" style="--x:32%; --s:26px; --d:28s; --delay:-9s; --sway:12px; --park:30%; --rot:8deg"><svg class="leaf-shape" viewBox="0 0 48 48"><path fill="#15803d" stroke="#14532d" stroke-width="2" d="M24 6c10 8 16 16 12 28-8-2-14-8-18 4C10 24 14 10 24 6z"/><path d="M22 14c-1 6-4 12-8 18" fill="none" stroke="#14532d" stroke-width="1.6"/></svg></span>
+    <span class="leaf" style="--x:68%; --s:32px; --d:23s; --delay:-18s; --sway:-18px; --park:14%; --rot:40deg"><svg class="leaf-shape" viewBox="0 0 48 48"><path fill="#b45309" stroke="#78350f" stroke-width="2" d="M24 4c12 8 18 18 14 30-8 0-16-8-22 4C8 22 12 8 24 4z"/><path d="M22 12c-2 8-5 14-10 22" fill="none" stroke="#78350f" stroke-width="1.6"/></svg></span>
+    <span class="leaf" style="--x:48%; --s:24px; --d:30s; --delay:-3s; --sway:10px; --park:36%; --rot:-8deg"><svg class="leaf-shape" viewBox="0 0 48 48"><path fill="#86efac" stroke="#166534" stroke-width="2" d="M24 6c9 6 16 14 12 26-7-1-14-6-18 4C10 24 14 10 24 6z"/><path d="M22 14c-1 6-3 12-8 18" fill="none" stroke="#166534" stroke-width="1.6"/></svg></span>
+  </div>
   <header>
     <div class="logo">🦖✨</div>
     <h1>AlabRyuu</h1>
@@ -683,6 +772,28 @@
       apply();
     });
     apply();
+  </script>
+  <script>
+    (function () {
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduce) return;
+      document.addEventListener("pointerdown", function (ev) {
+        var node = ev.target;
+        if (node.closest && node.closest("a, button, input, select, textarea")) return;
+        var leaves = document.querySelectorAll(".leaf");
+        var i, leaf, box, hit = null;
+        for (i = 0; i < leaves.length; i++) {
+          leaf = leaves[i];
+          box = leaf.getBoundingClientRect();
+          if (ev.clientX >= box.left && ev.clientX <= box.right && ev.clientY >= box.top && ev.clientY <= box.bottom) hit = leaf;
+        }
+        if (!hit) return;
+        var shape = hit.querySelector(".leaf-shape");
+        shape.classList.remove("twirl");
+        void shape.offsetWidth;
+        shape.classList.add("twirl");
+      });
+    })();
   </script>
 </body>
 </html>
