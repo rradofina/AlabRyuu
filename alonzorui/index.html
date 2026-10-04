@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <title>AlonzoRui</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; max-width: 100%; overflow-x: hidden; font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; touch-action: manipulation; }
+    button { background: transparent; border: 0; appearance: none; -webkit-appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    header { text-align: center; margin-bottom: 18px; }
+    .logo svg { display: block; margin: 0 auto 8px; }
+    h1 { font-size: clamp(32px, 8vw, 52px); letter-spacing: -1px; }
+    .sub { font-size: 20px; margin-top: 6px; font-weight: 700; }
+    .count { margin-top: 8px; font-weight: 800; font-size: 18px; }
+    .find, .finder, .none { width: min(100%, 520px); margin-left: auto; margin-right: auto; }
+    .find { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; min-height: 104px; padding: 16px 32px; border-radius: 999px; font-weight: 900; font-size: clamp(32px, 7vw, 40px); }
+    .find svg.glass, .none svg.glass { width: 56px; height: 56px; flex: none; }
+    .find:focus-visible, .finder button:focus-visible, .none button:focus-visible, .finder input:focus-visible, .hubs a:focus-visible { outline: 5px solid #1e1b4b; outline-offset: 4px; }
+    .finder { display: flex; gap: 8px; margin-top: 16px; }
+    .finder[hidden], .find[hidden], .none[hidden] { display: none; }
+    .finder input { flex: 1; min-width: 0; min-height: 104px; border: 0; border-radius: 32px; padding: 0 22px; font: 800 32px "Trebuchet MS", "Comic Sans MS", sans-serif; color: #1e1b4b; }
+    .finder button, .none button { min-width: 104px; min-height: 104px; border-radius: 32px; background: #fff; color: #1e1b4b; font-size: 44px; font-weight: 900; }
+    .none { text-align: center; margin-top: 8px; margin-bottom: 8px; }
+    .none p { font-size: clamp(26px, 6vw, 34px); font-weight: 900; margin: 6px 0 12px; }
+    .none button { width: 100%; font-size: 32px; background: #86efac; color: #14532d; box-shadow: 0 8px 0 #16a34a; }
+    .hubs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 16px auto 0; width: min(100%, 720px); }
+    .hubs a { flex: 1 1 180px; min-height: 96px; display: flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; font-weight: 900; font-size: clamp(22px, 5vw, 30px); border-radius: 28px; padding: 12px; box-shadow: 0 8px 0 rgba(0,0,0,.25); }
+    .hubs a.alab { background: #ffd166; color: #3b2100; }
+    .hubs a.alonzo { background: #fb923c; color: #7c2d12; }
+    .hubs a.both { background: #c4b5fd; color: #2e1065; }
+    .hubs a.on { outline: 5px solid #fff; outline-offset: 3px; }
+    .filters { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px auto 22px; width: 100%; max-width: 720px; }
+    .filters button { font-weight: 800; padding: 12px 18px; border-radius: 999px; font-size: 18px; min-height: 64px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; width: 100%; max-width: 720px; margin: 0 auto; }
+    .card { display: flex; flex-direction: column; text-decoration: none; border-radius: 28px; overflow: hidden; box-shadow: 0 10px 0 rgba(0,0,0,.18); }
+    .card:active { transform: translateY(4px); }
+    .card.hide { display: none; }
+    .art { height: 120px; display: flex; align-items: center; justify-content: center; }
+    .art svg { width: 92px; height: 92px; }
+    .meta { padding: 12px 14px 16px; }
+    .name { font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+    .tag { font-size: 15px; opacity: .8; margin-top: 2px; overflow-wrap: anywhere; }
+    .pill { display: inline-block; margin-top: 10px; font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 999px; }
+  
+      body { background: radial-gradient(circle at 12% 0%, #fdba74 0%, transparent 42%), radial-gradient(circle at 100% 8%, #86efac 0%, transparent 36%), #fff7ed; color: #7c2d12; padding: 28px 18px 48px; }
+      h1 { color: #9a3412; text-shadow: 0 5px 0 #fed7aa; }
+      .find { background: #fb7185; color: #fff; box-shadow: 0 8px 0 #e11d48; }
+      .filters button { background: #ffedd5; color: #9a3412; }
+      .filters button.on { background: #fb7185; color: #fff; }
+      .card { background: #fff; color: #7c2d12; }
+      .pill { background: #86efac; color: #14532d; }
+      .name { font-size: 26px; }
+    </style>
+</head>
+<body>
+  <header>
+    <div class="logo"><svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="18" fill="#f59e0b" stroke="#7c2d12" stroke-width="4"/><g stroke="#f59e0b" stroke-width="5" stroke-linecap="round"><path d="M42 8v10M42 66v10M8 42h10M66 42h10M16 16l8 8M60 60l8 8M68 16l-8 8M24 60l-8 8"/></g></svg></div>
+    <h1>AlonzoRui</h1>
+    <p class="sub">Alon's games. Tap a picture.</p>
+    <button type="button" class="find" id="find" aria-expanded="false" aria-controls="finder"><svg class="glass" viewBox="0 0 56 56" width="56" height="56" aria-hidden="true"><circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" stroke-width="6"/><path d="M34 34 L48 48" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg> Find a game</button>
+    <div class="finder" id="finder" hidden>
+      <input id="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="bubbles, stars, fish…" aria-label="Find a game"/>
+      <button type="button" id="find-x" aria-label="Close search">✕</button>
+    </div>
+    <p class="count" id="count">83 games</p>
+    <nav class="hubs" aria-label="Homes">
+      <a class="alab" href="/">AlabRyuu</a>
+      <a class="alonzo on" href="/alonzorui/" aria-current="page">AlonzoRui</a>
+      <a class="both" href="/together/">Together</a>
+    </nav>
+  </header>
+  <div class="filters" id="filters">
+    <button class="on" data-type="all">All</button>
+    <button data-type="jump">Jump</button>
+    <button data-type="story">Story</button>
+    <button data-type="make">Make</button>
+    <button data-type="play">Play</button>
+  </div>
+  <div class="none" id="none" hidden>
+    <svg class="glass" viewBox="0 0 56 56" width="56" height="56" aria-hidden="true"><circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" stroke-width="6"/><path d="M34 34 L48 48" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>
+    <p>No games found</p>
+    <button type="button" id="show-all">Show all games</button>
+  </div>
+  <main class="grid" id="grid">
+    <a class="card" data-type="play" href="games/tap-bubbles.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#38bdf8)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+      <div class="meta"><div class="name">Tap Bubbles</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/bubbles-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#38bdf8)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+      <div class="meta"><div class="name">Bubbles Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-bubbles.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#38bdf8)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+      <div class="meta"><div class="name">Big Bubbles</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-stars.html">
+      <div class="art" style="background:linear-gradient(160deg,#312e81,#fde047)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' points="46,8 56,34 84,34 62,52 70,80 46,64 22,80 30,52 8,34 36,34"/></svg></div>
+      <div class="meta"><div class="name">Tap Stars</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/stars-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#312e81,#fde047)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' points="46,8 56,34 84,34 62,52 70,80 46,64 22,80 30,52 8,34 36,34"/></svg></div>
+      <div class="meta"><div class="name">Stars Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-stars.html">
+      <div class="art" style="background:linear-gradient(160deg,#312e81,#fde047)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' points="46,8 56,34 84,34 62,52 70,80 46,64 22,80 30,52 8,34 36,34"/></svg></div>
+      <div class="meta"><div class="name">Big Stars</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-hearts.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb7185,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M46 78 C20 56 10 40 18 28 C26 16 40 20 46 32 C52 20 66 16 74 28 C82 40 72 56 46 78Z"/></svg></div>
+      <div class="meta"><div class="name">Tap Hearts</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/hearts-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb7185,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M46 78 C20 56 10 40 18 28 C26 16 40 20 46 32 C52 20 66 16 74 28 C82 40 72 56 46 78Z"/></svg></div>
+      <div class="meta"><div class="name">Hearts Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-hearts.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb7185,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M46 78 C20 56 10 40 18 28 C26 16 40 20 46 32 C52 20 66 16 74 28 C82 40 72 56 46 78Z"/></svg></div>
+      <div class="meta"><div class="name">Big Hearts</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-clouds.html">
+      <div class="art" style="background:linear-gradient(160deg,#bae6fd,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="34" cy="50" rx="16" ry="12" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="52" cy="46" rx="18" ry="14" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="66" cy="52" rx="12" ry="10" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tap Clouds</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/clouds-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#bae6fd,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="34" cy="50" rx="16" ry="12" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="52" cy="46" rx="18" ry="14" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="66" cy="52" rx="12" ry="10" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Clouds Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-clouds.html">
+      <div class="art" style="background:linear-gradient(160deg,#bae6fd,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="34" cy="50" rx="16" ry="12" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="52" cy="46" rx="18" ry="14" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="66" cy="52" rx="12" ry="10" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Big Clouds</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-fish.html">
+      <div class="art" style="background:linear-gradient(160deg,#0284c7,#fde047)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="48" cy="48" rx="26" ry="16" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="18,48 6,34 6,62" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="44" r="3" fill="#1e1b4b"/></svg></div>
+      <div class="meta"><div class="name">Tap Fish</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/fish-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#0284c7,#fde047)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="48" cy="48" rx="26" ry="16" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="18,48 6,34 6,62" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="44" r="3" fill="#1e1b4b"/></svg></div>
+      <div class="meta"><div class="name">Fish Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-fish.html">
+      <div class="art" style="background:linear-gradient(160deg,#0284c7,#fde047)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="48" cy="48" rx="26" ry="16" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="18,48 6,34 6,62" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="44" r="3" fill="#1e1b4b"/></svg></div>
+      <div class="meta"><div class="name">Big Fish</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-flowers.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><g fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'><circle cx="46" cy="28" r="12"/><circle cx="64" cy="40" r="12"/><circle cx="58" cy="60" r="12"/><circle cx="34" cy="60" r="12"/><circle cx="28" cy="40" r="12"/></g><circle cx="46" cy="46" r="9" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tap Flowers</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/flowers-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><g fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'><circle cx="46" cy="28" r="12"/><circle cx="64" cy="40" r="12"/><circle cx="58" cy="60" r="12"/><circle cx="34" cy="60" r="12"/><circle cx="28" cy="40" r="12"/></g><circle cx="46" cy="46" r="9" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Flowers Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-flowers.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><g fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'><circle cx="46" cy="28" r="12"/><circle cx="64" cy="40" r="12"/><circle cx="58" cy="60" r="12"/><circle cx="34" cy="60" r="12"/><circle cx="28" cy="40" r="12"/></g><circle cx="46" cy="46" r="9" fill="#fde047" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Big Flowers</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-balloons.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="40" rx="22" ry="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="46,64 40,74 52,74" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 74 Q54 82 46 90" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Tap Balloons</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/balloons-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="40" rx="22" ry="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="46,64 40,74 52,74" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 74 Q54 82 46 90" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Balloons Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-balloons.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="40" rx="22" ry="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="46,64 40,74 52,74" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 74 Q54 82 46 90" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Big Balloons</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-suns.html">
+      <div class="art" style="background:linear-gradient(160deg,#fde047,#f59e0b)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="16" fill="#f59e0b" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><g stroke="#f59e0b" stroke-width="5" stroke-linecap="round"><path d="M46 8v10M46 74v10M8 46h10M74 46h10M18 18l8 8M66 66l8 8M74 18l-8 8M26 66l-8 8"/></g></svg></div>
+      <div class="meta"><div class="name">Tap Suns</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/suns-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#fde047,#f59e0b)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="16" fill="#f59e0b" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><g stroke="#f59e0b" stroke-width="5" stroke-linecap="round"><path d="M46 8v10M46 74v10M8 46h10M74 46h10M18 18l8 8M66 66l8 8M74 18l-8 8M26 66l-8 8"/></g></svg></div>
+      <div class="meta"><div class="name">Suns Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-suns.html">
+      <div class="art" style="background:linear-gradient(160deg,#fde047,#f59e0b)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="16" fill="#f59e0b" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><g stroke="#f59e0b" stroke-width="5" stroke-linecap="round"><path d="M46 8v10M46 74v10M8 46h10M74 46h10M18 18l8 8M66 66l8 8M74 18l-8 8M26 66l-8 8"/></g></svg></div>
+      <div class="meta"><div class="name">Big Suns</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-moons.html">
+      <div class="art" style="background:linear-gradient(160deg,#4338ca,#fef9c3)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fef9c3" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M58 14 A32 32 0 1 0 58 78 A24 24 0 1 1 58 14Z"/></svg></div>
+      <div class="meta"><div class="name">Tap Moons</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/moons-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#4338ca,#fef9c3)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fef9c3" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M58 14 A32 32 0 1 0 58 78 A24 24 0 1 1 58 14Z"/></svg></div>
+      <div class="meta"><div class="name">Moons Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-moons.html">
+      <div class="art" style="background:linear-gradient(160deg,#4338ca,#fef9c3)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fef9c3" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M58 14 A32 32 0 1 0 58 78 A24 24 0 1 1 58 14Z"/></svg></div>
+      <div class="meta"><div class="name">Big Moons</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-trees.html">
+      <div class="art" style="background:linear-gradient(160deg,#22c55e,#166534)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="40" y="52" width="12" height="26" rx="3" fill="#92400e"/><circle cx="46" cy="40" r="24" fill="#166534" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tap Trees</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/trees-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#22c55e,#166534)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="40" y="52" width="12" height="26" rx="3" fill="#92400e"/><circle cx="46" cy="40" r="24" fill="#166534" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Trees Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-trees.html">
+      <div class="art" style="background:linear-gradient(160deg,#22c55e,#166534)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="40" y="52" width="12" height="26" rx="3" fill="#92400e"/><circle cx="46" cy="40" r="24" fill="#166534" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Big Trees</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-houses.html">
+      <div class="art" style="background:linear-gradient(160deg,#fdba74,#f97316)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,12 82,42 10,42" fill="#7f1d1d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="22" y="42" width="48" height="36" fill="#f97316" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="40" y="56" width="12" height="22" fill="#fde68a"/></svg></div>
+      <div class="meta"><div class="name">Tap Houses</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/houses-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#fdba74,#f97316)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,12 82,42 10,42" fill="#7f1d1d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="22" y="42" width="48" height="36" fill="#f97316" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="40" y="56" width="12" height="22" fill="#fde68a"/></svg></div>
+      <div class="meta"><div class="name">Houses Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-houses.html">
+      <div class="art" style="background:linear-gradient(160deg,#fdba74,#f97316)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,12 82,42 10,42" fill="#7f1d1d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="22" y="42" width="48" height="36" fill="#f97316" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="40" y="56" width="12" height="22" fill="#fde68a"/></svg></div>
+      <div class="meta"><div class="name">Big Houses</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-cars.html">
+      <div class="art" style="background:linear-gradient(160deg,#93c5fd,#2563eb)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="14" y="40" width="64" height="24" rx="8" fill="#2563eb" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="28" y="26" width="32" height="16" rx="6" fill="#e0f2fe" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="30" cy="66" r="8" fill="#1e293b"/><circle cx="64" cy="66" r="8" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Tap Cars</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/cars-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#93c5fd,#2563eb)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="14" y="40" width="64" height="24" rx="8" fill="#2563eb" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="28" y="26" width="32" height="16" rx="6" fill="#e0f2fe" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="30" cy="66" r="8" fill="#1e293b"/><circle cx="64" cy="66" r="8" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Cars Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-cars.html">
+      <div class="art" style="background:linear-gradient(160deg,#93c5fd,#2563eb)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="14" y="40" width="64" height="24" rx="8" fill="#2563eb" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="28" y="26" width="32" height="16" rx="6" fill="#e0f2fe" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="30" cy="66" r="8" fill="#1e293b"/><circle cx="64" cy="66" r="8" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Big Cars</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-bugs.html">
+      <div class="art" style="background:linear-gradient(160deg,#a3e635,#65a30d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="52" rx="24" ry="18" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="30" r="12" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M40 22 L30 10 M52 22 L62 10" fill="none" stroke="#1e293b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Tap Bugs</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/bugs-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#a3e635,#65a30d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="52" rx="24" ry="18" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="30" r="12" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M40 22 L30 10 M52 22 L62 10" fill="none" stroke="#1e293b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Bugs Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-bugs.html">
+      <div class="art" style="background:linear-gradient(160deg,#a3e635,#65a30d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="52" rx="24" ry="18" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="30" r="12" fill="#65a30d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M40 22 L30 10 M52 22 L62 10" fill="none" stroke="#1e293b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Big Bugs</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-ducks.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#facc15)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+      <div class="meta"><div class="name">Tap Ducks</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/ducks-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#facc15)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+      <div class="meta"><div class="name">Ducks Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-ducks.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#facc15)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#facc15" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+      <div class="meta"><div class="name">Big Ducks</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-gems.html">
+      <div class="art" style="background:linear-gradient(160deg,#7c3aed,#22d3ee)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,10 74,46 46,82 18,46" fill="#22d3ee" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tap Gems</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/gems-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#7c3aed,#22d3ee)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,10 74,46 46,82 18,46" fill="#22d3ee" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Gems Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-gems.html">
+      <div class="art" style="background:linear-gradient(160deg,#7c3aed,#22d3ee)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,10 74,46 46,82 18,46" fill="#22d3ee" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Big Gems</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-apples.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="52" r="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 28 Q52 16 56 22" fill="none" stroke="#166534" stroke-width="4"/><ellipse cx="60" cy="30" rx="10" ry="6" fill="#22c55e"/></svg></div>
+      <div class="meta"><div class="name">Tap Apples</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/apples-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="52" r="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 28 Q52 16 56 22" fill="none" stroke="#166534" stroke-width="4"/><ellipse cx="60" cy="30" rx="10" ry="6" fill="#22c55e"/></svg></div>
+      <div class="meta"><div class="name">Apples Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-apples.html">
+      <div class="art" style="background:linear-gradient(160deg,#4ade80,#ef4444)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="52" r="26" fill="#ef4444" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 28 Q52 16 56 22" fill="none" stroke="#166534" stroke-width="4"/><ellipse cx="60" cy="30" rx="10" ry="6" fill="#22c55e"/></svg></div>
+      <div class="meta"><div class="name">Big Apples</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-boats.html">
+      <div class="art" style="background:linear-gradient(160deg,#06b6d4,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="16,48 76,48 64,70 28,70" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="46,46 46,16 70,46" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tap Boats</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/boats-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#06b6d4,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="16,48 76,48 64,70 28,70" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="46,46 46,16 70,46" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Boats Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-boats.html">
+      <div class="art" style="background:linear-gradient(160deg,#06b6d4,#ffffff)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="16,48 76,48 64,70 28,70" fill="#ffffff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="46,46 46,16 70,46" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Big Boats</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-frogs.html">
+      <div class="art" style="background:linear-gradient(160deg,#84cc16,#4d7c0f)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="54" rx="30" ry="20" fill="#4d7c0f" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="32" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="34" cy="34" r="4" fill="#1e293b"/><circle cx="62" cy="34" r="4" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Tap Frogs</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/frogs-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#84cc16,#4d7c0f)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="54" rx="30" ry="20" fill="#4d7c0f" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="32" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="34" cy="34" r="4" fill="#1e293b"/><circle cx="62" cy="34" r="4" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Frogs Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-frogs.html">
+      <div class="art" style="background:linear-gradient(160deg,#84cc16,#4d7c0f)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="54" rx="30" ry="20" fill="#4d7c0f" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="32" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="60" cy="34" r="10" fill="#fff" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="34" cy="34" r="4" fill="#1e293b"/><circle cx="62" cy="34" r="4" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Big Frogs</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-kites.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,8 78,46 46,78 14,46" fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 78 L40 88 L54 92" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Tap Kites</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/kites-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,8 78,46 46,78 14,46" fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 78 L40 88 L54 92" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Kites Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-kites.html">
+      <div class="art" style="background:linear-gradient(160deg,#7dd3fc,#f472b6)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><polygon points="46,8 78,46 46,78 14,46" fill="#f472b6" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><path d="M46 78 L40 88 L54 92" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Big Kites</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-butterflies.html">
+      <div class="art" style="background:linear-gradient(160deg,#e879f9,#a855f7)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="28" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="64" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="30" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="62" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="42" y="28" width="8" height="40" rx="4" fill="#44403c"/></svg></div>
+      <div class="meta"><div class="name">Tap Butterflies</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/butterflies-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#e879f9,#a855f7)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="28" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="64" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="30" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="62" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="42" y="28" width="8" height="40" rx="4" fill="#44403c"/></svg></div>
+      <div class="meta"><div class="name">Butterflies Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-butterflies.html">
+      <div class="art" style="background:linear-gradient(160deg,#e879f9,#a855f7)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="28" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="64" cy="36" rx="16" ry="14" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="30" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="62" cy="58" rx="12" ry="12" fill="#a855f7" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="42" y="28" width="8" height="40" rx="4" fill="#44403c"/></svg></div>
+      <div class="meta"><div class="name">Big Butterflies</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-leaves.html">
+      <div class="art" style="background:linear-gradient(160deg,#84cc16,#15803d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="48" rx="18" ry="30" transform="rotate(30 46 48)" fill="#15803d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tap Leaves</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/leaves-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#84cc16,#15803d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="48" rx="18" ry="30" transform="rotate(30 46 48)" fill="#15803d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Leaves Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-leaves.html">
+      <div class="art" style="background:linear-gradient(160deg,#84cc16,#15803d)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="48" rx="18" ry="30" transform="rotate(30 46 48)" fill="#15803d" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Big Leaves</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-shells.html">
+      <div class="art" style="background:linear-gradient(160deg,#fdba74,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M14 62 A32 32 0 0 1 78 62 Z"/><path d="M46 62 L46 32 M46 62 L28 36 M46 62 L64 36" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Tap Shells</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/shells-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#fdba74,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M14 62 A32 32 0 0 1 78 62 Z"/><path d="M46 62 L46 32 M46 62 L28 36 M46 62 L64 36" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Shells Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-shells.html">
+      <div class="art" style="background:linear-gradient(160deg,#fdba74,#fb7185)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><path fill="#fb7185" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round' d="M14 62 A32 32 0 0 1 78 62 Z"/><path d="M46 62 L46 32 M46 62 L28 36 M46 62 L64 36" fill="none" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+      <div class="meta"><div class="name">Big Shells</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-cakes.html">
+      <div class="art" style="background:linear-gradient(160deg,#f9a8d4,#ec4899)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="18" y="48" width="56" height="22" rx="4" fill="#f9a8d4" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="24" y="32" width="44" height="18" fill="#ec4899" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="28" r="6" fill="#ef4444"/></svg></div>
+      <div class="meta"><div class="name">Tap Cakes</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/cakes-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#f9a8d4,#ec4899)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="18" y="48" width="56" height="22" rx="4" fill="#f9a8d4" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="24" y="32" width="44" height="18" fill="#ec4899" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="28" r="6" fill="#ef4444"/></svg></div>
+      <div class="meta"><div class="name">Cakes Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-cakes.html">
+      <div class="art" style="background:linear-gradient(160deg,#f9a8d4,#ec4899)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="18" y="48" width="56" height="22" rx="4" fill="#f9a8d4" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="24" y="32" width="44" height="18" fill="#ec4899" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="46" cy="28" r="6" fill="#ef4444"/></svg></div>
+      <div class="meta"><div class="name">Big Cakes</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-hats.html">
+      <div class="art" style="background:linear-gradient(160deg,#fbbf24,#7c3aed)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="30" y="24" width="32" height="28" fill="#7c3aed" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="14" y="50" width="64" height="10" rx="3" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Tap Hats</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/hats-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#fbbf24,#7c3aed)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="30" y="24" width="32" height="28" fill="#7c3aed" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="14" y="50" width="64" height="10" rx="3" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Hats Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-hats.html">
+      <div class="art" style="background:linear-gradient(160deg,#fbbf24,#7c3aed)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="30" y="24" width="32" height="28" fill="#7c3aed" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="14" y="50" width="64" height="10" rx="3" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Big Hats</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-drums.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb923c,#dc2626)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="22" y="36" width="48" height="32" fill="#dc2626" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="46" cy="36" rx="24" ry="8" fill="#fde68a" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tap Drums</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/drums-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb923c,#dc2626)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="22" y="36" width="48" height="32" fill="#dc2626" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="46" cy="36" rx="24" ry="8" fill="#fde68a" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Drums Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-drums.html">
+      <div class="art" style="background:linear-gradient(160deg,#fb923c,#dc2626)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="22" y="36" width="48" height="32" fill="#dc2626" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><ellipse cx="46" cy="36" rx="24" ry="8" fill="#fde68a" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Big Drums</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-eggs.html">
+      <div class="art" style="background:linear-gradient(160deg,#fde68a,#fffbeb)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="50" rx="22" ry="30" fill="#fffbeb" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Tap Eggs</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/eggs-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#fde68a,#fffbeb)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="50" rx="22" ry="30" fill="#fffbeb" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Eggs Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-eggs.html">
+      <div class="art" style="background:linear-gradient(160deg,#fde68a,#fffbeb)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="46" cy="50" rx="22" ry="30" fill="#fffbeb" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/></svg></div>
+      <div class="meta"><div class="name">Big Eggs</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-trains.html">
+      <div class="art" style="background:linear-gradient(160deg,#f87171,#b91c1c)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="14" y="40" width="64" height="24" rx="8" fill="#b91c1c" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="28" y="26" width="32" height="16" rx="6" fill="#e0f2fe" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="30" cy="66" r="8" fill="#1e293b"/><circle cx="64" cy="66" r="8" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Tap Trains</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/trains-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#f87171,#b91c1c)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="14" y="40" width="64" height="24" rx="8" fill="#b91c1c" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="28" y="26" width="32" height="16" rx="6" fill="#e0f2fe" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="30" cy="66" r="8" fill="#1e293b"/><circle cx="64" cy="66" r="8" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Trains Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/big-trains.html">
+      <div class="art" style="background:linear-gradient(160deg,#f87171,#b91c1c)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><rect x="14" y="40" width="64" height="24" rx="8" fill="#b91c1c" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><rect x="28" y="26" width="32" height="16" rx="6" fill="#e0f2fe" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="30" cy="66" r="8" fill="#1e293b"/><circle cx="64" cy="66" r="8" fill="#1e293b"/></svg></div>
+      <div class="meta"><div class="name">Big Trains</div><div class="tag">Tap to grow</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/tap-birds.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#0ea5e9)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#0ea5e9" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#0ea5e9" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+      <div class="meta"><div class="name">Tap Birds</div><div class="tag">Tap the big shapes</div><span class="pill">Play</span></div>
+    </a>
+    <a class="card" data-type="play" href="games/birds-basket.html">
+      <div class="art" style="background:linear-gradient(160deg,#38bdf8,#0ea5e9)"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><ellipse cx="40" cy="54" rx="26" ry="16" fill="#0ea5e9" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="64" cy="40" r="14" fill="#0ea5e9" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><polygon points="76,40 90,46 76,50" fill="#f59e0b"/></svg></div>
+      <div class="meta"><div class="name">Birds Basket</div><div class="tag">Drag to the basket</div><span class="pill">Play</span></div>
+    </a>
+  </main>
+  <script>
+    var KEYS = {};
+    var query = "";
+    var kind = "all";
+    var findBtn = document.getElementById("find");
+    var finder = document.getElementById("finder");
+    var qInput = document.getElementById("q");
+    var none = document.getElementById("none");
+    var countEl = document.getElementById("count");
+    function haystack(card) {
+      var name = (card.querySelector(".name").textContent || "").toLowerCase();
+      var tag = (card.querySelector(".tag").textContent || "").toLowerCase();
+      var extra = KEYS[name] || "";
+      return (name + " " + tag + " " + extra).toLowerCase();
+    }
+    function textHit(hay, q) {
+      if (!q) return true;
+      if (hay.indexOf(q) !== -1) return true;
+      var words = hay.split(/[^a-z0-9]+/).filter(Boolean);
+      var parts = q.split(/[^a-z0-9]+/).filter(Boolean);
+      return parts.every(function (part) {
+        return words.some(function (w) { return w.indexOf(part) !== -1; });
+      });
+    }
+    function apply() {
+      var q = query.toLowerCase().trim();
+      var shown = 0;
+      document.querySelectorAll(".card").forEach(function (c) {
+        var typeOk = kind === "all" || c.getAttribute("data-type") === kind;
+        var textOk = textHit(haystack(c), q);
+        var hide = !(typeOk && textOk);
+        c.classList.toggle("hide", hide);
+        if (!hide) shown++;
+      });
+      none.hidden = shown !== 0;
+      countEl.textContent = shown + (shown === 1 ? " game" : " games");
+    }
+    function setKind(next) {
+      kind = next;
+      document.querySelectorAll(".filters button").forEach(function (x) {
+        x.classList.toggle("on", x.getAttribute("data-type") === next);
+      });
+    }
+    function openSearch() {
+      findBtn.hidden = true;
+      finder.hidden = false;
+      findBtn.setAttribute("aria-expanded", "true");
+      qInput.focus();
+    }
+    function closeSearch(clear) {
+      if (clear) {
+        query = "";
+        qInput.value = "";
+        setKind("all");
+        apply();
+      }
+      finder.hidden = true;
+      findBtn.hidden = false;
+      findBtn.setAttribute("aria-expanded", "false");
+      findBtn.focus();
+    }
+    findBtn.addEventListener("click", openSearch);
+    document.getElementById("find-x").addEventListener("click", function () { closeSearch(true); });
+    document.getElementById("show-all").addEventListener("click", function () { closeSearch(true); });
+    qInput.addEventListener("input", function () {
+      query = qInput.value;
+      if (query.trim()) setKind("all");
+      apply();
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && !finder.hidden) {
+        ev.preventDefault();
+        closeSearch(true);
+      }
+    });
+    qInput.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        closeSearch(true);
+        return;
+      }
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        var vis = [];
+        document.querySelectorAll(".card").forEach(function (c) {
+          if (!c.classList.contains("hide")) vis.push(c);
+        });
+        if (vis.length === 1) window.location.href = vis[0].getAttribute("href");
+      }
+    });
+    document.getElementById("filters").addEventListener("click", function (ev) {
+      var b = ev.target.closest("button");
+      if (!b) return;
+      query = "";
+      qInput.value = "";
+      setKind(b.getAttribute("data-type"));
+      apply();
+    });
+    apply();
+  </script>
+</body>
+</html>

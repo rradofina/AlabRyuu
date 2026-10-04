@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Tap Bubbles</title>
+<link rel="stylesheet" href="../../kid.css"/>
+<style>
+  html, body { background: #7dd3fc; }
+  .home { z-index: 60; }
+  .dock button { font-size: 28px; }
+</style>
+</head>
+<body>
+<a class="home" href="../index.html">Home</a>
+<p id="say"></p>
+<canvas id="c"></canvas>
+<div class="dock" id="dock">
+  <button id="hop" type="button">Go</button>
+  <button id="stomp" type="button">Again</button>
+</div>
+<div class="cover" id="title">
+  <div class="hero" id="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+  <h1>Tap Bubbles</h1>
+  <button class="play" id="go" type="button">Play</button>
+</div>
+<div class="cover off" id="win">
+  <div class="hero"><svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="#38bdf8" stroke='#1e1b4b' stroke-width='4' stroke-linejoin='round'/><circle cx="36" cy="36" r="8" fill="rgba(255,255,255,.65)"/></svg></div>
+  <h1>Nice!</h1>
+  <button class="play" id="winAgain" type="button">Play again</button>
+</div>
+<script src="../../kid.js"></script>
+<script src="../../kid-keys.js"></script>
+<script src="../kid-pack.js"></script>
+<script>KidPack.start({"title":"Tap Bubbles","kind":"tap","goal":3,"age":4,"sky":"#7dd3fc","ground":"#e0f2fe","shape":"circle","colors":["#38bdf8","#ffffff","#7dd3fc"],"match":false,"scene":"sky","motion":"still"});</script>
+</body>
+</html>
