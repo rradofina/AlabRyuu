@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
 <title>Duck Family</title>
