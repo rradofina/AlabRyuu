@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Marble Tilt</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <script src="../kid-keys.js"></script>
+  <script src="../mix.js"></script>
+  <style>
+    html, body { background: #cffafe; }
+    .home { z-index: 60; }
+    .dock button { font-size: 22px; }
+    .dock button i { display: block; width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 4px; border: 3px solid #1e1b4b; background: var(--c, #fff); }
+    .hero svg { width: 96px; height: 96px; display: block; }
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fl">Roll</b></div>
+  <div id="say">Tilt the marble into the cup</div>
+  <div class="dock" id="dock">
+    <button id="L"><i style="--c:#38bdf8"></i>Left</button><button id="stomp"><i style="--c:#e2e8f0"></i>Start</button><button id="R"><i style="--c:#fb923c"></i>Right</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><circle cx="36" cy="36" r="16" fill="#a78bfa" stroke="#1e1b4b" stroke-width="4"/><path d="M48 70 h28 v10 H48 v-6 h22 v-8 H54" fill="none" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>Marble Tilt</h1>
+    <p>Left and right roll it. Start over if it sticks.</p>
+    <button class="play" id="go" autofocus>Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><circle cx="36" cy="36" r="16" fill="#a78bfa" stroke="#1e1b4b" stroke-width="4"/><path d="M48 70 h28 v10 H48 v-6 h22 v-8 H54" fill="none" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>The marble is in!</h1>
+    <p>It rolled home.</p>
+    <button class="play g" id="again">Play again</button>
+  </div>
+  <script>
+(function () {
+  var cv = document.getElementById("c");
+  var ui = Mix.boot(cv);
+  var ctx, W = 0, H = 0, raf = 0;
+  function layout(force) {
+    var r = cv.getBoundingClientRect();
+    var rw = Math.round(r.width || 0), rh = Math.round(r.height || 0);
+    if (!force && ctx && Math.round(W) === rw && Math.round(H) === rh && rw > 0) return;
+    var f = ui.fit();
+    ctx = f.ctx; W = f.W; H = f.H;
+  }
+  function loop() { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+  function frame() {
+    if (!ui.on()) return;
+    layout(false);
+    if (W < 2 || H < 2) { raf = requestAnimationFrame(frame); return; }
+    if (step() === "stop") return;
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+  function begin() { layout(true); reset(); loop(); }
+  function hud(t) {
+    var el = document.getElementById("fl");
+    if (el) el.textContent = t;
+    var m = String(t).match(/\d+/);
+    if (m) cv.dataset.score = m[0];
+  }
+  function sky(a, b) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, a); g.addColorStop(1, b);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  ui.begin(begin);
+  ui.replay(begin);
+  
+  var mx, my, vx, vy, cupX, settled;
+  function reset() {
+    mx = W * 0.26; my = H * 0.36; vx = 0; vy = 0; settled = 0;
+    cupX = Math.min(W * 0.74, W - 70);
+    hud("Roll");
+  }
+  Mix.hold("L", -1, function (d) { vx += d * 3.2; });
+  Mix.hold("R", 1, function (d) { vx += d * 3.2; });
+  document.getElementById("stomp").addEventListener("click", function () {
+    if (!ui.on()) return;
+    reset();
+    kidPing("Start over");
+  });
+  function step() {
+    var d = Mix.dir();
+    vx += d * 0.14;
+    vy += 0.26;
+    vx *= 0.99;
+    mx += vx; my += vy;
+    if (mx < 24) { mx = 24; vx = Math.abs(vx) * 0.4; }
+    if (mx > W - 24) { mx = W - 24; vx = -Math.abs(vx) * 0.4; }
+    var floor = H - 206;
+    if (my > floor) { my = floor; vy = -vy * 0.12; if (Math.abs(vy) < 0.5) vy = 0; }
+    var inCup = my >= floor - 8 && Math.abs(mx - cupX) < 46;
+    if (inCup) {
+      vx *= 0.62;
+      mx += (cupX - mx) * 0.18;
+      settled++;
+      if (settled > 18) { draw(); ui.finish(); return "stop"; }
+    } else settled = 0;
+    cv.dataset.mx = String(Math.round(mx));
+    cv.dataset.my = String(Math.round(my));
+    cv.dataset.cup = String(Math.round(cupX));
+    cv.dataset.score = settled > 8 ? "1" : "0";
+  }
+  function draw() {
+    sky("#e0f2fe", "#cffafe");
+    var floor = H - 206;
+    ctx.fillStyle = "#bae6fd";
+    ctx.fillRect(0, floor, W, H - floor);
+    ctx.strokeStyle = "#1e1b4b"; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(16, floor); ctx.lineTo(W - 16, floor); ctx.stroke();
+    ctx.strokeStyle = "#0f766e"; ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(cupX - 40, floor - 28);
+    ctx.lineTo(cupX - 40, floor);
+    ctx.lineTo(cupX + 40, floor);
+    ctx.lineTo(cupX + 40, floor - 28);
+    ctx.stroke();
+    ctx.fillStyle = "#a78bfa";
+    ctx.beginPath(); ctx.arc(mx, my, 18, 0, Math.PI * 2); ctx.fill(); Mix.ink(ctx);
+    ctx.fillStyle = "rgba(255,255,255,.7)";
+    ctx.beginPath(); ctx.arc(mx - 6, my - 6, 5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  layout(true);
+  if (W > 2) { reset(); draw(); }
+  addEventListener("resize", function () { layout(true); if (W > 2) draw(); });
+})();
+  </script>
+</body>
+</html>

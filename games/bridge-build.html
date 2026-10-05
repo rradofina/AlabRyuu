@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Bridge Build</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <script src="../kid-keys.js"></script>
+  <script src="../mix.js"></script>
+  <style>
+    html, body { background: #bae6fd; }
+    .home { z-index: 60; }
+    .dock button { font-size: 22px; }
+    .dock button i { display: block; width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 4px; border: 3px solid #1e1b4b; background: var(--c, #fff); }
+    .hero svg { width: 96px; height: 96px; display: block; }
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fl">0 / 4</b></div>
+  <div id="say">Tap the plank that matches</div>
+  
+  <div class="cover" id="title">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><rect x="10" y="48" width="16" height="10" fill="#ef4444" stroke="#1e1b4b" stroke-width="3"/><rect x="28" y="48" width="16" height="10" fill="#3b82f6" stroke="#1e1b4b" stroke-width="3"/><rect x="46" y="48" width="16" height="10" fill="#eab308" stroke="#1e1b4b" stroke-width="3"/><rect x="64" y="48" width="16" height="10" fill="#22c55e" stroke="#1e1b4b" stroke-width="3"/><circle cx="24" cy="34" r="10" fill="#4ade80" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+    <h1>Bridge Build</h1>
+    <p>Fill each gap. Then the frog walks.</p>
+    <button class="play" id="go" autofocus>Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><rect x="10" y="48" width="16" height="10" fill="#ef4444" stroke="#1e1b4b" stroke-width="3"/><rect x="28" y="48" width="16" height="10" fill="#3b82f6" stroke="#1e1b4b" stroke-width="3"/><rect x="46" y="48" width="16" height="10" fill="#eab308" stroke="#1e1b4b" stroke-width="3"/><rect x="64" y="48" width="16" height="10" fill="#22c55e" stroke="#1e1b4b" stroke-width="3"/><circle cx="24" cy="34" r="10" fill="#4ade80" stroke="#1e1b4b" stroke-width="3"/></svg></div>
+    <h1>The frog crossed!</h1>
+    <p>The bridge is whole.</p>
+    <button class="play g" id="again">Play again</button>
+  </div>
+  <script>
+(function () {
+  var cv = document.getElementById("c");
+  var ui = Mix.boot(cv);
+  var ctx, W = 0, H = 0, raf = 0;
+  function layout(force) {
+    var r = cv.getBoundingClientRect();
+    var rw = Math.round(r.width || 0), rh = Math.round(r.height || 0);
+    if (!force && ctx && Math.round(W) === rw && Math.round(H) === rh && rw > 0) return;
+    var f = ui.fit();
+    ctx = f.ctx; W = f.W; H = f.H;
+  }
+  function loop() { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+  function frame() {
+    if (!ui.on()) return;
+    layout(false);
+    if (W < 2 || H < 2) { raf = requestAnimationFrame(frame); return; }
+    if (step() === "stop") return;
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+  function begin() { layout(true); reset(); loop(); }
+  function hud(t) {
+    var el = document.getElementById("fl");
+    if (el) el.textContent = t;
+    var m = String(t).match(/\d+/);
+    if (m) cv.dataset.score = m[0];
+  }
+  function sky(a, b) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, a); g.addColorStop(1, b);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  ui.begin(begin);
+  ui.replay(begin);
+  
+  var colors, order, next, frogX, walking, wiggle, wiggleT;
+  colors = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
+  function shuffle() {
+    order = colors.map(function (c, i) { return i; });
+    var i, j, t;
+    for (i = 3; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      t = order[i]; order[i] = order[j]; order[j] = t;
+    }
+  }
+  function slots() {
+    var w = Math.min(78, (W - 48) / 4), x0 = (W - w * 4) / 2, y = H * 0.46, list = [], i;
+    for (i = 0; i < 4; i++) list.push({ x: x0 + i * w + 4, y: y, w: w - 10, h: 26 });
+    return list;
+  }
+  function tray() {
+    var w = Math.min(92, (W - 24) / 4), y = H * 0.74, list = [], i;
+    for (i = 0; i < 4; i++) {
+      if (order[i] == null) continue;
+      list.push({ i: i, ci: order[i], x: 12 + i * w, y: y, w: w - 12, h: 54 });
+    }
+    return list;
+  }
+  function reset() {
+    shuffle(); next = 0; frogX = W * 0.08; walking = false; wiggle = -1; wiggleT = 0;
+    hud("0 / 4");
+  }
+  function tapPlank(i) {
+    if (!ui.on() || walking || order[i] == null) return;
+    if (order[i] === next) {
+      order[i] = null;
+      next++;
+      kidNote(480 + next * 40);
+      hud(next + " / 4");
+      if (next >= 4) { walking = true; kidPing("Walk across"); }
+    } else {
+      wiggle = i; wiggleT = 14;
+      kidNote(196);
+      kidPing("Match the gap");
+    }
+  }
+  cv.addEventListener("pointerdown", function (e) {
+    var p = kidPt(e, cv), list = tray(), i, b;
+    for (i = list.length - 1; i >= 0; i--) {
+      b = list[i];
+      if (p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) { tapPlank(b.i); return; }
+    }
+  });
+  function step() {
+    if (wiggleT > 0) wiggleT--;
+    if (walking) {
+      frogX += 5.5;
+      if (frogX > W * 0.82) { draw(); ui.finish(); return "stop"; }
+    }
+    var list = tray();
+    cv.dataset.need = String(next);
+    cv.dataset.planks = list.map(function (b) {
+      return b.ci + "," + Math.round(b.x + b.w / 2) + "," + Math.round(b.y + b.h / 2);
+    }).join(";");
+  }
+  function draw() {
+    sky("#e0f2fe", "#bae6fd");
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillRect(0, H * 0.5, W, H * 0.16);
+    var sl = slots(), i;
+    ctx.fillStyle = "#14532d";
+    ctx.fillRect(0, sl[0].y - 8, sl[0].x, 42);
+    var last = sl[3];
+    ctx.fillRect(last.x + last.w, last.y - 8, W, 42);
+    for (i = 0; i < 4; i++) {
+      if (i < next) {
+        ctx.fillStyle = colors[i];
+        Mix.box(ctx, sl[i].x, sl[i].y, sl[i].w, sl[i].h, 6); ctx.fill(); Mix.ink(ctx);
+      } else {
+        ctx.strokeStyle = i === next ? colors[i] : "#94a3b8";
+        ctx.lineWidth = i === next ? 5 : 3;
+        Mix.box(ctx, sl[i].x, sl[i].y, sl[i].w, sl[i].h, 6); ctx.stroke();
+      }
+    }
+    var list = tray();
+    for (i = 0; i < list.length; i++) {
+      var b = list[i];
+      var ox = (wiggle === b.i && wiggleT > 0) ? Math.sin(wiggleT) * 8 : 0;
+      ctx.fillStyle = colors[b.ci];
+      Mix.box(ctx, b.x + ox, b.y, b.w, b.h, 10); ctx.fill(); Mix.ink(ctx);
+    }
+    ctx.fillStyle = "#4ade80";
+    ctx.beginPath(); ctx.ellipse(frogX, sl[0].y - 16, 18, 12, 0, 0, Math.PI * 2); ctx.fill(); Mix.ink(ctx);
+    ctx.beginPath(); ctx.arc(frogX - 8, sl[0].y - 28, 6, 0, 7); ctx.arc(frogX + 8, sl[0].y - 28, 6, 0, 7); ctx.fill(); Mix.ink(ctx);
+    ctx.fillStyle = "#1e1b4b";
+    ctx.beginPath(); ctx.arc(frogX - 8, sl[0].y - 28, 2, 0, 7); ctx.arc(frogX + 8, sl[0].y - 28, 2, 0, 7); ctx.fill();
+  }
+
+  layout(true);
+  if (W > 2) { reset(); draw(); }
+  addEventListener("resize", function () { layout(true); if (W > 2) draw(); });
+})();
+  </script>
+</body>
+</html>
