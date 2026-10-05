@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Basket Catch</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <script src="../kid-keys.js"></script>
+  <script src="../mix.js"></script>
+  <style>
+    html, body { background: #7dd3fc; }
+    .home { z-index: 60; }
+    .dock button { font-size: 22px; }
+    .dock button i { display: block; width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 4px; border: 3px solid #1e1b4b; background: var(--c, #fff); }
+    .hero svg { width: 96px; height: 96px; display: block; }
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fl">0 / 6</b></div>
+  <div id="say">Slide under the fruit</div>
+  <div class="dock" id="dock">
+    <button id="L"><i style="--c:#38bdf8"></i>Left</button><button id="R"><i style="--c:#fb923c"></i>Right</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><rect x="18" y="48" width="56" height="24" rx="8" fill="#b45309" stroke="#1e1b4b" stroke-width="4"/><circle cx="46" cy="28" r="14" fill="#ef4444" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>Basket Catch</h1>
+    <p>Catch six fruits in the basket.</p>
+    <button class="play" id="go" autofocus>Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><rect x="18" y="48" width="56" height="24" rx="8" fill="#b45309" stroke="#1e1b4b" stroke-width="4"/><circle cx="46" cy="28" r="14" fill="#ef4444" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>Nice catch!</h1>
+    <p>Six fruits landed.</p>
+    <button class="play g" id="again">Play again</button>
+  </div>
+  <script>
+(function () {
+  var cv = document.getElementById("c");
+  var ui = Mix.boot(cv);
+  var ctx, W = 0, H = 0, raf = 0;
+  function layout(force) {
+    var r = cv.getBoundingClientRect();
+    var rw = Math.round(r.width || 0), rh = Math.round(r.height || 0);
+    if (!force && ctx && Math.round(W) === rw && Math.round(H) === rh && rw > 0) return;
+    var f = ui.fit();
+    ctx = f.ctx; W = f.W; H = f.H;
+  }
+  function loop() { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+  function frame() {
+    if (!ui.on()) return;
+    layout(false);
+    if (W < 2 || H < 2) { raf = requestAnimationFrame(frame); return; }
+    if (step() === "stop") return;
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+  function begin() { layout(true); reset(); loop(); }
+  function hud(t) {
+    var el = document.getElementById("fl");
+    if (el) el.textContent = t;
+    var m = String(t).match(/\d+/);
+    if (m) cv.dataset.score = m[0];
+  }
+  function sky(a, b) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, a); g.addColorStop(1, b);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  ui.begin(begin);
+  ui.replay(begin);
+  
+  var bx, fruit, caught, cols;
+  cols = ["#ef4444", "#f59e0b", "#22c55e", "#a855f7", "#38bdf8", "#fb7185"];
+  function half() { return Math.max(74, Math.min(120, W * 0.14)); }
+  function spawn() {
+    var drift = (Math.random() * 2 - 1) * W * 0.27;
+    fruit = {
+      x: Math.max(30, Math.min(W - 30, bx + drift)),
+      y: -34, r: 26, vy: 4.8, c: cols[caught % cols.length]
+    };
+  }
+  function reset() { bx = W * 0.5; caught = 0; spawn(); hud("0 / 6"); }
+  Mix.hold("L", -1, function () { bx -= 50; });
+  Mix.hold("R", 1, function () { bx += 50; });
+  var drag = false;
+  cv.addEventListener("pointerdown", function (e) {
+    if (!ui.on()) return;
+    drag = true;
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    bx = kidPt(e, cv).x;
+  });
+  cv.addEventListener("pointermove", function (e) {
+    if (!drag || !ui.on()) return;
+    bx = kidPt(e, cv).x;
+  });
+  cv.addEventListener("pointerup", function () { drag = false; });
+  cv.addEventListener("pointercancel", function () { drag = false; });
+  function step() {
+    if (Mix.dir()) bx += Mix.dir() * 8;
+    var h = half();
+    bx = Math.max(h, Math.min(W - h, bx));
+    fruit.y += fruit.vy;
+    var top = H - 176;
+    var rim = fruit.y + fruit.r;
+    if (rim >= top && rim < top + fruit.vy + 6 && Math.abs(fruit.x - bx) < h) {
+      caught++;
+      kidNote(490 + caught * 30);
+      kidPing("Caught " + caught);
+      hud(caught + " / 6");
+      if (caught >= 6) { draw(); ui.finish(); return "stop"; }
+      spawn();
+    } else if (fruit.y > H + 20) {
+      kidNote(196);
+      kidPing("Another fruit");
+      spawn();
+    }
+    cv.dataset.bx = String(Math.round(bx));
+    cv.dataset.fx = String(Math.round(fruit.x));
+    cv.dataset.fy = String(Math.round(fruit.y));
+  }
+  function draw() {
+    sky("#bae6fd", "#bbf7d0");
+    ctx.fillStyle = "#86efac";
+    ctx.fillRect(0, H - 150, W, 150);
+    ctx.fillStyle = fruit.c;
+    ctx.beginPath(); ctx.arc(fruit.x, fruit.y, fruit.r, 0, Math.PI * 2); ctx.fill(); Mix.ink(ctx);
+    ctx.fillStyle = "#166534";
+    ctx.fillRect(fruit.x - 3, fruit.y - fruit.r - 10, 6, 12);
+    var bw = half() * 2, top = H - 176;
+    ctx.fillStyle = "#b45309";
+    Mix.box(ctx, bx - bw / 2, top, bw, 46, 12); ctx.fill(); Mix.ink(ctx);
+    ctx.strokeStyle = "#fde68a"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(bx - bw / 2 + 12, top + 14); ctx.lineTo(bx + bw / 2 - 12, top + 14); ctx.stroke();
+  }
+
+  layout(true);
+  if (W > 2) { reset(); draw(); }
+  addEventListener("resize", function () { layout(true); if (W > 2) draw(); });
+})();
+  </script>
+</body>
+</html>

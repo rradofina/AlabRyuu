@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Balance Tower</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <script src="../kid-keys.js"></script>
+  <script src="../mix.js"></script>
+  <style>
+    html, body { background: #ddd6fe; }
+    .home { z-index: 60; }
+    .dock button { font-size: 22px; }
+    .dock button i { display: block; width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 4px; border: 3px solid #1e1b4b; background: var(--c, #fff); }
+    .hero svg { width: 96px; height: 96px; display: block; }
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fl">0 / 5</b></div>
+  <div id="say">Drop the block when it lines up</div>
+  <div class="dock" id="dock">
+    <button id="hop"><i style="--c:#a78bfa"></i>Drop</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><rect x="24" y="58" width="44" height="16" rx="4" fill="#64748b" stroke="#1e1b4b" stroke-width="4"/><rect x="30" y="40" width="32" height="16" rx="4" fill="#38bdf8" stroke="#1e1b4b" stroke-width="4"/><rect x="34" y="22" width="24" height="16" rx="4" fill="#f472b6" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>Balance Tower</h1>
+    <p>Stack five blocks. A miss slides off.</p>
+    <button class="play" id="go" autofocus>Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><rect x="24" y="58" width="44" height="16" rx="4" fill="#64748b" stroke="#1e1b4b" stroke-width="4"/><rect x="30" y="40" width="32" height="16" rx="4" fill="#38bdf8" stroke="#1e1b4b" stroke-width="4"/><rect x="34" y="22" width="24" height="16" rx="4" fill="#f472b6" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>The tower stands!</h1>
+    <p>Five blocks, nice and tall.</p>
+    <button class="play g" id="again">Play again</button>
+  </div>
+  <script>
+(function () {
+  var cv = document.getElementById("c");
+  var ui = Mix.boot(cv);
+  var ctx, W = 0, H = 0, raf = 0;
+  function layout(force) {
+    var r = cv.getBoundingClientRect();
+    var rw = Math.round(r.width || 0), rh = Math.round(r.height || 0);
+    if (!force && ctx && Math.round(W) === rw && Math.round(H) === rh && rw > 0) return;
+    var f = ui.fit();
+    ctx = f.ctx; W = f.W; H = f.H;
+  }
+  function loop() { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+  function frame() {
+    if (!ui.on()) return;
+    layout(false);
+    if (W < 2 || H < 2) { raf = requestAnimationFrame(frame); return; }
+    if (step() === "stop") return;
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+  function begin() { layout(true); reset(); loop(); }
+  function hud(t) {
+    var el = document.getElementById("fl");
+    if (el) el.textContent = t;
+    var m = String(t).match(/\d+/);
+    if (m) cv.dataset.score = m[0];
+  }
+  function sky(a, b) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, a); g.addColorStop(1, b);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  ui.begin(begin);
+  ui.replay(begin);
+  
+  var stack, block, phase, got, colors;
+  colors = ["#f472b6", "#38bdf8", "#fbbf24", "#34d399", "#fb7185", "#a78bfa"];
+  function amp() { return Math.min(W * 0.26, 150); }
+  function fresh() {
+    var top = stack[stack.length - 1];
+    return { w: Math.max(62, top.w * 0.8), h: 32, c: colors[(stack.length) % colors.length], y: H * 0.22, vy: 0, mode: "sway", slip: 0, x: W / 2 };
+  }
+  function reset() {
+    phase = 0; got = 0;
+    stack = [{ x: W / 2, y: H - 196, w: Math.min(200, W * 0.5), h: 34, c: "#64748b" }];
+    block = fresh();
+    hud("0 / 5");
+  }
+  function drop() {
+    if (!ui.on() || !block || block.mode !== "sway") return;
+    block.mode = "fall";
+    block.vy = 1;
+    block.x = W / 2 + Math.sin(phase) * amp();
+  }
+  document.getElementById("hop").addEventListener("click", drop);
+  cv.addEventListener("pointerdown", function () { drop(); });
+  function step() {
+    phase += 0.05;
+    if (block.mode === "sway") {
+      block.x = W / 2 + Math.sin(phase) * amp();
+      block.y = H * 0.24;
+    } else if (block.mode === "fall") {
+      block.vy += 0.48;
+      block.y += block.vy;
+      var top = stack[stack.length - 1];
+      if (block.y + block.h >= top.y) {
+        var left = Math.max(block.x - block.w / 2, top.x - top.w / 2);
+        var right = Math.min(block.x + block.w / 2, top.x + top.w / 2);
+        if (right - left > block.w * 0.4) {
+          stack.push({ x: block.x, y: top.y - block.h, w: block.w, h: block.h, c: block.c });
+          got++;
+          kidNote(450 + got * 36);
+          kidPing(got + " high");
+          hud(got + " / 5");
+          if (got >= 5) { draw(); ui.finish(); return "stop"; }
+          block = fresh();
+        } else {
+          block.mode = "slide";
+          block.slip = block.x < top.x ? -1 : 1;
+          block.y = top.y - block.h;
+        }
+      }
+    } else {
+      block.x += block.slip * 8;
+      block.y += 6;
+      if (block.y > H + 20) {
+        var w = block.w, c = block.c;
+        block = fresh();
+        block.w = w; block.c = c;
+        kidPing("New block");
+        kidNote(210);
+      }
+    }
+    cv.dataset.score = String(got);
+  }
+  function draw() {
+    sky("#ede9fe", "#fef3c7");
+    ctx.fillStyle = "#86efac";
+    ctx.fillRect(0, H - 170, W, 170);
+    var i, b;
+    for (i = 0; i < stack.length; i++) {
+      b = stack[i];
+      ctx.fillStyle = b.c;
+      Mix.box(ctx, b.x - b.w / 2, b.y, b.w, b.h, 8); ctx.fill(); Mix.ink(ctx);
+    }
+    ctx.fillStyle = block.c;
+    Mix.box(ctx, block.x - block.w / 2, block.y, block.w, block.h, 8); ctx.fill(); Mix.ink(ctx);
+    ctx.fillStyle = "rgba(255,255,255,.45)";
+    ctx.fillRect(block.x - block.w / 2 + 8, block.y + 6, block.w * 0.25, 6);
+  }
+
+  layout(true);
+  if (W > 2) { reset(); draw(); }
+  addEventListener("resize", function () { layout(true); if (W > 2) draw(); });
+})();
+  </script>
+</body>
+</html>

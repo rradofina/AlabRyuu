@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Sock Flip</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <script src="../kid-keys.js"></script>
+  <script src="../mix.js"></script>
+  <style>
+    html, body { background: #e0e7ff; }
+    .home { z-index: 60; }
+    .dock button { font-size: 22px; }
+    .dock button i { display: block; width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 4px; border: 3px solid #1e1b4b; background: var(--c, #fff); }
+    .hero svg { width: 96px; height: 96px; display: block; }
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fl">0 / 3</b></div>
+  <div id="say">Flip two socks that match</div>
+  
+  <div class="cover" id="title">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><path d="M28 16 h18 v36 l16 10 v12 H28 Z" fill="#fb7185" stroke="#1e1b4b" stroke-width="4"/><path d="M52 16 h16 v32 l-8 6 V16 Z" fill="#38bdf8" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>Sock Flip</h1>
+    <p>Find all three pairs.</p>
+    <button class="play" id="go" autofocus>Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><path d="M28 16 h18 v36 l16 10 v12 H28 Z" fill="#fb7185" stroke="#1e1b4b" stroke-width="4"/><path d="M52 16 h16 v32 l-8 6 V16 Z" fill="#38bdf8" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>All pairs found!</h1>
+    <p>Every sock has a friend.</p>
+    <button class="play g" id="again">Play again</button>
+  </div>
+  <script>
+(function () {
+  var cv = document.getElementById("c");
+  var ui = Mix.boot(cv);
+  var ctx, W = 0, H = 0, raf = 0;
+  function layout(force) {
+    var r = cv.getBoundingClientRect();
+    var rw = Math.round(r.width || 0), rh = Math.round(r.height || 0);
+    if (!force && ctx && Math.round(W) === rw && Math.round(H) === rh && rw > 0) return;
+    var f = ui.fit();
+    ctx = f.ctx; W = f.W; H = f.H;
+  }
+  function loop() { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+  function frame() {
+    if (!ui.on()) return;
+    layout(false);
+    if (W < 2 || H < 2) { raf = requestAnimationFrame(frame); return; }
+    if (step() === "stop") return;
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+  function begin() { layout(true); reset(); loop(); }
+  function hud(t) {
+    var el = document.getElementById("fl");
+    if (el) el.textContent = t;
+    var m = String(t).match(/\d+/);
+    if (m) cv.dataset.score = m[0];
+  }
+  function sky(a, b) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, a); g.addColorStop(1, b);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  ui.begin(begin);
+  ui.replay(begin);
+  
+  var deck, open, busy, pairs, token;
+  token = 0;
+  function shuffle() {
+    var d = [0, 0, 1, 1, 2, 2], i, j, t;
+    for (i = 5; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      t = d[i]; d[i] = d[j]; d[j] = t;
+    }
+    return d.map(function (p) { return { p: p, up: false, done: false }; });
+  }
+  function cells() {
+    var cols = 3, cw = Math.min(150, (W - 28) / cols), ch = Math.min(168, (H - 220) / 2);
+    var ox = (W - cw * cols) / 2, oy = 118, list = [], i;
+    for (i = 0; i < 6; i++) {
+      list.push({ x: ox + (i % cols) * cw, y: oy + Math.floor(i / cols) * ch, w: cw - 12, h: ch - 12, i: i });
+    }
+    return list;
+  }
+  function reset() { token++; deck = shuffle(); open = []; busy = false; pairs = 0; hud("0 / 3"); }
+  function tap(i) {
+    if (!ui.on() || busy) return;
+    var c = deck[i];
+    if (!c || c.done || c.up) return;
+    c.up = true;
+    open.push(c);
+    kidNote(420 + c.p * 70);
+    if (open.length < 2) return;
+    var a = open[0], b = open[1];
+    open = [];
+    if (a.p === b.p) {
+      a.done = b.done = true;
+      pairs++;
+      hud(pairs + " / 3");
+      kidPing("A pair");
+      if (pairs >= 3) { draw(); ui.finish(); }
+    } else {
+      busy = true;
+      var my = token;
+      setTimeout(function () {
+        if (my !== token) return;
+        a.up = false; b.up = false; busy = false;
+        if (ui.on()) kidPing("Look again");
+      }, 650);
+    }
+  }
+  cv.addEventListener("pointerdown", function (e) {
+    var p = kidPt(e, cv), list = cells(), i, box;
+    for (i = 0; i < list.length; i++) {
+      box = list[i];
+      if (p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h) { tap(i); return; }
+    }
+  });
+  function step() {
+    var list = cells();
+    cv.dataset.pat = deck.map(function (c) { return c.p; }).join(",");
+    cv.dataset.boxes = list.map(function (b) { return Math.round(b.x + b.w / 2) + "," + Math.round(b.y + b.h / 2); }).join(";");
+  }
+  function sock(box, card) {
+    ctx.fillStyle = card.up || card.done ? "#fff" : "#6366f1";
+    Mix.box(ctx, box.x, box.y, box.w, box.h, 16); ctx.fill(); Mix.ink(ctx);
+    if (!card.up && !card.done) {
+      ctx.fillStyle = "#c7d2fe";
+      ctx.beginPath(); ctx.arc(box.x + box.w / 2, box.y + box.h / 2, 12, 0, Math.PI * 2); ctx.fill();
+      return;
+    }
+    var cols = ["#fb7185", "#38bdf8", "#fbbf24"];
+    var sx = box.x + box.w / 2 - 16, sy = box.y + 28;
+    ctx.fillStyle = cols[card.p];
+    Mix.box(ctx, sx, sy, 28, 46, 10); ctx.fill(); Mix.ink(ctx);
+    Mix.box(ctx, sx, sy + 34, 46, 20, 8); ctx.fillStyle = cols[card.p]; ctx.fill(); Mix.ink(ctx);
+    ctx.fillStyle = "rgba(255,255,255,.7)";
+    if (card.p === 0) { ctx.fillRect(sx + 4, sy + 10, 20, 5); ctx.fillRect(sx + 4, sy + 22, 20, 5); }
+    if (card.p === 1) {
+      ctx.beginPath(); ctx.arc(sx + 10, sy + 16, 4, 0, 7); ctx.arc(sx + 20, sy + 28, 4, 0, 7); ctx.fill();
+    }
+    if (card.p === 2) {
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(sx + 4, sy + 16); ctx.quadraticCurveTo(sx + 14, sy + 6, sx + 24, sy + 16); ctx.stroke();
+    }
+  }
+  function draw() {
+    sky("#eef2ff", "#fce7f3");
+    var list = cells(), i;
+    for (i = 0; i < list.length; i++) sock(list[i], deck[i]);
+  }
+
+  layout(true);
+  if (W > 2) { reset(); draw(); }
+  addEventListener("resize", function () { layout(true); if (W > 2) draw(); });
+})();
+  </script>
+</body>
+</html>

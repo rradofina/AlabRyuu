@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Splat Paint</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <script src="../kid-keys.js"></script>
+  <script src="../mix.js"></script>
+  <style>
+    html, body { background: #fef3c7; }
+    .home { z-index: 60; }
+    .dock button { font-size: 22px; }
+    .dock button i { display: block; width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 4px; border: 3px solid #1e1b4b; background: var(--c, #fff); }
+    .hero svg { width: 96px; height: 96px; display: block; }
+  </style>
+</head>
+<body>
+  <a class="home" href="../index.html">Home</a>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fl">0</b></div>
+  <div id="say">Drag a color across the page</div>
+  <div class="dock" id="dock">
+    <button id="stomp"><i style="--c:#e2e8f0"></i>Clear</button><button id="hop"><i style="--c:#86efac"></i>Done</button>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><circle cx="34" cy="40" r="16" fill="#ef4444" stroke="#1e1b4b" stroke-width="4"/><circle cx="58" cy="36" r="14" fill="#3b82f6" stroke="#1e1b4b" stroke-width="4"/><circle cx="50" cy="58" r="16" fill="#eab308" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>Splat Paint</h1>
+    <p>Make a picture. Clear starts over.</p>
+    <button class="play" id="go" autofocus>Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <div class="hero"><svg viewBox="0 0 92 92" aria-hidden="true"><circle cx="34" cy="40" r="16" fill="#ef4444" stroke="#1e1b4b" stroke-width="4"/><circle cx="58" cy="36" r="14" fill="#3b82f6" stroke="#1e1b4b" stroke-width="4"/><circle cx="50" cy="58" r="16" fill="#eab308" stroke="#1e1b4b" stroke-width="4"/></svg></div>
+    <h1>What a picture!</h1>
+    <p>Your colors are on the page.</p>
+    <button class="play g" id="again">Play again</button>
+  </div>
+  <script>
+(function () {
+  var cv = document.getElementById("c");
+  var ui = Mix.boot(cv);
+  var ctx, W = 0, H = 0, raf = 0;
+  function layout(force) {
+    var r = cv.getBoundingClientRect();
+    var rw = Math.round(r.width || 0), rh = Math.round(r.height || 0);
+    if (!force && ctx && Math.round(W) === rw && Math.round(H) === rh && rw > 0) return;
+    var f = ui.fit();
+    ctx = f.ctx; W = f.W; H = f.H;
+  }
+  function loop() { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+  function frame() {
+    if (!ui.on()) return;
+    layout(false);
+    if (W < 2 || H < 2) { raf = requestAnimationFrame(frame); return; }
+    if (step() === "stop") return;
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+  function begin() { layout(true); reset(); loop(); }
+  function hud(t) {
+    var el = document.getElementById("fl");
+    if (el) el.textContent = t;
+    var m = String(t).match(/\d+/);
+    if (m) cv.dataset.score = m[0];
+  }
+  function sky(a, b) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, a); g.addColorStop(1, b);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  ui.begin(begin);
+  ui.replay(begin);
+  
+  var pots, color, strokes, cur, count, goal;
+  pots = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
+  function potAt(i) {
+    return { x: (W / 5) * (i + 1), y: H - 200, r: 34 };
+  }
+  function reset() {
+    color = pots[0]; strokes = []; cur = null; count = 0;
+    goal = Mix.alonzo() ? 4 : 8;
+    hud("0");
+    cv.dataset.goal = String(goal);
+  }
+  function hitPot(p) {
+    var i, pot;
+    for (i = 0; i < pots.length; i++) {
+      pot = potAt(i);
+      var dx = p.x - pot.x, dy = p.y - pot.y;
+      if (dx * dx + dy * dy < pot.r * pot.r + 80) return i;
+    }
+    return -1;
+  }
+  cv.addEventListener("pointerdown", function (e) {
+    if (!ui.on()) return;
+    var p = kidPt(e, cv);
+    var hit = hitPot(p);
+    if (hit >= 0) { color = pots[hit]; kidNote(480 + hit * 40); return; }
+    cur = { c: color, pts: [p] };
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  cv.addEventListener("pointermove", function (e) {
+    if (!cur || !ui.on()) return;
+    var p = kidPt(e, cv);
+    var last = cur.pts[cur.pts.length - 1];
+    if ((p.x - last.x) * (p.x - last.x) + (p.y - last.y) * (p.y - last.y) > 16) cur.pts.push(p);
+  });
+  function endStroke() {
+    if (!cur) return;
+    if (cur.pts.length > 2) {
+      strokes.push(cur);
+      count++;
+      hud(String(count));
+      if (count >= goal) { cur = null; draw(); ui.finish(); return; }
+    }
+    cur = null;
+  }
+  cv.addEventListener("pointerup", endStroke);
+  cv.addEventListener("pointercancel", endStroke);
+  document.getElementById("stomp").addEventListener("click", function () {
+    if (!ui.on()) return;
+    strokes = []; cur = null; count = 0; hud("0"); kidPing("Clean page");
+  });
+  document.getElementById("hop").addEventListener("click", function () {
+    if (!ui.on()) return;
+    if (count < goal) { kidPing("Paint a little more"); kidNote(220); return; }
+    draw(); ui.finish();
+  });
+  function step() {
+    cv.dataset.strokes = String(count);
+    cv.dataset.goal = String(goal);
+  }
+  function strokePath(s) {
+    ctx.strokeStyle = s.c; ctx.lineWidth = 18; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(s.pts[0].x, s.pts[0].y);
+    var i; for (i = 1; i < s.pts.length; i++) ctx.lineTo(s.pts[i].x, s.pts[i].y);
+    ctx.stroke();
+  }
+  function draw() {
+    sky("#fef9c3", "#fde68a");
+    ctx.fillStyle = "#fff";
+    Mix.box(ctx, 16, 100, W - 32, H - 320, 18); ctx.fill(); Mix.ink(ctx);
+    var i;
+    for (i = 0; i < strokes.length; i++) strokePath(strokes[i]);
+    if (cur && cur.pts.length) strokePath(cur);
+    for (i = 0; i < pots.length; i++) {
+      var pot = potAt(i);
+      ctx.fillStyle = pots[i];
+      ctx.beginPath(); ctx.arc(pot.x, pot.y, pot.r, 0, Math.PI * 2); ctx.fill(); Mix.ink(ctx);
+      if (pots[i] === color) {
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(pot.x, pot.y, pot.r + 6, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+  }
+
+  layout(true);
+  if (W > 2) { reset(); draw(); }
+  addEventListener("resize", function () { layout(true); if (W > 2) draw(); });
+})();
+  </script>
+</body>
+</html>
