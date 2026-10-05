@@ -141,6 +141,7 @@
   function step() {
     var list = cells();
     cv.dataset.pat = deck.map(function (c) { return c.p; }).join(",");
+    cv.dataset.done = deck.map(function (c) { return c.done ? "1" : "0"; }).join(",");
     cv.dataset.boxes = list.map(function (b) { return Math.round(b.x + b.w / 2) + "," + Math.round(b.y + b.h / 2); }).join(";");
   }
   function sock(box, card) {

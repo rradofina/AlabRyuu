@@ -91,7 +91,7 @@
   var pots, color, strokes, cur, count, goal;
   pots = ["#ef4444", "#3b82f6", "#eab308", "#22c55e"];
   function potAt(i) {
-    return { x: (W / 5) * (i + 1), y: H - 200, r: 34 };
+    return { x: (W / 5) * (i + 1), y: H - 200, r: 40 };
   }
   function reset() {
     color = pots[0]; strokes = []; cur = null; count = 0;
@@ -104,7 +104,7 @@
     for (i = 0; i < pots.length; i++) {
       pot = potAt(i);
       var dx = p.x - pot.x, dy = p.y - pot.y;
-      if (dx * dx + dy * dy < pot.r * pot.r + 80) return i;
+      if (dx * dx + dy * dy < (pot.r + 18) * (pot.r + 18)) return i;
     }
     return -1;
   }
