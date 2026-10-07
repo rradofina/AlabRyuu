@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Book Cover Maker</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>
+    @font-face { font-family: Fraunces; font-style: normal; font-weight: 600; font-display: swap; src: url("../assets/fonts/fraunces-600.woff2") format("woff2"); }
+    @font-face { font-family: Fraunces; font-style: normal; font-weight: 700; font-display: swap; src: url("../assets/fonts/fraunces-700.woff2") format("woff2"); }
+    @font-face { font-family: Fredoka; font-style: normal; font-weight: 600; font-display: swap; src: url("../assets/fonts/fredoka-600.woff2") format("woff2"); }
+    @font-face { font-family: Nunito; font-style: normal; font-weight: 600; font-display: swap; src: url("../assets/fonts/nunito-600.woff2") format("woff2"); }
+    @font-face { font-family: Nunito; font-style: normal; font-weight: 700; font-display: swap; src: url("../assets/fonts/nunito-700.woff2") format("woff2"); }
+    @font-face { font-family: Literata; font-style: normal; font-weight: 500; font-display: swap; src: url("../assets/fonts/literata-500.woff2") format("woff2"); }
+
+    html, body.studio {
+      height: 100dvh !important;
+      max-height: 100dvh !important;
+      overflow: hidden !important;
+      background: #efe8dc;
+      color: #1c1917;
+      font-family: Nunito, "Trebuchet MS", sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    body.studio { display: flex; flex-direction: column; }
+    button, input, textarea { font-family: inherit; }
+    input, textarea { user-select: text; touch-action: manipulation; }
+    canvas.ink {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-height: none !important;
+      display: block;
+      touch-action: none;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .studio button { transition: transform .16s ease, background .16s ease, box-shadow .16s ease, color .16s ease; }
+    .studio button:active { transform: translateY(1px) scale(.98); }
+    @media (hover: hover) {
+      .bar .btn:hover, .tabs button:hover, .choice:hover, .tmpl:hover, .pubpick:hover { transform: translateY(-1px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .studio button { transition: none; }
+    }
+
+    .bar {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 68px;
+      padding: 8px 12px;
+      background: rgba(255, 253, 248, .94);
+      border-bottom: 1px solid #e6dccb;
+      z-index: 3;
+    }
+    .homebtn, .btn, .views button {
+      min-height: 48px;
+      border-radius: 12px;
+      background: #f4efe6;
+      color: #1c1917;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 0 12px;
+    }
+    .homebtn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; min-width: 48px; }
+    .brand { min-width: 0; display: flex; flex-direction: column; line-height: 1.05; margin-right: 4px; }
+    .brand b { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 18px; letter-spacing: -0.02em; white-space: nowrap; }
+    .brand span { font-size: 12px; color: #78716c; font-weight: 700; }
+    .views { display: flex; gap: 2px; background: #f4efe6; padding: 4px; border-radius: 14px; }
+    .views button { background: transparent; min-width: 64px; }
+    .views button.on { background: #fffdf8; box-shadow: 0 1px 2px rgba(28,25,23,.08), 0 6px 16px rgba(28,25,23,.06); }
+    .actions { display: flex; gap: 8px; margin-left: auto; }
+    .btn.primary { background: #1c1917; color: #f8f1de; }
+    .btn.on { background: #1c1917; color: #f8f1de; }
+
+    .workspace { flex: 1; min-height: 0; display: flex; }
+    .stage {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(900px 420px at 50% 0%, rgba(255,255,255,.7), transparent 60%),
+        #efe8dc;
+    }
+    #scaler { position: absolute; left: 50%; top: 50%; transform-origin: center center; }
+    .floor {
+      position: absolute; left: 6%; right: 6%; bottom: 0; height: 26px;
+      background: radial-gradient(ellipse at center, rgba(40,28,12,.32), transparent 70%);
+      pointer-events: none;
+    }
+    .book {
+      position: absolute; left: 0; top: 0; right: 0; bottom: 18px;
+      filter: drop-shadow(0 12px 14px rgba(40,28,12,.24)) drop-shadow(0 2px 2px rgba(40,28,12,.18));
+    }
+    .spread { display: grid; width: 100%; height: 100%; }
+    .book[data-view="front"] .spread { grid-template-columns: 36px 460px; }
+    .book[data-view="back"] .spread { grid-template-columns: 460px 36px; }
+    .book[data-view="spine"] .spread { grid-template-columns: 168px; }
+    .book[data-view="wrap"] .spread { grid-template-columns: 460px 86px 460px; }
+    .book[data-view="front"] .back, .book[data-view="spine"] .back, .book[data-view="spine"] .front, .book[data-view="back"] .front { display: none; }
+    .plate { position: relative; overflow: hidden; min-width: 0; background: var(--c1); }
+    .book[data-view="front"] .spine, .book[data-view="wrap"] .spine, .book[data-view="back"] .back, .book[data-view="spine"] .spine { border-radius: 12px 0 0 12px; }
+    .book[data-view="front"] .front, .book[data-view="wrap"] .front, .book[data-view="back"] .spine { border-radius: 0 14px 14px 0; }
+    .book[data-view="spine"] .spine { border-radius: 14px; }
+    .book[data-view="back"] .back { border-radius: 14px 0 0 14px; }
+    .book[data-view="back"] .spine { border-radius: 0 12px 12px 0; }
+    .cloth, .pattern, .curve, .gloss, .pages { position: absolute; inset: 0; pointer-events: none; }
+    .cloth {
+      background-image:
+        radial-gradient(rgba(255,255,255,.55) .6px, transparent .7px),
+        linear-gradient(165deg, rgba(255,255,255,.28), transparent 42%, rgba(0,0,0,.2));
+      background-size: 5px 5px, 100% 100%;
+      mix-blend-mode: soft-light;
+    }
+    .curve {
+      background: linear-gradient(90deg, rgba(0,0,0,.5) 0%, rgba(255,255,255,.28) 18%, rgba(0,0,0,.05) 48%, rgba(255,255,255,.16) 78%, rgba(0,0,0,.55) 100%);
+    }
+    .gloss {
+      background: linear-gradient(115deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,0) 24%, rgba(255,255,255,0) 62%, rgba(255,255,255,.2) 100%);
+      mix-blend-mode: soft-light;
+      z-index: 7;
+    }
+    .pattern { z-index: 1; opacity: .9; }
+    .pattern.dots { background-image: radial-gradient(rgba(255,255,255,.55) 1.15px, transparent 1.35px); background-size: 14px 14px; }
+    .pattern.stripes { background-image: repeating-linear-gradient(90deg, transparent 0 12px, rgba(255,255,255,.28) 12px 14px); }
+    .pattern.diamonds {
+      background-image:
+        linear-gradient(45deg, rgba(255,255,255,.2) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,.2) 25%, transparent 25%);
+      background-size: 18px 18px;
+      background-position: 0 0, 9px 0;
+    }
+    .pattern.stars { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72'><circle cx='12' cy='16' r='1.3' fill='white' fill-opacity='.75'/><circle cx='40' cy='12' r='1' fill='white' fill-opacity='.5'/><circle cx='58' cy='30' r='1.4' fill='white' fill-opacity='.7'/><circle cx='22' cy='48' r='1' fill='white' fill-opacity='.45'/><circle cx='50' cy='56' r='1.2' fill='white' fill-opacity='.65'/></svg>"); background-size: 72px 72px; }
+    .pattern.waves { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='88' height='28'><path d='M0 16 Q11 4 22 16 T44 16 T66 16 T88 16' fill='none' stroke='white' stroke-opacity='.4' stroke-width='2'/></svg>"); background-size: 88px 28px; }
+    .spine:before, .spine:after {
+      content: ""; position: absolute; left: 18%; right: 18%; height: 2px;
+      background: rgba(246,231,180,.85); z-index: 3; pointer-events: none;
+    }
+    .spine:before { top: 7%; }
+    .spine:after { bottom: 7%; }
+    .book[data-view="front"] .spine-copy, .book[data-view="back"] .spine-copy { display: none; }
+    .spine-copy {
+      position: absolute; inset: 10% 0; z-index: 4;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      color: var(--tc);
+    }
+    .spine-title, .spine-author {
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      font-family: var(--cover-font);
+      max-height: 62%; overflow: hidden; text-align: center;
+    }
+    .spine-title { font-size: 20px; font-weight: 700; letter-spacing: .02em; }
+    .spine-author { font-size: 13px; font-weight: 600; opacity: .85; font-family: Nunito, sans-serif; }
+    .book[data-view="spine"] .spine-title { font-size: 32px; }
+    .book[data-view="spine"] .spine-author { font-size: 16px; }
+    .pages {
+      inset: auto 0 10px auto; width: 8px; top: 10px; height: auto; z-index: 7;
+      background: repeating-linear-gradient(#fffaf3, #fffaf3 2px, #ddd4c4 3px);
+    }
+    .stickers { position: absolute; inset: 0; z-index: 3; }
+    .sticker { position: absolute; width: 32%; touch-action: none; }
+    .sticker img { width: 100%; height: auto; display: block; pointer-events: none; }
+    .sticker.on { outline: 2px solid rgba(255,253,248,.95); outline-offset: 3px; }
+    .handle {
+      position: absolute; width: 28px; height: 28px; padding: 0; border-radius: 50%;
+      background: #fffdf8; color: #1c1917; border: 1px solid #d6d3d1;
+      box-shadow: 0 4px 10px rgba(28,25,23,.16);
+      display: none; align-items: center; justify-content: center;
+    }
+    .sticker.on .handle { display: flex; }
+    .handle svg { width: 14px; height: 14px; }
+    .handle.del { top: -6px; right: -6px; }
+    .handle.rot { top: -6px; left: 50%; margin-left: -14px; }
+    .handle.grow { right: -6px; bottom: -6px; }
+    .front.drawing .ink { pointer-events: auto; z-index: 5; }
+    .front.drawing .sticker { pointer-events: none; }
+    .lockup {
+      position: absolute; left: 0; right: 8px; bottom: 0; z-index: 6;
+      padding: 22% 8% 7%; text-align: center; color: var(--tc); pointer-events: none;
+    }
+    .lockup.dark { background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)); }
+    .lockup.light { background: linear-gradient(to top, rgba(255,250,240,.94), rgba(255,250,240,0)); }
+    .kicker {
+      font-family: Nunito, sans-serif; font-size: 12px; font-weight: 700;
+      letter-spacing: .22em; text-transform: uppercase; opacity: .82;
+    }
+    .lockup h2 {
+      font-family: var(--cover-font); font-weight: 700; line-height: .96;
+      letter-spacing: -0.03em; text-wrap: balance; overflow-wrap: anywhere;
+      text-shadow: 0 2px 0 rgba(0,0,0,.18);
+    }
+    .lockup.light h2 { text-shadow: none; }
+    .size-s h2 { font-size: 34px; }
+    .size-m h2 { font-size: 46px; }
+    .size-l h2 { font-size: 58px; }
+    .rule { width: 42px; height: 2px; margin: 8px auto; background: currentColor; opacity: .75; }
+    .by { font-family: Nunito, sans-serif; font-size: 16px; font-weight: 700; }
+    .pics { font-family: Nunito, sans-serif; font-size: 12px; font-weight: 700; opacity: .85; margin-top: 4px; }
+    .font-story { --cover-font: Fraunces, Georgia, serif; }
+    .font-play { --cover-font: Fredoka, "Trebuchet MS", sans-serif; }
+    .font-clean { --cover-font: Nunito, "Trebuchet MS", sans-serif; }
+    .back-copy {
+      position: absolute; left: 8%; right: 8%; top: 9%; z-index: 4; color: var(--tc); text-align: left;
+    }
+    .back-copy .kicker { margin-bottom: 10px; }
+    .blurb-out { font-family: Literata, Georgia, serif; font-size: 18px; line-height: 1.4; font-weight: 500; }
+    .credit { margin-top: 12px; font-size: 13px; font-weight: 700; opacity: .85; }
+    .pub {
+      position: absolute; left: 7%; bottom: 8%; z-index: 4; color: var(--tc);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pub .mark { width: 28px; height: 28px; display: block; }
+    .pub .mark svg { width: 28px; height: 28px; display: block; }
+    .pub .word { font-family: Fraunces, Georgia, serif; font-size: 16px; font-weight: 600; }
+    .barcode {
+      position: absolute; right: 6%; bottom: 7%; width: 38%; min-height: 16%;
+      background: #fff; color: #111; border-radius: 3px; z-index: 4;
+      display: flex; flex-wrap: wrap; align-items: flex-end; align-content: flex-end;
+      gap: 1px; padding: 8px 8px 4px;
+    }
+    .barcode i { display: block; background: #111; height: 46px; }
+    .barcode b {
+      flex: 0 0 100%; text-align: center; font-family: Nunito, sans-serif;
+      font-size: 10px; letter-spacing: .14em; font-weight: 700; padding-top: 3px;
+    }
+    .hots { position: absolute; inset: 0; z-index: 8; }
+    .hot { position: absolute; background: transparent; display: none; pointer-events: none; }
+    .book.hit .hot { pointer-events: auto; }
+    .book[data-view="wrap"] .spine { border-radius: 0; }
+    .book[data-view="front"] .hot.spine { display: block; left: 0; top: 0; width: 7.3%; height: 100%; }
+    .book[data-view="front"] .hot.front { display: block; left: 7.3%; top: 0; width: 92.7%; height: 100%; }
+    .book[data-view="front"] .hot.picture { display: block; left: 14%; top: 5%; width: 76%; height: 46%; }
+    .book[data-view="front"] .hot.title { display: block; left: 16%; bottom: 20%; width: 70%; height: 14%; }
+    .book[data-view="front"] .hot.author { display: block; left: 22%; bottom: 12%; width: 58%; height: 8%; }
+    .book[data-view="front"] .hot.illustrator { display: block; left: 22%; bottom: 5%; width: 58%; height: 7%; }
+    .book[data-view="spine"] .hot.spine { display: block; inset: 8% 10%; }
+    .book[data-view="back"] .hot.back { display: block; left: 0; top: 0; width: 92.7%; height: 100%; }
+    .book[data-view="back"] .hot.spine { display: block; right: 0; top: 0; width: 7.3%; height: 100%; }
+    .book[data-view="back"] .hot.blurb { display: block; left: 8%; top: 12%; width: 76%; height: 40%; }
+    .book[data-view="back"] .hot.publisher { display: block; left: 6%; bottom: 6%; width: 42%; height: 16%; }
+    .book[data-view="back"] .hot.barcode { display: block; right: 5%; bottom: 6%; width: 40%; height: 18%; }
+    .book[data-view="wrap"] .hot.back { display: block; left: 0; top: 0; width: 45.7%; height: 100%; }
+    .book[data-view="wrap"] .hot.spine { display: block; left: 45.7%; top: 0; width: 8.6%; height: 100%; }
+    .book[data-view="wrap"] .hot.front { display: block; left: 54.3%; top: 0; width: 45.7%; height: 100%; }
+    .book[data-view="wrap"] .hot.picture { display: block; left: 58%; top: 6%; width: 38%; height: 40%; }
+    .book[data-view="wrap"] .hot.title { display: block; left: 58%; bottom: 18%; width: 38%; height: 13%; }
+    .book[data-view="wrap"] .hot.author { display: block; left: 60%; bottom: 11%; width: 34%; height: 7%; }
+    .book[data-view="wrap"] .hot.illustrator { display: block; left: 60%; bottom: 5%; width: 34%; height: 6%; }
+    .book[data-view="wrap"] .hot.blurb { display: block; left: 4%; top: 10%; width: 38%; height: 36%; }
+    .book[data-view="wrap"] .hot.publisher { display: block; left: 3%; bottom: 5%; width: 18%; height: 16%; }
+    .book[data-view="wrap"] .hot.barcode { display: block; left: 24%; bottom: 5%; width: 18%; height: 18%; }
+    .book.show-parts .hot { box-shadow: inset 0 0 0 1.5px rgba(255,253,248,.8); }
+
+    .callouts, .leaders { position: absolute; inset: 0; pointer-events: none; }
+    .leaders { z-index: 3; }
+    .callouts { z-index: 4; }
+    .callout {
+      position: absolute; pointer-events: auto; min-height: 32px; padding: 4px 10px;
+      border-radius: 999px; background: #fffdf8; color: #1c1917;
+      border: 1px solid #e6dccb; box-shadow: 0 8px 18px rgba(28,25,23,.12);
+      font-size: 13px; font-weight: 800; white-space: nowrap;
+    }
+    .explain {
+      position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+      width: min(460px, calc(100% - 24px)); background: #fffdf8; color: #1c1917;
+      border: 1px solid #e6dccb; border-radius: 16px; z-index: 6;
+      box-shadow: 0 16px 40px rgba(28,25,23,.16);
+      display: flex; gap: 8px; align-items: center; padding: 12px;
+    }
+    .explain[hidden] { display: none !important; }
+    .explain p { flex: 1; font-size: 18px; line-height: 1.3; font-weight: 800; }
+    .explain button, .quiz-tools button {
+      min-height: 48px; border-radius: 12px; background: #1c1917; color: #f8f1de;
+      font-weight: 800; padding: 0 12px;
+    }
+    .toast {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      background: #1c1917; color: #f8f1de; border-radius: 999px;
+      padding: 10px 16px; font-weight: 800; z-index: 7;
+    }
+    .toast[hidden] { display: none !important; }
+
+    .panel {
+      width: 392px; flex: none; min-height: 0; display: flex; flex-direction: column;
+      background: #fffdf8; border-left: 1px solid #e6dccb;
+      box-shadow: -10px 0 30px rgba(28,25,23,.04);
+    }
+    .tabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 8px; border-bottom: 1px solid #f0e7d8; }
+    .tabs button {
+      min-height: 62px; border-radius: 12px; color: #57534e; background: transparent;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      font-size: 11px; font-weight: 800;
+    }
+    .tabs button svg { width: 22px; height: 22px; }
+    .tabs button.on { background: #1c1917; color: #f8f1de; }
+    .pane { flex: 1; min-height: 0; overflow: auto; padding: 12px 14px 18px; touch-action: pan-y; }
+    .sheet[hidden] { display: none !important; }
+    .lbl { display: block; font-size: 15px; font-weight: 800; margin: 10px 0 6px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    input[type="text"], textarea {
+      width: 100%; border: 1px solid #e6dccb; background: #fff; color: #1c1917;
+      border-radius: 12px; padding: 12px 14px; font-size: 18px; font-weight: 700; min-height: 52px;
+    }
+    textarea { min-height: 96px; resize: none; font-family: Literata, Georgia, serif; font-weight: 500; line-height: 1.35; }
+    .choice, .tmpl, .pubpick, .tool {
+      min-height: 56px; border-radius: 14px; background: #f7f3eb; border: 1px solid #e6dccb;
+      font-weight: 800; color: #1c1917; padding: 8px 10px;
+    }
+    .choice { min-width: 72px; flex: 1; }
+    .choice.on, .tmpl.on, .pubpick.on, .tool.on { background: #1c1917; color: #f8f1de; border-color: #1c1917; }
+    .choice b { display: block; font-size: 22px; font-weight: 700; line-height: 1; }
+    .choice.story b { font-family: Fraunces, Georgia, serif; }
+    .choice.play b { font-family: Fredoka, "Trebuchet MS", sans-serif; }
+    .choice.clean b { font-family: Nunito, sans-serif; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+    .swatch {
+      width: 48px; height: 48px; min-width: 48px; min-height: 48px; border-radius: 50%;
+      border: 2px solid #fff; box-shadow: 0 0 0 1px #e6dccb; padding: 0;
+    }
+    .swatch.on { box-shadow: 0 0 0 2px #1c1917; }
+    .tmpls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .tmpl { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; font-size: 13px; }
+    .tmpl i { display: block; width: 100%; height: 36px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+    .pics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .pics-grid button {
+      min-height: 76px; border-radius: 14px; background: #f7f3eb; border: 1px solid #e6dccb;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      font-size: 12px; font-weight: 800; color: #1c1917;
+    }
+    .pics-grid img { width: 40px; height: 40px; }
+    .hint { font-size: 14px; color: #57534e; font-weight: 700; margin-bottom: 8px; line-height: 1.35; }
+    .part-list { display: flex; flex-direction: column; gap: 8px; }
+    .part-list button {
+      text-align: left; background: #f7f3eb; border: 1px solid #e6dccb; border-radius: 14px;
+      padding: 10px 12px; min-height: 56px; color: #1c1917;
+    }
+    .part-list b { display: block; font-size: 16px; }
+    .part-list span { display: block; font-size: 14px; color: #44403c; font-weight: 700; }
+    .ask { font-family: Fraunces, Georgia, serif; font-size: 28px; line-height: 1.1; font-weight: 600; margin: 4px 0 8px; }
+    .stars { display: flex; gap: 4px; margin: 6px 0 10px; }
+    .stars i {
+      width: 16px; height: 16px; background: #e7e0d4; display: block;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    }
+    .stars i.on { background: #eab308; }
+    .feedback { font-size: 18px; font-weight: 800; line-height: 1.3; min-height: 48px; }
+    .feedback.yes { color: #166534; }
+    .feedback.look { color: #9a3412; }
+    .quiz-tools { display: flex; gap: 8px; margin-top: 8px; }
+
+    @media (max-width: 860px) {
+      .brand span { display: none; }
+      .bar { flex-wrap: wrap; min-height: 0; padding: 6px 8px; gap: 6px; }
+      .homebtn { order: 0; }
+      .brand { order: 1; flex: 1; }
+      .savebtn { order: 2; }
+      .views { order: 3; flex: 1 1 100%; }
+      .views button { flex: 1; min-width: 0; padding: 0 4px; }
+      .actions { order: 4; flex: 1 1 100%; margin-left: 0; }
+      .actions .btn { flex: 1; padding: 0 6px; }
+      .workspace { flex-direction: column; }
+      .panel { width: 100%; height: 46%; border-left: 0; border-top: 1px solid #e6dccb; }
+      .tabs button { min-height: 56px; font-size: 10px; }
+      .ask { font-size: 24px; }
+    }
+  </style>
+</head>
+<body class="studio font-story">
+  <header class="bar">
+    <a class="homebtn" id="home" href="../index.html">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M14 6 L8 12 L14 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </a>
+    <div class="brand"><b>Book Cover Maker</b><span>Design a real cover</span></div>
+    <div class="views" role="tablist" aria-label="Book view">
+      <button type="button" data-view="front" class="on">Front</button>
+      <button type="button" data-view="spine">Spine</button>
+      <button type="button" data-view="back">Back</button>
+      <button type="button" data-view="wrap">Wrap</button>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn" id="parts-btn" aria-pressed="false">Parts</button>
+      <button type="button" class="btn" id="surprise">Surprise me</button>
+      <button type="button" class="btn" id="restart">Start over</button>
+      <button type="button" class="btn primary savebtn" id="savepng">Save PNG</button>
+    </div>
+  </header>
+  <div class="workspace">
+    <main class="stage" id="stage">
+      <div id="scaler">
+        <div class="floor"></div>
+        <div class="book font-story" id="book" data-view="front">
+          <div class="spread">
+            <section class="plate back" id="back-plate">
+              <div class="cloth"></div>
+              <div class="pattern" id="back-pattern"></div>
+              <div class="back-copy">
+                <div class="kicker">About this book</div>
+                <p class="blurb-out" id="blurb-out"></p>
+                <p class="credit" id="credit-out"></p>
+              </div>
+              <div class="pub"><span class="mark" id="pub-mark"></span><span class="word" id="pub-name"></span></div>
+              <div class="barcode" id="barcode"></div>
+              <div class="gloss"></div>
+            </section>
+            <section class="plate spine" id="spine-plate">
+              <div class="cloth"></div>
+              <div class="curve"></div>
+              <div class="spine-copy">
+                <p class="spine-title" id="spine-title"></p>
+                <p class="spine-author" id="spine-author"></p>
+              </div>
+              <div class="gloss"></div>
+            </section>
+            <section class="plate front" id="front-plate">
+              <div class="cloth"></div>
+              <div class="pattern" id="front-pattern"></div>
+              <canvas class="ink" id="ink"></canvas>
+              <div class="stickers" id="stickers"></div>
+              <div class="lockup size-m dark" id="lockup">
+                <div class="kicker" id="kicker-out"></div>
+                <h2 id="title-out"></h2>
+                <div class="rule"></div>
+                <p class="by" id="by-out"></p>
+                <p class="pics" id="pics-out"></p>
+              </div>
+              <div class="pages"></div>
+              <div class="gloss"></div>
+            </section>
+          </div>
+          <div class="hots" id="hots">
+            <button type="button" class="hot front" data-part="front" aria-label="Front Cover"></button>
+            <button type="button" class="hot back" data-part="back" aria-label="Back Cover"></button>
+            <button type="button" class="hot spine" data-part="spine" aria-label="Spine"></button>
+            <button type="button" class="hot picture" data-part="picture" aria-label="Cover Picture"></button>
+            <button type="button" class="hot blurb" data-part="blurb" aria-label="Blurb"></button>
+            <button type="button" class="hot title" data-part="title" aria-label="Title"></button>
+            <button type="button" class="hot author" data-part="author" aria-label="Author"></button>
+            <button type="button" class="hot illustrator" data-part="illustrator" aria-label="Illustrator"></button>
+            <button type="button" class="hot publisher" data-part="publisher" aria-label="Publisher"></button>
+            <button type="button" class="hot barcode" data-part="barcode" aria-label="Barcode"></button>
+          </div>
+        </div>
+      </div>
+      <svg class="leaders" id="leaders" aria-hidden="true"></svg>
+      <div class="callouts" id="callouts"></div>
+      <div class="explain" id="explain" hidden>
+        <p id="explain-text"></p>
+        <button type="button" id="speak">Hear it</button>
+        <button type="button" id="explain-x" aria-label="Close">Close</button>
+      </div>
+      <div class="toast" id="toast" hidden></div>
+    </main>
+    <aside class="panel">
+      <nav class="tabs" aria-label="Tools">
+        <button type="button" data-tab="text" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M12 6v12M8 18h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Text</button>
+        <button type="button" data-tab="pictures"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.4" fill="currentColor"/><path d="M5 16l4-3 3 2 3-4 4 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Pictures</button>
+        <button type="button" data-tab="colors"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.2" fill="currentColor"/><circle cx="13" cy="9" r="1.2" fill="currentColor"/><circle cx="14" cy="13" r="1.2" fill="currentColor"/></svg>Colors</button>
+        <button type="button" data-tab="draw"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l5 5-9 9H5v-5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Draw</button>
+        <button type="button" data-tab="parts"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Parts</button>
+        <button type="button" data-tab="quiz"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 10a2.5 2.5 0 1 1 3.2 2.4c-.7.3-1.2.8-1.2 1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.5" r=".9" fill="currentColor"/></svg>Quiz</button>
+      </nav>
+      <div class="pane">
+        <section class="sheet" data-sheet="text">
+          <label class="lbl" for="f-title">Title</label>
+          <input id="f-title" type="text" maxlength="32" autocomplete="off" />
+          <label class="lbl" for="f-author">Author</label>
+          <input id="f-author" type="text" maxlength="24" autocomplete="off" />
+          <label class="lbl" for="f-illus">Illustrator</label>
+          <input id="f-illus" type="text" maxlength="24" autocomplete="off" />
+          <label class="lbl" for="f-blurb">Blurb</label>
+          <textarea id="f-blurb" maxlength="140"></textarea>
+          <p class="lbl">Title style</p>
+          <div class="row" id="fonts">
+            <button type="button" class="choice story" data-font="story"><b>Aa</b>Story</button>
+            <button type="button" class="choice play" data-font="play"><b>Aa</b>Play</button>
+            <button type="button" class="choice clean" data-font="clean"><b>Aa</b>Clean</button>
+          </div>
+          <p class="lbl">Title size</p>
+          <div class="row" id="sizes">
+            <button type="button" class="choice" data-size="s">Small</button>
+            <button type="button" class="choice" data-size="m">Medium</button>
+            <button type="button" class="choice" data-size="l">Big</button>
+          </div>
+          <p class="lbl">Text color</p>
+          <div class="swatches" id="text-colors"></div>
+        </section>
+        <section class="sheet" data-sheet="pictures" hidden>
+          <p class="hint">Tap a picture. Then drag it on the front cover.</p>
+          <div class="pics-grid" id="pic-grid"></div>
+          <p class="lbl">Selected picture</p>
+          <div class="row">
+            <button type="button" class="tool" id="bigger">Bigger</button>
+            <button type="button" class="tool" id="smaller">Smaller</button>
+            <button type="button" class="tool" id="turn">Turn</button>
+            <button type="button" class="tool" id="remove">Remove</button>
+          </div>
+        </section>
+        <section class="sheet" data-sheet="colors" hidden>
+          <p class="lbl">Starter covers</p>
+          <div class="tmpls" id="tmpls"></div>
+          <p class="lbl">Cover color</p>
+          <div class="swatches" id="cover-colors"></div>
+          <p class="lbl">Pattern</p>
+          <div class="row" id="patterns"></div>
+          <p class="lbl">Publisher</p>
+          <div class="row" id="pubs"></div>
+        </section>
+        <section class="sheet" data-sheet="draw" hidden>
+          <p class="hint">Draw on the front cover. The eraser lifts marks away.</p>
+          <div class="swatches" id="brushes"></div>
+          <p class="lbl">Brush size</p>
+          <div class="row">
+            <button type="button" class="choice" data-bw="0.012">Fine</button>
+            <button type="button" class="choice" data-bw="0.028">Bold</button>
+          </div>
+          <p class="lbl"></p>
+          <button type="button" class="tool" id="clear-draw">Clear drawing</button>
+        </section>
+        <section class="sheet" data-sheet="parts" hidden>
+          <p class="hint">These are the parts of a book cover. Tap one to hear it.</p>
+          <button type="button" class="tool" id="parts-toggle">Show parts</button>
+          <div class="part-list" id="part-list"></div>
+        </section>
+        <section class="sheet" data-sheet="quiz" hidden>
+          <div class="stars" id="stars" aria-hidden="true"></div>
+          <p class="ask" id="ask">Tap the Title!</p>
+          <p class="feedback" id="feedback" aria-live="polite"></p>
+          <div class="quiz-tools">
+            <button type="button" id="ask-hear">Hear it</button>
+            <button type="button" id="quiz-again" hidden>Quiz again</button>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </div>
+  <script>
+    (function () {
+      var home = document.getElementById("home");
+      var q = location.search || "";
+      if (q.indexOf("hub=together") >= 0) home.href = "/together/";
+      else if (q.indexOf("hub=alonzo") >= 0) home.href = "/alonzorui/";
+
+      var PARTS = {
+        title: { name: "Title", say: "The title is the name of the book.", ask: "Tap the Title!", view: "front" },
+        author: { name: "Author", say: "The author wrote the words.", ask: "Where is the Author?", view: "front" },
+        illustrator: { name: "Illustrator", say: "The illustrator drew the pictures.", ask: "Where is the Illustrator?", view: "front" },
+        picture: { name: "Cover Picture", say: "The cover picture shows what the book is about.", ask: "Tap the Cover Picture!", view: "front" },
+        spine: { name: "Spine", say: "The spine is the thin side that faces out on a shelf.", ask: "Find the Spine!", view: "spine" },
+        front: { name: "Front Cover", say: "The front cover is the face of the book.", ask: "Find the Front Cover!", view: "wrap" },
+        back: { name: "Back Cover", say: "The back cover tells a little about the story.", ask: "Tap the Back Cover!", view: "wrap" },
+        blurb: { name: "Blurb", say: "The blurb is a short note about the story.", ask: "Where is the Blurb?", view: "back" },
+        publisher: { name: "Publisher", say: "The publisher is the team that made the book.", ask: "Tap the Publisher!", view: "back" },
+        barcode: { name: "Barcode", say: "The barcode helps a shop find the book.", ask: "Find the Barcode!", view: "back" }
+      };
+      var QUIZ = ["title", "author", "illustrator", "picture", "spine", "front", "back", "blurb", "publisher", "barcode"];
+      var ACCEPT = {
+        front: ["front", "picture", "title", "author", "illustrator"],
+        back: ["back", "blurb", "publisher", "barcode"]
+      };
+      var METRICS = { front: { w: 496, h: 690 }, spine: { w: 168, h: 690 }, back: { w: 496, h: 690 }, wrap: { w: 1006, h: 690 } };
+      var TEXT_COLORS = ["#f8f1de", "#1c1917", "#fef3c7", "#ecfeff", "#ffe4e6", "#fde68a"];
+      var COVER_COLORS = [
+        ["#1f6b45", "#0c3324"], ["#1289a0", "#0c4a52"], ["#1e1b4b", "#0b1026"], ["#9d174d", "#4a1230"],
+        ["#4d7c0f", "#365314"], ["#5b21b6", "#1e1b4b"], ["#9a3412", "#431407"], ["#1e3a8a", "#172554"],
+        ["#f3ead7", "#e7d3b0"], ["#fafafa", "#e4e4e7"]
+      ];
+      var BRUSHES = ["#1c1917", "#b91c1c", "#d97706", "#1d4ed8", "#15803d", "#ffffff", "erase"];
+      var PATTERNS = [["none", "Plain"], ["dots", "Dots"], ["stripes", "Stripes"], ["stars", "Stars"], ["waves", "Waves"], ["diamonds", "Diamonds"]];
+      var MARKS = {
+        star: '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3l3.2 8.2L28 12l-6.4 5.2L23.6 26 16 21.2 8.4 26l2-8.8L4 12l8.8-.8z"/></svg>',
+        moon: '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M20 4a12 12 0 1 0 8 20 10 10 0 1 1-8-20z"/></svg>',
+        oak: '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><circle cx="16" cy="13" r="7"/><rect x="14.2" y="18" width="3.6" height="10" rx="1"/></svg>',
+        wave: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 20c3-6 6-6 9 0s6 6 9 0 6-6 9 0" stroke-linecap="round"/></svg>'
+      };
+      var PUBS = {
+        star: { name: "Star Press", mark: MARKS.star },
+        moon: { name: "Moon House", mark: MARKS.moon },
+        oak: { name: "Oak Books", mark: MARKS.oak },
+        wave: { name: "Wave Press", mark: MARKS.wave }
+      };
+      function svg(inner) {
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">' + inner + "</svg>";
+      }
+      var S = 'fill="none" stroke="#1f2937" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
+      var STICKERS = {
+        dragon: svg('<path d="M22 84c10 14 26 8 30 0" ' + S + '/><ellipse cx="62" cy="80" rx="30" ry="18" fill="#4ade80" stroke="#1f2937" stroke-width="3"/><path d="M46 68c6-26 34-30 42-8-16 4-26 8-30 16" fill="#86efac" stroke="#1f2937" stroke-width="3"/><path d="M28 74c-14-4-16-24 0-30 4 10 6 16 4 24" fill="#86efac" stroke="#1f2937" stroke-width="3"/><circle cx="98" cy="60" r="15" fill="#4ade80" stroke="#1f2937" stroke-width="3"/><path d="M110 64h14l-10 6z" fill="#fbbf24" stroke="#1f2937" stroke-width="3"/><circle cx="102" cy="56" r="2.2" fill="#1f2937"/><path d="M48 96c2 8 8 8 8 8M72 98c2 8 8 6 8 6" ' + S + '/>'),
+        dino: svg('<path d="M30 92c6-28 18-40 40-40 10 0 16 6 20 6 8 0 14 10 8 20-8 2-14 10-18 18" fill="#84cc16" stroke="#1f2937" stroke-width="3"/><circle cx="86" cy="46" r="12" fill="#a3e635" stroke="#1f2937" stroke-width="3"/><circle cx="90" cy="44" r="2" fill="#1f2937"/><path d="M96 50h10" ' + S + '/><path d="M40 92v12M58 94v12M74 96v8" ' + S + '/><path d="M34 70c-10 2-14 12-8 14" fill="#a3e635" stroke="#1f2937" stroke-width="3"/>'),
+        fish: svg('<ellipse cx="58" cy="66" rx="34" ry="20" fill="#38bdf8" stroke="#1f2937" stroke-width="3"/><path d="M92 66l22-16v32z" fill="#7dd3fc" stroke="#1f2937" stroke-width="3"/><circle cx="40" cy="62" r="3" fill="#1f2937"/><path d="M30 78c8 6 16 6 24 0" ' + S + '/>'),
+        whale: svg('<path d="M18 74c8-28 36-36 62-24 16 6 28 8 32 18-20 6-28 20-48 24-22 4-40 0-46-18z" fill="#64748b" stroke="#1f2937" stroke-width="3"/><circle cx="40" cy="62" r="2.4" fill="#1f2937"/><path d="M78 46c6-16 14-18 14-18" ' + S + '/><path d="M24 90c10 8 20 8 28 0" fill="#94a3b8" stroke="#1f2937" stroke-width="3"/>'),
+        star: svg('<path d="M64 12l12 30 32 4-24 20 6 32-26-16-26 16 6-32L12 46l32-4z" fill="#fbbf24" stroke="#1f2937" stroke-width="3" stroke-linejoin="round"/>'),
+        rocket: svg('<path d="M64 14c18 14 22 40 18 62l-18 10-18-10c-4-22 0-48 18-62z" fill="#e2e8f0" stroke="#1f2937" stroke-width="3"/><circle cx="64" cy="48" r="8" fill="#38bdf8" stroke="#1f2937" stroke-width="3"/><path d="M46 70l-14 10 16 2M82 70l14 10-16 2" fill="#fb7185" stroke="#1f2937" stroke-width="3"/><path d="M56 88c4 12 12 12 16 0" fill="#f97316" stroke="#1f2937" stroke-width="3"/>'),
+        castle: svg('<path d="M24 108V58h16v14h12V48h16v24h12V58h16v50z" fill="#fecdd3" stroke="#1f2937" stroke-width="3" stroke-linejoin="round"/><path d="M24 58V40h10v18M52 48V30h10v18M94 58V40h10v18" fill="#fda4af" stroke="#1f2937" stroke-width="3"/><rect x="56" y="78" width="16" height="30" fill="#9f1239" stroke="#1f2937" stroke-width="3"/><path d="M18 108h92" ' + S + '/>'),
+        tree: svg('<rect x="58" y="78" width="12" height="28" rx="2" fill="#92400e" stroke="#1f2937" stroke-width="3"/><circle cx="64" cy="58" r="26" fill="#22c55e" stroke="#1f2937" stroke-width="3"/><circle cx="48" cy="64" r="14" fill="#4ade80" stroke="#1f2937" stroke-width="3"/><circle cx="80" cy="66" r="12" fill="#16a34a" stroke="#1f2937" stroke-width="3"/>'),
+        moon: svg('<path d="M78 24a36 36 0 1 0 18 62 30 30 0 1 1-18-62z" fill="#fde68a" stroke="#1f2937" stroke-width="3"/><circle cx="40" cy="36" r="3" fill="#fde68a"/><circle cx="28" cy="58" r="2" fill="#fde68a"/>'),
+        sun: svg('<circle cx="64" cy="64" r="20" fill="#fbbf24" stroke="#1f2937" stroke-width="3"/><path d="M64 18v12M64 98v12M18 64h12M98 64h12M30 30l8 8M90 90l8 8M98 30l-8 8M38 90l-8 8" ' + S + '/>'),
+        heart: svg('<path d="M64 108C28 78 16 58 24 42c8-16 24-14 32 0 8-14 24-16 32 0 8 16-4 36-24 66z" fill="#fb7185" stroke="#1f2937" stroke-width="3" stroke-linejoin="round"/>'),
+        duck: svg('<ellipse cx="58" cy="78" rx="34" ry="18" fill="#facc15" stroke="#1f2937" stroke-width="3"/><circle cx="92" cy="58" r="16" fill="#fde047" stroke="#1f2937" stroke-width="3"/><path d="M106 60h16l-12 7z" fill="#f97316" stroke="#1f2937" stroke-width="3"/><circle cx="96" cy="54" r="2.2" fill="#1f2937"/><path d="M40 92c4 8 10 8 12 2M62 94c4 8 10 6 12 0" ' + S + '/><path d="M30 74c-8 2-12-6-6-10" fill="#fde047" stroke="#1f2937" stroke-width="3"/>')
+      };
+      var PIC_NAMES = { dragon: "Dragon", dino: "Dino", fish: "Fish", whale: "Whale", star: "Star", rocket: "Rocket", castle: "Castle", tree: "Tree", moon: "Moon", sun: "Sun", heart: "Heart", duck: "Duck" };
+      var TEMPLATES = {
+        adventure: { name: "Adventure", kicker: "Adventure", title: "The Hidden Trail", author: "Alab", illustrator: "Alab", blurb: "A brave walk under tall trees, with a friend who has wings.", c1: "#1f6b45", c2: "#0c3324", pattern: "diamonds", font: "story", size: "m", text: "#f6e7b4", publisher: "oak", stickers: [{ kind: "tree", x: 28, y: 38, s: 1.05, r: -8 }, { kind: "dragon", x: 68, y: 36, s: 1.15, r: 6 }] },
+        ocean: { name: "Ocean", kicker: "Ocean", title: "Sea of Stars", author: "Alab", illustrator: "Alab", blurb: "A quiet boat, bright fish, and a whale who knows the way.", c1: "#1289a0", c2: "#0c4a52", pattern: "waves", font: "play", size: "m", text: "#ecfeff", publisher: "wave", stickers: [{ kind: "fish", x: 32, y: 40, s: 1.1, r: -6 }, { kind: "whale", x: 70, y: 44, s: 1.2, r: 4 }] },
+        space: { name: "Space", kicker: "Space", title: "Moon Rocket", author: "Alab", illustrator: "Alab", blurb: "A small rocket lifts off to see the moon up close.", c1: "#1e1b4b", c2: "#0b1026", pattern: "stars", font: "clean", size: "m", text: "#e0e7ff", publisher: "moon", stickers: [{ kind: "star", x: 24, y: 26, s: .8, r: 8 }, { kind: "moon", x: 76, y: 24, s: 1, r: 0 }, { kind: "rocket", x: 52, y: 42, s: 1.15, r: -4 }] },
+        fairy: { name: "Fairy Tale", kicker: "Fairy tale", title: "The Kind Castle", author: "Alab", illustrator: "Alab", blurb: "A castle where friends share the last piece of cake.", c1: "#9d174d", c2: "#4a1230", pattern: "dots", font: "story", size: "m", text: "#fde68a", publisher: "star", stickers: [{ kind: "star", x: 22, y: 24, s: .75, r: 10 }, { kind: "castle", x: 54, y: 40, s: 1.25, r: 0 }] },
+        dinosaur: { name: "Dinosaur", kicker: "Dinosaurs", title: "Dino Day", author: "Alab", illustrator: "Alab", blurb: "One sunny day, a gentle dinosaur looks for a friend.", c1: "#4d7c0f", c2: "#365314", pattern: "none", font: "play", size: "l", text: "#fef9c3", publisher: "oak", stickers: [{ kind: "tree", x: 26, y: 38, s: 1, r: 0 }, { kind: "dino", x: 66, y: 42, s: 1.25, r: -4 }] },
+        mystery: { name: "Mystery", kicker: "Mystery", title: "The Quiet Key", author: "Alab", illustrator: "Alab", blurb: "A small key, a closed door, and a secret in the dark.", c1: "#5b21b6", c2: "#1e1b4b", pattern: "diamonds", font: "story", size: "m", text: "#f5f3ff", publisher: "moon", stickers: [{ kind: "star", x: 30, y: 26, s: .7, r: 12 }, { kind: "moon", x: 70, y: 30, s: 1.1, r: 0 }] }
+      };
+
+      var state = blank();
+      var quiz = { i: 0, stars: 0, done: false, lock: false, savedParts: false };
+      var stickerUrl = {};
+      var toastTimer = 0;
+      var saveTimer = 0;
+
+      function blank() {
+        return {
+          view: "front", tab: "text", showParts: false,
+          title: "My Book", author: "Alab", illustrator: "Alab", blurb: "A story I made.", kicker: "A story",
+          font: "clean", size: "m", text: "#1c1917", c1: "#f3ead7", c2: "#e7d3b0", pattern: "none",
+          publisher: "star", template: "", stickers: [], strokes: [], brush: "#1c1917", brushSize: 0.018, sel: ""
+        };
+      }
+      function uid() { return Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36); }
+      function cloneStickers(list) {
+        return (list || []).map(function (s) { return { id: uid(), kind: s.kind, x: s.x, y: s.y, s: s.s, r: s.r }; });
+      }
+      function applyTemplate(id, jitter) {
+        var t = TEMPLATES[id];
+        if (!t) return;
+        state.kicker = t.kicker; state.title = t.title; state.author = t.author; state.illustrator = t.illustrator;
+        state.blurb = t.blurb; state.c1 = t.c1; state.c2 = t.c2; state.pattern = t.pattern;
+        state.font = t.font; state.size = t.size; state.text = t.text; state.publisher = t.publisher;
+        state.template = id; state.strokes = []; state.sel = "";
+        state.stickers = cloneStickers(t.stickers);
+        if (jitter) {
+          state.stickers.forEach(function (s) {
+            s.x = Math.max(12, Math.min(88, s.x + (Math.random() * 8 - 4)));
+            s.r += Math.round(Math.random() * 10 - 5);
+          });
+        }
+        state.view = "front";
+        syncForm();
+        renderStickers();
+        paintAll();
+        saveSoon();
+      }
+      function load() {
+        try {
+          var raw = localStorage.getItem("alabryuu-book-cover");
+          if (!raw) return null;
+          var s = JSON.parse(raw);
+          if (!s || typeof s.title !== "string") return null;
+          var b = blank();
+          ["title", "author", "illustrator", "blurb", "kicker", "font", "size", "text", "c1", "c2", "pattern", "publisher", "template", "view"].forEach(function (k) {
+            if (s[k] != null) b[k] = s[k];
+          });
+          b.stickers = Array.isArray(s.stickers) ? s.stickers.slice(0, 12) : [];
+          b.strokes = Array.isArray(s.strokes) ? s.strokes.slice(-60) : [];
+          if (!METRICS[b.view]) b.view = "front";
+          return b;
+        } catch (e) { return null; }
+      }
+      function persist() {
+        var data = {
+          title: state.title, author: state.author, illustrator: state.illustrator, blurb: state.blurb, kicker: state.kicker,
+          font: state.font, size: state.size, text: state.text, c1: state.c1, c2: state.c2, pattern: state.pattern,
+          publisher: state.publisher, template: state.template, view: state.view,
+          stickers: state.stickers.map(function (s) { return { id: s.id, kind: s.kind, x: s.x, y: s.y, s: s.s, r: s.r }; }),
+          strokes: state.strokes
+        };
+        try { localStorage.setItem("alabryuu-book-cover", JSON.stringify(data)); } catch (e) {}
+      }
+      function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(persist, 120); }
+      function toast(msg) {
+        var el = document.getElementById("toast");
+        el.textContent = msg; el.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.hidden = true; }, 1600);
+      }
+      function picURL(kind) {
+        if (!stickerUrl[kind]) stickerUrl[kind] = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(STICKERS[kind]);
+        return stickerUrl[kind];
+      }
+      function luminance(hex) {
+        var n = parseInt(String(hex).replace("#", ""), 16);
+        if (!isFinite(n)) return 0;
+        var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+        return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      }
+      function hashStr(str) {
+        var h = 2166136261;
+        for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return h >>> 0;
+      }
+      function barCode(seed) {
+        var h = hashStr(seed || "book");
+        var widths = [];
+        for (var i = 0; i < 26; i++) { h = (Math.imul(h, 1103515245) + 12345) >>> 0; widths.push((h % 3) + 1); }
+        var num = ("0000" + (hashStr(seed) % 10000)).slice(-4);
+        return { widths: widths, label: "ALAB " + num };
+      }
+      function selected() {
+        for (var i = 0; i < state.stickers.length; i++) if (state.stickers[i].id === state.sel) return state.stickers[i];
+        return null;
+      }
+      function syncForm() {
+        document.getElementById("f-title").value = state.title;
+        document.getElementById("f-author").value = state.author;
+        document.getElementById("f-illus").value = state.illustrator;
+        document.getElementById("f-blurb").value = state.blurb;
+      }
+      function paintDesign() {
+        var book = document.getElementById("book");
+        book.dataset.view = state.view;
+        book.classList.remove("font-story", "font-play", "font-clean");
+        book.classList.add("font-" + (state.font || "story"));
+        document.body.classList.remove("font-story", "font-play", "font-clean");
+        document.body.classList.add("font-" + (state.font || "story"));
+        var scrim = luminance(state.c2) > 0.62 ? "light" : "dark";
+        ["front-plate", "back-plate", "spine-plate"].forEach(function (id) {
+          var el = document.getElementById(id);
+          el.style.background = "linear-gradient(180deg," + state.c1 + "," + state.c2 + ")";
+          el.style.setProperty("--tc", state.text);
+        });
+        document.getElementById("front-pattern").className = "pattern" + (state.pattern && state.pattern !== "none" ? " " + state.pattern : "");
+        document.getElementById("back-pattern").className = "pattern" + (state.pattern && state.pattern !== "none" ? " " + state.pattern : "");
+        var lock = document.getElementById("lockup");
+        lock.className = "lockup size-" + state.size + " " + scrim;
+        document.getElementById("kicker-out").textContent = state.kicker || "";
+        document.getElementById("title-out").textContent = state.title || "Your Title";
+        document.getElementById("by-out").textContent = state.author ? "by " + state.author : "";
+        document.getElementById("pics-out").textContent = state.illustrator ? "Pictures by " + state.illustrator : "";
+        document.getElementById("spine-title").textContent = state.title || "Your Title";
+        document.getElementById("spine-author").textContent = state.author || "";
+        document.getElementById("blurb-out").textContent = state.blurb || "A story is waiting here.";
+        document.getElementById("credit-out").textContent = state.illustrator ? "Pictures by " + state.illustrator : "";
+        var pub = PUBS[state.publisher] || PUBS.star;
+        document.getElementById("pub-mark").innerHTML = pub.mark;
+        document.getElementById("pub-name").textContent = pub.name;
+        var code = barCode(state.title + "|" + state.author);
+        var bar = document.getElementById("barcode");
+        bar.innerHTML = "";
+        code.widths.forEach(function (w) {
+          var i = document.createElement("i");
+          i.style.width = (w * 1.5) + "px";
+          bar.appendChild(i);
+        });
+        var label = document.createElement("b");
+        label.textContent = code.label;
+        bar.appendChild(label);
+        var hit = (state.showParts || state.tab === "quiz") && state.tab !== "draw" && state.tab !== "pictures";
+        book.classList.toggle("hit", hit);
+        book.classList.toggle("show-parts", state.showParts || state.tab === "quiz");
+        document.getElementById("front-plate").classList.toggle("drawing", state.tab === "draw" && (state.view === "front" || state.view === "wrap"));
+        document.getElementById("parts-btn").classList.toggle("on", state.showParts);
+        document.getElementById("parts-btn").setAttribute("aria-pressed", state.showParts ? "true" : "false");
+        document.getElementById("parts-toggle").textContent = state.showParts ? "Hide parts" : "Show parts";
+        document.querySelectorAll(".views button").forEach(function (b) { b.classList.toggle("on", b.dataset.view === state.view); });
+        document.querySelectorAll(".tabs button").forEach(function (b) {
+          var on = b.dataset.tab === state.tab;
+          b.classList.toggle("on", on);
+          b.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        document.querySelectorAll(".sheet").forEach(function (s) { s.hidden = s.dataset.sheet !== state.tab; });
+        document.querySelectorAll("#fonts button").forEach(function (b) { b.classList.toggle("on", b.dataset.font === state.font); });
+        document.querySelectorAll("#sizes button").forEach(function (b) { b.classList.toggle("on", b.dataset.size === state.size); });
+        document.querySelectorAll("#patterns button").forEach(function (b) { b.classList.toggle("on", b.dataset.pattern === state.pattern); });
+        document.querySelectorAll("#pubs button").forEach(function (b) { b.classList.toggle("on", b.dataset.pub === state.publisher); });
+        document.querySelectorAll("#tmpls button").forEach(function (b) { b.classList.toggle("on", b.dataset.tmpl === state.template); });
+        document.querySelectorAll("[data-bw]").forEach(function (b) { b.classList.toggle("on", Number(b.dataset.bw) === state.brushSize); });
+        document.querySelectorAll("#text-colors button").forEach(function (b) { b.classList.toggle("on", b.dataset.color === state.text); });
+        document.querySelectorAll("#cover-colors button").forEach(function (b) { b.classList.toggle("on", b.dataset.c1 === state.c1 && b.dataset.c2 === state.c2); });
+        document.querySelectorAll("#brushes button").forEach(function (b) { b.classList.toggle("on", b.dataset.brush === state.brush); });
+      }
+      function renderStickers() {
+        var layer = document.getElementById("stickers");
+        layer.innerHTML = "";
+        state.stickers.forEach(function (s) {
+          var el = document.createElement("div");
+          el.className = "sticker" + (s.id === state.sel ? " on" : "");
+          el.dataset.id = s.id;
+          placeSticker(el, s);
+          var img = document.createElement("img");
+          img.src = picURL(s.kind);
+          img.alt = "";
+          el.appendChild(img);
+          [["del", "Remove", iconX()], ["rot", "Turn", iconTurn()], ["grow", "Bigger", iconGrow()]].forEach(function (h) {
+            var b = document.createElement("button");
+            b.type = "button";
+            b.className = "handle " + h[0];
+            b.setAttribute("aria-label", h[1]);
+            b.innerHTML = h[2];
+            b.style.transform = "scale(" + (1 / (s.s || 1)) + ")";
+            el.appendChild(b);
+          });
+          el.addEventListener("pointerdown", function (e) {
+            if (state.tab === "draw" || state.tab === "quiz") return;
+            var handle = e.target.closest(".handle");
+            if (handle) { onHandle(e, s, el, handle); return; }
+            e.preventDefault();
+            state.sel = s.id;
+            document.querySelectorAll(".sticker").forEach(function (n) { n.classList.toggle("on", n.dataset.id === s.id); });
+            var rect = document.getElementById("front-plate").getBoundingClientRect();
+            var start = { x: e.clientX, y: e.clientY, sx: s.x, sy: s.y };
+            try { el.setPointerCapture(e.pointerId); } catch (err) {}
+            function move(ev) {
+              s.x = clamp(start.sx + (ev.clientX - start.x) / rect.width * 100, 8, 92);
+              s.y = clamp(start.sy + (ev.clientY - start.y) / rect.height * 100, 8, 70);
+              placeSticker(el, s);
+            }
+            function up() {
+              el.removeEventListener("pointermove", move);
+              el.removeEventListener("pointerup", up);
+              saveSoon();
+            }
+            el.addEventListener("pointermove", move);
+            el.addEventListener("pointerup", up);
+          });
+          layer.appendChild(el);
+        });
+      }
+      function placeSticker(el, s) {
+        el.style.left = s.x + "%";
+        el.style.top = s.y + "%";
+        el.style.transform = "translate(-50%, -50%) rotate(" + (s.r || 0) + "deg) scale(" + (s.s || 1) + ")";
+        el.querySelectorAll(".handle").forEach(function (h) { h.style.transform = "scale(" + (1 / (s.s || 1)) + ")"; });
+      }
+      function onHandle(e, s, el, handle) {
+        e.preventDefault();
+        e.stopPropagation();
+        state.sel = s.id;
+        var rect = el.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var mode = handle.classList.contains("del") ? "del" : handle.classList.contains("rot") ? "rot" : "grow";
+        if (mode === "del") { removeSel(); return; }
+        var startDist = Math.max(12, Math.hypot(e.clientX - cx, e.clientY - cy));
+        var startS = s.s || 1;
+        try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+        function move(ev) {
+          if (mode === "rot") s.r = Math.round(Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90);
+          else s.s = clamp(startS * (Math.hypot(ev.clientX - cx, ev.clientY - cy) / startDist), 0.45, 2.4);
+          placeSticker(el, s);
+        }
+        function up() {
+          handle.removeEventListener("pointermove", move);
+          handle.removeEventListener("pointerup", up);
+          saveSoon();
+        }
+        handle.addEventListener("pointermove", move);
+        handle.addEventListener("pointerup", up);
+      }
+      function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+      function iconX() { return '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'; }
+      function iconTurn() { return '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11 6a4.5 4.5 0 1 0 .4 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11 2.5V6H7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+      function iconGrow() { return '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M8 2h4v4M6 12H2V8M12 2L8 6M2 12l4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'; }
+      function removeSel() {
+        state.stickers = state.stickers.filter(function (s) { return s.id !== state.sel; });
+        state.sel = "";
+        renderStickers();
+        saveSoon();
+      }
+      function nudgeSel(dx, dy) {
+        var s = selected();
+        if (!s) return;
+        s.x = clamp(s.x + dx, 8, 92);
+        s.y = clamp(s.y + dy, 8, 70);
+        renderStickers();
+        saveSoon();
+      }
+      function addSticker(kind) {
+        if (state.stickers.length >= 12) { toast("This cover is full of pictures."); return; }
+        var s = { id: uid(), kind: kind, x: 50 + Math.round(Math.random() * 10 - 5), y: 38, s: 1, r: 0 };
+        state.stickers.push(s);
+        state.sel = s.id;
+        state.view = "front";
+        if (state.tab !== "pictures") state.tab = "pictures";
+        renderStickers();
+        paintAll();
+        saveSoon();
+      }
+      function fit() {
+        var m = METRICS[state.view] || METRICS.front;
+        var stage = document.getElementById("stage");
+        var showLabels = state.showParts || state.tab === "quiz";
+        var narrow = stage.clientWidth < 760;
+        var side = showLabels && !narrow ? 132 : 18;
+        var top = showLabels && narrow ? 84 : 14;
+        var availW = Math.max(80, stage.clientWidth - side * 2);
+        var availH = Math.max(80, stage.clientHeight - top - 16);
+        var sc = Math.min(availW / m.w, availH / m.h);
+        var scaler = document.getElementById("scaler");
+        var book = document.getElementById("book");
+        scaler.style.width = m.w + "px";
+        scaler.style.height = (m.h + 20) + "px";
+        var shift = narrow && showLabels ? 24 : 0;
+        scaler.style.transform = "translate(-50%, -50%) scale(" + sc + ")";
+        scaler.style.top = "calc(50% + " + shift + "px)";
+        book.style.width = m.w + "px";
+        book.style.height = m.h + "px";
+      }
+      function sizeInk() {
+        var front = document.getElementById("front-plate");
+        var ink = document.getElementById("ink");
+        var r = front.getBoundingClientRect();
+        if (r.width < 4 || r.height < 4) return;
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        ink.width = Math.round(r.width * dpr);
+        ink.height = Math.round(r.height * dpr);
+        redrawInk();
+      }
+      function redrawInk() {
+        var ink = document.getElementById("ink");
+        var ctx = ink.getContext("2d");
+        ctx.clearRect(0, 0, ink.width, ink.height);
+        state.strokes.forEach(function (stroke) { drawStroke(ctx, stroke, ink.width, ink.height); });
+      }
+      function drawStroke(ctx, stroke, w, h) {
+        if (!stroke.pts || !stroke.pts.length) return;
+        ctx.save();
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.lineWidth = Math.max(1.5, (stroke.w || 0.02) * w);
+        if (stroke.erase) { ctx.globalCompositeOperation = "destination-out"; ctx.strokeStyle = "rgba(0,0,0,1)"; }
+        else { ctx.strokeStyle = stroke.color || "#1c1917"; }
+        ctx.beginPath();
+        stroke.pts.forEach(function (p, i) {
+          var x = p[0] * w, y = p[1] * h;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        if (stroke.pts.length === 1) ctx.lineTo(stroke.pts[0][0] * w + 0.2, stroke.pts[0][1] * h + 0.2);
+        ctx.stroke();
+        ctx.restore();
+      }
+      function inkPoint(e) {
+        var r = document.getElementById("front-plate").getBoundingClientRect();
+        return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)];
+      }
+      function placeCallouts() {
+        var layer = document.getElementById("callouts");
+        var svg = document.getElementById("leaders");
+        layer.innerHTML = "";
+        svg.innerHTML = "";
+        var show = state.showParts || state.tab === "quiz";
+        if (!show) return;
+        var stage = document.getElementById("stage");
+        var sr = stage.getBoundingClientRect();
+        svg.setAttribute("viewBox", "0 0 " + sr.width + " " + sr.height);
+        svg.setAttribute("width", sr.width);
+        svg.setAttribute("height", sr.height);
+        var items = [];
+        document.querySelectorAll(".hot").forEach(function (hot) {
+          if (hot.offsetParent === null) return;
+          var r = hot.getBoundingClientRect();
+          if (r.width < 2 || r.height < 2) return;
+          items.push({ id: hot.dataset.part, r: r, name: PARTS[hot.dataset.part].name });
+        });
+        var narrow = sr.width < 760;
+        if (narrow) {
+          items.forEach(function (it, i) {
+            var btn = makeCallout(it);
+            var col = i % 3;
+            var row = Math.floor(i / 3);
+            btn.style.left = (8 + col * ((sr.width - 16) / 3)) + "px";
+            btn.style.top = (6 + row * 34) + "px";
+            layer.appendChild(btn);
+          });
+          return;
+        }
+        var mid = sr.left + sr.width / 2;
+        var left = items.filter(function (it) { return (it.r.left + it.r.width / 2) < mid; });
+        var right = items.filter(function (it) { return (it.r.left + it.r.width / 2) >= mid; });
+        stack(left, "left", sr, layer, svg);
+        stack(right, "right", sr, layer, svg);
+      }
+      function stack(list, side, sr, layer, svg) {
+        list.sort(function (a, b) { return a.r.top - b.r.top; });
+        var y = 12;
+        list.forEach(function (it) {
+          var btn = makeCallout(it);
+          layer.appendChild(btn);
+          var desired = it.r.top - sr.top;
+          var top = Math.max(y, Math.min(desired, sr.height - 40));
+          btn.style.top = top + "px";
+          if (side === "left") btn.style.left = "10px";
+          else btn.style.right = "10px";
+          y = top + 38;
+          var br = { x: side === "left" ? 120 : sr.width - 120, y: top + 16 };
+          var ax = it.r.left - sr.left + it.r.width / 2;
+          var ay = it.r.top - sr.top + Math.min(24, it.r.height / 2);
+          var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", br.x); line.setAttribute("y1", br.y);
+          line.setAttribute("x2", ax); line.setAttribute("y2", ay);
+          line.setAttribute("stroke", "#1c1917"); line.setAttribute("stroke-width", "1.25"); line.setAttribute("stroke-opacity", "0.45");
+          svg.appendChild(line);
+          var dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); dot.setAttribute("r", "3.5");
+          dot.setAttribute("fill", "#fffdf8"); dot.setAttribute("stroke", "#1c1917"); dot.setAttribute("stroke-width", "1.25");
+          svg.appendChild(dot);
+        });
+      }
+      function makeCallout(it) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "callout";
+        btn.textContent = it.name;
+        btn.dataset.part = it.id;
+        btn.addEventListener("click", function () { onPart(it.id); });
+        return btn;
+      }
+      function speak(text) {
+        if (!window.speechSynthesis) return;
+        try {
+          window.speechSynthesis.cancel();
+          var u = new SpeechSynthesisUtterance(text);
+          u.rate = 0.95;
+          window.speechSynthesis.speak(u);
+        } catch (e) {}
+      }
+      function openExplain(id) {
+        var p = PARTS[id];
+        if (!p) return;
+        document.getElementById("explain-text").textContent = p.say;
+        document.getElementById("explain").hidden = false;
+        document.getElementById("explain").dataset.say = p.say;
+      }
+      function closeExplain() { document.getElementById("explain").hidden = true; }
+      function onPart(id) {
+        if (state.tab === "quiz" && !quiz.done) { grade(id); return; }
+        openExplain(id);
+      }
+      function accepts(asked, tapped) {
+        var list = ACCEPT[asked] || [asked];
+        return list.indexOf(tapped) >= 0;
+      }
+      function showQuestion() {
+        var id = QUIZ[quiz.i];
+        state.view = PARTS[id].view;
+        state.showParts = true;
+        document.getElementById("ask").textContent = PARTS[id].ask;
+        document.getElementById("feedback").textContent = "";
+        document.getElementById("feedback").className = "feedback";
+        document.getElementById("quiz-again").hidden = true;
+        paintStars();
+      }
+      function paintStars() {
+        var box = document.getElementById("stars");
+        box.innerHTML = "";
+        for (var i = 0; i < QUIZ.length; i++) {
+          var star = document.createElement("i");
+          if (i < quiz.stars) star.className = "on";
+          box.appendChild(star);
+        }
+      }
+      function grade(id) {
+        if (quiz.lock || quiz.done) return;
+        var q = QUIZ[quiz.i];
+        var say = PARTS[q].say;
+        var fb = document.getElementById("feedback");
+        if (accepts(q, id)) {
+          quiz.lock = true;
+          quiz.stars += 1;
+          fb.textContent = "Yes! " + say;
+          fb.className = "feedback yes";
+          speak(say);
+          paintStars();
+          setTimeout(function () {
+            quiz.lock = false;
+            quiz.i += 1;
+            if (quiz.i >= QUIZ.length) {
+              quiz.done = true;
+              fb.textContent = "You found every part. Nice work.";
+              fb.className = "feedback yes";
+              document.getElementById("ask").textContent = "All the parts!";
+              document.getElementById("quiz-again").hidden = false;
+              paintStars();
+              paintAll();
+            } else {
+              showQuestion();
+              paintAll();
+            }
+          }, 900);
+        } else {
+          fb.textContent = "Look again. " + say;
+          fb.className = "feedback look";
+        }
+      }
+      function setTab(name) {
+        if (state.tab === "quiz" && name !== "quiz") state.showParts = quiz.savedParts;
+        if (name === "quiz" && state.tab !== "quiz") {
+          quiz.savedParts = state.showParts;
+          state.showParts = true;
+          if (!quiz.done) state.view = PARTS[QUIZ[quiz.i]].view;
+        }
+        if (name === "draw" || name === "pictures") state.view = "front";
+        state.tab = name;
+        if (name === "quiz" && !quiz.done) showQuestion();
+        closeExplain();
+        paintAll();
+      }
+      function setView(view) {
+        state.view = view;
+        closeExplain();
+        paintAll();
+      }
+      function paintAll() {
+        paintDesign();
+        fit();
+        requestAnimationFrame(function () {
+          sizeInk();
+          placeCallouts();
+        });
+      }
+      function roundRect(ctx, x, y, w, h, rtl, rtr, rbr, rbl) {
+        ctx.beginPath();
+        ctx.moveTo(x + rtl, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rtr);
+        ctx.arcTo(x + w, y + h, x, y + h, rbr);
+        ctx.arcTo(x, y + h, x, y, rbl);
+        ctx.arcTo(x, y, x + w, y, rtl);
+        ctx.closePath();
+      }
+      function paintPlate(ctx, x, y, w, h, radii) {
+        ctx.save();
+        roundRect(ctx, x, y, w, h, radii[0], radii[1], radii[2], radii[3]);
+        ctx.clip();
+        var g = ctx.createLinearGradient(x, y, x, y + h);
+        g.addColorStop(0, state.c1);
+        g.addColorStop(1, state.c2);
+        ctx.fillStyle = g;
+        ctx.fillRect(x, y, w, h);
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = "rgba(255,255,255,.9)";
+        for (var yy = y; yy < y + h; yy += 5) {
+          for (var xx = x; xx < x + w; xx += 5) ctx.fillRect(xx, yy, 1, 1);
+        }
+        ctx.restore();
+        drawPattern(ctx, x, y, w, h, state.pattern);
+        var gloss = ctx.createLinearGradient(x, y, x + w, y + h);
+        gloss.addColorStop(0, "rgba(255,255,255,.35)");
+        gloss.addColorStop(0.22, "rgba(255,255,255,0)");
+        gloss.addColorStop(1, "rgba(255,255,255,.12)");
+        ctx.fillStyle = gloss;
+        ctx.fillRect(x, y, w, h);
+        var shade = ctx.createLinearGradient(x, y, x, y + h * 0.45);
+        shade.addColorStop(0, "rgba(255,255,255,.18)");
+        shade.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = shade;
+        ctx.fillRect(x, y, w, h * 0.45);
+        ctx.restore();
+      }
+      function drawPattern(ctx, x, y, w, h, name) {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+        ctx.strokeStyle = "rgba(255,255,255,.35)";
+        ctx.fillStyle = "rgba(255,255,255,.35)";
+        if (name === "dots") {
+          for (var yy = y + 8; yy < y + h; yy += 14) for (var xx = x + 8; xx < x + w; xx += 14) { ctx.beginPath(); ctx.arc(xx, yy, 1.2, 0, 6.28); ctx.fill(); }
+        } else if (name === "stripes") {
+          ctx.lineWidth = 2;
+          for (var sx = x; sx < x + w; sx += 14) { ctx.beginPath(); ctx.moveTo(sx, y); ctx.lineTo(sx, y + h); ctx.stroke(); }
+        } else if (name === "waves") {
+          ctx.lineWidth = 2;
+          for (var wy = y + 10; wy < y + h; wy += 28) {
+            ctx.beginPath();
+            for (var wx = x; wx <= x + w; wx += 8) {
+              var yy2 = wy + Math.sin((wx - x) / 14) * 6;
+              if (wx === x) ctx.moveTo(wx, yy2); else ctx.lineTo(wx, yy2);
+            }
+            ctx.stroke();
+          }
+        } else if (name === "stars") {
+          for (var i = 0; i < 40; i++) {
+            var px = x + ((i * 97) % Math.max(1, w));
+            var py = y + ((i * 53) % Math.max(1, h));
+            ctx.globalAlpha = 0.35 + (i % 3) * 0.15;
+            ctx.beginPath(); ctx.arc(px, py, 1.2, 0, 6.28); ctx.fill();
+          }
+        } else if (name === "diamonds") {
+          ctx.globalAlpha = 0.28;
+          for (var dy = y; dy < y + h; dy += 18) {
+            for (var dx = x; dx < x + w; dx += 18) {
+              ctx.beginPath();
+              ctx.moveTo(dx + 9, dy); ctx.lineTo(dx + 18, dy + 9); ctx.lineTo(dx + 9, dy + 18); ctx.lineTo(dx, dy + 9);
+              ctx.closePath(); ctx.stroke();
+            }
+          }
+        }
+        ctx.restore();
+      }
+      function spineShade(ctx, x, y, w, h) {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+        var g = ctx.createLinearGradient(x, y, x + w, y);
+        g.addColorStop(0, "rgba(0,0,0,.45)");
+        g.addColorStop(0.18, "rgba(255,255,255,.22)");
+        g.addColorStop(0.5, "rgba(0,0,0,.06)");
+        g.addColorStop(0.8, "rgba(255,255,255,.12)");
+        g.addColorStop(1, "rgba(0,0,0,.5)");
+        ctx.fillStyle = g;
+        ctx.fillRect(x, y, w, h);
+        ctx.fillStyle = "rgba(246,231,180,.8)";
+        ctx.fillRect(x + w * 0.2, y + h * 0.07, w * 0.6, 2);
+        ctx.fillRect(x + w * 0.2, y + h * 0.93, w * 0.6, 2);
+        ctx.restore();
+      }
+      function wrapLines(ctx, text, maxW) {
+        var words = String(text || "").split(/\s+/);
+        var lines = [], line = "";
+        words.forEach(function (word) {
+          if (!word) return;
+          var trial = line ? line + " " + word : word;
+          if (line && ctx.measureText(trial).width > maxW) { lines.push(line); line = word; }
+          else line = trial;
+        });
+        if (line) lines.push(line);
+        return lines.slice(0, 5);
+      }
+      function fontName() {
+        if (state.font === "play") return "600 1px Fredoka";
+        if (state.font === "clean") return "700 1px Nunito";
+        return "700 1px Fraunces";
+      }
+      function drawFrontContents(ctx, x, y, w, h) {
+        state.strokes.forEach(function (stroke) {
+          ctx.save();
+          ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+          ctx.translate(x, y);
+          drawStroke(ctx, stroke, w, h);
+          ctx.restore();
+        });
+        var jobs = state.stickers.map(function (s) {
+          return loadImg(picURL(s.kind)).then(function (img) {
+            ctx.save();
+            ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+            ctx.translate(x + s.x / 100 * w, y + s.y / 100 * h);
+            ctx.rotate((s.r || 0) * Math.PI / 180);
+            var size = w * 0.32 * (s.s || 1);
+            ctx.drawImage(img, -size / 2, -size / 2, size, size);
+            ctx.restore();
+          });
+        });
+        return Promise.all(jobs).then(function () {
+          var scrim = ctx.createLinearGradient(x, y + h * 0.52, x, y + h);
+          if (luminance(state.c2) > 0.62) {
+            scrim.addColorStop(0, "rgba(255,250,240,0)");
+            scrim.addColorStop(0.45, "rgba(255,250,240,.94)");
+          } else {
+            scrim.addColorStop(0, "rgba(0,0,0,0)");
+            scrim.addColorStop(0.5, "rgba(0,0,0,.55)");
+          }
+          ctx.fillStyle = scrim;
+          ctx.fillRect(x, y + h * 0.5, w, h * 0.5);
+          ctx.fillStyle = state.text;
+          ctx.textAlign = "center";
+          ctx.font = "700 " + Math.round(w * 0.035) + "px Nunito";
+          ctx.fillText(String(state.kicker || "").toUpperCase(), x + w / 2, y + h * 0.72);
+          var sizePx = state.size === "s" ? w * 0.09 : state.size === "l" ? w * 0.15 : w * 0.12;
+          ctx.font = fontName().replace("1px", Math.round(sizePx) + "px");
+          var lines = wrapLines(ctx, state.title || "Your Title", w * 0.84);
+          lines.forEach(function (line, i) {
+            ctx.fillText(line, x + w / 2, y + h * 0.78 + i * sizePx * 0.96);
+          });
+          var base = y + h * 0.78 + lines.length * sizePx * 0.96;
+          ctx.fillRect(x + w / 2 - 22, base - sizePx * 0.15, 44, 2);
+          ctx.font = "700 " + Math.round(w * 0.04) + "px Nunito";
+          if (state.author) ctx.fillText("by " + state.author, x + w / 2, base + w * 0.045);
+          if (state.illustrator) {
+            ctx.font = "700 " + Math.round(w * 0.03) + "px Nunito";
+            ctx.fillText("Pictures by " + state.illustrator, x + w / 2, base + w * 0.09);
+          }
+          ctx.fillStyle = "#fffaf3";
+          for (var i = 0; i < 8; i++) ctx.fillRect(x + w - 8, y + 12 + i * 4, 6, 2);
+        });
+      }
+      function drawSpineText(ctx, x, y, w, h) {
+        ctx.save();
+        ctx.fillStyle = state.text;
+        ctx.translate(x + w / 2, y + h / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = "center";
+        ctx.font = fontName().replace("1px", Math.round(Math.min(w * 0.46, 42)) + "px");
+        ctx.fillText(state.title || "Your Title", 0, 0);
+        ctx.font = "700 " + Math.round(Math.min(w * 0.22, 20)) + "px Nunito";
+        if (state.author) ctx.fillText(state.author, 0, w * 0.28);
+        ctx.restore();
+      }
+      function drawBackContents(ctx, x, y, w, h) {
+        ctx.fillStyle = state.text;
+        ctx.textAlign = "left";
+        ctx.font = "700 " + Math.round(w * 0.032) + "px Nunito";
+        ctx.fillText("ABOUT THIS BOOK", x + w * 0.08, y + h * 0.12);
+        ctx.font = "500 " + Math.round(w * 0.042) + "px Literata";
+        var lines = wrapLines(ctx, state.blurb || "A story is waiting here.", w * 0.8);
+        lines.forEach(function (line, i) { ctx.fillText(line, x + w * 0.08, y + h * 0.18 + i * w * 0.055); });
+        if (state.illustrator) {
+          ctx.font = "700 " + Math.round(w * 0.03) + "px Nunito";
+          ctx.fillText("Pictures by " + state.illustrator, x + w * 0.08, y + h * 0.18 + lines.length * w * 0.055 + w * 0.06);
+        }
+        drawMark(ctx, state.publisher, x + w * 0.08, y + h * 0.84, 26, state.text);
+        ctx.fillStyle = state.text;
+        ctx.font = "600 " + Math.round(w * 0.04) + "px Fraunces";
+        ctx.fillText((PUBS[state.publisher] || PUBS.star).name, x + w * 0.08 + 36, y + h * 0.84 + 20);
+        var code = barCode(state.title + "|" + state.author);
+        var bw = w * 0.36, bh = h * 0.14;
+        var bx = x + w * 0.56, by = y + h * 0.8;
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(bx, by, bw, bh);
+        var pen = bx + 8;
+        code.widths.forEach(function (wd) {
+          ctx.fillStyle = "#111";
+          ctx.fillRect(pen, by + 8, wd * (bw / 70), bh - 28);
+          pen += wd * (bw / 70) + 1.4;
+        });
+        ctx.fillStyle = "#111";
+        ctx.font = "700 14px Nunito";
+        ctx.textAlign = "center";
+        ctx.fillText(code.label, bx + bw / 2, by + bh - 8);
+      }
+      function drawMark(ctx, id, x, y, s, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        if (id === "moon") {
+          ctx.beginPath();
+          ctx.arc(s * 0.42, s * 0.5, s * 0.42, Math.PI * 0.55, Math.PI * 1.45, false);
+          ctx.arc(s * 0.62, s * 0.5, s * 0.34, Math.PI * 1.45, Math.PI * 0.55, true);
+          ctx.fill();
+        } else if (id === "oak") {
+          ctx.beginPath(); ctx.arc(s / 2, s * 0.4, s * 0.28, 0, 6.28); ctx.fill();
+          ctx.fillRect(s * 0.42, s * 0.58, s * 0.16, s * 0.4);
+        } else if (id === "wave") {
+          ctx.beginPath();
+          ctx.moveTo(0, s * 0.6);
+          ctx.bezierCurveTo(s * 0.2, s * 0.2, s * 0.3, s * 0.2, s * 0.5, s * 0.6);
+          ctx.bezierCurveTo(s * 0.7, s, s * 0.8, s, s, s * 0.6);
+          ctx.stroke();
+        } else {
+          starPath(ctx, s / 2, s / 2, s / 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+      function starPath(ctx, cx, cy, r) {
+        ctx.beginPath();
+        for (var i = 0; i < 5; i++) {
+          var a = -Math.PI / 2 + i * 4 * Math.PI / 5;
+          var px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+      }
+      function loadImg(src) {
+        return new Promise(function (res, rej) {
+          var img = new Image();
+          img.onload = function () { res(img); };
+          img.onerror = function () { rej(); };
+          img.src = src;
+        });
+      }
+      function savePNG() {
+        return document.fonts.ready.then(function () {
+          var backW = 760, spineW = 140, frontW = 760, H = 1100, pad = 56;
+          var c = document.createElement("canvas");
+          c.width = pad * 2 + backW + spineW + frontW;
+          c.height = pad * 2 + H;
+          var ctx = c.getContext("2d");
+          ctx.fillStyle = "#efe8dc";
+          ctx.fillRect(0, 0, c.width, c.height);
+          var x0 = pad, y0 = pad;
+          ctx.save();
+          ctx.shadowColor = "rgba(40,28,12,.35)";
+          ctx.shadowBlur = 28;
+          ctx.shadowOffsetY = 16;
+          ctx.fillStyle = "#111";
+          ctx.fillRect(x0, y0, backW + spineW + frontW, H);
+          ctx.restore();
+          paintPlate(ctx, x0, y0, backW, H, [16, 0, 0, 16]);
+          paintPlate(ctx, x0 + backW, y0, spineW, H, [0, 0, 0, 0]);
+          spineShade(ctx, x0 + backW, y0, spineW, H);
+          paintPlate(ctx, x0 + backW + spineW, y0, frontW, H, [0, 18, 18, 0]);
+          drawBackContents(ctx, x0, y0, backW, H);
+          drawSpineText(ctx, x0 + backW, y0, spineW, H);
+          return drawFrontContents(ctx, x0 + backW + spineW, y0, frontW, H).then(function () {
+            var a = document.createElement("a");
+            a.href = c.toDataURL("image/png");
+            a.download = "book-cover.png";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            toast("Your cover PNG is ready.");
+            return a.href;
+          });
+        }).catch(function () { toast("The picture could not be saved."); });
+      }
+
+      function buildControls() {
+        var textColors = document.getElementById("text-colors");
+        TEXT_COLORS.forEach(function (color) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "swatch"; b.dataset.color = color;
+          b.style.background = color; b.setAttribute("aria-label", "Text color");
+          b.addEventListener("click", function () { state.text = color; paintDesign(); saveSoon(); });
+          textColors.appendChild(b);
+        });
+        var covers = document.getElementById("cover-colors");
+        COVER_COLORS.forEach(function (pair) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "swatch"; b.dataset.c1 = pair[0]; b.dataset.c2 = pair[1];
+          b.style.background = "linear-gradient(180deg," + pair[0] + "," + pair[1] + ")";
+          b.setAttribute("aria-label", "Cover color");
+          b.addEventListener("click", function () {
+            state.c1 = pair[0]; state.c2 = pair[1]; state.template = "";
+            if (luminance(pair[1]) > 0.62 && luminance(state.text) > 0.7) state.text = "#1c1917";
+            if (luminance(pair[1]) < 0.45 && luminance(state.text) < 0.35) state.text = "#f8f1de";
+            paintDesign(); saveSoon();
+          });
+          covers.appendChild(b);
+        });
+        var tmpls = document.getElementById("tmpls");
+        Object.keys(TEMPLATES).forEach(function (id) {
+          var t = TEMPLATES[id];
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "tmpl"; b.dataset.tmpl = id;
+          var sw = document.createElement("i");
+          sw.style.background = "linear-gradient(180deg," + t.c1 + "," + t.c2 + ")";
+          b.appendChild(sw);
+          b.appendChild(document.createTextNode(t.name));
+          b.addEventListener("click", function () { applyTemplate(id, false); });
+          tmpls.appendChild(b);
+        });
+        var patterns = document.getElementById("patterns");
+        PATTERNS.forEach(function (p) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "choice"; b.dataset.pattern = p[0]; b.textContent = p[1];
+          b.addEventListener("click", function () { state.pattern = p[0]; paintDesign(); saveSoon(); });
+          patterns.appendChild(b);
+        });
+        var pubs = document.getElementById("pubs");
+        Object.keys(PUBS).forEach(function (id) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "pubpick"; b.dataset.pub = id; b.textContent = PUBS[id].name;
+          b.addEventListener("click", function () { state.publisher = id; paintDesign(); saveSoon(); });
+          pubs.appendChild(b);
+        });
+        var grid = document.getElementById("pic-grid");
+        Object.keys(PIC_NAMES).forEach(function (kind) {
+          var b = document.createElement("button");
+          b.type = "button";
+          var img = document.createElement("img");
+          img.src = picURL(kind); img.alt = "";
+          b.appendChild(img);
+          b.appendChild(document.createTextNode(PIC_NAMES[kind]));
+          b.addEventListener("click", function () { addSticker(kind); });
+          grid.appendChild(b);
+        });
+        var brushes = document.getElementById("brushes");
+        BRUSHES.forEach(function (color) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "swatch"; b.dataset.brush = color;
+          if (color === "erase") { b.style.background = "#fff"; b.setAttribute("aria-label", "Eraser"); b.textContent = "E"; }
+          else { b.style.background = color; b.setAttribute("aria-label", "Brush"); }
+          b.addEventListener("click", function () { state.brush = color; paintDesign(); });
+          brushes.appendChild(b);
+        });
+        var list = document.getElementById("part-list");
+        Object.keys(PARTS).forEach(function (id) {
+          var b = document.createElement("button");
+          b.type = "button";
+          var name = document.createElement("b");
+          name.textContent = PARTS[id].name;
+          var say = document.createElement("span");
+          say.textContent = PARTS[id].say;
+          b.appendChild(name); b.appendChild(say);
+          b.addEventListener("click", function () { openExplain(id); speak(PARTS[id].say); });
+          list.appendChild(b);
+        });
+        paintStars();
+      }
+
+      var drawing = null;
+      var ink = document.getElementById("ink");
+      ink.addEventListener("pointerdown", function (e) {
+        if (state.tab !== "draw") return;
+        if (state.view !== "front" && state.view !== "wrap") return;
+        try { ink.setPointerCapture(e.pointerId); } catch (err) {}
+        drawing = { color: state.brush === "erase" ? "#000" : state.brush, erase: state.brush === "erase", w: state.brushSize, pts: [inkPoint(e)] };
+        state.strokes.push(drawing);
+        if (state.strokes.length > 60) state.strokes.shift();
+        redrawInk();
+      });
+      ink.addEventListener("pointermove", function (e) {
+        if (!drawing) return;
+        var p = inkPoint(e);
+        var last = drawing.pts[drawing.pts.length - 1];
+        if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.004) return;
+        if (drawing.pts.length < 240) drawing.pts.push(p);
+        redrawInk();
+      });
+      function endDraw() { if (!drawing) return; drawing = null; saveSoon(); }
+      ink.addEventListener("pointerup", endDraw);
+      ink.addEventListener("pointercancel", endDraw);
+
+      document.getElementById("f-title").addEventListener("input", function (e) { state.title = e.target.value; paintDesign(); saveSoon(); });
+      document.getElementById("f-author").addEventListener("input", function (e) { state.author = e.target.value; paintDesign(); saveSoon(); });
+      document.getElementById("f-illus").addEventListener("input", function (e) { state.illustrator = e.target.value; paintDesign(); saveSoon(); });
+      document.getElementById("f-blurb").addEventListener("input", function (e) { state.blurb = e.target.value; paintDesign(); saveSoon(); });
+      document.getElementById("fonts").addEventListener("click", function (e) {
+        var b = e.target.closest("[data-font]"); if (!b) return;
+        state.font = b.dataset.font; paintDesign(); saveSoon();
+      });
+      document.getElementById("sizes").addEventListener("click", function (e) {
+        var b = e.target.closest("[data-size]"); if (!b) return;
+        state.size = b.dataset.size; paintDesign(); saveSoon();
+      });
+      document.querySelector(".pane").addEventListener("click", function (e) {
+        var b = e.target.closest("[data-bw]"); if (!b) return;
+        state.brushSize = Number(b.dataset.bw); paintDesign();
+      });
+      document.querySelectorAll(".tabs button").forEach(function (b) {
+        b.addEventListener("click", function () { setTab(b.dataset.tab); });
+      });
+      document.querySelectorAll(".views button").forEach(function (b) {
+        b.addEventListener("click", function () { setView(b.dataset.view); });
+      });
+      document.getElementById("parts-btn").addEventListener("click", function () {
+        state.showParts = !state.showParts; closeExplain(); paintAll();
+      });
+      document.getElementById("parts-toggle").addEventListener("click", function () {
+        state.showParts = !state.showParts; closeExplain(); paintAll();
+      });
+      document.getElementById("surprise").addEventListener("click", function () {
+        var keys = Object.keys(TEMPLATES);
+        applyTemplate(keys[Math.floor(Math.random() * keys.length)], true);
+        toast("A new cover, just for you.");
+      });
+      document.getElementById("restart").addEventListener("click", function () {
+        state = blank();
+        quiz = { i: 0, stars: 0, done: false, lock: false, savedParts: false };
+        try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+        closeExplain();
+        syncForm();
+        renderStickers();
+        document.getElementById("ask").textContent = PARTS.title.ask;
+        document.getElementById("feedback").textContent = "";
+        document.getElementById("feedback").className = "feedback";
+        document.getElementById("quiz-again").hidden = true;
+        paintStars();
+        paintAll();
+        persist();
+        toast("A fresh cover is ready.");
+      });
+      document.getElementById("savepng").addEventListener("click", function () { savePNG(); });
+      document.getElementById("bigger").addEventListener("click", function () {
+        var s = selected(); if (!s) return; s.s = clamp((s.s || 1) + 0.15, 0.45, 2.4); renderStickers(); saveSoon();
+      });
+      document.getElementById("smaller").addEventListener("click", function () {
+        var s = selected(); if (!s) return; s.s = clamp((s.s || 1) - 0.15, 0.45, 2.4); renderStickers(); saveSoon();
+      });
+      document.getElementById("turn").addEventListener("click", function () {
+        var s = selected(); if (!s) return; s.r = (s.r || 0) + 15; renderStickers(); saveSoon();
+      });
+      document.getElementById("remove").addEventListener("click", removeSel);
+      document.getElementById("clear-draw").addEventListener("click", function () { state.strokes = []; redrawInk(); saveSoon(); });
+      document.getElementById("hots").addEventListener("click", function (e) {
+        var hot = e.target.closest(".hot");
+        if (!hot) return;
+        onPart(hot.dataset.part);
+      });
+      document.getElementById("speak").addEventListener("click", function () {
+        speak(document.getElementById("explain").dataset.say || "");
+      });
+      document.getElementById("explain-x").addEventListener("click", closeExplain);
+      document.getElementById("ask-hear").addEventListener("click", function () {
+        if (quiz.done) speak("You found every part. Nice work.");
+        else speak(PARTS[QUIZ[quiz.i]].ask + " " + PARTS[QUIZ[quiz.i]].say);
+      });
+      document.getElementById("quiz-again").addEventListener("click", function () {
+        quiz.i = 0; quiz.stars = 0; quiz.done = false; quiz.lock = false;
+        showQuestion(); paintAll();
+      });
+      document.addEventListener("keydown", function (e) {
+        var typing = e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA");
+        if (e.key === "Escape") { closeExplain(); state.sel = ""; renderStickers(); }
+        if (typing) return;
+        if ((e.key === "Delete" || e.key === "Backspace") && state.sel) { e.preventDefault(); removeSel(); }
+        var step = e.shiftKey ? 4 : 2;
+        if (e.key === "ArrowLeft") { e.preventDefault(); nudgeSel(-step, 0); }
+        if (e.key === "ArrowRight") { e.preventDefault(); nudgeSel(step, 0); }
+        if (e.key === "ArrowUp") { e.preventDefault(); nudgeSel(0, -step); }
+        if (e.key === "ArrowDown") { e.preventDefault(); nudgeSel(0, step); }
+      });
+      window.addEventListener("resize", function () { paintAll(); });
+      if (window.ResizeObserver) new ResizeObserver(function () { fit(); requestAnimationFrame(function () { sizeInk(); placeCallouts(); }); }).observe(document.getElementById("stage"));
+
+      buildControls();
+      var saved = load();
+      if (saved) { state = saved; syncForm(); }
+      else applyTemplate("adventure", false);
+      renderStickers();
+      if (!quiz.done) document.getElementById("ask").textContent = PARTS[QUIZ[0]].ask;
+      paintAll();
+      document.fonts.ready.then(function () { paintAll(); });
+      window.bookCover = { state: function () { return state; }, savePNG: savePNG, quiz: function () { return quiz; } };
+    })();
+  </script>
+</body>
+</html>
