@@ -219,9 +219,9 @@
     }
     .front.moving .art-frame { pointer-events: auto; z-index: 9; }
     .art-frame.on { box-shadow: inset 0 0 0 2px rgba(255,253,248,.9); }
-    .art-frame .handle.del { top: 10px; right: 10px; }
-    .art-frame .handle.rot { top: 10px; left: 10px; margin-left: 0; }
-    .art-frame .handle.grow { right: 10px; bottom: 10px; }
+    .art-frame .handle.del { top: 12%; right: 14%; }
+    .art-frame .handle.rot { top: 12%; left: 14%; margin-left: 0; }
+    .art-frame .handle.grow { right: 14%; bottom: 18%; }
     .lockup .handle.del { top: 8px; right: 8px; }
     .lockup .handle.rot { top: 8px; left: 8px; margin-left: 0; }
     .lockup .handle.grow { right: 8px; bottom: 28px; }
@@ -278,7 +278,7 @@
       flex: 0 0 100%; text-align: center; font-family: Nunito, sans-serif;
       font-size: 10px; letter-spacing: .14em; font-weight: 700; padding-top: 3px;
     }
-    .hots { position: absolute; inset: 0; z-index: 8; }
+    .hots { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
     .hot { position: absolute; background: transparent; display: none; pointer-events: none; }
     .book.hit .hot { pointer-events: auto; }
     .book[data-view="wrap"] .spine { border-radius: 0; }
@@ -330,7 +330,8 @@
     .toast {
       position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
       background: #1c1917; color: #f8f1de; border-radius: 999px;
-      padding: 10px 16px; font-weight: 800; z-index: 7;
+      padding: 10px 16px; font-weight: 800; z-index: 7; pointer-events: none;
+      max-width: calc(100% - 24px); text-align: center;
     }
     .toast[hidden] { display: none !important; }
 
@@ -1131,8 +1132,8 @@
         var item = live.item;
         if (live.mode === "move") {
           if (live.kind === "art") {
-            item.x = clamp(live.ox + dx / 100, -0.4, 0.4);
-            item.y = clamp(live.oy + dy / 100, -0.4, 0.4);
+            item.x = clamp(live.ox + dx / 100, -0.22, 0.22);
+            item.y = clamp(live.oy + dy / 100, -0.22, 0.22);
             placeArtFrame();
           } else if (live.kind === "title") {
             item.x = clamp(live.ox + dx, -40, 40);
@@ -2195,6 +2196,7 @@
           remember();
           pic.filter = filter.dataset.filter;
           renderStickers();
+          paintDesign();
           saveSoon();
         }
       });

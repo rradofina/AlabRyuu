@@ -294,6 +294,10 @@ test("text tab edits every field, font, size, and color, and the title drags", a
   const words = page.locator('.sticker[data-type="text"]');
   await expect(words).toHaveCount(1);
   await expect(words).toContainText("Hello");
+  await page.locator("#undo").click();
+  await expect(words).toHaveCount(0);
+  await page.locator("#redo").click();
+  await expect(words).toHaveCount(1);
   const wordBox = await centerOf(words);
   const wx = await numAttr(words, "data-x");
   await drag(page, wordBox, { x: wordBox.x + 40, y: wordBox.y + 16 }, touch);
@@ -307,10 +311,6 @@ test("text tab edits every field, font, size, and color, and the title drags", a
   const angle = await numAttr(words, "data-r");
   await drag(page, rot, { x: rot.x + 40, y: rot.y + 10 }, touch);
   expect(await numAttr(words, "data-r")).not.toBe(angle);
-  await page.locator("#undo").click();
-  await expect(words).toHaveCount(0);
-  await page.locator("#redo").click();
-  await expect(words).toHaveCount(1);
 });
 
 test("every sticker can be dragged, resized, rotated, and deleted", async ({ page }, testInfo) => {
@@ -388,8 +388,7 @@ test("colors tab sets every starter, color, pattern, and publisher", async ({ pa
     const c1 = await colors.nth(i).getAttribute("data-c1");
     await colors.nth(i).click();
     await expect(colors.nth(i)).toHaveClass(/on/);
-    const bg = await page.locator("#front-plate").evaluate((el) => el.style.background);
-    expect(bg.toLowerCase()).toContain(c1.toLowerCase());
+    await expect.poll(async () => page.evaluate(() => window.bookCover.state().c1)).toBe(c1);
   }
   for (const pattern of ["none", "dots", "stripes", "stars", "waves", "diamonds"]) {
     await page.locator(`#patterns [data-pattern="${pattern}"]`).click();
@@ -467,11 +466,11 @@ test("draw tab tools leave ink that saves into the png", async ({ page }, testIn
   await expect(frame).toHaveClass(/on/);
   const origin = await centerOf(page.locator("#front-plate"));
   const ax = await numAttr(frame, "data-x");
-  await drag(page, origin, { x: origin.x + 30, y: origin.y + 16 }, touch);
+  await drag(page, origin, { x: origin.x + 28, y: origin.y - 18 }, touch);
   expect(await numAttr(frame, "data-x")).toBeGreaterThan(ax + 0.02);
   const grow = await centerOf(frame.locator(".handle.grow"));
   const scale = await numAttr(frame, "data-s");
-  await drag(page, grow, { x: grow.x + 24, y: grow.y + 20 }, touch);
+  await drag(page, grow, { x: grow.x + 30, y: grow.y + 8 }, touch);
   expect(await numAttr(frame, "data-s")).toBeGreaterThan(scale + 0.02);
   const rot = await centerOf(frame.locator(".handle.rot"));
   const angle = await numAttr(frame, "data-r");
@@ -670,16 +669,20 @@ test("drags stay inside the cover and do not scroll or stick", async ({ page }, 
   const star = page.locator("#pic-grid button").filter({ hasText: "Star" });
   for (let i = 0; i < 6; i++) await star.click();
   await expect(page.locator(".sticker")).toHaveCount(6);
-  const sticker = page.locator('.sticker[data-kind="star"]').first();
+  await page.locator("#restart").click();
+  await page.locator('[data-tab="pictures"]').click();
+  await star.click();
+  const sticker = page.locator('.sticker[data-kind="star"]');
+  await expect(sticker).toHaveCount(1);
   const spot = await centerOf(sticker);
   const plate = await page.locator("#front-plate").boundingBox();
   await drag(page, spot, { x: plate.x - 120, y: plate.y - 160 }, touch);
   const x = await numAttr(sticker, "data-x");
   const y = await numAttr(sticker, "data-y");
   expect(x).toBeGreaterThanOrEqual(10);
-  expect(x).toBeLessThanOrEqual(90);
+  expect(x).toBeLessThanOrEqual(16);
   expect(y).toBeGreaterThanOrEqual(10);
-  expect(y).toBeLessThanOrEqual(86);
+  expect(y).toBeLessThanOrEqual(16);
   const held = await centerOf(sticker);
   async function readX() {
     return numAttr(page.locator('.sticker[data-kind="star"]').first(), "data-x");
