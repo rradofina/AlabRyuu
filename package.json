@@ -1,0 +1,10 @@
+{
+  "name": "alabryuu",
+  "private": true,
+  "scripts": {
+    "test:book": "playwright test tests/book-cover.spec.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0"
+  }
+}
