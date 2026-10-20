@@ -49,10 +49,22 @@
     h1 {
       font-size: clamp(36px, 9vw, 52px);
       letter-spacing: -1px;
-      text-shadow: 0 5px 0 #3b1d8f;
+      text-shadow:
+        0 5px 0 #3b1d8f,
+        2px 0 0 #1e1b4b,
+        -2px 0 0 #1e1b4b,
+        0 2px 0 #1e1b4b,
+        0 -2px 0 #1e1b4b;
     }
-    .sub { opacity: .85; font-size: 18px; margin-top: 6px; }
-    .count { margin-top: 8px; font-weight: 800; font-size: 15px; opacity: .8; }
+    .sub { font-size: 18px; margin-top: 6px; }
+    .count { margin-top: 8px; font-weight: 800; font-size: 15px; }
+    .sub, .count {
+      text-shadow:
+        2px 0 0 #1e1b4b,
+        -2px 0 0 #1e1b4b,
+        0 2px 0 #1e1b4b,
+        0 -2px 0 #1e1b4b;
+    }
     .find, .finder, .none { width: min(100%, 520px); margin-left: auto; margin-right: auto; }
     .find {
       display: flex; align-items: center; justify-content: center; gap: 14px;
@@ -84,7 +96,7 @@
       display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px;
       margin-top: 14px; padding: 8px 14px; border-radius: 999px;
       max-width: 100%;
-      background: rgba(255,255,255,.14); text-decoration: none; color: #fff;
+      background: rgba(22,18,74,.9); text-decoration: none; color: #fff;
       font-weight: 800; font-size: 16px;
     }
     .avatar-chip .dot {
@@ -96,7 +108,7 @@
       margin: 18px auto 22px; width: 100%; max-width: 720px;
     }
     .filters button {
-      background: rgba(255,255,255,.12); color: #fff; font-weight: 800;
+      background: rgba(22,18,74,.82); color: #fff; font-weight: 800;
       padding: 8px 16px; border-radius: 999px; font-size: 15px;
     }
     .filters button.on { background: #ffd166; color: #3b2100; }
@@ -179,45 +191,45 @@
     .grove {
       position: fixed;
       inset: 0;
-      z-index: 0;
+      z-index: -1;
       overflow: hidden;
       pointer-events: none;
     }
     header, .filters, .none, .grid { position: relative; z-index: 1; }
-    .vine, .leaf { pointer-events: none; filter: drop-shadow(3px 4px 0 #052e16); }
-    .vine { position: absolute; top: 0; }
+    .vine, .leaf { pointer-events: none; }
+    .vine { position: absolute; top: 0; display: block; overflow: hidden; }
     .vine-l, .vine-r {
-      width: min(420px, 46vw);
-      height: min(620px, 72vw);
+      width: min(210px, 18vw);
+      height: min(520px, 68vh);
     }
     .vine-l { left: 0; }
     .vine-r { right: 0; transform: scaleX(-1); }
     .vine-top {
       left: 0;
       width: 100%;
-      height: auto;
+      height: 72px;
     }
     .leaf {
       position: absolute;
       top: 0;
       left: var(--x);
       width: var(--s);
-      height: var(--s);
+      height: calc(var(--s) * 1.28);
       opacity: 1;
       animation: leaf-drift var(--d) linear var(--delay) infinite;
     }
-    .leaf-shape { display: block; width: 100%; height: 100%; }
+    .leaf-shape { display: block; width: 100%; height: 100%; overflow: hidden; }
     .leaf-shape.twirl { animation: leaf-twirl 0.8s ease; }
     @keyframes leaf-drift {
-      0% { transform: translate3d(0, -8vh, 0) rotate(var(--rot)); }
-      100% { transform: translate3d(var(--sway), 112vh, 0) rotate(calc(var(--rot) + 200deg)); }
+      0% { transform: translate3d(0, -12vh, 0) rotate(var(--rot)); }
+      100% { transform: translate3d(var(--sway), 108vh, 0) rotate(calc(var(--rot) + 80deg)); }
     }
     @keyframes leaf-twirl {
       to { transform: rotate(360deg); }
     }
     @media (max-width: 520px) {
-      .vine-l, .vine-r { width: min(230px, 58vw); height: min(360px, 86vw); }
-      .vine-top { height: auto; }
+      .vine-l, .vine-r { width: min(72px, 18vw); height: min(240px, 42vh); }
+      .vine-top { height: 48px; }
     }
     @media (prefers-reduced-motion: reduce) {
       .leaf {
@@ -232,64 +244,147 @@
 </head>
 <body>
   <div class="grove" aria-hidden="true">
-    <svg class="vine vine-l" viewBox="0 0 240 460">
-      <path d="M48 0 C 70 70, 160 48, 108 140 S 18 210, 86 290 S 170 360, 72 452" fill="none" stroke="#14532d" stroke-width="22" stroke-linecap="round"/>
-      <path d="M48 0 C 70 70, 160 48, 108 140 S 18 210, 86 290 S 170 360, 72 452" fill="none" stroke="#4ade80" stroke-width="12" stroke-linecap="round"/>
-      <g stroke="#14532d" stroke-width="4" stroke-linejoin="round">
-        <path fill="#86efac" d="M70 28c40 6 72 40 54 84-32 8-64-16-86-2 8-40 14-66 32-82z"/>
-        <path fill="#4ade80" d="M128 78c44 14 60 62 34 96-36 4-62-30-84-6 10-42 20-70 50-90z"/>
-        <path fill="#bbf7d0" d="M36 150c46 4 78 42 58 88-34 6-66-22-88 0 6-42 12-70 30-88z"/>
-        <path fill="#22c55e" d="M150 168c42 18 54 70 24 100-34 2-58-34-78-8 12-42 22-70 54-92z"/>
-        <path fill="#86efac" d="M40 250c48 8 80 48 56 94-36 6-70-20-92 2 8-44 16-74 36-96z"/>
-        <path fill="#4ade80" d="M132 300c46 12 64 66 30 102-38 4-66-28-88-4 12-44 24-76 58-98z"/>
-        <path fill="#bbf7d0" d="M28 360c42 6 74 44 50 90-32 4-60-24-80 0 8-40 14-68 30-90z"/>
-      </g>
+    <svg class="vine vine-l" viewBox="0 0 150 520">
+      <path d="M30 0C44 78 18 150 40 230S16 340 36 430 22 490 32 520" fill="none" stroke="#14532d" stroke-width="12" stroke-linecap="round"/>
+      <path d="M30 0C44 78 18 150 40 230S16 340 36 430 22 490 32 520" fill="none" stroke="#4ade80" stroke-width="5" stroke-linecap="round"/>
+      <g transform="translate(4,16) rotate(-58 32 44) scale(0.82)"><path fill="#22c55e" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(18,96) rotate(-36 32 44) scale(0.74)"><path fill="#4ade80" stroke="#14532d" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#166534" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#166534" stroke-width="1.3" stroke-linecap="round"/></g><g transform="translate(2,176) rotate(-70 32 44) scale(0.8)"><path fill="#16a34a" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(16,258) rotate(-42 32 44) scale(0.72)"><path fill="#f59e0b" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 2 37 14 50 8 45 20 60 22 46 30 56 44 40 38 42 56 32 46 22 56 24 38 8 44 18 30 4 22 19 20 14 8 27 14Z"/>
+      <path d="M32 46V82" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 18V44" fill="none" stroke="#9a3412" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M32 22 22 16M32 22 42 16M32 30 18 28M32 30 46 28M32 38 22 42M32 38 42 42" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></g><g transform="translate(0,338) rotate(-64 32 44) scale(0.78)"><path fill="#65a30d" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(14,418) rotate(-28 32 44) scale(0.7)"><path fill="#ea580c" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#9a3412" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></g>
     </svg>
-    <svg class="vine vine-r" viewBox="0 0 240 460">
-      <path d="M48 0 C 70 70, 160 48, 108 140 S 18 210, 86 290 S 170 360, 72 452" fill="none" stroke="#14532d" stroke-width="22" stroke-linecap="round"/>
-      <path d="M48 0 C 70 70, 160 48, 108 140 S 18 210, 86 290 S 170 360, 72 452" fill="none" stroke="#4ade80" stroke-width="12" stroke-linecap="round"/>
-      <g stroke="#14532d" stroke-width="4" stroke-linejoin="round">
-        <path fill="#86efac" d="M70 28c40 6 72 40 54 84-32 8-64-16-86-2 8-40 14-66 32-82z"/>
-        <path fill="#4ade80" d="M128 78c44 14 60 62 34 96-36 4-62-30-84-6 10-42 20-70 50-90z"/>
-        <path fill="#bbf7d0" d="M36 150c46 4 78 42 58 88-34 6-66-22-88 0 6-42 12-70 30-88z"/>
-        <path fill="#22c55e" d="M150 168c42 18 54 70 24 100-34 2-58-34-78-8 12-42 22-70 54-92z"/>
-        <path fill="#86efac" d="M40 250c48 8 80 48 56 94-36 6-70-20-92 2 8-44 16-74 36-96z"/>
-        <path fill="#4ade80" d="M132 300c46 12 64 66 30 102-38 4-66-28-88-4 12-44 24-76 58-98z"/>
-        <path fill="#bbf7d0" d="M28 360c42 6 74 44 50 90-32 4-60-24-80 0 8-40 14-68 30-90z"/>
-      </g>
+    <svg class="vine vine-r" viewBox="0 0 150 520">
+      <path d="M30 0C44 78 18 150 40 230S16 340 36 430 22 490 32 520" fill="none" stroke="#14532d" stroke-width="12" stroke-linecap="round"/>
+      <path d="M30 0C44 78 18 150 40 230S16 340 36 430 22 490 32 520" fill="none" stroke="#4ade80" stroke-width="5" stroke-linecap="round"/>
+      <g transform="translate(4,16) rotate(-58 32 44) scale(0.82)"><path fill="#22c55e" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(18,96) rotate(-36 32 44) scale(0.74)"><path fill="#4ade80" stroke="#14532d" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#166534" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#166534" stroke-width="1.3" stroke-linecap="round"/></g><g transform="translate(2,176) rotate(-70 32 44) scale(0.8)"><path fill="#16a34a" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(16,258) rotate(-42 32 44) scale(0.72)"><path fill="#f59e0b" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 2 37 14 50 8 45 20 60 22 46 30 56 44 40 38 42 56 32 46 22 56 24 38 8 44 18 30 4 22 19 20 14 8 27 14Z"/>
+      <path d="M32 46V82" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 18V44" fill="none" stroke="#9a3412" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M32 22 22 16M32 22 42 16M32 30 18 28M32 30 46 28M32 38 22 42M32 38 42 42" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></g><g transform="translate(0,338) rotate(-64 32 44) scale(0.78)"><path fill="#65a30d" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(14,418) rotate(-28 32 44) scale(0.7)"><path fill="#ea580c" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#9a3412" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></g>
     </svg>
-    <svg class="vine vine-top" viewBox="0 0 1200 150">
-      <path d="M0 36 C 140 8, 260 64, 400 28 S 680 4, 820 36 S 1040 18, 1200 32" fill="none" stroke="#14532d" stroke-width="18" stroke-linecap="round"/>
-      <path d="M0 36 C 140 8, 260 64, 400 28 S 680 4, 820 36 S 1040 18, 1200 32" fill="none" stroke="#86efac" stroke-width="9" stroke-linecap="round"/>
-      <g stroke="#14532d" stroke-width="4" stroke-linejoin="round">
-        <path fill="#4ade80" d="M70 18c34 4 58 32 42 66-26 6-50-14-66 0 4-32 10-52 24-66z"/>
-        <path fill="#86efac" d="M190 8c36 8 60 36 40 70-28 4-52-18-70-2 6-32 14-52 30-68z"/>
-        <path fill="#22c55e" d="M320 22c38 2 62 34 44 68-28 6-54-12-72 2 6-32 12-54 28-70z"/>
-        <path fill="#bbf7d0" d="M450 6c36 8 58 36 38 70-26 4-50-16-68 0 6-32 14-54 30-70z"/>
-        <path fill="#4ade80" d="M580 20c36 4 60 34 42 68-28 6-52-14-70 0 6-32 12-52 28-68z"/>
-        <path fill="#86efac" d="M710 8c38 8 62 36 40 72-28 4-54-16-72 0 8-34 14-56 32-72z"/>
-        <path fill="#22c55e" d="M840 18c36 4 60 34 42 66-26 6-52-12-68 2 4-32 10-52 26-68z"/>
-        <path fill="#bbf7d0" d="M970 6c36 10 58 36 36 70-26 4-50-18-68-2 8-32 14-52 32-68z"/>
-        <path fill="#4ade80" d="M1090 16c34 6 54 32 36 64-24 4-46-14-62 0 6-30 12-48 26-64z"/>
-      </g>
+    <svg class="vine vine-top" viewBox="0 0 1200 110">
+      <path d="M0 18C150 6 280 30 430 16S700 4 860 20 1080 8 1200 16" fill="none" stroke="#14532d" stroke-width="10" stroke-linecap="round"/>
+      <path d="M0 18C150 6 280 30 430 16S700 4 860 20 1080 8 1200 16" fill="none" stroke="#86efac" stroke-width="4" stroke-linecap="round"/>
+      <g transform="translate(30,8) rotate(168 32 44) scale(0.62)"><path fill="#22c55e" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(170,8) rotate(188 32 44) scale(0.62)"><path fill="#f59e0b" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 2 37 14 50 8 45 20 60 22 46 30 56 44 40 38 42 56 32 46 22 56 24 38 8 44 18 30 4 22 19 20 14 8 27 14Z"/>
+      <path d="M32 46V82" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 18V44" fill="none" stroke="#9a3412" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M32 22 22 16M32 22 42 16M32 30 18 28M32 30 46 28M32 38 22 42M32 38 42 42" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></g><g transform="translate(310,8) rotate(172 32 44) scale(0.62)"><path fill="#4ade80" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(450,8) rotate(176 32 44) scale(0.62)"><path fill="#65a30d" stroke="#14532d" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#166534" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#166534" stroke-width="1.3" stroke-linecap="round"/></g><g transform="translate(590,8) rotate(170 32 44) scale(0.62)"><path fill="#16a34a" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(730,8) rotate(186 32 44) scale(0.62)"><path fill="#ea580c" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 2 37 14 50 8 45 20 60 22 46 30 56 44 40 38 42 56 32 46 22 56 24 38 8 44 18 30 4 22 19 20 14 8 27 14Z"/>
+      <path d="M32 46V82" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 18V44" fill="none" stroke="#9a3412" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M32 22 22 16M32 22 42 16M32 30 18 28M32 30 46 28M32 38 22 42M32 38 42 42" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></g><g transform="translate(870,8) rotate(174 32 44) scale(0.62)"><path fill="#86efac" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(1010,8) rotate(180 32 44) scale(0.62)"><path fill="#eab308" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#9a3412" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></g>
     </svg>
-    <span class="leaf" style="--x:3%; --s:78px; --d:38s; --delay:-6s; --sway:28px; --park:10%; --rot:-20deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#4ade80" stroke="#14532d" stroke-width="3" d="M32 4c18 10 30 26 22 46-16-2-26-16-34 6C8 34 14 12 32 4z"/><path d="M30 16c-2 12-8 22-16 32" fill="none" stroke="#14532d" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:14%; --s:64px; --d:42s; --delay:-18s; --sway:-36px; --park:22%; --rot:18deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#fbbf24" stroke="#92400e" stroke-width="3" d="M32 6c16 8 28 24 20 44-14 0-24-14-32 6C10 34 16 12 32 6z"/><path d="M30 16c-2 10-6 20-14 30" fill="none" stroke="#92400e" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:86%; --s:88px; --d:36s; --delay:-10s; --sway:24px; --park:8%; --rot:12deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#86efac" stroke="#166534" stroke-width="3" d="M34 4c16 12 26 26 16 44-14-4-22-12-30 4C8 30 16 10 34 4z"/><path d="M32 14c-2 12-6 22-14 32" fill="none" stroke="#166534" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:74%; --s:70px; --d:44s; --delay:-28s; --sway:-30px; --park:30%; --rot:-28deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#fb923c" stroke="#9a3412" stroke-width="3" d="M32 4c16 10 28 22 20 44-12-2-22-12-30 6C8 32 14 10 32 4z"/><path d="M30 14c-2 12-6 20-14 30" fill="none" stroke="#9a3412" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:28%; --s:60px; --d:40s; --delay:-14s; --sway:20px; --park:16%; --rot:8deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#22c55e" stroke="#14532d" stroke-width="3" d="M32 6c14 8 26 22 18 42-12-2-20-12-26 6C12 32 16 12 32 6z"/><path d="M30 16c-1 10-5 18-12 28" fill="none" stroke="#14532d" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:58%; --s:92px; --d:46s; --delay:-22s; --sway:-22px; --park:18%; --rot:36deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#f97316" stroke="#7c2d12" stroke-width="3" d="M32 4c18 10 28 24 18 46-14 0-24-14-32 6C8 32 14 10 32 4z"/><path d="M30 14c-2 12-6 20-16 32" fill="none" stroke="#7c2d12" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:42%; --s:56px; --d:34s; --delay:-4s; --sway:18px; --park:36%; --rot:-8deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#bbf7d0" stroke="#166534" stroke-width="3" d="M32 6c14 8 24 20 16 40-10-2-18-10-24 6C12 32 16 12 32 6z"/><path d="M30 16c-1 8-4 16-10 26" fill="none" stroke="#166534" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:93%; --s:66px; --d:40s; --delay:-32s; --sway:-18px; --park:26%; --rot:22deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#fde047" stroke="#a16207" stroke-width="3" d="M32 4c16 10 28 22 18 44-12-2-22-12-30 6C8 30 14 10 32 4z"/><path d="M30 14c-2 10-6 18-14 28" fill="none" stroke="#a16207" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:8%; --s:84px; --d:48s; --delay:-36s; --sway:32px; --park:40%; --rot:-14deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#4ade80" stroke="#14532d" stroke-width="3" d="M32 4c18 12 28 24 18 46-14-4-24-12-32 4C6 32 14 10 32 4z"/><path d="M30 16c-2 12-8 20-16 30" fill="none" stroke="#14532d" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:66%; --s:74px; --d:38s; --delay:-16s; --sway:-26px; --park:12%; --rot:16deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#86efac" stroke="#166534" stroke-width="3" d="M32 6c16 8 28 22 18 42-12-2-22-12-30 6C10 32 16 12 32 6z"/><path d="M30 16c-2 10-6 18-12 28" fill="none" stroke="#166534" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:20%; --s:68px; --d:44s; --delay:-26s; --sway:16px; --park:28%; --rot:-32deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#ea580c" stroke="#9a3412" stroke-width="3" d="M32 4c16 10 26 24 18 44-12 0-22-14-30 6C8 32 14 10 32 4z"/><path d="M30 14c-2 12-6 20-14 30" fill="none" stroke="#9a3412" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:50%; --s:80px; --d:42s; --delay:-8s; --sway:-14px; --park:6%; --rot:6deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#22c55e" stroke="#14532d" stroke-width="3" d="M32 4c18 10 30 24 20 46-14-2-24-14-32 6C8 34 14 12 32 4z"/><path d="M30 16c-2 12-8 22-16 32" fill="none" stroke="#14532d" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:34%; --s:72px; --d:36s; --delay:-30s; --sway:22px; --park:34%; --rot:28deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#fbbf24" stroke="#92400e" stroke-width="3" d="M32 6c16 8 26 22 16 42-12-2-20-12-28 6C10 32 16 12 32 6z"/><path d="M30 16c-1 10-5 18-12 28" fill="none" stroke="#92400e" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:80%; --s:58px; --d:40s; --delay:-12s; --sway:-20px; --park:20%; --rot:-6deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#4ade80" stroke="#14532d" stroke-width="3" d="M32 4c14 10 26 22 18 42-12-2-20-12-26 6C10 32 16 10 32 4z"/><path d="M30 16c-2 10-6 18-12 26" fill="none" stroke="#14532d" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:46%; --s:96px; --d:50s; --delay:-40s; --sway:12px; --park:24%; --rot:-18deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#fb923c" stroke="#9a3412" stroke-width="3" d="M32 4c18 12 28 24 16 46-14-4-22-12-30 4C8 32 16 10 32 4z"/><path d="M30 16c-2 12-6 22-14 32" fill="none" stroke="#9a3412" stroke-width="2.4"/></svg></span>
-    <span class="leaf" style="--x:12%; --s:76px; --d:46s; --delay:-20s; --sway:-28px; --park:14%; --rot:40deg"><svg class="leaf-shape" viewBox="0 0 64 64"><path fill="#86efac" stroke="#166534" stroke-width="3" d="M32 6c16 8 28 22 18 42-12 0-22-12-30 6C10 34 16 12 32 6z"/><path d="M30 16c-2 10-6 20-14 30" fill="none" stroke="#166534" stroke-width="2.4"/></svg></span>
+    <span class="leaf" style="--x:4%; --s:52px; --d:36s; --delay:-6s; --sway:22px; --park:12%; --rot:-18deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#22c55e" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:18%; --s:46px; --d:42s; --delay:-18s; --sway:-26px; --park:28%; --rot:16deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#eab308" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#9a3412" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:88%; --s:58px; --d:34s; --delay:-10s; --sway:18px; --park:8%; --rot:12deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#4ade80" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:76%; --s:50px; --d:44s; --delay:-28s; --sway:-20px; --park:34%; --rot:-24deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#f59e0b" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 2 37 14 50 8 45 20 60 22 46 30 56 44 40 38 42 56 32 46 22 56 24 38 8 44 18 30 4 22 19 20 14 8 27 14Z"/>
+      <path d="M32 46V82" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 18V44" fill="none" stroke="#9a3412" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M32 22 22 16M32 22 42 16M32 30 18 28M32 30 46 28M32 38 22 42M32 38 42 42" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:30%; --s:42px; --d:40s; --delay:-14s; --sway:14px; --park:18%; --rot:8deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#16a34a" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:62%; --s:56px; --d:46s; --delay:-22s; --sway:-16px; --park:22%; --rot:30deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#ea580c" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 2 37 14 50 8 45 20 60 22 46 30 56 44 40 38 42 56 32 46 22 56 24 38 8 44 18 30 4 22 19 20 14 8 27 14Z"/>
+      <path d="M32 46V82" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 18V44" fill="none" stroke="#9a3412" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M32 22 22 16M32 22 42 16M32 30 18 28M32 30 46 28M32 38 22 42M32 38 42 42" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:46%; --s:40px; --d:32s; --delay:-4s; --sway:12px; --park:40%; --rot:-10deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#65a30d" stroke="#14532d" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#166534" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#166534" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:94%; --s:44px; --d:40s; --delay:-32s; --sway:-14px; --park:26%; --rot:20deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#86efac" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:10%; --s:54px; --d:48s; --delay:-36s; --sway:24px; --park:44%; --rot:-16deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#22c55e" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:70%; --s:48px; --d:38s; --delay:-16s; --sway:-18px; --park:14%; --rot:14deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#4ade80" stroke="#14532d" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#166534" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#166534" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:24%; --s:44px; --d:44s; --delay:-26s; --sway:10px; --park:32%; --rot:-28deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#f97316" stroke="#7c2d12" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#9a3412" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#9a3412" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:54%; --s:50px; --d:42s; --delay:-8s; --sway:-12px; --park:6%; --rot:6deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#16a34a" stroke="#14532d" stroke-width="2.2" stroke-linejoin="round" d="M32 2 37 14 50 8 45 20 60 22 46 30 56 44 40 38 42 56 32 46 22 56 24 38 8 44 18 30 4 22 19 20 14 8 27 14Z"/>
+      <path d="M32 46V82" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 18V44" fill="none" stroke="#166534" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M32 22 22 16M32 22 42 16M32 30 18 28M32 30 46 28M32 38 22 42M32 38 42 42" fill="none" stroke="#166534" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:38%; --s:46px; --d:36s; --delay:-30s; --sway:16px; --park:36%; --rot:22deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#eab308" stroke="#7c2d12" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#9a3412" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#9a3412" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:82%; --s:40px; --d:40s; --delay:-12s; --sway:-16px; --park:20%; --rot:-8deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#65a30d" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:50%; --s:58px; --d:50s; --delay:-40s; --sway:8px; --park:24%; --rot:-20deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#fb923c" stroke="#7c2d12" stroke-width="2.2" stroke-linejoin="round" d="M32 10C39 8 44 14 42 20 51 16 60 24 54 32 63 36 61 48 52 50 56 59 48 67 40 65 38 73 34 77 32 78 30 77 26 73 24 65 16 67 8 59 12 50 3 48 1 36 11 32 5 24 14 16 22 20 20 14 25 10 32 10Z"/>
+      <path d="M32 78V86" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 22V70" fill="none" stroke="#9a3412" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M32 32 22 28M32 32 42 28M32 46 18 44M32 46 46 44M32 58 24 64M32 58 40 64" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+    <span class="leaf" style="--x:14%; --s:48px; --d:46s; --delay:-20s; --sway:-22px; --park:16%; --rot:34deg"><svg class="leaf-shape" viewBox="0 0 64 88"><path fill="#4ade80" stroke="#14532d" stroke-width="2.4" stroke-linejoin="round" d="M32 5C47 16 58 32 54 52 50 66 41 74 32 76 23 74 14 66 10 52 6 32 17 16 32 5Z"/>
+      <path d="M32 76V84" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 16V70" fill="none" stroke="#166534" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M32 28 22 36M32 28 42 36M32 42 20 52M32 42 44 52M32 56 24 64M32 56 40 64" fill="none" stroke="#166534" stroke-width="1.4" stroke-linecap="round"/></svg></span>
   </div>
+
   <header>
     <div class="logo">🦖✨</div>
     <h1>AlabRyuu</h1>
