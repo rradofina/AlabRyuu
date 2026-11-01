@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      document.documentElement.style.background = "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Melon World</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <script src="../kid.js"></script>
+  <style>
+    html, body { background: #7dd3fc; }
+    #c { position: fixed; inset: 0; z-index: 1; touch-action: none; }
+    #hud b { background: #1e1b4b; }
+    .toast {
+      position: fixed; left: 50%; top: 64px; transform: translateX(-50%);
+      z-index: 46; background: #ffd166; color: #3b2100; font-weight: 900;
+      font-size: 22px; padding: 12px 18px; border-radius: 18px;
+      box-shadow: 0 6px 0 #c98a12; pointer-events: none; text-align: center;
+      max-width: min(90%, 420px);
+    }
+    .toast.off { display: none; }
+    .palette {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      background: #1e1b4b; color: #fff;
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      display: flex; flex-direction: column; gap: 8px;
+      box-shadow: 0 -8px 0 rgba(0,0,0,.18);
+    }
+    .row {
+      display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden;
+      touch-action: pan-x; padding-bottom: 2px;
+    }
+    .row button {
+      flex: 0 0 auto; min-height: 52px; min-width: 72px; padding: 8px 12px;
+      border-radius: 16px; background: #312e81; color: #fff; font-weight: 800; font-size: 16px;
+    }
+    .row button.on { background: #ffd166; color: #3b2100; }
+    .items button {
+      min-width: 84px; min-height: 92px; padding: 6px 8px 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    }
+    .items canvas { width: 56px; height: 56px; display: block; }
+    .items span { font-size: 13px; font-weight: 800; line-height: 1; }
+    .tutor {
+      position: fixed; left: 50%; top: 62px; transform: translateX(-50%);
+      z-index: 60; width: min(460px, calc(100% - 20px));
+      background: #fff; color: #1e1b4b; border-radius: 28px; padding: 16px 16px 14px;
+      text-align: center; box-shadow: 0 8px 0 rgba(0,0,0,.22);
+    }
+    .tutor.off { display: none; }
+    .tutor p { font-size: clamp(24px, 5vw, 32px); font-weight: 900; line-height: 1.2; margin-bottom: 12px; }
+    .tutor .steps { font-size: 16px; font-weight: 800; opacity: .7; margin-bottom: 8px; }
+    .tutor .row { justify-content: center; overflow: visible; }
+    .tutor button { min-height: 56px; min-width: 120px; background: #ffd166; color: #3b2100; font-size: 20px; }
+    .cover .hero canvas { width: 180px; height: 140px; }
+  </style>
+</head>
+<body>
+  <a class="home" id="home" href="../index.html">← Home</a>
+  <div id="hud"><b id="count">0 / 40</b></div>
+  <canvas id="c"></canvas>
+  <div id="toast" class="toast off" role="status"></div>
+  <div id="tutor" class="tutor off">
+    <div class="steps" id="tutor-n">Step 1 of 3</div>
+    <p id="tutor-p">Tap a picture in the tray.</p>
+    <div class="row">
+      <button type="button" id="tutor-next">Next</button>
+      <button type="button" id="tutor-skip">I know</button>
+    </div>
+  </div>
+  <div class="palette" id="palette">
+    <div class="row" id="tools"></div>
+    <div class="row" id="cats"></div>
+    <div class="row items" id="items"></div>
+  </div>
+  <div class="cover" id="title">
+    <div class="hero"><canvas id="hero-art" width="360" height="280"></canvas></div>
+    <h1>Melon World</h1>
+    <p>Drop toys. Throw them. Watch them bounce!</p>
+    <button class="play" id="go" type="button">Play</button>
+  </div>
+  <script src="../vendor/matter.min.js"></script>
+  <script src="melon-world.js"></script>
+</body>
+</html>
