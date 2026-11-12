@@ -181,35 +181,24 @@ const leafTex = canvasTex(128, 128, function (g, w, h) {
   }
 });
 
-const skin = new THREE.MeshPhysicalMaterial({
-  color: 0x7ed04a,
-  roughness: 0.38,
+const skin = new THREE.MeshStandardMaterial({
+  color: 0x5cb83a,
+  roughness: 0.62,
   metalness: 0,
-  clearcoat: 0.28,
-  clearcoatRoughness: 0.42,
-  sheen: 0.45,
-  sheenColor: new THREE.Color(0xd9f99d),
-  envMapIntensity: 0.7
+  envMapIntensity: 0.18
 });
-const bellyMat = new THREE.MeshPhysicalMaterial({
-  color: 0xf6e7b0,
-  roughness: 0.5,
+const bellyMat = new THREE.MeshStandardMaterial({
+  color: 0xf3e27a,
+  roughness: 0.58,
   metalness: 0,
-  clearcoat: 0.12,
-  sheen: 0.25,
-  sheenColor: new THREE.Color(0xfff7d6),
-  envMapIntensity: 0.45
+  envMapIntensity: 0.12
 });
-const hornMat = new THREE.MeshPhysicalMaterial({
-  color: 0xf4e4b8,
-  roughness: 0.32,
-  metalness: 0.02,
-  clearcoat: 0.4,
-  envMapIntensity: 0.5
-});
-const eyeWhite = new THREE.MeshPhysicalMaterial({ color: 0xfffdf8, roughness: 0.15, clearcoat: 0.6, envMapIntensity: 0.4 });
-const pupilMat = new THREE.MeshStandardMaterial({ color: 0x1a120c, roughness: 0.35 });
-const barkMat = new THREE.MeshStandardMaterial({ map: woodTex, color: 0xffffff, roughness: 0.86, metalness: 0.02 });
+const hornMat = new THREE.MeshStandardMaterial({ color: 0xf0b15a, roughness: 0.45, metalness: 0 });
+const spikeMat = new THREE.MeshStandardMaterial({ color: 0x2f8f86, roughness: 0.5, metalness: 0 });
+const eyeWhite = new THREE.MeshStandardMaterial({ color: 0xfffdf8, roughness: 0.28, metalness: 0 });
+const pupilMat = new THREE.MeshStandardMaterial({ color: 0x6a3a16, roughness: 0.35 });
+const barkMat = new THREE.MeshStandardMaterial({ color: 0xa56b3c, roughness: 0.74, metalness: 0 });
+const woodBand = new THREE.MeshStandardMaterial({ color: 0x7a4b28, roughness: 0.7, metalness: 0 });
 const leafMat = new THREE.MeshStandardMaterial({
   map: leafTex,
   color: 0xffffff,
@@ -219,8 +208,8 @@ const leafMat = new THREE.MeshStandardMaterial({
 });
 const rockMat = new THREE.MeshStandardMaterial({ color: 0x8b8178, roughness: 0.92, metalness: 0.02 });
 const darkRock = new THREE.MeshStandardMaterial({ color: 0x3a3432, roughness: 0.88 });
-const petalMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.45, metalness: 0 });
-const flowerCenter = new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.4 });
+const petalMat = new THREE.MeshStandardMaterial({ color: 0xff4fa0, roughness: 0.38, metalness: 0, emissive: 0x551033, emissiveIntensity: 0.18 });
+const flowerCenter = new THREE.MeshStandardMaterial({ color: 0xffe14a, roughness: 0.35, emissive: 0x665500, emissiveIntensity: 0.15 });
 const stemMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.7 });
 const sandMat = new THREE.MeshStandardMaterial({ color: 0xe7d3a1, roughness: 0.9 });
 
@@ -253,22 +242,19 @@ function bendLeaf() {
 }
 const frondGeo = bendLeaf();
 
-function rocky(detail, scaleAmp) {
-  const g = new THREE.IcosahedronGeometry(1, detail);
+function smoothBoulder() {
+  const g = new THREE.SphereGeometry(1, phone ? 28 : 40, phone ? 20 : 30);
   const p = g.attributes.position;
   for (let i = 0; i < p.count; i++) {
-    const nx = p.getX(i);
-    const ny = p.getY(i);
-    const nz = p.getZ(i);
-    const n = fbm(nx * 2.2 + 4, nz * 2.2 + ny * 2);
-    const s = 1 + (n - 0.45) * scaleAmp;
-    p.setXYZ(i, nx * s, ny * s, nz * s);
+    const n = fbm(p.getX(i) * 1.15 + 3.2, p.getZ(i) * 1.15 + p.getY(i) * 0.8);
+    const s = 1 + (n - 0.5) * 0.1;
+    p.setXYZ(i, p.getX(i) * s, p.getY(i) * s * 0.78, p.getZ(i) * s);
   }
   g.computeVertexNormals();
   return g;
 }
-const decoRockGeo = rocky(phone ? 2 : 3, 0.35);
-const playRockGeo = rocky(phone ? 3 : 4, 0.28);
+const decoRockGeo = smoothBoulder();
+const playRockGeo = smoothBoulder();
 
 const terrainGeo = new THREE.PlaneGeometry(96, 64, TERRAIN, Math.max(64, Math.floor(TERRAIN * 0.7)));
 terrainGeo.rotateX(-Math.PI / 2);
@@ -386,33 +372,36 @@ scene.add(volcano);
 
 function hut() {
   const g = new THREE.Group();
-  const postGeo = new THREE.CylinderGeometry(0.09, 0.11, 1.7, 12);
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 + 0.4;
-    const post = new THREE.Mesh(postGeo, barkMat);
-    post.position.set(Math.cos(a) * 1.15, 0.85, Math.sin(a) * 1.15);
-    post.castShadow = true;
-    g.add(post);
-  }
-  const floor = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.35, 0.16, 24), barkMat);
-  floor.position.y = 0.08;
-  floor.receiveShadow = true;
-  g.add(floor);
-  const leaf = frondGeo;
-  for (let layer = 0; layer < 2; layer++) {
-    const n = layer === 0 ? 10 : 8;
-    const y = 1.7 + layer * 0.35;
-    const rad = 1.5 - layer * 0.35;
-    for (let i = 0; i < n; i++) {
-      const m = new THREE.Mesh(leaf, leafMat);
-      const a = (i / n) * Math.PI * 2;
-      m.position.set(Math.cos(a) * rad * 0.45, y, Math.sin(a) * rad * 0.45);
-      m.lookAt(Math.cos(a) * rad, y - 0.2, Math.sin(a) * rad);
-      m.scale.setScalar(0.85 - layer * 0.1);
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.22, 1.45, 28), barkMat);
+  wall.position.y = 0.78;
+  wall.castShadow = true;
+  wall.receiveShadow = true;
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(1.26, 1.26, 0.12, 28), woodBand);
+  band.position.y = 1.2;
+  const door = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.72, 0.1), darkRock);
+  door.position.set(0, 0.42, 1.18);
+  const win = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.08, 16), flowerCenter);
+  win.rotation.x = Math.PI / 2;
+  win.position.set(0.15, 1.05, 1.2);
+  g.add(wall, band, door, win);
+  const shingle = new THREE.PlaneGeometry(0.7, 0.95, 2, 4);
+  for (let layer = 0; layer < 4; layer++) {
+    const count = 14 - layer * 2;
+    const y = 1.55 + layer * 0.32;
+    const rad = 1.45 - layer * 0.28;
+    for (let i = 0; i < count; i++) {
+      const m = new THREE.Mesh(shingle, leafMat);
+      const a = (i / count) * Math.PI * 2 + layer * 0.18;
+      m.position.set(Math.cos(a) * rad * 0.72, y, Math.sin(a) * rad * 0.72);
+      m.rotation.y = -a + Math.PI / 2;
+      m.rotation.x = -1.05;
       m.castShadow = !phone;
       g.add(m);
     }
   }
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.45, 10), leafMat);
+  cap.position.y = 2.85;
+  g.add(cap);
   return g;
 }
 const hutMesh = hut();
@@ -421,7 +410,7 @@ scene.add(hutMesh);
 
 function tower() {
   const g = new THREE.Group();
-  const log = new THREE.CylinderGeometry(0.1, 0.13, 4.4, 12);
+  const log = new THREE.CylinderGeometry(0.11, 0.14, 4.4, 16);
   const corners = [[-0.7, -0.7], [0.7, -0.7], [0.7, 0.7], [-0.7, 0.7]];
   corners.forEach(function (c) {
     const m = new THREE.Mesh(log, barkMat);
@@ -448,26 +437,48 @@ function tower() {
     rung.position.set(0.7, 0.4 + i * 0.42, 0);
     g.add(rung);
   }
-  const shade = new THREE.Mesh(frondGeo, leafMat);
-  shade.position.y = 4.35;
-  shade.scale.setScalar(1.1);
-  shade.rotation.x = 0.4;
-  g.add(shade);
+  const shingle = new THREE.PlaneGeometry(0.55, 0.8, 2, 3);
+  for (let i = 0; i < 8; i++) {
+    const m = new THREE.Mesh(shingle, leafMat);
+    const a = (i / 8) * Math.PI * 2;
+    m.position.set(Math.cos(a) * 0.45, 4.15, Math.sin(a) * 0.45);
+    m.rotation.y = -a + Math.PI / 2;
+    m.rotation.x = -0.85;
+    g.add(m);
+  }
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.35, 8), leafMat);
+  cap.position.y = 4.45;
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.7, 8), woodBand);
+  pole.position.set(0.7, 4.55, 0);
+  const flag = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.03), new THREE.MeshStandardMaterial({ color: 0xe23b3b }));
+  flag.position.set(0.95, 4.75, 0);
+  g.add(cap, pole, flag);
   return g;
 }
 const towerMesh = tower();
 towerMesh.position.set(1.2, heightAt(1.2, -5.4), -5.4);
 scene.add(towerMesh);
 
-const palmTrunkGeo = new THREE.CylinderGeometry(0.16, 0.28, 3.5, SEG, 8);
-{
-  const p = palmTrunkGeo.attributes.position;
+function curvedTrunk() {
+  const pts = [];
+  const rings = 18;
+  for (let i = 0; i <= rings; i++) {
+    const t = i / rings;
+    const y = (t - 0.5) * 3.8;
+    const r = 0.3 - t * 0.14 + Math.sin(t * Math.PI) * 0.03;
+    pts.push(new THREE.Vector2(Math.max(0.06, r), y));
+  }
+  const geo = new THREE.LatheGeometry(pts, phone ? 16 : 22);
+  const p = geo.attributes.position;
   for (let i = 0; i < p.count; i++) {
     const y = p.getY(i);
-    p.setX(i, p.getX(i) + Math.sin((y + 1.7) * 0.85) * 0.14);
+    const t = (y + 1.9) / 3.8;
+    p.setX(i, p.getX(i) + Math.sin(t * Math.PI) * 0.32);
   }
-  palmTrunkGeo.computeVertexNormals();
+  geo.computeVertexNormals();
+  return geo;
 }
+const palmTrunkGeo = curvedTrunk();
 const palmSpots = [];
 for (let i = 0; i < (phone ? 8 : 12); i++) {
   const a = i * 2.399;
@@ -530,9 +541,9 @@ function buildDino() {
   body.scale.set(1, 1, 0.86);
   pivot.add(body);
 
-  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.26, SEG, 18), bellyMat);
-  belly.scale.set(1.05, 0.42, 0.48);
-  belly.position.set(0.02, 0.5, 0);
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.32, SEG, 20), bellyMat);
+  belly.scale.set(1.2, 0.72, 0.82);
+  belly.position.set(0.06, 0.58, 0.22);
   pivot.add(belly);
 
   const neck = new THREE.Group();
@@ -569,14 +580,13 @@ function buildDino() {
     plate.rotation.y = a;
     head.add(plate);
   }
-  const eyeGeo = new THREE.SphereGeometry(0.075, 18, 14);
-  const pupGeo = new THREE.SphereGeometry(0.04, 12, 10);
+  const eyeGeo = new THREE.SphereGeometry(0.11, 20, 16);
+  const pupGeo = new THREE.SphereGeometry(0.055, 14, 12);
   [-1, 1].forEach(function (s) {
     const eye = new THREE.Mesh(eyeGeo, eyeWhite);
-    eye.position.set(0.12, 0.06, s * 0.16);
-    eye.scale.z = 0.8;
+    eye.position.set(0.16, 0.08, s * 0.2);
     const pup = new THREE.Mesh(pupGeo, pupilMat);
-    pup.position.set(0.05, 0, s * 0.02);
+    pup.position.set(0.07, 0, s * 0.03);
     eye.add(pup);
     const shine = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), eyeWhite);
     shine.position.set(0.02, 0.02, s * 0.01);
@@ -598,9 +608,9 @@ function buildDino() {
   smile.rotation.z = Math.PI;
   head.add(smile);
 
-  const spikeGeo = new THREE.ConeGeometry(0.055, 0.18, 10);
+  const spikeGeo = new THREE.ConeGeometry(0.055, 0.18, 12);
   for (let i = 0; i < 5; i++) {
-    const sp = new THREE.Mesh(spikeGeo, skin);
+    const sp = new THREE.Mesh(spikeGeo, spikeMat);
     sp.position.set(-0.28 + i * 0.16, 1.02, 0);
     sp.rotation.z = -0.4;
     pivot.add(sp);
@@ -616,7 +626,7 @@ function buildDino() {
     mesh.position.x = -0.08;
     seg.add(mesh);
     if (i < 4) {
-      const sp = new THREE.Mesh(spikeGeo, skin);
+      const sp = new THREE.Mesh(spikeGeo, spikeMat);
       sp.scale.setScalar(0.7 - i * 0.08);
       sp.position.set(-0.05, 0.12, 0);
       seg.add(sp);
@@ -641,7 +651,7 @@ function buildDino() {
     const ankle = new THREE.Group();
     ankle.position.y = -0.2;
     knee.add(ankle);
-    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 10), bellyMat);
+    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 10), hornMat);
     foot.scale.set(1.3, 0.55, 1.05);
     ankle.add(foot);
     pivot.add(hip);
@@ -668,20 +678,20 @@ scene.add(dino.root);
 
 function makePlayFlower() {
   const g = new THREE.Group();
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.045, 0.42, 8), stemMat);
-  stem.position.y = 0.21;
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.7, 8), stemMat);
+  stem.position.y = 0.35;
   g.add(stem);
-  const petalGeo = new THREE.SphereGeometry(0.09, 12, 10);
+  const petalGeo = new THREE.SphereGeometry(0.16, 14, 12);
   for (let i = 0; i < 6; i++) {
     const petal = new THREE.Mesh(petalGeo, petalMat);
-    petal.scale.set(0.55, 1, 0.35);
-    petal.position.y = 0.46;
+    petal.scale.set(0.7, 1.15, 0.45);
+    petal.position.y = 0.72;
     petal.rotation.y = (i / 6) * Math.PI * 2;
-    petal.rotateZ(0.7);
+    petal.rotateZ(0.65);
     g.add(petal);
   }
-  const center = new THREE.Mesh(new THREE.SphereGeometry(0.07, 14, 10), flowerCenter);
-  center.position.y = 0.48;
+  const center = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), flowerCenter);
+  center.position.y = 0.76;
   g.add(center);
   return g;
 }
@@ -689,7 +699,7 @@ const blooms = [];
 for (let i = 0; i < 5; i++) {
   const mesh = makePlayFlower();
   mesh.position.set(4.2 + i * 2.7, 0.02, 0.05);
-  mesh.scale.setScalar(1.55);
+  mesh.scale.setScalar(2.6);
   mesh.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
   scene.add(mesh);
   blooms.push({ mesh: mesh, got: 0 });
