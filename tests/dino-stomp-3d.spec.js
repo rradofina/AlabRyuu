@@ -35,6 +35,6 @@ test("dino stomp 3d loads, unlocks, and takes a hop", async ({ page }) => {
   await page.keyboard.press("ArrowDown");
   await expect.poll(() => page.evaluate(() => document.body.dataset.action)).toBe("stomp");
   await page.locator("#restart").click();
-  await expect(page.locator("#fl")).toHaveText("Flowers 0");
+  await expect(page.locator("#fl")).toHaveText("Flowers 0 / 12");
   expect(errors, errors.join("\n")).toEqual([]);
 });

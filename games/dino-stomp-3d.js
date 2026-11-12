@@ -18,9 +18,15 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9fd8f3);
 
-const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 80);
-camera.position.set(-5.2, 3.4, 7.2);
-camera.lookAt(-0.6, 0.7, 0);
+const GOAL = 12;
+const DINO_SCALE = 1.7;
+const ROCK_SIZE = 0.72;
+const FLOWER_SCALE = 1.8;
+const RUN = 3.4;
+
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 120);
+camera.position.set(-6, 3.6, 7.4);
+const look = new THREE.Vector3();
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.7));
 const sun = new THREE.DirectionalLight(0xfff6e0, 1.3);
@@ -55,6 +61,9 @@ scene.add(beach);
 const island = new THREE.Mesh(new THREE.CylinderGeometry(9.2, 9.6, 0.45, 28), grass);
 island.position.y = 0.05;
 scene.add(island);
+const lane = new THREE.Mesh(new THREE.BoxGeometry(72, 0.35, 7), grass);
+lane.position.set(32, 0.18, 0);
+scene.add(lane);
 
 const river = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.08, 16), water);
 river.position.set(2.4, 0.32, -1.2);
@@ -178,14 +187,15 @@ for (let i = 0; i < 5; i++) {
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), petal);
   head.position.y = 0.4;
   g.add(stem, head);
-  g.position.set(4 + i * 2.6, 0.28, 0.2);
+  g.scale.setScalar(FLOWER_SCALE);
+  g.position.set(6 + i * 4.2, 0.28, 0.2);
   scene.add(g);
   blooms.push({ mesh: g, got: 0 });
 }
 const rocks = [];
 for (let i = 0; i < 4; i++) {
-  const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.32 + (i % 3) * 0.08, 0), rock);
-  mesh.position.set(5.5 + i * 3.2, 0.55, 0);
+  const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(ROCK_SIZE, 0), rock);
+  mesh.position.set(8 + i * 5.2, ROCK_SIZE, 0);
   scene.add(mesh);
   rocks.push({ mesh: mesh, smash: 0 });
 }
@@ -205,7 +215,7 @@ try {
 
 function say(msg) { sayEl.textContent = msg; }
 function hud() {
-  flEl.textContent = "Flowers " + flowers;
+  flEl.textContent = "Flowers " + flowers + " / " + GOAL;
   stEl.textContent = "Stars " + stars;
 }
 function saveStars() {
@@ -220,15 +230,16 @@ function resetWorld() {
   vy = 0;
   pose = "walk";
   poseT = 0;
+  dino.position.x = -2.4;
   rocks.forEach(function (o, i) {
     o.smash = 0;
     o.mesh.visible = true;
-    o.mesh.position.x = 5.5 + i * 3.2;
+    o.mesh.position.x = 8 + i * 5.2;
   });
   blooms.forEach(function (f, i) {
     f.got = 0;
     f.mesh.visible = true;
-    f.mesh.position.x = 4 + i * 2.6;
+    f.mesh.position.x = 6 + i * 4.2;
   });
   hud();
 }
@@ -238,7 +249,7 @@ function start() {
   winEl.classList.add("off");
   dockEl.classList.add("on");
   resetWorld();
-  say("Hop flowers. Stomp rocks!");
+  say("Get 12 flowers!");
 }
 function hop() {
   if (!running()) return;
@@ -257,10 +268,10 @@ function stompNow() {
   say("Stomp!");
 }
 function cheer() {
-  if (flowers >= 12 && play) {
+  if (flowers >= GOAL && play) {
     play = false;
     dockEl.classList.remove("on");
-    document.getElementById("winP").textContent = "Flowers " + flowers + "   Stars " + stars;
+    document.getElementById("winP").textContent = "Flowers " + flowers + " / " + GOAL;
     winEl.classList.remove("off");
     say("Dino did it!");
   }
@@ -321,10 +332,11 @@ function frame(now) {
       if (hopY <= 0) { hopY = 0; vy = 0; pose = "land"; poseT = 0; }
     } else if (pose === "land" && poseT > 0.12) pose = "walk";
     else if (pose === "stomp" && poseT > 0.24) pose = "walk";
-    const speed = 3.05;
+    dino.position.x += RUN * dt;
+    const ahead = dino.position.x;
     rocks.forEach(function (o) {
-      o.mesh.position.x -= speed * dt;
-      const near = o.mesh.position.x > -3.2 && o.mesh.position.x < -1.55 && !o.smash;
+      const dx = o.mesh.position.x - ahead;
+      const near = dx > 0.15 && dx < 1.35 && !o.smash;
       if (near && pose === "stomp") {
         o.smash = 1;
         o.mesh.visible = false;
@@ -335,21 +347,21 @@ function frame(now) {
         say("Stomp!");
         cheer();
       } else if (near && (pose === "air" || pose === "land")) {
-        o.mesh.position.x = 9.5;
+        o.mesh.position.x = ahead + 14;
         say("Hop over! Stomp next time.");
       } else if (near && pose === "walk") {
-        o.mesh.position.x = 8.4;
+        o.mesh.position.x = ahead + 12;
         say("Oops! Tap Stomp.");
       }
-      if (o.mesh.position.x < -8) {
-        o.mesh.position.x = 8.5 + Math.random() * 2;
+      if (o.mesh.position.x < ahead - 8) {
+        o.mesh.position.x = ahead + 12 + Math.random() * 4;
         o.smash = 0;
         o.mesh.visible = true;
       }
     });
     blooms.forEach(function (f) {
-      f.mesh.position.x -= speed * dt;
-      if (!f.got && f.mesh.position.x > -3.05 && f.mesh.position.x < -1.6 && (pose === "air" || pose === "land")) {
+      const dx = f.mesh.position.x - ahead;
+      if (!f.got && dx > 0.1 && dx < 1.25 && (pose === "air" || pose === "land")) {
         f.got = 1;
         f.mesh.visible = false;
         flowers += 1;
@@ -359,8 +371,8 @@ function frame(now) {
         say("Flower!");
         cheer();
       }
-      if (f.mesh.position.x < -8) {
-        f.mesh.position.x = 8.2 + Math.random();
+      if (f.mesh.position.x < ahead - 8) {
+        f.mesh.position.x = ahead + 10 + Math.random() * 3;
         f.got = 0;
         f.mesh.visible = true;
       }
@@ -368,7 +380,12 @@ function frame(now) {
   }
   const bob = pose === "walk" ? Math.sin(t * 6) * 0.04 : 0;
   dino.position.y = 0.28 + hopY + bob;
-  dino.scale.y = pose === "stomp" || pose === "crouch" ? 0.86 : 1;
+  const squat = pose === "stomp" || pose === "crouch" ? 0.86 : 1;
+  dino.scale.set(DINO_SCALE, DINO_SCALE * squat, DINO_SCALE);
+  const follow = 1 - Math.exp(-3.2 * dt);
+  camera.position.lerp(look.set(dino.position.x - 4.6, 3.1 + hopY * 0.15, 6.4), follow);
+  look.set(dino.position.x + 2.2, 0.9, 0);
+  camera.lookAt(look);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
