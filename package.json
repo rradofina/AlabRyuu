@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "test:book": "playwright test tests/book-cover.spec.js",
-    "test:hub": "playwright test tests/hub-text.spec.js"
+    "test:hub": "playwright test tests/hub-text.spec.js",
+    "test:dino3d": "playwright test tests/dino-stomp-3d.spec.js"
   },
   "devDependencies": {
     "@playwright/test": "1.55.0"
