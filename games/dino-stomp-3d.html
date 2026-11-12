@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Dino Stomp 3D</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>
+    html, body { background: #7dd3fc; }
+    #c { position: fixed; inset: 0; z-index: 1; touch-action: none; }
+    #hud b { background: #14532d; }
+    .dock button { font-size: 22px; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "../vendor/three/three.module.js" } }
+  </script>
+</head>
+<body>
+  <a class="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="fl">Flowers 0 / 12</b><b id="st">Stars 0</b></div>
+  <div id="say">Get 12 flowers!</div>
+  <div class="dock" id="dock">
+    <button type="button" id="hop">Hop</button>
+    <button type="button" id="stomp">Stomp</button>
+    <button type="button" id="restart">Restart</button>
+  </div>
+  <div class="cover" id="title">
+    <h1>Dino Stomp 3D</h1>
+    <p>Get 12 flowers. Hop the pink ones. Stomp the rocks.</p>
+    <button class="play" id="go" type="button" autofocus>Play</button>
+  </div>
+  <div class="cover off" id="win">
+    <h1>Dino did it!</h1>
+    <p id="winP">Flowers 0</p>
+    <button class="play g" id="again" type="button">Play again</button>
+  </div>
+  <script type="module" src="dino-stomp-3d.js"></script>
+</body>
+</html>
