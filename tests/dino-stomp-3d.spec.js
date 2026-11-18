@@ -38,3 +38,21 @@ test("dino stomp 3d loads, unlocks, and takes a hop", async ({ page }) => {
   await expect(page.locator("#fl")).toHaveText("Flowers 0 / 12");
   expect(errors, errors.join("\n")).toEqual([]);
 });
+
+test("asteroid ending is friendly and can play again", async ({ page }) => {
+  const errors = [];
+  page.on("pageerror", (err) => errors.push(String(err)));
+  await unlock(page);
+  await page.locator("#asteroid").click();
+  await expect.poll(() => page.evaluate(() => document.body.dataset.ending), { timeout: 12000 }).toBe("fall");
+  await expect.poll(() => page.evaluate(() => document.body.dataset.ending), { timeout: 12000 }).toBe("done");
+  await expect(page.locator("#win")).toBeVisible();
+  await expect(page.locator("#winP")).toContainText("66 million years ago");
+  await expect(page.locator("#win")).toContainText("asteroid");
+  await expect(page.locator("#win")).toContainText("volcano");
+  await page.locator("#again").click();
+  await expect(page.locator("#win")).toHaveClass(/off/);
+  await expect(page.locator("#fl")).toHaveText("Flowers 0 / 12");
+  await expect(page.locator("#dock")).toHaveClass(/on/);
+  expect(errors, errors.join("\n")).toEqual([]);
+});
