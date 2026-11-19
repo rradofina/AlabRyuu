@@ -1,7 +1,7 @@
 /* Island Friends: smooth high poly island. No chat, no typed names. */
 import * as THREE from "three";
 
-const WORLD3D_SERVER = "";
+const WORLD3D_SERVER = "wss://island-friends-production.up.railway.app";
 
 if ((location.search || "").indexOf("hub=together") >= 0) {
   document.getElementById("home").href = "/together/";
