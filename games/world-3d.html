@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      var open = false;
+      try { open = localStorage.getItem("alabryuu-open") === "1"; } catch (e) {}
+      if (open) return;
+      document.documentElement.classList.add("kid-locked");
+      var path = location.pathname || "";
+      document.documentElement.style.background = path.indexOf("/alonzorui") === 0 ? "#fff7ed" : "#1e1b4b";
+    })();
+  </script>
+  <style id="kid-lock-hide">
+    html.kid-locked, html.kid-locked body { overflow: hidden !important; height: 100% !important; }
+    html.kid-locked body { visibility: hidden !important; }
+    #kid-lock, #kid-lock * { visibility: visible !important; }
+  </style>
+  <script src="/kid-lock.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Island Friends</title>
+  <link rel="stylesheet" href="../kid.css" />
+  <style>
+    html, body { background: #8fd4f2; }
+    .cover { overflow: auto; }
+    #c { position: fixed; inset: 0; z-index: 1; touch-action: none; }
+    #hud b { background: #14532d; }
+    .picks, .colors, .letters, .emotes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .picks button, .colors button, .letters button, .emotes button, #make, #join, #alone, #room-go, #pad-back {
+      min-height: 56px; min-width: 72px; border-radius: 18px; background: #ffd166; color: #3b2100;
+      font-weight: 900; font-size: 20px; padding: 8px 12px;
+    }
+    .picks button.on, .colors button.on { outline: 5px solid #fff; }
+    .letters { max-width: 420px; }
+    .letters button { min-width: 48px; min-height: 48px; }
+    #codeShow, #roomCode { letter-spacing: 6px; }
+    .emotes { position: fixed; top: 64px; right: 10px; z-index: 40; display: none; width: min(220px, 46vw); }
+    .emotes.on { display: flex; }
+    .stick {
+      display: none; position: fixed; left: 16px; bottom: 18px; z-index: 40;
+      width: 128px; height: 128px; border-radius: 50%; background: rgba(255,255,255,.35);
+      touch-action: none;
+    }
+    #nub { width: 56px; height: 56px; border-radius: 50%; background: #fff; position: absolute; left: 36px; top: 36px; }
+    #jump {
+      display: none; position: fixed; right: 18px; bottom: 28px; z-index: 40;
+      width: 104px; height: 104px; border-radius: 50%; background: #ffd166; color: #3b2100;
+      font-weight: 900; font-size: 26px;
+    }
+    @media (max-width: 800px) {
+      .stick, #jump { display: block; }
+      #hud { top: 58px; left: 8px; right: 8px; text-align: left; }
+      #hud b { margin: 0 6px 6px 0; font-size: 16px; }
+      #say { top: 112px; font-size: 18px; }
+      .emotes { top: 164px; left: 8px; right: auto; width: auto; }
+    }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "../vendor/three/three.module.js" } }
+  </script>
+</head>
+<body>
+  <a class="home" id="home" href="../index.html">← Home</a>
+  <canvas id="c"></canvas>
+  <div id="hud"><b id="who">You</b><b id="score">Stars together 0</b></div>
+  <div id="say">Pick a friend.</div>
+  <div id="emotes" class="emotes">
+    <button type="button" data-emote="wave">Wave</button>
+    <button type="button" data-emote="heart">Heart</button>
+    <button type="button" data-emote="star">Star</button>
+    <button type="button" data-emote="laugh">Laugh</button>
+  </div>
+  <div class="stick" id="stick"><div id="nub"></div></div>
+  <button type="button" id="jump">Jump</button>
+  <div class="cover" id="title">
+    <h1>Island Friends</h1>
+    <p>Pick a friend. Collect stars together.</p>
+    <div class="picks" id="picks"></div>
+    <div class="colors" id="colors"></div>
+    <button type="button" id="make">Make a room</button>
+    <button type="button" id="join">Join a room</button>
+    <button type="button" id="alone">Play alone</button>
+  </div>
+  <div class="cover off" id="pad">
+    <p>Tap the room code.</p>
+    <h1 id="codeShow">----</h1>
+    <div class="letters" id="letters"></div>
+    <button type="button" id="pad-back">Back</button>
+  </div>
+  <div class="cover off" id="room">
+    <p>Room</p>
+    <h1 id="roomCode">----</h1>
+    <p>Tell a friend this code.</p>
+    <button class="play" id="room-go" type="button">Go play</button>
+  </div>
+  <div class="cover off" id="wake">
+    <h1>Waking up the world...</h1>
+    <p>The island is stretching. This can take a moment.</p>
+  </div>
+  <script type="module" src="world-3d.js"></script>
+</body>
+</html>
