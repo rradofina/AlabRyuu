@@ -1,0 +1,11 @@
+{
+  "name": "alabryuu-world3d",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/rooms.test.js"
+  },
+  "dependencies": {
+    "ws": "8.18.3"
+  }
+}
