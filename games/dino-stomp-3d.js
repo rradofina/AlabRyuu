@@ -1,6 +1,10 @@
 /* Dino Stomp 3D: smooth high-poly island sample. Procedural meshes, no placeholder boxes. */
 import * as THREE from "three";
 
+if ((location.search || "").indexOf("hub=together") >= 0) {
+  document.getElementById("home").href = "/together/";
+}
+
 const cv = document.getElementById("c");
 const sayEl = document.getElementById("say");
 const flEl = document.getElementById("fl");
@@ -363,12 +367,24 @@ function volcanoMesh() {
   arch.rotation.z = Math.PI;
   arch.position.set(0, 0.95, 2.05);
   const g = new THREE.Group();
-  g.add(mesh, cave, arch);
+  const craterGlow = new THREE.Mesh(
+    new THREE.SphereGeometry(0.46, 24, 16),
+    new THREE.MeshBasicMaterial({ color: 0xff7a18 })
+  );
+  craterGlow.position.set(0, 3.25, 0);
+  craterGlow.name = "glow";
+  const craterLight = new THREE.PointLight(0xff6a1a, 1.1, 14, 2);
+  craterLight.position.copy(craterGlow.position);
+  craterLight.name = "light";
+  g.add(mesh, cave, arch, craterGlow, craterLight);
   return g;
 }
 const volcano = volcanoMesh();
 volcano.position.set(13.2, heightAt(13.2, -8.2) - 0.15, -8.2);
+volcano.scale.setScalar(1.35);
 scene.add(volcano);
+const craterGlow = volcano.getObjectByName("glow");
+const craterLight = volcano.getObjectByName("light");
 
 function hut() {
   const g = new THREE.Group();
@@ -716,6 +732,59 @@ for (let i = 0; i < 4; i++) {
   rocks.push({ mesh: mesh, s: s, smash: 0 });
 }
 
+const puffCount = phone ? 8 : 14;
+const lavaCount = phone ? 12 : 22;
+const dustCount = phone ? 10 : 16;
+const smokeGeo = new THREE.SphereGeometry(0.35, 12, 10);
+const lavaGeo = new THREE.SphereGeometry(0.16, 10, 8);
+const smokes = [];
+const lavas = [];
+const dusts = [];
+function makePuff(geo, color, additive) {
+  const material = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending
+  });
+  const mesh = new THREE.Mesh(geo, material);
+  mesh.visible = false;
+  scene.add(mesh);
+  return { mesh: mesh, life: 0, max: 1, vel: new THREE.Vector3() };
+}
+for (let i = 0; i < puffCount; i++) smokes.push(makePuff(smokeGeo, 0xb7bcc2, false));
+for (let i = 0; i < lavaCount; i++) lavas.push(makePuff(lavaGeo, 0xff6a1a, true));
+for (let i = 0; i < dustCount; i++) dusts.push(makePuff(smokeGeo, 0xd9d3c7, false));
+
+const asteroid = new THREE.Mesh(
+  new THREE.SphereGeometry(2.1, phone ? 24 : 36, phone ? 18 : 28),
+  new THREE.MeshStandardMaterial({ color: 0x6b5344, emissive: 0xff5a12, emissiveIntensity: 1.4, roughness: 0.45 })
+);
+asteroid.visible = false;
+scene.add(asteroid);
+const trail = [];
+for (let i = 0; i < (phone ? 6 : 10); i++) {
+  const bit = new THREE.Mesh(
+    new THREE.SphereGeometry(0.28, 10, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffb020, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending })
+  );
+  bit.visible = false;
+  scene.add(bit);
+  trail.push(bit);
+}
+const shock = new THREE.Mesh(
+  new THREE.RingGeometry(0.4, 0.7, 40),
+  new THREE.MeshBasicMaterial({ color: 0xffe7a0, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false })
+);
+shock.rotation.x = -Math.PI / 2;
+shock.visible = false;
+scene.add(shock);
+const flashEl = document.getElementById("flash");
+const craterWorld = new THREE.Vector3();
+let smokeClock = 0;
+let ending = null;
+
 let play = false;
 let flowers = 0;
 let stars = 0;
@@ -738,7 +807,43 @@ function saveStars() {
   try { localStorage.setItem("alabryuu-dino-3d", JSON.stringify({ stars: stars })); } catch (e) {}
 }
 function running() {
-  return play && titleEl.classList.contains("off") && winEl.classList.contains("off");
+  return play && !ending && titleEl.classList.contains("off") && winEl.classList.contains("off");
+}
+function hideBits(list) {
+  list.forEach(function (p) { p.life = 0; p.mesh.visible = false; });
+}
+function spawnBit(list, origin, vel, maxLife) {
+  for (let i = 0; i < list.length; i++) {
+    const p = list[i];
+    if (p.mesh.visible) continue;
+    p.mesh.visible = true;
+    p.mesh.position.copy(origin);
+    p.vel.copy(vel);
+    p.life = 0.001;
+    p.max = maxLife;
+    return p;
+  }
+  return null;
+}
+function stepBits(list, dt, rise) {
+  list.forEach(function (p) {
+    if (!p.mesh.visible) return;
+    p.life += dt;
+    p.mesh.position.addScaledVector(p.vel, dt);
+    if (rise) p.vel.y += rise * dt;
+    const k = 1 - p.life / p.max;
+    p.mesh.material.opacity = Math.max(0, k) * 0.75;
+    p.mesh.scale.setScalar(0.6 + p.life * 1.4);
+    if (p.life >= p.max) p.mesh.visible = false;
+  });
+}
+function beginEnding() {
+  if (ending || !play) return;
+  ending = { t: 0, t0: 0, shown: false, hit: new THREE.Vector3(dino.root.position.x + 9, 0.35, 1.4) };
+  play = false;
+  dockEl.classList.remove("on");
+  document.body.dataset.ending = "rumble";
+  say("The volcano is waking up!");
 }
 function resetWorld() {
   flowers = 0;
@@ -746,6 +851,18 @@ function resetWorld() {
   vy = 0;
   pose = "walk";
   poseT = 0;
+  ending = null;
+  document.body.dataset.ending = "play";
+  flashEl.style.opacity = "0";
+  asteroid.visible = false;
+  trail.forEach(function (bit) { bit.visible = false; });
+  shock.visible = false;
+  shock.material.opacity = 0;
+  hideBits(smokes);
+  hideBits(lavas);
+  hideBits(dusts);
+  craterGlow.scale.setScalar(1);
+  craterLight.intensity = 1.1;
   dino.root.position.x = -2.45;
   camera.position.set(dino.root.position.x - 3.4, 3.15, 6.8);
   rocks.forEach(function (o, i) {
@@ -786,13 +903,13 @@ function stompNow() {
   say("Stomp!");
 }
 function cheer() {
-  if (flowers >= GOAL && play) {
-    play = false;
-    dockEl.classList.remove("on");
-    document.getElementById("winP").textContent = "Flowers " + flowers + " / " + GOAL;
-    winEl.classList.remove("off");
-    say("Dino did it!");
-  }
+  if (flowers >= GOAL && play && !ending) beginEnding();
+}
+function showEndingCard() {
+  document.getElementById("winP").textContent = "The asteroid and volcano made the dinosaurs go extinct, 66 million years ago!";
+  winEl.classList.remove("off");
+  say("BOOM!");
+  document.body.dataset.ending = "done";
 }
 
 document.getElementById("go").addEventListener("click", start);
@@ -800,6 +917,9 @@ document.getElementById("again").addEventListener("click", start);
 document.getElementById("hop").addEventListener("click", hop);
 document.getElementById("stomp").addEventListener("click", stompNow);
 document.getElementById("restart").addEventListener("click", start);
+document.getElementById("asteroid").addEventListener("click", function () {
+  if (running()) beginEnding();
+});
 addEventListener("keydown", function (e) {
   if (e.repeat) return;
   const tag = ((e.target && e.target.tagName) || "").toLowerCase();
@@ -811,7 +931,7 @@ addEventListener("keydown", function (e) {
     e.preventDefault();
     stompNow();
   } else if (e.code === "KeyR") {
-    if (running() || !winEl.classList.contains("off")) start();
+    if (play || ending || !winEl.classList.contains("off")) start();
   }
 });
 cv.addEventListener("pointerdown", function (e) {
@@ -924,6 +1044,80 @@ function frame(now) {
   } else {
     hopY += (0 - hopY) * 0.08;
   }
+  craterGlow.getWorldPosition(craterWorld);
+  smokeClock += dt;
+  const smokeEvery = ending ? 0.08 : 0.42;
+  if (smokeClock > smokeEvery) {
+    smokeClock = 0;
+    spawnBit(smokes, craterWorld, new THREE.Vector3((Math.random() - 0.5) * 0.4, 1.1 + Math.random() * 0.6, (Math.random() - 0.5) * 0.4), ending ? 2.2 : 3.2);
+  }
+  if (ending) {
+    if (!ending.t0) ending.t0 = now;
+    ending.t = (now - ending.t0) / 1000;
+    const et = ending.t;
+    const rumble = et < 1.6;
+    const erupt = et >= 1.2 && et < 2.95;
+    craterGlow.scale.setScalar(1 + Math.sin(et * 18) * (rumble || erupt ? 0.35 : 0.08));
+    craterLight.intensity = erupt ? 3.2 : rumble ? 2.1 : 1.1 + Math.sin(clockT * 2) * 0.25;
+    if (erupt && Math.random() < (phone ? 0.35 : 0.6)) {
+      spawnBit(
+        lavas,
+        craterWorld,
+        new THREE.Vector3((Math.random() - 0.5) * 3.5, 4 + Math.random() * 4, (Math.random() - 0.5) * 3.5),
+        0.9
+      );
+    }
+    if (et < 1.6) document.body.dataset.ending = "rumble";
+    else if (et < 3.1) document.body.dataset.ending = "erupt";
+    if (et >= 3.05 && et < 4.7) {
+      if (document.body.dataset.ending !== "fall") say("Look up! An asteroid!");
+      document.body.dataset.ending = "fall";
+      const u = (et - 3.05) / 1.65;
+      const ease = u * u;
+      asteroid.visible = true;
+      asteroid.position.set(
+        ending.hit.x + (1 - ease) * -2,
+        12 * (1 - ease) + ending.hit.y * ease,
+        ending.hit.z - 8 * (1 - ease)
+      );
+      trail.forEach(function (bit, i) {
+        bit.visible = true;
+        bit.position.copy(asteroid.position);
+        bit.position.y += 0.8 + i * 0.7;
+        bit.position.z -= 0.4 + i * 0.55;
+        bit.material.opacity = 0.9 - i * 0.06;
+        bit.scale.setScalar(1.15 - i * 0.07);
+      });
+    }
+    if (et >= 4.7 && et < 6.3) {
+      document.body.dataset.ending = "boom";
+      asteroid.visible = false;
+      trail.forEach(function (bit) { bit.visible = false; });
+      const boom = (et - 4.7) / 1.6;
+      flashEl.style.opacity = String(Math.max(0, 1 - boom));
+      shock.visible = true;
+      shock.position.set(ending.hit.x, 0.4, ending.hit.z);
+      shock.scale.setScalar(1 + boom * 14);
+      shock.material.opacity = Math.max(0, 0.85 - boom);
+      if (Math.random() < 0.5) {
+        spawnBit(
+          dusts,
+          ending.hit,
+          new THREE.Vector3((Math.random() - 0.5) * 6, 0.4 + Math.random() * 2, (Math.random() - 0.5) * 6),
+          1.8
+        );
+      }
+    }
+    if (et >= 6.3 && !ending.shown) {
+      ending.shown = true;
+      shock.visible = false;
+      flashEl.style.opacity = "0";
+      showEndingCard();
+    }
+  }
+  stepBits(smokes, dt, 0.15);
+  stepBits(lavas, dt, -6);
+  stepBits(dusts, dt, 0.4);
   animateDino(clockT);
   palmSpots.forEach(function (tree, i) {
     for (let k = 0; k < 7; k++) {
@@ -942,9 +1136,24 @@ function frame(now) {
   });
   frondIM.instanceMatrix.needsUpdate = true;
   const follow = 1 - Math.exp(-3.2 * dt);
-  camTarget.set(dino.root.position.x - 3.4, 3.15 + hopY * 0.12, 6.8);
+  if (ending && ending.t < 6.3) {
+    camTarget.set(dino.root.position.x - 2.2, 4.4, 9.2);
+    if (ending.t >= 3.05 && asteroid.visible) {
+      lookTarget.copy(asteroid.position);
+      camTarget.set(dino.root.position.x - 1.2, 2.4, 8.5);
+    } else {
+      lookTarget.copy(volcano.position);
+      lookTarget.y += 2.2;
+    }
+    if (ending.t < 3.1 || (ending.t > 4.6 && ending.t < 5.5)) {
+      camTarget.x += Math.sin(ending.t * 42) * 0.12;
+      camTarget.y += Math.cos(ending.t * 36) * 0.08;
+    }
+  } else {
+    camTarget.set(dino.root.position.x - 3.4, 3.15 + hopY * 0.12, 6.8);
+    lookTarget.set(dino.root.position.x + 1.6, 0.75, 0);
+  }
   camera.position.lerp(camTarget, follow);
-  lookTarget.set(dino.root.position.x + 1.6, 0.75, 0);
   camera.lookAt(lookTarget);
   waterUniforms.uTime.value = clockT;
   waterUniforms.uCam.value.copy(camera.position);
